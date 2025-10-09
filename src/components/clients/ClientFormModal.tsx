@@ -76,7 +76,6 @@ interface ClientFormModalProps {
 }
 
 export function ClientFormModal({ open, onOpenChange, client, onSuccess }: ClientFormModalProps) {
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [fetchingCep, setFetchingCep] = useState(false);
   const { toast } = useToast();
@@ -132,9 +131,6 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         address_city: '',
         address_state: '',
       });
-    }
-    if (open) {
-      setStep(1);
     }
   }, [client, open]);
 
@@ -219,29 +215,6 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
     }
   };
 
-  const nextStep = async () => {
-    const fields = getFieldsForStep(step);
-    const isValid = await form.trigger(fields as any);
-    if (isValid) setStep(step + 1);
-  };
-
-  const getFieldsForStep = (currentStep: number) => {
-    switch (currentStep) {
-      case 1:
-        return clientType === 'person'
-          ? ['client_type', 'full_name', 'cpf_cnpj']
-          : ['client_type', 'company_name', 'cpf_cnpj', 'responsible_name'];
-      case 2:
-        return ['email', 'phone'];
-      case 3:
-        return ['birth_date', 'gender'];
-      case 4:
-        return ['address_cep', 'address_street', 'address_number'];
-      default:
-        return [];
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -251,26 +224,10 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
           </DialogTitle>
         </DialogHeader>
 
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-between mb-6">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex items-center flex-1">
-              <div
-                className={cn(
-                  'h-2 rounded-full transition-colors',
-                  s <= step ? 'bg-primary' : 'bg-muted',
-                  s < 4 ? 'flex-1' : 'w-8'
-                )}
-              />
-              {s < 4 && <div className="w-2" />}
-            </div>
-          ))}
-        </div>
-
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Step 1: Basic Info */}
-          {step === 1 && (
-            <div className="space-y-4">
+          {/* Basic Info */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Informações Básicas</h3>
               <div>
                 <Label>Tipo de Cliente</Label>
                 <RadioGroup
@@ -353,12 +310,11 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   </div>
                 </>
               )}
-            </div>
-          )}
+          </div>
 
-          {/* Step 2: Contact */}
-          {step === 2 && (
-            <div className="space-y-4">
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Contato</h3>
               <div>
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -387,12 +343,12 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   </p>
                 )}
               </div>
-            </div>
-          )}
+          </div>
 
-          {/* Step 3: Personal Data */}
-          {step === 3 && clientType === 'person' && (
+          {/* Personal Data - Only for person type */}
+          {clientType === 'person' && (
             <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground border-b pb-2">Dados Pessoais</h3>
               <div>
                 <Label>Data de Nascimento</Label>
                 <Popover>
@@ -447,9 +403,9 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
             </div>
           )}
 
-          {/* Step 4: Address */}
-          {step === (clientType === 'person' ? 4 : 3) && (
-            <div className="space-y-4">
+          {/* Address Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Endereço</h3>
               <div>
                 <Label htmlFor="address_cep">CEP</Label>
                 <div className="flex gap-2">
@@ -514,26 +470,17 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   />
                 </div>
               </div>
-            </div>
-          )}
+          </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-4 border-t">
-            {step > 1 && (
-              <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
-                Voltar
-              </Button>
-            )}
-            {step < (clientType === 'person' ? 4 : 3) ? (
-              <Button type="button" onClick={nextStep} className="ml-auto">
-                Próximo
-              </Button>
-            ) : (
-              <Button type="submit" disabled={loading} className="ml-auto">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {client ? 'Atualizar' : 'Cadastrar'}
-              </Button>
-            )}
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4 border-t gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {client ? 'Atualizar' : 'Cadastrar'}
+            </Button>
           </div>
         </form>
       </DialogContent>
