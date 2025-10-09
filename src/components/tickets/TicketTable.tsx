@@ -132,9 +132,9 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange }: Ticke
                   onValueChange={(value) => onPriorityChange(ticket.id, value)}
                 >
                   <SelectTrigger className="w-[120px]">
-                    <Badge className={getPriorityColor(ticket.priority)}>
+                    <span className={getPriorityColor(ticket.priority)}>
                       {getPriorityLabel(ticket.priority)}
-                    </Badge>
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Baixa</SelectItem>
@@ -150,9 +150,9 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange }: Ticke
                   onValueChange={(value) => onStatusChange(ticket.id, value)}
                 >
                   <SelectTrigger className="w-[140px]">
-                    <Badge className={getStatusColor(ticket.status)}>
+                    <span className={getStatusColor(ticket.status)}>
                       {getStatusLabel(ticket.status)}
-                    </Badge>
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="open">Aberto</SelectItem>
