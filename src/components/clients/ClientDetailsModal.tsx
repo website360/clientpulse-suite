@@ -131,7 +131,7 @@ export function ClientDetailsModal({ open, onOpenChange, client }: ClientDetails
                         <p className="text-sm text-muted-foreground">
                           {client.client_type === 'person' ? 'CPF' : 'CNPJ'}
                         </p>
-                        <p className="font-medium font-mono">{formatCpfCnpj(client.cpf_cnpj)}</p>
+                        <p className="font-medium">{formatCpfCnpj(client.cpf_cnpj)}</p>
                       </div>
                     </div>
                   )}
