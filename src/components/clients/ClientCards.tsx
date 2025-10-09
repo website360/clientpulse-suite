@@ -75,7 +75,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
               {client.cpf_cnpj && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="h-4 w-4" />
-                  <span className="font-mono text-xs">
+                  <span className="text-xs">
                     {client.client_type === 'person' ? 'CPF' : 'CNPJ'}: {client.cpf_cnpj}
                   </span>
                 </div>

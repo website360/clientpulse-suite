@@ -89,7 +89,7 @@ export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTablePr
               </TableCell>
               <TableCell className="text-sm">{client.email}</TableCell>
               <TableCell className="text-sm">{formatPhone(client.phone)}</TableCell>
-              <TableCell className="text-sm font-mono">
+              <TableCell className="text-sm">
                 {formatCpfCnpj(client.cpf_cnpj)}
               </TableCell>
               <TableCell>
