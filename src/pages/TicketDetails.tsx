@@ -55,11 +55,6 @@ export default function TicketDetails() {
             id,
             name,
             color
-          ),
-          profiles!tickets_created_by_fkey (
-            id,
-            full_name,
-            email
           )
         `)
         .eq('id', id)
@@ -85,7 +80,7 @@ export default function TicketDetails() {
         .from('ticket_messages')
         .select(`
           *,
-          profiles!ticket_messages_user_id_fkey (
+          profiles (
             full_name,
             email
           )
