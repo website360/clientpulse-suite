@@ -41,8 +41,7 @@ export default function Tickets() {
         .select(`
           *,
           clients (full_name, company_name, email),
-          departments (name, color),
-          profiles!tickets_created_by_fkey (full_name)
+          departments (name, color)
         `)
         .order('created_at', { ascending: false });
 
