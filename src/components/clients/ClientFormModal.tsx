@@ -34,32 +34,36 @@ import { useToast } from '@/hooks/use-toast';
 
 const clientSchema = z.object({
   client_type: z.enum(['person', 'company']),
-  full_name: z.string().max(200).optional(),
-  company_name: z.string().max(200).optional(),
-  cpf_cnpj: z.string().optional(),
+  full_name: z.string().max(200).optional().nullable(),
+  company_name: z.string().max(200).optional().nullable(),
+  cpf_cnpj: z.string().optional().nullable(),
   email: z.string().email('Email inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
-  responsible_name: z.string().optional(),
-  birth_date: z.date().optional(),
-  gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional(),
-  address_cep: z.string().optional(),
-  address_street: z.string().optional(),
-  address_number: z.string().optional(),
-  address_complement: z.string().optional(),
-  address_neighborhood: z.string().optional(),
-  address_city: z.string().optional(),
-  address_state: z.string().optional(),
-}).refine((data) => {
-  if (data.client_type === 'person') {
-    return !!data.full_name && data.full_name.trim().length > 0;
+  responsible_name: z.string().optional().nullable(),
+  birth_date: z.date().optional().nullable(),
+  gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional().nullable(),
+  address_cep: z.string().optional().nullable(),
+  address_street: z.string().optional().nullable(),
+  address_number: z.string().optional().nullable(),
+  address_complement: z.string().optional().nullable(),
+  address_neighborhood: z.string().optional().nullable(),
+  address_city: z.string().optional().nullable(),
+  address_state: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.client_type === 'person' && (!data.full_name || data.full_name.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Nome é obrigatório',
+      path: ['full_name'],
+    });
   }
-  if (data.client_type === 'company') {
-    return !!data.company_name && data.company_name.trim().length > 0;
+  if (data.client_type === 'company' && (!data.company_name || data.company_name.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Razão Social é obrigatória',
+      path: ['company_name'],
+    });
   }
-  return false;
-}, {
-  message: 'Nome ou Razão Social é obrigatório',
-  path: ['full_name'],
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -90,20 +94,48 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
   const clientType = form.watch('client_type');
 
   useEffect(() => {
-    if (client) {
+    if (client && open) {
       form.reset({
-        ...client,
+        client_type: client.client_type,
+        full_name: client.full_name || '',
+        company_name: client.company_name || '',
+        cpf_cnpj: client.cpf_cnpj || '',
+        email: client.email,
+        phone: client.phone,
+        responsible_name: client.responsible_name || '',
         birth_date: client.birth_date ? new Date(client.birth_date) : undefined,
+        gender: client.gender || undefined,
+        address_cep: client.address_cep || '',
+        address_street: client.address_street || '',
+        address_number: client.address_number || '',
+        address_complement: client.address_complement || '',
+        address_neighborhood: client.address_neighborhood || '',
+        address_city: client.address_city || '',
+        address_state: client.address_state || '',
       });
-    } else {
+    } else if (open) {
       form.reset({
         client_type: 'person',
         full_name: '',
+        company_name: '',
+        cpf_cnpj: '',
         email: '',
         phone: '',
+        responsible_name: '',
+        birth_date: undefined,
+        gender: undefined,
+        address_cep: '',
+        address_street: '',
+        address_number: '',
+        address_complement: '',
+        address_neighborhood: '',
+        address_city: '',
+        address_state: '',
       });
     }
-    setStep(1);
+    if (open) {
+      setStep(1);
+    }
   }, [client, open]);
 
   const fetchAddressByCep = async (cep: string) => {
