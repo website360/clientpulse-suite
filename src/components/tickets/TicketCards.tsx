@@ -25,6 +25,7 @@ export function TicketCards({ tickets, onStatusChange, onPriorityChange }: Ticke
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
+        return 'badge-priority-urgent';
       case 'high':
         return 'badge-priority-high';
       case 'medium':

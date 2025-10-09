@@ -194,17 +194,21 @@ All colors MUST be HSL.
     transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Badge styles */
+  /* Badge styles - Priorities */
+  .badge-priority-urgent {
+    @apply bg-red-600/20 text-red-600 border border-red-600/40 px-2 py-1 rounded-md text-xs font-semibold;
+  }
+  
   .badge-priority-high {
-    @apply bg-error/10 text-error border border-error/20 px-2 py-1 rounded-md text-xs font-medium;
+    @apply bg-orange-500/20 text-orange-600 border border-orange-500/40 px-2 py-1 rounded-md text-xs font-medium;
   }
   
   .badge-priority-medium {
-    @apply bg-warning/10 text-warning border border-warning/20 px-2 py-1 rounded-md text-xs font-medium;
+    @apply bg-yellow-500/20 text-yellow-700 border border-yellow-500/40 px-2 py-1 rounded-md text-xs font-medium;
   }
   
   .badge-priority-low {
-    @apply bg-success/10 text-success border border-success/20 px-2 py-1 rounded-md text-xs font-medium;
+    @apply bg-blue-500/20 text-blue-600 border border-blue-500/40 px-2 py-1 rounded-md text-xs font-medium;
   }
   
   .badge-status-open {
