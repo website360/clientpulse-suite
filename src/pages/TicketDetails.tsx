@@ -233,12 +233,12 @@ export default function TicketDetails() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Badge className={getPriorityColor(ticket.priority)}>
+            <span className={getPriorityColor(ticket.priority)}>
               {getPriorityLabel(ticket.priority)}
-            </Badge>
-            <Badge className={getStatusColor(ticket.status)}>
+            </span>
+            <span className={getStatusColor(ticket.status)}>
               {getStatusLabel(ticket.status)}
-            </Badge>
+            </span>
           </div>
         </div>
 
