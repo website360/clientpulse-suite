@@ -34,8 +34,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const clientSchema = z.object({
   client_type: z.enum(['person', 'company']),
-  full_name: z.string().min(1, 'Nome é obrigatório').max(200),
-  company_name: z.string().optional(),
+  full_name: z.string().max(200).optional(),
+  company_name: z.string().max(200).optional(),
   cpf_cnpj: z.string().optional(),
   email: z.string().email('Email inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
@@ -49,6 +49,17 @@ const clientSchema = z.object({
   address_neighborhood: z.string().optional(),
   address_city: z.string().optional(),
   address_state: z.string().optional(),
+}).refine((data) => {
+  if (data.client_type === 'person') {
+    return !!data.full_name && data.full_name.trim().length > 0;
+  }
+  if (data.client_type === 'company') {
+    return !!data.company_name && data.company_name.trim().length > 0;
+  }
+  return false;
+}, {
+  message: 'Nome ou Razão Social é obrigatório',
+  path: ['full_name'],
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -123,21 +134,21 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
 
       const payload: any = {
         client_type: data.client_type,
-        full_name: data.full_name,
-        company_name: data.company_name,
-        cpf_cnpj: data.cpf_cnpj,
+        full_name: data.client_type === 'person' ? data.full_name : null,
+        company_name: data.client_type === 'company' ? data.company_name : null,
+        cpf_cnpj: data.cpf_cnpj || null,
         email: data.email,
         phone: data.phone,
-        responsible_name: data.responsible_name,
-        gender: data.gender,
+        responsible_name: data.responsible_name || null,
+        gender: data.gender || null,
         birth_date: data.birth_date ? format(data.birth_date, 'yyyy-MM-dd') : null,
-        address_cep: data.address_cep,
-        address_street: data.address_street,
-        address_number: data.address_number,
-        address_complement: data.address_complement,
-        address_neighborhood: data.address_neighborhood,
-        address_city: data.address_city,
-        address_state: data.address_state,
+        address_cep: data.address_cep || null,
+        address_street: data.address_street || null,
+        address_number: data.address_number || null,
+        address_complement: data.address_complement || null,
+        address_neighborhood: data.address_neighborhood || null,
+        address_city: data.address_city || null,
+        address_state: data.address_state || null,
       };
 
       if (client) {
@@ -280,6 +291,16 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                       {...form.register('company_name')}
                       placeholder="Empresa LTDA"
                     />
+                    {form.formState.errors.company_name && (
+                      <p className="text-sm text-error mt-1">
+                        {form.formState.errors.company_name.message}
+                      </p>
+                    )}
+                    {form.formState.errors.full_name && (
+                      <p className="text-sm text-error mt-1">
+                        {form.formState.errors.full_name.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="cpf_cnpj">CNPJ</Label>
