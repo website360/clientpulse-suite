@@ -262,7 +262,7 @@ export default function TicketDetails() {
             {/* Messages */}
             <Card className="card-elevated">
               <CardHeader>
-                <CardTitle>Mensagens</CardTitle>
+                <CardTitle>Conversa</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {messages.length === 0 ? (
@@ -270,30 +270,33 @@ export default function TicketDetails() {
                     Nenhuma mensagem ainda
                   </p>
                 ) : (
-                  messages.map((message) => (
-                    <div key={message.id} className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-sm">
-                              {message.profiles?.full_name || 'Usuário'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <Card key={message.id} className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-semibold text-sm">
+                                  {message.profiles?.full_name || 'Usuário'}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              </div>
+                              <p className="text-sm whitespace-pre-wrap">
+                                {message.message}
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {message.message}
-                          </p>
-                        </div>
-                      </div>
-                      <Separator />
-                    </div>
-                  ))
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
 
                 {/* New Message */}
-                <div className="space-y-2 pt-4">
+                <div className="space-y-2 pt-4 border-t">
                   <Textarea
                     placeholder="Escreva sua mensagem..."
                     value={newMessage}
