@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
-import { Ticket, CheckCircle, Clock, Users } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { TicketsLineChart } from '@/components/charts/TicketsLineChart';
+import { PriorityPieChart } from '@/components/charts/PriorityPieChart';
+import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 
 interface DashboardStats {
   openTickets: number;
@@ -23,6 +27,51 @@ export default function Dashboard() {
     totalClients: 0,
   });
   const [recentTickets, setRecentTickets] = useState<any[]>([]);
+
+  // Mock data for charts - will be replaced with real data
+  const lineChartData = [
+    { date: '01/10', tickets: 12 },
+    { date: '02/10', tickets: 19 },
+    { date: '03/10', tickets: 15 },
+    { date: '04/10', tickets: 25 },
+    { date: '05/10', tickets: 22 },
+    { date: '06/10', tickets: 30 },
+    { date: '07/10', tickets: 28 },
+  ];
+
+  const pieChartData = [
+    { name: 'Low', value: 10 },
+    { name: 'Medium', value: 25 },
+    { name: 'High', value: 15 },
+    { name: 'Urgent', value: 8 },
+  ];
+
+  const activities = [
+    {
+      id: '1',
+      type: 'message' as const,
+      description: 'Respondeu ao ticket sobre problema de login',
+      user: 'Admin',
+      timestamp: '5 min atrás',
+      ticketNumber: '1234',
+    },
+    {
+      id: '2',
+      type: 'status_change' as const,
+      description: 'Marcou ticket como resolvido',
+      user: 'Admin',
+      timestamp: '15 min atrás',
+      ticketNumber: '1233',
+    },
+    {
+      id: '3',
+      type: 'ticket_created' as const,
+      description: 'Criou um novo ticket',
+      user: 'João Silva',
+      timestamp: '1 hora atrás',
+      ticketNumber: '1235',
+    },
+  ];
 
   useEffect(() => {
     fetchDashboardData();
@@ -92,11 +141,20 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Visão geral do sistema de suporte
-          </p>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-primary-foreground shadow-lg">
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-2">Bem-vindo de volta! 👋</h1>
+            <p className="text-primary-foreground/90 text-lg mb-6">
+              Gerencie seus tickets e clientes de forma eficiente
+            </p>
+            <Button size="lg" variant="secondary" className="gap-2">
+              <Plus className="h-4 w-4" />
+              {userRole === 'admin' ? 'Novo Cliente' : 'Novo Ticket'}
+            </Button>
+          </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         </div>
 
         {/* KPI Cards */}
@@ -127,47 +185,57 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Recent Activity */}
-        <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle>Tickets Recentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentTickets.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Nenhum ticket encontrado
-                </p>
-              ) : (
-                recentTickets.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">#{ticket.ticket_number}</span>
-                        <Badge className={getPriorityBadge(ticket.priority)}>
-                          {ticket.priority}
-                        </Badge>
-                        <Badge className={getStatusBadge(ticket.status)}>
-                          {ticket.status}
-                        </Badge>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TicketsLineChart data={lineChartData} />
+          <PriorityPieChart data={pieChartData} />
+        </div>
+
+        {/* Activity and Recent Tickets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ActivityTimeline activities={activities} />
+          
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Tickets Recentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentTickets.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8 text-sm">
+                    Nenhum ticket encontrado
+                  </p>
+                ) : (
+                  recentTickets.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-all hover:shadow-md cursor-pointer"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium">#{ticket.ticket_number}</span>
+                          <Badge className={getPriorityBadge(ticket.priority)}>
+                            {ticket.priority}
+                          </Badge>
+                          <Badge className={getStatusBadge(ticket.status)}>
+                            {ticket.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-foreground">{ticket.subject}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {ticket.clients?.company_name || ticket.clients?.full_name}
+                        </p>
                       </div>
-                      <p className="text-sm text-foreground">{ticket.subject}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {ticket.clients?.company_name || ticket.clients?.full_name}
-                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Building2 } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Building2, Moon, Sun } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -12,11 +12,32 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const { userRole } = useAuth();
   const collapsed = state === 'collapsed';
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+  }, []);
+
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    if (newIsDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const adminItems = [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -33,8 +54,14 @@ export function AppSidebar() {
 
   const items = userRole === 'admin' ? adminItems : clientItems;
 
+  // Mock badge counts - will be replaced with real data
+  const badgeCounts: Record<string, number> = {
+    'Tickets': 5,
+    'Meus Tickets': 3,
+  };
+
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
@@ -67,7 +94,16 @@ export function AppSidebar() {
                       }
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span>{item.title}</span>
+                          {badgeCounts[item.title] && (
+                            <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
+                              {badgeCounts[item.title]}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -76,6 +112,23 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <div className="mt-auto p-4 border-t border-sidebar-border">
+        <Button
+          variant="ghost"
+          size={collapsed ? "icon" : "default"}
+          onClick={toggleTheme}
+          className="w-full justify-start"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {!collapsed && <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>}
+        </Button>
+        {!collapsed && (
+          <div className="mt-2 text-xs text-muted-foreground text-center">
+            v1.0.0
+          </div>
+        )}
+      </div>
     </Sidebar>
   );
 }
