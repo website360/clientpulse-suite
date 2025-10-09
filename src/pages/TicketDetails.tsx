@@ -76,20 +76,36 @@ export default function TicketDetails() {
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar mensagens
+      const { data: messagesData, error: messagesError } = await supabase
         .from('ticket_messages')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('ticket_id', id)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setMessages(data || []);
+      if (messagesError) throw messagesError;
+
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        return;
+      }
+
+      // Buscar perfis dos usuários
+      const userIds = [...new Set(messagesData.map(m => m.user_id))];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combinar mensagens com perfis
+      const messagesWithProfiles = messagesData.map(message => ({
+        ...message,
+        profiles: profilesData?.find(p => p.id === message.user_id) || null
+      }));
+
+      setMessages(messagesWithProfiles);
     } catch (error: any) {
       console.error('Error fetching messages:', error);
     }
