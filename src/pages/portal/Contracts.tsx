@@ -142,6 +142,7 @@ export default function ClientContracts() {
                 <TableHead>Serviço</TableHead>
                 <TableHead>Valor</TableHead>
                 <TableHead>Meio de Pagamento</TableHead>
+                <TableHead>Condições</TableHead>
                 <TableHead>Início</TableHead>
                 <TableHead>Término</TableHead>
                 <TableHead>Status</TableHead>
@@ -151,7 +152,7 @@ export default function ClientContracts() {
             <TableBody>
               {contracts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     Nenhum contrato encontrado
                   </TableCell>
                 </TableRow>
@@ -161,6 +162,7 @@ export default function ClientContracts() {
                     <TableCell className="font-medium">{(contract as any).services.name}</TableCell>
                     <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
                     <TableCell>{(contract as any).payment_methods?.name || '-'}</TableCell>
+                    <TableCell>{(contract as any).payment_terms || '-'}</TableCell>
                     <TableCell>
                       {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
