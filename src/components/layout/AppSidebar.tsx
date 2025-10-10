@@ -16,6 +16,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import logoIconLight from '@/assets/logo-icon-light.png';
+import logoIconDark from '@/assets/logo-icon-dark.png';
+import logoLight from '@/assets/logo-light.png';
+import logoDark from '@/assets/logo-dark.png';
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -28,6 +32,19 @@ export function AppSidebar() {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
     fetchTicketCount();
+
+    // Observer para mudanças no tema
+    const observer = new MutationObserver(() => {
+      const newIsDark = document.documentElement.classList.contains('dark');
+      setIsDark(newIsDark);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const fetchTicketCount = async () => {
@@ -78,14 +95,18 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">CP</span>
-          </div>
-          {!collapsed && (
-            <div>
-              <h2 className="font-semibold text-sm">ClientPulse</h2>
-              <p className="text-xs text-muted-foreground">Suite</p>
-            </div>
+          {collapsed ? (
+            <img 
+              src={isDark ? logoIconDark : logoIconLight} 
+              alt="AgênciaMay" 
+              className="h-8 w-8"
+            />
+          ) : (
+            <img 
+              src={isDark ? logoDark : logoLight} 
+              alt="AgênciaMay" 
+              className="h-8 w-auto"
+            />
           )}
         </div>
       </div>
