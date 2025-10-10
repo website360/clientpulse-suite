@@ -75,3 +75,41 @@ export const formatCEP = (cep: string): string => {
   }
   return cep;
 };
+
+export const maskDate = (value: string): string => {
+  if (!value) return '';
+  const cleaned = value.replace(/\D/g, '');
+  return cleaned
+    .replace(/(\d{2})(\d{0,2})/, '$1/$2')
+    .replace(/(\d{2})\/(\d{2})(\d{0,4})/, '$1/$2/$3')
+    .replace(/\/$/, '');
+};
+
+export const parseDateBR = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return null;
+  
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const year = parseInt(parts[2], 10);
+  
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  if (year < 1900 || year > new Date().getFullYear()) return null;
+  
+  const date = new Date(year, month, day);
+  if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+    return null;
+  }
+  
+  return date;
+};
+
+export const formatDateBR = (date: Date | null | undefined): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};

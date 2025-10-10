@@ -19,19 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { CalendarIcon, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { maskPhone, maskCEP, maskCPF, maskCNPJ } from '@/lib/masks';
+import { maskPhone, maskCEP, maskCPF, maskCNPJ, maskDate, parseDateBR, formatDateBR } from '@/lib/masks';
 
 const clientSchema = z.object({
   client_type: z.enum(['person', 'company']),
@@ -92,6 +84,7 @@ interface ClientFormModalProps {
 export function ClientFormModal({ open, onOpenChange, client, onSuccess }: ClientFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [fetchingCep, setFetchingCep] = useState(false);
+  const [birthDateInput, setBirthDateInput] = useState('');
   const { toast } = useToast();
 
   const form = useForm<ClientFormData>({
@@ -125,6 +118,7 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         address_city: client.address_city || '',
         address_state: client.address_state || '',
       });
+      setBirthDateInput(client.birth_date ? formatDateBR(new Date(client.birth_date)) : '');
     } else if (open) {
       form.reset({
         client_type: 'person',
@@ -143,6 +137,7 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         address_city: '',
         address_state: '',
       });
+      setBirthDateInput('');
     }
   }, [client, open]);
 
@@ -180,7 +175,7 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         email: data.email,
         phone: data.phone,
         responsible_name: data.responsible_name || null,
-        birth_date: data.birth_date ? format(data.birth_date, 'yyyy-MM-dd') : null,
+        birth_date: data.birth_date ? data.birth_date.toISOString().split('T')[0] : null,
         address_cep: data.address_cep || null,
         address_street: data.address_street || null,
         address_number: data.address_number || null,
@@ -298,43 +293,22 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                 </div>
                 <div>
                   <Label>Data de Nascimento</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="date"
-                      value={form.watch('birth_date') ? format(form.watch('birth_date')!, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          form.setValue('birth_date', new Date(e.target.value));
-                        } else {
-                          form.setValue('birth_date', undefined);
+                  <Input
+                    value={birthDateInput}
+                    onChange={(e) => {
+                      const masked = maskDate(e.target.value);
+                      setBirthDateInput(masked);
+                      
+                      if (masked.length === 10) {
+                        const date = parseDateBR(masked);
+                        if (date) {
+                          form.setValue('birth_date', date);
                         }
-                      }}
-                      className="flex-1"
-                    />
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          type="button"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={form.watch('birth_date')}
-                          onSelect={(date) => form.setValue('birth_date', date)}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date('1900-01-01')
-                          }
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                      }
+                    }}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                  />
                 </div>
               </>
             ) : (
