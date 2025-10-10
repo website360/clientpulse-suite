@@ -9,8 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
-import authLogoLight from '@/assets/logo-icon-light.png';
-import authLogoDark from '@/assets/logo-icon-dark.png';
 
 export default function Auth() {
   const { user, signIn, signUp } = useAuth();
@@ -18,8 +16,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [authLogo, setAuthLogo] = useState<{ light: string; dark: string }>({
-    light: authLogoLight,
-    dark: authLogoDark,
+    light: logoLight,
+    dark: logoDark,
   });
 
   useEffect(() => {
@@ -27,12 +25,12 @@ export default function Auth() {
     setIsDark(isDarkMode);
 
     // Carregar logos customizados do localStorage
-    const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
-    const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
+    const customAuthLogoLight = localStorage.getItem('app-logo-light');
+    const customAuthLogoDark = localStorage.getItem('app-logo-dark');
     
     setAuthLogo({
-      light: customAuthLogoLight || authLogoLight,
-      dark: customAuthLogoDark || authLogoDark,
+      light: customAuthLogoLight || logoLight,
+      dark: customAuthLogoDark || logoDark,
     });
 
     // Observer para mudanças no tema
