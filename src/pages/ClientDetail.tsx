@@ -9,6 +9,7 @@ import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
+import { TicketTable } from '@/components/tickets/TicketTable';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -21,9 +22,12 @@ export default function ClientDetail() {
   const [loading, setLoading] = useState(true);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [breadcrumbLabel, setBreadcrumbLabel] = useState<string>('');
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
 
   useEffect(() => {
     fetchClient();
+    fetchClientTickets();
   }, [id]);
 
   const fetchClient = async () => {
@@ -38,10 +42,9 @@ export default function ClientDetail() {
       if (error) throw error;
       setClient(data);
       
-      // Set breadcrumb label
-      const label = data.client_type === 'person' 
-        ? (data.responsible_name || data.full_name)
-        : (data.responsible_name || data.company_name);
+      // Set breadcrumb label to responsible_name (apelido)
+      const label = data.responsible_name || 
+        (data.client_type === 'person' ? data.full_name : data.company_name);
       setBreadcrumbLabel(label || 'Cliente');
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -52,6 +55,83 @@ export default function ClientDetail() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClientTickets = async () => {
+    try {
+      setLoadingTickets(true);
+      const { data, error } = await supabase
+        .from('tickets')
+        .select(`
+          *,
+          clients(full_name, company_name, email),
+          departments(name, color)
+        `)
+        .eq('client_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTickets(data || []);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      toast({
+        title: 'Erro ao carregar tickets',
+        description: 'Não foi possível carregar os tickets do cliente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
+  const handleStatusChange = async (ticketId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'Status atualizado',
+        description: 'O status do ticket foi atualizado com sucesso.',
+      });
+      
+      fetchClientTickets();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar o status do ticket.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePriorityChange = async (ticketId: string, newPriority: string) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ priority: newPriority as 'low' | 'medium' | 'high' | 'urgent' })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+      
+      toast({
+        title: 'Prioridade atualizada',
+        description: 'A prioridade do ticket foi atualizada com sucesso.',
+      });
+      
+      fetchClientTickets();
+    } catch (error) {
+      console.error('Error updating priority:', error);
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar a prioridade do ticket.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -86,9 +166,12 @@ export default function ClientDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {client.client_type === 'person' ? client.full_name : client.company_name}
+                {client.responsible_name || (client.client_type === 'person' ? client.full_name : client.company_name)}
               </h1>
-              <div className="flex items-center gap-2 mt-1">
+              <p className="text-muted-foreground mt-1">
+                {client.responsible_name && (client.client_type === 'person' ? client.full_name : client.company_name)}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
                 <Badge variant={client.client_type === 'person' ? 'default' : 'secondary'}>
                   {client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica'}
                 </Badge>
@@ -209,15 +292,20 @@ export default function ClientDetail() {
             </div>
           </TabsContent>
 
-          <TabsContent value="tickets">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tickets do Cliente</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Em breve...</p>
-              </CardContent>
-            </Card>
+          <TabsContent value="tickets" className="space-y-4">
+            {loadingTickets ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Carregando tickets...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <TicketTable
+                tickets={tickets}
+                onStatusChange={handleStatusChange}
+                onPriorityChange={handlePriorityChange}
+              />
+            )}
           </TabsContent>
         </Tabs>
 
