@@ -547,12 +547,15 @@ export default function ClientTicketDetails() {
                 {/* New Message */}
                 {canResolve && (
                   <div className="space-y-2 pt-4 border-t">
-                    <ReactQuill
-                      theme="snow"
-                      value={newMessageHtml}
-                      onChange={setNewMessageHtml}
-                      placeholder="Escreva sua mensagem..."
-                    />
+                    <div className="min-h-[250px]">
+                      <ReactQuill
+                        theme="snow"
+                        value={newMessageHtml}
+                        onChange={setNewMessageHtml}
+                        placeholder="Escreva sua mensagem..."
+                        style={{ height: '200px' }}
+                      />
+                    </div>
                     <FileUpload
                       onFilesChange={setMessageAttachments}
                       maxSizeMB={1}
