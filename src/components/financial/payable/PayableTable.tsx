@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { PayableFormModal } from './PayableFormModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -24,6 +25,10 @@ export function PayableTable({ filters }: PayableTableProps) {
     type: 'edit' | 'delete';
     account: any;
   }>({ open: false, type: 'edit', account: null });
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    open: boolean;
+    account: any;
+  }>({ open: false, account: null });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,15 +104,20 @@ export function PayableTable({ filters }: PayableTableProps) {
   };
 
   const handleDelete = async (account: any) => {
-    if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
-    
     // Check if it's a recurring or installment payment
     const isRecurring = account.occurrence_type !== 'unica';
     
     if (isRecurring) {
       setBulkActionModal({ open: true, type: 'delete', account });
     } else {
-      await performDelete(account.id, 'single');
+      setDeleteConfirmModal({ open: true, account });
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmModal.account) {
+      await performDelete(deleteConfirmModal.account.id, 'single');
+      setDeleteConfirmModal({ open: false, account: null });
     }
   };
 
@@ -376,6 +386,24 @@ export function PayableTable({ filters }: PayableTableProps) {
         occurrenceType={bulkActionModal.account?.occurrence_type || ''}
         onConfirm={handleBulkActionConfirm}
       />
+
+      <AlertDialog open={deleteConfirmModal.open} onOpenChange={(open) => setDeleteConfirmModal({ ...deleteConfirmModal, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta conta?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
