@@ -181,6 +181,15 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
     return `${year}-${month}-${day}`;
   };
 
+  const parseCurrency = (val: any): number => {
+    if (typeof val === 'number') return Number(val.toFixed(2));
+    if (!val) return 0;
+    // Handle Brazilian formats like 1.234,56
+    const normalized = String(val).replace(/\./g, '').replace(',', '.');
+    const num = Number(normalized);
+    return Number((isNaN(num) ? 0 : num).toFixed(2));
+  };
+
   const performEditUpdate = async (original: any, values: any, actionType: BulkActionType) => {
     try {
       const baseReceivableData: any = {
@@ -198,7 +207,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
 
       const payload = {
         ...baseReceivableData,
-        amount: parseFloat(values.amount),
+        amount: parseCurrency(values.amount),
         due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
       };
 

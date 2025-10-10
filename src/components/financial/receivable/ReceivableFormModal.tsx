@@ -53,6 +53,14 @@ const formatDateToString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+const parseCurrency = (val: any): number => {
+  if (typeof val === 'number') return Number(val.toFixed(2));
+  if (!val) return 0;
+  const normalized = String(val).replace(/\./g, '').replace(',', '.');
+  const num = Number(normalized);
+  return Number((isNaN(num) ? 0 : num).toFixed(2));
+};
+
 interface ReceivableFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -194,7 +202,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .from('accounts_receivable')
             .update({
               ...baseReceivableData,
-              amount: parseFloat(values.amount),
+              amount: parseCurrency(values.amount),
               due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
             })
             .eq('id', account.id);
@@ -206,7 +214,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .from('accounts_receivable')
             .update({
               ...baseReceivableData,
-              amount: parseFloat(values.amount),
+              amount: parseCurrency(values.amount),
               due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
             })
             .eq('parent_receivable_id', account.parent_receivable_id || account.id)
@@ -220,7 +228,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .from('accounts_receivable')
             .update({
               ...baseReceivableData,
-              amount: parseFloat(values.amount),
+              amount: parseCurrency(values.amount),
               due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
             })
             .or(`id.eq.${parentId},parent_receivable_id.eq.${parentId}`);
