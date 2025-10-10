@@ -121,12 +121,12 @@ export function ContractsBarChart() {
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Contratos</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Contratos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Carregando...</p>
+          <div className="h-[250px] flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">Carregando...</p>
           </div>
         </CardContent>
       </Card>
@@ -135,18 +135,18 @@ export function ContractsBarChart() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Contratos</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Contratos</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {data.map((item, index) => (
-            <div key={index} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+            <div key={index} className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-muted-foreground">{item.label}</span>
                 <span className="font-bold" style={{ color: item.color }}>{item.count}</span>
               </div>
-              <div className="relative h-3 bg-muted rounded-full overflow-hidden">
+              <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
                 <div
                   className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
                   style={{

@@ -34,15 +34,15 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
 
   return (
     <Card className={`group overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${getCardBorder()} ${className || ''}`}>
-      <CardContent className="p-6">
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
+      <CardContent className="p-5">
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
           <div className="flex items-center justify-between">
-            <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
+            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
               {value}
             </h3>
-            <div className={`icon-wrapper h-14 w-14 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
-              <Icon className={`lucide h-7 w-7 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
+            <div className={`icon-wrapper h-12 w-12 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
+              <Icon className={`lucide h-6 w-6 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
             </div>
           </div>
           {trend && (

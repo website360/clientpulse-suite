@@ -192,66 +192,17 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Visão geral do sistema de tickets
           </p>
-        </div>
-
-        {/* Ticket Indicators */}
-        <div>
-          <h2 className="text-xl font-bold mb-4">Indicadores de Tickets</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <MetricCard
-              title="Total de Tickets"
-              value={stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
-              icon={Ticket}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-            <MetricCard
-              title="Aberto"
-              value={stats.openTickets}
-              icon={Ticket}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-            <MetricCard
-              title="Em Andamento"
-              value={stats.inProgressTickets}
-              icon={Clock}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-            <MetricCard
-              title="Aguardando"
-              value={stats.waitingTickets}
-              icon={Clock}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-            <MetricCard
-              title="Resolvido"
-              value={stats.resolvedTickets}
-              icon={CheckCircle}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-            <MetricCard
-              title="Fechado"
-              value={stats.closedTickets}
-              icon={XCircle}
-              variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-            />
-          </div>
         </div>
 
         {userRole === 'admin' && (
           <>
             {/* Client Indicators */}
             <div>
-              <h2 className="text-xl font-bold mb-4">Indicadores de Clientes</h2>
+              <h2 className="text-lg font-bold mb-4">Indicadores de Clientes</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <MetricCard
                   title="Total de Clientes"
@@ -272,7 +223,7 @@ export default function Dashboard() {
 
             {/* Financial Indicators - Contas a Receber */}
             <div>
-              <h2 className="text-xl font-bold mb-4">Contas a Receber</h2>
+              <h2 className="text-lg font-bold mb-4">Contas a Receber</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Receber"
@@ -320,7 +271,7 @@ export default function Dashboard() {
 
             {/* Financial Indicators - Contas a Pagar */}
             <div>
-              <h2 className="text-xl font-bold mb-4">Contas a Pagar</h2>
+              <h2 className="text-lg font-bold mb-4">Contas a Pagar</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Pagar"
@@ -368,11 +319,60 @@ export default function Dashboard() {
           </>
         )}
 
+        {/* Ticket Indicators */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">Indicadores de Tickets</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <MetricCard
+              title="Total de Tickets"
+              value={stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
+              icon={Ticket}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Aberto"
+              value={stats.openTickets}
+              icon={Ticket}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Em Andamento"
+              value={stats.inProgressTickets}
+              icon={Clock}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Aguardando"
+              value={stats.waitingTickets}
+              icon={Clock}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Resolvido"
+              value={stats.resolvedTickets}
+              icon={CheckCircle}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Fechado"
+              value={stats.closedTickets}
+              icon={XCircle}
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+          </div>
+        </div>
+
         {/* Charts */}
         {userRole === 'admin' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ContractsBarChart />
             <DomainsBarChart />
+            <ContractsBarChart />
           </div>
         )}
       </div>
