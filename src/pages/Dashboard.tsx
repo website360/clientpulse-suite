@@ -10,6 +10,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { MetricCard } from '@/components/dashboard/MetricCard';
+import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 
 interface DashboardStats {
   openTickets: number;
@@ -356,7 +357,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ActivityTimeline activities={activities} />
           
-          <Card>
+          {userRole === 'admin' && <ContractsBarChart />}
+          
+          <Card className={userRole === 'admin' ? 'lg:col-span-2' : ''}>
             <CardHeader>
               <CardTitle>Últimos Tickets Criados</CardTitle>
             </CardHeader>
