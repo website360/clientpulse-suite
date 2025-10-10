@@ -118,11 +118,7 @@ export default function ClientTicketDetails() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles dos usuários
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('user_id', userIds);
+      // (Removido) Buscar roles dos usuários - usaremos comparação com o usuário logado para diferenciar
 
       // Buscar cliente para pegar apelido
       const { data: clientData } = await supabase
@@ -137,24 +133,20 @@ export default function ClientTicketDetails() {
         .from('ticket_attachments')
         .select('message_id, id, file_name')
         .in('message_id', messageIds);
+      const currentProfile = profilesData?.find(p => p.id === user?.id);
 
       const messagesWithProfiles = messagesData.map(message => {
         const profile = profilesData?.find(p => p.id === message.user_id);
-        const isAdmin = rolesData?.some(r => r.user_id === message.user_id && r.role === 'admin') || false;
         const isCurrentUser = message.user_id === user?.id;
+        const isAdmin = !isCurrentUser; // no portal do cliente, quem não é o próprio usuário é do suporte
         const messageAttachments = attachmentsData?.filter(a => a.message_id === message.id) || [];
         
         let displayName = 'Usuário';
         
         if (isAdmin) {
-          // Se é admin, mostra o nome completo do perfil
           displayName = profile?.full_name || 'Administrador';
-        } else if (isCurrentUser) {
-          // Se é o cliente logado, mostra o apelido ou nome completo
-          displayName = clientData?.nickname || clientData?.full_name || 'Cliente';
         } else {
-          // Outros usuários mostram o nome do perfil
-          displayName = profile?.full_name || 'Usuário';
+          displayName = clientData?.nickname || currentProfile?.full_name || 'Cliente';
         }
         
         return {
