@@ -155,15 +155,9 @@ export function AppearanceTab() {
         <CardContent className="space-y-6">
           <LogoUploadSection
             id="logo-light"
-            label="Logo Completo (Menu Aberto)"
-            description="Logo exibido quando o menu lateral está expandido"
+            label="Ícone Menu"
+            description="Ícone exibido no menu lateral"
             type="logo-light"
-          />
-          <LogoUploadSection
-            id="logo-icon-light"
-            label="Ícone (Menu Fechado)"
-            description="Ícone exibido quando o menu lateral está recolhido"
-            type="logo-icon-light"
           />
           <LogoUploadSection
             id="auth-logo-light"
@@ -184,15 +178,9 @@ export function AppearanceTab() {
         <CardContent className="space-y-6">
           <LogoUploadSection
             id="logo-dark"
-            label="Logo Completo (Menu Aberto)"
-            description="Logo exibido quando o menu lateral está expandido no tema escuro"
+            label="Ícone Menu"
+            description="Ícone exibido no menu lateral no tema escuro"
             type="logo-dark"
-          />
-          <LogoUploadSection
-            id="logo-icon-dark"
-            label="Ícone (Menu Fechado)"
-            description="Ícone exibido quando o menu lateral está recolhido no tema escuro"
-            type="logo-icon-dark"
           />
           <LogoUploadSection
             id="auth-logo-dark"

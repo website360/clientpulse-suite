@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -18,14 +18,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import logoIconLight from '@/assets/logo-icon-light.png';
-import logoIconDark from '@/assets/logo-icon-dark.png';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
-import { Separator } from '@/components/ui/separator';
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const { user, userRole } = useAuth();
   const collapsed = state === 'collapsed';
   const [isDark, setIsDark] = useState(false);
@@ -116,28 +113,32 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          {collapsed ? (
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <img 
-              src={isDark ? logoIconDark : logoIconLight} 
+              src={isDark ? logoDark : logoLight} 
               alt="Logo" 
-              className="h-8 w-8"
+              className="h-8 w-8 flex-shrink-0"
             />
-          ) : (
-            <>
-              <img 
-                src={isDark ? logoDark : logoLight} 
-                alt="Logo" 
-                className="h-8 w-auto"
-              />
-              {profile && (
-                <div className="flex-1 min-w-0 ml-2">
-                  <p className="text-sm font-medium truncate">{profile.full_name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-                </div>
-              )}
-            </>
-          )}
+            {!collapsed && profile && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{profile.full_name}</p>
+                <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 flex-shrink-0"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </SidebarHeader>
 
