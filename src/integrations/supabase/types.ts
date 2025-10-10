@@ -321,6 +321,76 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          client_id: string
+          created_at: string
+          created_by: string
+          end_date: string | null
+          id: string
+          payment_method_id: string | null
+          payment_terms: string | null
+          service_id: string
+          start_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          client_id: string
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          id?: string
+          payment_method_id?: string | null
+          payment_terms?: string | null
+          service_id: string
+          start_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          id?: string
+          payment_method_id?: string | null
+          payment_terms?: string | null
+          service_id?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           color: string | null
@@ -472,6 +542,36 @@ export type Database = {
           id?: string
           nickname?: string | null
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
           updated_at?: string
         }
         Relationships: []

@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Domains from "./pages/Domains";
 import AccountsPayable from "./pages/AccountsPayable";
 import AccountsReceivable from "./pages/AccountsReceivable";
+import Contracts from "./pages/Contracts";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/financeiro" element={<Navigate to="/financeiro/pagar" replace />} />
             <Route path="/financeiro/pagar" element={<AccountsPayable />} />
             <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+            <Route path="/contracts" element={<Contracts />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />

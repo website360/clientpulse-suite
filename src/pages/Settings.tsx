@@ -12,6 +12,7 @@ import { DepartmentsTab } from '@/components/settings/DepartmentsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
 import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab';
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
+import { ServicesTab } from '@/components/settings/ServicesTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -222,6 +223,7 @@ export default function Settings() {
             <TabsTrigger value="departments">Departamentos</TabsTrigger>
             <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
             <TabsTrigger value="financial">Financeiro</TabsTrigger>
+            <TabsTrigger value="services">Serviços</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -380,6 +382,10 @@ export default function Settings() {
 
           <TabsContent value="financial">
             <FinancialSettingsTab />
+          </TabsContent>
+
+          <TabsContent value="services">
+            <ServicesTab />
           </TabsContent>
         </Tabs>
       </div>
