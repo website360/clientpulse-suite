@@ -229,8 +229,8 @@ export default function ClientTickets() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Meus Tickets</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl font-bold">Meus Tickets</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Gerencie suas solicitações de suporte
             </p>
           </div>
