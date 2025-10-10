@@ -380,6 +380,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
               <SelectContent>
                 <SelectItem value="pending_signature">Aguardando Assinatura</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="expiring">A Vencer</SelectItem>
                 <SelectItem value="expired">Vencido</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
               </SelectContent>

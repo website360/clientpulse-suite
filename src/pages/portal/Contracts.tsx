@@ -70,9 +70,10 @@ export default function ClientContracts() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
+    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending_signature: 'secondary',
       active: 'default',
+      expiring: 'outline',
       expired: 'destructive',
       completed: 'secondary',
     };
@@ -80,12 +81,16 @@ export default function ClientContracts() {
     const labels: Record<string, string> = {
       pending_signature: 'Aguardando Assinatura',
       active: 'Ativo',
+      expiring: 'A Vencer',
       expired: 'Vencido',
       completed: 'Concluído',
     };
 
     return (
-      <Badge variant={variants[status] || 'default'}>
+      <Badge 
+        variant={variants[status] || 'default'}
+        className={status === 'expiring' ? 'border-warning text-warning' : ''}
+      >
         {labels[status] || status}
       </Badge>
     );

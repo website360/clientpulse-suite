@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 const STATUS_COLORS = {
   pending_signature: '#a78bfa', // roxo suave
   active: '#34d399', // verde
+  expiring: '#fbbf24', // amarelo
   expired: '#fb7185', // vermelho suave
   completed: '#60a5fa', // azul suave
 };
@@ -12,6 +13,7 @@ const STATUS_COLORS = {
 const STATUS_LABELS = {
   pending_signature: 'Aguardando Assinatura',
   active: 'Ativo',
+  expiring: 'A Vencer',
   expired: 'Vencido',
   completed: 'Concluído',
 };
