@@ -31,7 +31,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
         .from('accounts_receivable')
         .select(`
           *,
-          client:clients(full_name, company_name)
+          client:clients(full_name, company_name, nickname)
         `)
         .order('due_date', { ascending: true });
 
@@ -152,6 +152,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
             <TableRow>
               <TableHead>Cliente</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Ocorrência</TableHead>
               <TableHead>Vencimento</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
@@ -161,15 +162,16 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
           <TableBody>
             {accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Nenhuma conta encontrada
                 </TableCell>
               </TableRow>
             ) : (
               accounts.map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.client?.company_name || account.client?.full_name}</TableCell>
+                  <TableCell className="font-medium">{account.client?.nickname || account.client?.company_name || account.client?.full_name}</TableCell>
                   <TableCell>{account.category}</TableCell>
+                  <TableCell className="capitalize">{account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}</TableCell>
                   <TableCell>
                     {format(new Date(account.due_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
