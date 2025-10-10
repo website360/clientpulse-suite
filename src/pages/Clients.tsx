@@ -7,6 +7,16 @@ import { ClientTable } from '@/components/clients/ClientTable';
 import { ClientCards } from '@/components/clients/ClientCards';
 import { ClientFilters } from '@/components/clients/ClientFilters';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +27,9 @@ export default function Clients() {
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     search: '',
     type: 'all',
@@ -93,14 +105,19 @@ export default function Clients() {
     navigate(`/clients/${client.id}`);
   };
 
-  const handleDelete = async (clientId: string) => {
-    if (!confirm('Tem certeza que deseja desativar este cliente?')) return;
+  const handleDelete = (clientId: string) => {
+    setClientToDelete(clientId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!clientToDelete) return;
 
     try {
       const { error } = await supabase
         .from('clients')
         .update({ is_active: false })
-        .eq('id', clientId);
+        .eq('id', clientToDelete);
 
       if (error) throw error;
 
@@ -116,6 +133,9 @@ export default function Clients() {
         description: 'Não foi possível desativar o cliente.',
         variant: 'destructive',
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setClientToDelete(null);
     }
   };
 
@@ -221,6 +241,24 @@ export default function Clients() {
             setSelectedClient(null);
           }}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Desativar Cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja desativar este cliente? Esta ação pode ser revertida posteriormente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete}>
+                Desativar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
