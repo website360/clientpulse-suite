@@ -176,10 +176,20 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
       };
 
       if (account) {
-        // Edição - verifica o tipo de ação bulk
-        const bulkActionType = account.bulkActionType || 'single';
+        // Edição - caso recorrente sem escolha prévia, fechar e pedir ação em massa
+        const isRecurring = account.occurrence_type !== 'unica';
+        const bulkActionType = account.bulkActionType as 'single' | 'following' | 'all' | undefined;
+
+        if (isRecurring && !bulkActionType) {
+          form.reset();
+          onOpenChange(false);
+          if (onSuccess) onSuccess(values, true);
+          return;
+        }
+
+        const selected = bulkActionType || 'single';
         
-        if (bulkActionType === 'single') {
+        if (selected === 'single') {
           const { error } = await supabase
             .from('accounts_receivable')
             .update({
@@ -190,7 +200,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .eq('id', account.id);
 
           if (error) throw error;
-        } else if (bulkActionType === 'following') {
+        } else if (selected === 'following') {
           // Update this and following occurrences
           const { error } = await supabase
             .from('accounts_receivable')
@@ -203,7 +213,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .gte('due_date', account.due_date);
 
           if (error) throw error;
-        } else if (bulkActionType === 'all') {
+        } else if (selected === 'all') {
           // Update all occurrences
           const parentId = account.parent_receivable_id || account.id;
           const { error } = await supabase

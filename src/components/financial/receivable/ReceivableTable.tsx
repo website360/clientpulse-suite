@@ -174,13 +174,67 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
     }
   };
 
+  const formatDateToString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const performEditUpdate = async (original: any, values: any, actionType: BulkActionType) => {
+    try {
+      const baseReceivableData: any = {
+        client_id: values.client_id,
+        description: values.description,
+        category: values.category,
+        payment_method: values.payment_method || null,
+        invoice_number: values.invoice_number || null,
+        notes: values.notes || null,
+        occurrence_type: values.occurrence_type,
+        due_day: values.due_day || null,
+        installments: values.installments || null,
+        issue_date: formatDateToString(values.issue_date),
+      };
+
+      const payload = {
+        ...baseReceivableData,
+        amount: parseFloat(values.amount),
+        due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
+      };
+
+      if (actionType === 'single') {
+        const { error } = await supabase.from('accounts_receivable').update(payload).eq('id', original.id);
+        if (error) throw error;
+      } else if (actionType === 'following') {
+        const { error } = await supabase
+          .from('accounts_receivable')
+          .update(payload)
+          .eq('parent_receivable_id', original.parent_receivable_id || original.id)
+          .gte('due_date', original.due_date);
+        if (error) throw error;
+      } else if (actionType === 'all') {
+        const parentId = original.parent_receivable_id || original.id;
+        const { error } = await supabase
+          .from('accounts_receivable')
+          .update(payload)
+          .or(`id.eq.${parentId},parent_receivable_id.eq.${parentId}`);
+        if (error) throw error;
+      }
+
+      toast({ title: 'Sucesso', description: 'Conta atualizada com sucesso' });
+      setEditingAccount(null);
+      fetchAccounts();
+    } catch (error: any) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
+  };
+
   const handleBulkActionConfirm = (actionType: BulkActionType) => {
     if (bulkActionModal.type === 'edit') {
-      // Apply the edit with the selected bulk action type
-      setEditingAccount({ 
-        ...bulkActionModal.account, 
-        bulkActionType: actionType 
-      });
+      const { formValues, ...original } = bulkActionModal.account || {};
+      if (formValues) {
+        performEditUpdate(original, formValues, actionType);
+      }
       setBulkActionModal({ ...bulkActionModal, open: false });
     } else {
       // Delete action
@@ -188,7 +242,6 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
       setBulkActionModal({ ...bulkActionModal, open: false });
     }
   };
-
   const getStatusBadge = (status: string, dueDate: string) => {
     const parseLocalDate = (str: string) => {
       const [y, m, d] = str.split('-').map(Number);
