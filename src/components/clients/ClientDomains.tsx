@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Globe, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DomainFormModal } from '@/components/domains/DomainFormModal';
 import {
@@ -146,7 +146,7 @@ export function ClientDomains({ clientId }: ClientDomainsProps) {
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="text-muted-foreground">Vencimento:</span>
                           <span className="font-medium">
-                            {format(new Date(domain.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                            {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                           </span>
                           {isExpired(domain.expires_at) && (
                             <Badge variant="destructive">Vencido</Badge>

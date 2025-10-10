@@ -28,6 +28,7 @@ interface Domain {
   clients: {
     full_name: string | null;
     company_name: string | null;
+    responsible_name: string | null;
     nickname: string | null;
   };
 }
@@ -55,6 +56,7 @@ export function DomainTable({ onEdit }: DomainTableProps) {
           clients (
             full_name,
             company_name,
+            responsible_name,
             nickname
           )
         `)
@@ -97,7 +99,7 @@ export function DomainTable({ onEdit }: DomainTableProps) {
   };
 
   const getClientName = (domain: Domain) => {
-    return domain.clients.nickname || domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
+    return domain.clients.responsible_name || domain.clients.nickname || domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
   };
 
   const getOwnerLabel = (owner: 'agency' | 'client') => {
