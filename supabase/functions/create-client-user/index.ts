@@ -34,45 +34,60 @@ Deno.serve(async (req) => {
 
     console.log('Creating user for client:', clientId);
 
-    // Create user using admin client (doesn't auto-login)
-    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        full_name: fullName,
-      },
-    });
+    // First, check if user already exists
+    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error('Error listing users:', listError);
+      throw listError;
+    }
 
-    if (createError) {
-      console.error('Error creating user:', createError);
+    const existingUser = existingUsers.users.find(u => u.email === email);
+    
+    let userId: string;
+
+    if (existingUser) {
+      console.log('User already exists, using existing user:', existingUser.id);
+      userId = existingUser.id;
       
-      if (createError.message.includes('already registered') || createError.message.includes('User already registered')) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Email já cadastrado',
-            message: 'Este email já possui uma conta no sistema.' 
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
+      // Update password for existing user
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        existingUser.id,
+        { password }
+      );
+      
+      if (updateError) {
+        console.error('Error updating user password:', updateError);
+        // Don't throw, just log - we can still associate the user
       }
-      
-      throw createError;
-    }
+    } else {
+      // Create new user using admin client
+      const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+        },
+      });
 
-    if (!userData.user) {
-      throw new Error('Usuário não foi criado');
-    }
+      if (createError) {
+        console.error('Error creating user:', createError);
+        throw createError;
+      }
 
-    console.log('User created successfully:', userData.user.id);
+      if (!userData.user) {
+        throw new Error('Usuário não foi criado');
+      }
+
+      userId = userData.user.id;
+      console.log('User created successfully:', userId);
+    }
 
     // Update client with user_id
     const { error: updateError } = await supabaseAdmin
       .from('clients')
-      .update({ user_id: userData.user.id })
+      .update({ user_id: userId })
       .eq('id', clientId);
 
     if (updateError) {
@@ -85,8 +100,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        userId: userData.user.id,
-        message: 'Acesso criado com sucesso' 
+        userId: userId,
+        message: existingUser ? 'Acesso associado com sucesso' : 'Acesso criado com sucesso' 
       }),
       {
         status: 200,
