@@ -37,7 +37,7 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
+            <p className="text-sm font-medium text-muted-foreground/80 uppercase tracking-wide whitespace-nowrap">{title}</p>
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
               {value}
             </h3>
