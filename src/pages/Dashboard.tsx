@@ -22,9 +22,13 @@ interface DashboardStats {
   totalClients: number;
   totalContacts: number;
   totalReceivable: number;
+  totalReceived: number;
+  receivableDueSoon: number;
+  overdueReceivable: number;
   totalPayable: number;
-  overdueAccounts: number;
-  cashFlow: number;
+  totalPaid: number;
+  payableDueSoon: number;
+  overduePayable: number;
 }
 
 export default function Dashboard() {
@@ -39,9 +43,13 @@ export default function Dashboard() {
     totalClients: 0,
     totalContacts: 0,
     totalReceivable: 0,
+    totalReceived: 0,
+    receivableDueSoon: 0,
+    overdueReceivable: 0,
     totalPayable: 0,
-    overdueAccounts: 0,
-    cashFlow: 0,
+    totalPaid: 0,
+    payableDueSoon: 0,
+    overduePayable: 0,
   });
   const [recentTickets, setRecentTickets] = useState<any[]>([]);
 
@@ -116,6 +124,7 @@ export default function Dashboard() {
         const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
         const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
         const todayFormatted = format(today, 'yyyy-MM-dd');
+        const threeDaysFromNow = format(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
         // Total a Receber (mês atual, pendente)
         const { data: receivableData } = await supabase
@@ -127,6 +136,35 @@ export default function Dashboard() {
 
         const totalReceivable = receivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
 
+        // Total Recebido no mês
+        const { data: receivedData } = await supabase
+          .from('accounts_receivable')
+          .select('amount')
+          .gte('payment_date', monthStart)
+          .lte('payment_date', monthEnd)
+          .in('status', ['received']);
+
+        const totalReceived = receivedData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Contas a Receber que vencem em 3 dias
+        const { data: receivableDueSoonData } = await supabase
+          .from('accounts_receivable')
+          .select('amount')
+          .gte('due_date', todayFormatted)
+          .lte('due_date', threeDaysFromNow)
+          .eq('status', 'pending');
+
+        const receivableDueSoon = receivableDueSoonData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Contas a Receber Vencidas
+        const { data: overdueReceivableData } = await supabase
+          .from('accounts_receivable')
+          .select('amount')
+          .lt('due_date', todayFormatted)
+          .eq('status', 'pending');
+
+        const overdueReceivable = overdueReceivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
         // Total a Pagar (mês atual, pendente)
         const { data: payableData } = await supabase
           .from('accounts_payable')
@@ -137,32 +175,7 @@ export default function Dashboard() {
 
         const totalPayable = payableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
 
-        // Contas Vencidas (a pagar + a receber)
-        const { data: overdueReceivable } = await supabase
-          .from('accounts_receivable')
-          .select('id')
-          .lt('due_date', todayFormatted)
-          .eq('status', 'pending');
-
-        const { data: overduePayable } = await supabase
-          .from('accounts_payable')
-          .select('id')
-          .lt('due_date', todayFormatted)
-          .eq('status', 'pending');
-
-        const overdueAccounts = (overdueReceivable?.length || 0) + (overduePayable?.length || 0);
-
-        // Recebido no mês
-        const { data: receivedData } = await supabase
-          .from('accounts_receivable')
-          .select('amount')
-          .gte('payment_date', monthStart)
-          .lte('payment_date', monthEnd)
-          .in('status', ['received']);
-
-        const totalReceived = receivedData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Pago no mês
+        // Total Pago no mês
         const { data: paidData } = await supabase
           .from('accounts_payable')
           .select('amount')
@@ -172,14 +185,35 @@ export default function Dashboard() {
 
         const totalPaid = paidData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
 
-        const cashFlow = totalReceived - totalPaid;
+        // Contas a Pagar que vencem em 3 dias
+        const { data: payableDueSoonData } = await supabase
+          .from('accounts_payable')
+          .select('amount')
+          .gte('due_date', todayFormatted)
+          .lte('due_date', threeDaysFromNow)
+          .eq('status', 'pending');
+
+        const payableDueSoon = payableDueSoonData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Contas a Pagar Vencidas
+        const { data: overduePayableData } = await supabase
+          .from('accounts_payable')
+          .select('amount')
+          .lt('due_date', todayFormatted)
+          .eq('status', 'pending');
+
+        const overduePayable = overduePayableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
 
         setStats(prev => ({
           ...prev,
           totalReceivable,
+          totalReceived,
+          receivableDueSoon,
+          overdueReceivable,
           totalPayable,
-          overdueAccounts,
-          cashFlow,
+          totalPaid,
+          payableDueSoon,
+          overduePayable,
         }));
       }
 
@@ -342,9 +376,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Financial Indicators */}
+            {/* Financial Indicators - Contas a Receber */}
             <div>
-              <h2 className="text-xl font-bold mb-4">Indicadores Financeiros</h2>
+              <h2 className="text-xl font-bold mb-4">Contas a Receber</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Receber"
@@ -353,9 +387,47 @@ export default function Dashboard() {
                     currency: 'BRL',
                   }).format(stats.totalReceivable)}
                   icon={TrendingUp}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+                />
+
+                <MetricCard
+                  title="Total Recebido"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.totalReceived)}
+                  icon={CheckCircle}
                   variant="success"
                 />
 
+                <MetricCard
+                  title="Vencem em 3 dias"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.receivableDueSoon)}
+                  icon={Clock}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-yellow-50 [&_.icon-wrapper]:to-yellow-100/50 dark:[&_.icon-wrapper]:from-yellow-950/50 dark:[&_.icon-wrapper]:to-yellow-900/30 [&_.icon-wrapper_.lucide]:text-yellow-600 dark:[&_.icon-wrapper_.lucide]:text-yellow-400"
+                />
+
+                <MetricCard
+                  title="Total Vencido"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.overdueReceivable)}
+                  icon={AlertCircle}
+                  variant="destructive"
+                />
+              </div>
+            </div>
+
+            {/* Financial Indicators - Contas a Pagar */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Contas a Pagar</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Pagar"
                   value={new Intl.NumberFormat('pt-BR', {
@@ -363,24 +435,39 @@ export default function Dashboard() {
                     currency: 'BRL',
                   }).format(stats.totalPayable)}
                   icon={TrendingDown}
-                  variant="destructive"
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
                 />
 
                 <MetricCard
-                  title="Contas Vencidas"
-                  value={stats.overdueAccounts}
-                  icon={AlertCircle}
-                  variant="destructive"
-                />
-
-                <MetricCard
-                  title="Fluxo de Caixa"
+                  title="Total Pago"
                   value={new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.cashFlow)}
-                  icon={DollarSign}
-                  variant={stats.cashFlow >= 0 ? 'success' : 'destructive'}
+                  }).format(stats.totalPaid)}
+                  icon={CheckCircle}
+                  variant="success"
+                />
+
+                <MetricCard
+                  title="Vencem em 3 dias"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.payableDueSoon)}
+                  icon={Clock}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-yellow-50 [&_.icon-wrapper]:to-yellow-100/50 dark:[&_.icon-wrapper]:from-yellow-950/50 dark:[&_.icon-wrapper]:to-yellow-900/30 [&_.icon-wrapper_.lucide]:text-yellow-600 dark:[&_.icon-wrapper_.lucide]:text-yellow-400"
+                />
+
+                <MetricCard
+                  title="Total Vencido"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.overduePayable)}
+                  icon={AlertCircle}
+                  variant="destructive"
                 />
               </div>
             </div>
