@@ -85,7 +85,8 @@ export default function Dashboard() {
       if (userRole === 'admin') {
         const { count } = await supabase
           .from('clients')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true);
         
         setStats(prev => ({ ...prev, totalClients: count || 0 }));
       }
