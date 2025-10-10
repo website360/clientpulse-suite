@@ -137,25 +137,29 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
         title="Total a Receber"
         value={formatCurrency(stats.total)}
         icon={DollarSign}
-        className="bg-card"
+        variant="default"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Recebidas Este Mês"
         value={formatCurrency(stats.receivedThisMonth)}
         icon={CheckCircle}
-        className="bg-card"
+        variant="success"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Vencem em 3 Dias"
         value={formatCurrency(stats.dueSoon)}
         icon={Clock}
-        className="bg-card"
+        variant="default"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Contas Vencidas"
         value={formatCurrency(stats.overdue)}
         icon={AlertCircle}
-        className="bg-card"
+        variant="destructive"
+        className="bg-gradient-to-br from-card to-card/50"
       />
     </div>
   );

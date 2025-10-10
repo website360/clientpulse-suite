@@ -137,25 +137,29 @@ export function PayableStats({ filters }: PayableStatsProps) {
         title="Total a Pagar"
         value={formatCurrency(stats.total)}
         icon={DollarSign}
-        className="bg-card"
+        variant="default"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Pagas Este Mês"
         value={formatCurrency(stats.paidThisMonth)}
         icon={CheckCircle}
-        className="bg-card"
+        variant="success"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Vencem em 3 Dias"
         value={formatCurrency(stats.dueSoon)}
         icon={Clock}
-        className="bg-card"
+        variant="default"
+        className="bg-gradient-to-br from-card to-card/50"
       />
       <MetricCard
         title="Contas Vencidas"
         value={formatCurrency(stats.overdue)}
         icon={AlertCircle}
-        className="bg-card"
+        variant="destructive"
+        className="bg-gradient-to-br from-card to-card/50"
       />
     </div>
   );

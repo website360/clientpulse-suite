@@ -7,6 +7,7 @@ import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2, Calendar } from 'lu
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { PayableFormModal } from './PayableFormModal';
+import { PayConfirmModal } from './PayConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
@@ -26,6 +27,10 @@ export function PayableTable({ filters }: PayableTableProps) {
     account: any;
   }>({ open: false, type: 'edit', account: null });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    open: boolean;
+    account: any;
+  }>({ open: false, account: null });
+  const [payConfirmModal, setPayConfirmModal] = useState<{
     open: boolean;
     account: any;
   }>({ open: false, account: null });
@@ -77,15 +82,20 @@ export function PayableTable({ filters }: PayableTableProps) {
     }
   };
 
-  const handleMarkAsPaid = async (id: string) => {
+  const handleMarkAsPaid = (account: any) => {
+    setPayConfirmModal({ open: true, account });
+  };
+
+  const confirmPay = async (data: { id: string; payment_date: string; amount: number }) => {
     try {
       const { error } = await supabase
         .from('accounts_payable')
         .update({ 
           status: 'paid',
-          payment_date: new Date().toISOString().split('T')[0]
+          payment_date: data.payment_date,
+          amount: data.amount
         })
-        .eq('id', id);
+        .eq('id', data.id);
 
       if (error) throw error;
 
@@ -373,7 +383,7 @@ export function PayableTable({ filters }: PayableTableProps) {
                           Editar
                         </DropdownMenuItem>
                         {account.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleMarkAsPaid(account.id)}>
+                          <DropdownMenuItem onClick={() => handleMarkAsPaid(account)}>
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Marcar como Pago
                           </DropdownMenuItem>
@@ -434,6 +444,13 @@ export function PayableTable({ filters }: PayableTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PayConfirmModal
+        open={payConfirmModal.open}
+        onOpenChange={(open) => setPayConfirmModal({ ...payConfirmModal, open })}
+        account={payConfirmModal.account}
+        onConfirm={confirmPay}
+      />
     </>
   );
 }

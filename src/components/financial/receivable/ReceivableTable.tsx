@@ -7,6 +7,7 @@ import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar } from 'lucide-reac
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { ReceivableFormModal } from './ReceivableFormModal';
+import { ReceiveConfirmModal } from './ReceiveConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
@@ -26,6 +27,10 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
     account: any;
   }>({ open: false, type: 'edit', account: null });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    open: boolean;
+    account: any;
+  }>({ open: false, account: null });
+  const [receiveConfirmModal, setReceiveConfirmModal] = useState<{
     open: boolean;
     account: any;
   }>({ open: false, account: null });
@@ -77,15 +82,20 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
     }
   };
 
-  const handleMarkAsReceived = async (id: string) => {
+  const handleMarkAsReceived = (account: any) => {
+    setReceiveConfirmModal({ open: true, account });
+  };
+
+  const confirmReceive = async (data: { id: string; payment_date: string; amount: number }) => {
     try {
       const { error } = await supabase
         .from('accounts_receivable')
         .update({ 
           status: 'received',
-          payment_date: new Date().toISOString().split('T')[0]
+          payment_date: data.payment_date,
+          amount: data.amount
         })
-        .eq('id', id);
+        .eq('id', data.id);
 
       if (error) throw error;
 
@@ -408,7 +418,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
                           Editar
                         </DropdownMenuItem>
                         {account.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleMarkAsReceived(account.id)}>
+                          <DropdownMenuItem onClick={() => handleMarkAsReceived(account)}>
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Marcar como Recebido
                           </DropdownMenuItem>
@@ -469,6 +479,13 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ReceiveConfirmModal
+        open={receiveConfirmModal.open}
+        onOpenChange={(open) => setReceiveConfirmModal({ ...receiveConfirmModal, open })}
+        account={receiveConfirmModal.account}
+        onConfirm={confirmReceive}
+      />
     </>
   );
 }
