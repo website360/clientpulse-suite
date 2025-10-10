@@ -126,6 +126,8 @@ export default function Settings() {
         .from('ticket-attachments')
         .getPublicUrl(filePath);
 
+      const avatarUrlWithTimestamp = `${data.publicUrl}?t=${Date.now()}`;
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: data.publicUrl })
@@ -133,12 +135,17 @@ export default function Settings() {
 
       if (updateError) throw updateError;
 
-      setProfile({ ...profile, avatar_url: data.publicUrl });
+      setProfile({ ...profile, avatar_url: avatarUrlWithTimestamp });
 
       toast({
         title: 'Avatar atualizado',
         description: 'Seu avatar foi atualizado com sucesso.',
       });
+
+      // Recarregar a página após 1 segundo para atualizar o avatar em todos os lugares
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast({
