@@ -52,7 +52,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.status}
         onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
       >
-        <SelectTrigger className="w-[145px] shrink-0">
+        <SelectTrigger className="w-[180px] shrink-0">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -69,7 +69,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.department}
         onValueChange={(value) => onFiltersChange({ ...filters, department: value })}
       >
-        <SelectTrigger className="w-[160px] shrink-0">
+        <SelectTrigger className="w-[180px] shrink-0">
           <SelectValue placeholder="Departamento" />
         </SelectTrigger>
         <SelectContent>
@@ -86,11 +86,11 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.priority}
         onValueChange={(value) => onFiltersChange({ ...filters, priority: value })}
       >
-        <SelectTrigger className="w-[135px] shrink-0">
+        <SelectTrigger className="w-[180px] shrink-0">
           <SelectValue placeholder="Prioridade" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todas</SelectItem>
+          <SelectItem value="all">Todas Prioridades</SelectItem>
           <SelectItem value="low">Baixa</SelectItem>
           <SelectItem value="medium">Média</SelectItem>
           <SelectItem value="high">Alta</SelectItem>
