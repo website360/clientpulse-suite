@@ -298,36 +298,43 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                 </div>
                 <div>
                   <Label>Data de Nascimento</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !form.watch('birth_date') && 'text-muted-foreground'
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {form.watch('birth_date') ? (
-                          format(form.watch('birth_date')!, 'PPP', { locale: ptBR })
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={form.watch('birth_date')}
-                        onSelect={(date) => form.setValue('birth_date', date)}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={form.watch('birth_date') ? format(form.watch('birth_date')!, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          form.setValue('birth_date', new Date(e.target.value));
+                        } else {
+                          form.setValue('birth_date', undefined);
                         }
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                      }}
+                      className="flex-1"
+                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          type="button"
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={form.watch('birth_date')}
+                          onSelect={(date) => form.setValue('birth_date', date)}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date('1900-01-01')
+                          }
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </>
             ) : (
