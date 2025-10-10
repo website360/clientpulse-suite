@@ -280,33 +280,50 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Total de Tickets</p>
-            <p className="text-2xl font-bold">
-              {stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Aberto</p>
-            <p className="text-2xl font-bold">{stats.openTickets}</p>
-          </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Em Andamento</p>
-            <p className="text-2xl font-bold">{stats.inProgressTickets}</p>
-          </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Aguardando</p>
-            <p className="text-2xl font-bold">{stats.waitingTickets}</p>
-          </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Resolvido</p>
-            <p className="text-2xl font-bold">{stats.resolvedTickets}</p>
-          </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Fechado</p>
-            <p className="text-2xl font-bold">{stats.closedTickets}</p>
+        {/* Ticket Indicators */}
+        <div>
+          <h2 className="text-xl font-bold mb-4">Indicadores de Tickets</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <MetricCard
+              title="Total de Tickets"
+              value={stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
+              icon={Ticket}
+              variant="default"
+            />
+            <MetricCard
+              title="Aberto"
+              value={stats.openTickets}
+              icon={Ticket}
+              variant="default"
+              className="bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-blue-500/20"
+            />
+            <MetricCard
+              title="Em Andamento"
+              value={stats.inProgressTickets}
+              icon={Clock}
+              variant="default"
+              className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 border-yellow-500/20"
+            />
+            <MetricCard
+              title="Aguardando"
+              value={stats.waitingTickets}
+              icon={Clock}
+              variant="default"
+              className="bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-purple-500/20"
+            />
+            <MetricCard
+              title="Resolvido"
+              value={stats.resolvedTickets}
+              icon={CheckCircle}
+              variant="success"
+            />
+            <MetricCard
+              title="Fechado"
+              value={stats.closedTickets}
+              icon={XCircle}
+              variant="default"
+              className="bg-gradient-to-br from-gray-500/5 to-gray-600/10 border-gray-500/20"
+            />
           </div>
         </div>
 
