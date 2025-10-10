@@ -217,6 +217,16 @@ export default function ClientTicketDetails() {
     const plain = stripHtml(newMessageHtml).trim();
     if (!plain || !id) return;
 
+    // Impedir envio se ticket estiver fechado ou resolvido
+    if (ticket?.status === 'closed' || ticket?.status === 'resolved') {
+      toast({
+        title: 'Ticket fechado',
+        description: 'Não é possível enviar mensagens em um ticket fechado.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSending(true);
     try {
       const sanitized = DOMPurify.sanitize(newMessageHtml, { USE_PROFILES: { html: true } });
@@ -333,7 +343,16 @@ export default function ClientTicketDetails() {
 
       if (error) throw error;
 
+      // Atualização otimista do estado local para UI imediata
+      setTicket(prev => prev ? {
+        ...prev,
+        status: 'closed',
+        closed_at: new Date().toISOString()
+      } : prev);
+
+      // Sincronizar com o backend
       fetchTicketDetails();
+      
       toast({
         title: 'Ticket fechado',
         description: 'Obrigado pela sua avaliação!',
@@ -454,6 +473,19 @@ export default function ClientTicketDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Alerta de ticket fechado */}
+            {ticket.status === 'closed' && (
+              <div className="bg-muted border border-border rounded-lg p-4 flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-semibold text-sm">Ticket Fechado</p>
+                  <p className="text-sm text-muted-foreground">
+                    Este ticket foi fechado e não permite mais o envio de mensagens.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Description */}
             <Card className="card-elevated">
               <CardHeader>
@@ -672,6 +704,14 @@ export default function ClientTicketDetails() {
                     <p className="text-sm text-muted-foreground">Resolvido em</p>
                     <p className="font-medium">
                       {format(new Date(ticket.resolved_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+                {ticket.closed_at && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Fechado em</p>
+                    <p className="font-medium">
+                      {format(new Date(ticket.closed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                   </div>
                 )}
