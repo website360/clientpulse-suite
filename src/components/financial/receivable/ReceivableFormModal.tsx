@@ -119,13 +119,19 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
     if (open) {
       fetchClients();
       if (account) {
+        // Parse dates correctly to avoid timezone issues
+        const parseDate = (dateStr: string) => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        };
+        
         form.reset({
           client_id: account.client_id,
           description: account.description,
           category: account.category,
           amount: account.amount.toString(),
-          issue_date: account.issue_date ? new Date(account.issue_date) : new Date(),
-          due_date: account.due_date ? new Date(account.due_date) : undefined,
+          issue_date: account.issue_date ? parseDate(account.issue_date) : new Date(),
+          due_date: account.due_date ? parseDate(account.due_date) : undefined,
           occurrence_type: (account.occurrence_type as any) || 'unica',
           due_day: account.due_day || undefined,
           installments: account.installments || undefined,
