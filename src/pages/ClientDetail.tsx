@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +40,9 @@ export default function ClientDetail() {
   const [loadingContracts, setLoadingContracts] = useState(false);
   const [contractFormOpen, setContractFormOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<any>(null);
+  const [systemAccessEnabled, setSystemAccessEnabled] = useState(false);
+  const [password, setPassword] = useState('');
+  const [savingAccess, setSavingAccess] = useState(false);
 
   useEffect(() => {
     fetchClient();
@@ -56,6 +62,9 @@ export default function ClientDetail() {
 
       if (error) throw error;
       setClient(data);
+      
+      // Check if client has system access (user_id is set)
+      setSystemAccessEnabled(!!data.user_id);
       
       // Set breadcrumb label to responsible_name (apelido)
       const label = data.responsible_name || 
@@ -229,6 +238,110 @@ export default function ClientDetail() {
     setContractFormOpen(true);
   };
 
+  const handleSystemAccessToggle = async (enabled: boolean) => {
+    if (!enabled && client.user_id) {
+      // Disable access - remove user_id
+      try {
+        const { error } = await supabase
+          .from('clients')
+          .update({ user_id: null })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setSystemAccessEnabled(false);
+        setPassword('');
+        toast({
+          title: 'Acesso desabilitado',
+          description: 'O acesso ao sistema foi removido para este cliente.',
+        });
+        fetchClient();
+      } catch (error) {
+        console.error('Error disabling access:', error);
+        toast({
+          title: 'Erro ao desabilitar',
+          description: 'Não foi possível remover o acesso ao sistema.',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      // Just toggle the switch, password will be required to enable
+      setSystemAccessEnabled(enabled);
+      if (!enabled) {
+        setPassword('');
+      }
+    }
+  };
+
+  const handleCreateSystemAccess = async () => {
+    if (!password || password.length < 6) {
+      toast({
+        title: 'Senha inválida',
+        description: 'A senha deve ter pelo menos 6 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSavingAccess(true);
+
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: client.email,
+        password: password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: client.client_type === 'person' ? client.full_name : client.company_name,
+          }
+        }
+      });
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          toast({
+            title: 'Email já cadastrado',
+            description: 'Este email já possui uma conta no sistema.',
+            variant: 'destructive',
+          });
+        } else {
+          throw authError;
+        }
+        return;
+      }
+
+      if (!authData.user) {
+        throw new Error('Usuário não foi criado');
+      }
+
+      // Update client with user_id
+      const { error: updateError } = await supabase
+        .from('clients')
+        .update({ user_id: authData.user.id })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Acesso criado',
+        description: 'O cliente agora pode acessar o sistema com email e senha.',
+      });
+
+      setPassword('');
+      fetchClient();
+    } catch (error: any) {
+      console.error('Error creating system access:', error);
+      toast({
+        title: 'Erro ao criar acesso',
+        description: error.message || 'Não foi possível criar acesso ao sistema.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingAccess(false);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -351,6 +464,65 @@ export default function ClientDetail() {
                         <p className="text-sm text-muted-foreground">Data de Nascimento</p>
                         <p className="font-medium">
                           {format(new Date(client.birth_date), 'PPP', { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* System Access */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">Acesso ao Sistema</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="system-access">Habilitar acesso ao sistema</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Permite que o cliente acesse o sistema como usuário
+                      </p>
+                    </div>
+                    <Switch
+                      id="system-access"
+                      checked={systemAccessEnabled}
+                      onCheckedChange={handleSystemAccessToggle}
+                      disabled={savingAccess}
+                    />
+                  </div>
+
+                  {systemAccessEnabled && !client.user_id && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Senha de Acesso *</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Mínimo 6 caracteres"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          disabled={savingAccess}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Email de login: {client.email}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleCreateSystemAccess}
+                        disabled={savingAccess || !password}
+                      >
+                        {savingAccess ? 'Criando acesso...' : 'Criar Acesso'}
+                      </Button>
+                    </div>
+                  )}
+
+                  {systemAccessEnabled && client.user_id && (
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default">Acesso ativo</Badge>
+                        <p className="text-sm text-muted-foreground">
+                          Cliente pode fazer login com: {client.email}
                         </p>
                       </div>
                     </div>
