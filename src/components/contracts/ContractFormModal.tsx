@@ -317,7 +317,19 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          <div>
+            <Label htmlFor="payment_terms">Condições de Pagamento</Label>
+            <Input
+              id="payment_terms"
+              value={formData.payment_terms}
+              onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
+              placeholder="Ex: 12x, à vista, entrada + 11x"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="start_date">Data de Início *</Label>
               <Input
@@ -346,33 +358,23 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="expired">Expirado</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div>
-            <Label htmlFor="payment_terms">Condições de Pagamento</Label>
-            <Textarea
-              id="payment_terms"
-              value={formData.payment_terms}
-              onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-              rows={3}
-            />
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="expired">Expirado</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
