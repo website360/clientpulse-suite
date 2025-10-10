@@ -163,7 +163,7 @@ export function AppSidebar() {
                     >
                       <item.icon className="h-4 w-4" />
                       <div className="flex items-center justify-between flex-1">
-                        <span>{item.title}</span>
+                        <span className="text-[15px]">{item.title}</span>
                         {badgeCounts[item.title] && (
                           <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
                             {badgeCounts[item.title]}
