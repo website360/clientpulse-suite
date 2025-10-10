@@ -19,63 +19,91 @@ export type Database = {
           amount: number
           attachment_url: string | null
           category: string
-          client_id: string
           created_at: string
           created_by: string
           description: string
           due_date: string
+          due_day: number | null
           id: string
+          installment_number: number | null
+          installments: number | null
+          issue_date: string | null
           notes: string | null
+          occurrence_type: string | null
+          parent_payable_id: string | null
           payment_date: string | null
           payment_method: string | null
           status: Database["public"]["Enums"]["payment_status"]
+          supplier_id: string
+          total_installments: number | null
           updated_at: string
         }
         Insert: {
           amount: number
           attachment_url?: string | null
           category: string
-          client_id: string
           created_at?: string
           created_by: string
           description: string
           due_date: string
+          due_day?: number | null
           id?: string
+          installment_number?: number | null
+          installments?: number | null
+          issue_date?: string | null
           notes?: string | null
+          occurrence_type?: string | null
+          parent_payable_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          supplier_id: string
+          total_installments?: number | null
           updated_at?: string
         }
         Update: {
           amount?: number
           attachment_url?: string | null
           category?: string
-          client_id?: string
           created_at?: string
           created_by?: string
           description?: string
           due_date?: string
+          due_day?: number | null
           id?: string
+          installment_number?: number | null
+          installments?: number | null
+          issue_date?: string | null
           notes?: string | null
+          occurrence_type?: string | null
+          parent_payable_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          supplier_id?: string
+          total_installments?: number | null
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "accounts_payable_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "accounts_payable_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_parent_payable_id_fkey"
+            columns: ["parent_payable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_payable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -444,6 +472,78 @@ export type Database = {
           id?: string
           nickname?: string | null
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address_cep: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          cnpj: string | null
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string
+          email: string
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          phone: string
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          cnpj?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          phone: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          cnpj?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          phone?: string
+          trade_name?: string | null
           updated_at?: string
         }
         Relationships: []
