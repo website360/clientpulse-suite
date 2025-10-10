@@ -61,19 +61,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
+        .eq('user_id', userId);
 
       if (error) throw error;
       
-      const role = (data?.role as 'admin' | 'client' | 'contato') || 'client';
+      // data is an array of roles; prioritize admin > contato > client
+      const roles = Array.isArray(data) ? data.map((r: any) => r.role as 'admin' | 'client' | 'contato') : [];
+      const role: 'admin' | 'client' | 'contato' =
+        roles.includes('admin') ? 'admin' :
+        roles.includes('contato') ? 'contato' : 'client';
+
       setUserRole(role);
       
       // Redirect based on role
       const currentPath = window.location.pathname;
-      if (role === 'client' && !currentPath.startsWith('/portal') && currentPath !== '/auth') {
+      if ((role === 'client' || role === 'contato') && !currentPath.startsWith('/portal') && currentPath !== '/auth') {
         navigate('/portal');
-      } else if (role === 'admin' && currentPath === '/portal') {
+      } else if (role === 'admin' && currentPath.startsWith('/portal')) {
         navigate('/');
       }
     } catch (error) {
