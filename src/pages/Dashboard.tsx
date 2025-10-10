@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
+import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 
 interface DashboardStats {
   openTickets: number;
@@ -372,6 +373,8 @@ export default function Dashboard() {
           <ActivityTimeline activities={activities} />
           
           {userRole === 'admin' && <ContractsBarChart />}
+          
+          {userRole === 'admin' && <DomainsBarChart />}
           
           <Card className={userRole === 'admin' ? 'lg:col-span-2' : ''}>
             <CardHeader>

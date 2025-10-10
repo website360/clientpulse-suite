@@ -180,7 +180,10 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
                   <TableCell>{contract.payment_methods?.name || '-'}</TableCell>
                   <TableCell>
-                    {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
