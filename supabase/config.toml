@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-recurring-payables]
 verify_jwt = false
+
+[functions.check-expiring-items]
+verify_jwt = false

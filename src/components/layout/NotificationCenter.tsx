@@ -10,44 +10,81 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Notification {
   id: string;
   title: string;
   description: string;
-  timestamp: string;
+  created_at: string;
   read: boolean;
   type: 'info' | 'success' | 'warning' | 'error';
+  reference_type?: string;
+  reference_id?: string;
 }
 
 export function NotificationCenter() {
-  // Mock data - will be replaced with real data
-  const notifications: Notification[] = [
-    {
-      id: '1',
-      title: 'Novo ticket criado',
-      description: 'Cliente João Silva criou um novo ticket',
-      timestamp: '5 min atrás',
-      read: false,
-      type: 'info',
-    },
-    {
-      id: '2',
-      title: 'Ticket resolvido',
-      description: 'Ticket #1234 foi marcado como resolvido',
-      timestamp: '1 hora atrás',
-      read: false,
-      type: 'success',
-    },
-    {
-      id: '3',
-      title: 'SLA em risco',
-      description: 'Ticket #1235 está próximo do vencimento do SLA',
-      timestamp: '2 horas atrás',
-      read: true,
-      type: 'warning',
-    },
-  ];
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications();
+
+    // Subscribe to new notifications
+    const channel = supabase
+      .channel('notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setNotifications((data || []) as Notification[]);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -90,7 +127,11 @@ export function NotificationCenter() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[300px]">
-          {notifications.length === 0 ? (
+          {loading ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Carregando...
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               Nenhuma notificação
             </div>
@@ -99,6 +140,7 @@ export function NotificationCenter() {
               <DropdownMenuItem
                 key={notification.id}
                 className="flex flex-col items-start p-3 cursor-pointer"
+                onClick={() => !notification.read && markAsRead(notification.id)}
               >
                 <div className="flex items-start gap-2 w-full">
                   <div className={`h-2 w-2 mt-1.5 rounded-full ${getTypeColor(notification.type)}`} />
@@ -110,7 +152,10 @@ export function NotificationCenter() {
                       {notification.description}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {notification.timestamp}
+                      {formatDistanceToNow(new Date(notification.created_at), { 
+                        addSuffix: true, 
+                        locale: ptBR 
+                      })}
                     </p>
                   </div>
                 </div>
