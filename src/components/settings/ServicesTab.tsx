@@ -104,6 +104,21 @@ export function ServicesTab() {
     service: null,
   });
 
+  const handleToggleActive = async (service: Service) => {
+    const { error } = await supabase
+      .from('services')
+      .update({ is_active: !service.is_active })
+      .eq('id', service.id);
+
+    if (error) {
+      toast.error('Erro ao atualizar status');
+      return;
+    }
+
+    toast.success('Status atualizado com sucesso');
+    fetchServices();
+  };
+
   const handleDelete = (service: Service) => {
     setDeleteConfirmModal({ isOpen: true, service });
   };
@@ -207,9 +222,10 @@ export function ServicesTab() {
               <TableCell className="font-medium">{service.name}</TableCell>
               <TableCell>{service.description}</TableCell>
               <TableCell>
-                <span className={service.is_active ? 'text-success' : 'text-muted-foreground'}>
-                  {service.is_active ? 'Ativo' : 'Inativo'}
-                </span>
+                <Switch
+                  checked={service.is_active}
+                  onCheckedChange={() => handleToggleActive(service)}
+                />
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
