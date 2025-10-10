@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Ticket, CheckCircle, Clock, Users, XCircle } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, XCircle, DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 
@@ -17,6 +17,10 @@ interface DashboardStats {
   resolvedTickets: number;
   closedTickets: number;
   totalClients: number;
+  totalReceivable: number;
+  totalPayable: number;
+  overdueAccounts: number;
+  cashFlow: number;
 }
 
 export default function Dashboard() {
@@ -29,6 +33,10 @@ export default function Dashboard() {
     resolvedTickets: 0,
     closedTickets: 0,
     totalClients: 0,
+    totalReceivable: 0,
+    totalPayable: 0,
+    overdueAccounts: 0,
+    cashFlow: 0,
   });
   const [recentTickets, setRecentTickets] = useState<any[]>([]);
 
@@ -89,6 +97,77 @@ export default function Dashboard() {
           .eq('is_active', true);
         
         setStats(prev => ({ ...prev, totalClients: count || 0 }));
+
+        // Fetch financial data
+        const today = new Date();
+        const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
+        const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
+        const todayFormatted = format(today, 'yyyy-MM-dd');
+
+        // Total a Receber (mês atual, pendente)
+        const { data: receivableData } = await supabase
+          .from('accounts_receivable')
+          .select('amount')
+          .gte('due_date', monthStart)
+          .lte('due_date', monthEnd)
+          .eq('status', 'pending');
+
+        const totalReceivable = receivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Total a Pagar (mês atual, pendente)
+        const { data: payableData } = await supabase
+          .from('accounts_payable')
+          .select('amount')
+          .gte('due_date', monthStart)
+          .lte('due_date', monthEnd)
+          .eq('status', 'pending');
+
+        const totalPayable = payableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Contas Vencidas (a pagar + a receber)
+        const { data: overdueReceivable } = await supabase
+          .from('accounts_receivable')
+          .select('id')
+          .lt('due_date', todayFormatted)
+          .eq('status', 'pending');
+
+        const { data: overduePayable } = await supabase
+          .from('accounts_payable')
+          .select('id')
+          .lt('due_date', todayFormatted)
+          .eq('status', 'pending');
+
+        const overdueAccounts = (overdueReceivable?.length || 0) + (overduePayable?.length || 0);
+
+        // Recebido no mês
+        const { data: receivedData } = await supabase
+          .from('accounts_receivable')
+          .select('amount')
+          .gte('payment_date', monthStart)
+          .lte('payment_date', monthEnd)
+          .in('status', ['received']);
+
+        const totalReceived = receivedData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        // Pago no mês
+        const { data: paidData } = await supabase
+          .from('accounts_payable')
+          .select('amount')
+          .gte('payment_date', monthStart)
+          .lte('payment_date', monthEnd)
+          .in('status', ['paid']);
+
+        const totalPaid = paidData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
+
+        const cashFlow = totalReceived - totalPaid;
+
+        setStats(prev => ({
+          ...prev,
+          totalReceivable,
+          totalPayable,
+          overdueAccounts,
+          cashFlow,
+        }));
       }
 
       // Fetch recent tickets
@@ -219,12 +298,97 @@ export default function Dashboard() {
         </div>
 
         {userRole === 'admin' && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg border border-border bg-card">
-              <p className="text-sm text-muted-foreground">Total de Clientes</p>
-              <p className="text-2xl font-bold">{stats.totalClients}</p>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-sm text-muted-foreground">Total de Clientes</p>
+                <p className="text-2xl font-bold">{stats.totalClients}</p>
+              </div>
             </div>
-          </div>
+
+            {/* Financial Indicators */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Indicadores Financeiros</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Total a Receber
+                    </CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalReceivable)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Mês atual
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Total a Pagar
+                    </CardTitle>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalPayable)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Mês atual
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Contas Vencidas
+                    </CardTitle>
+                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {stats.overdueAccounts}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      A pagar + A receber
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Fluxo de Caixa
+                    </CardTitle>
+                    <DollarSign className={`h-4 w-4 ${stats.cashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${stats.cashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.cashFlow)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Recebido - Pago no mês
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Activity and Recent Tickets */}
