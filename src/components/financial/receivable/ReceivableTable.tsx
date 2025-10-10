@@ -118,8 +118,14 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
   };
 
   const getStatusBadge = (status: string, dueDate: string) => {
+    const parseLocalDate = (str: string) => {
+      const [y, m, d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
     const today = new Date();
-    const due = new Date(dueDate);
+    today.setHours(0, 0, 0, 0);
+    const due = parseLocalDate(dueDate);
+    due.setHours(0, 0, 0, 0);
     
     if (status === 'received') {
       return <Badge variant="default" className="bg-success">Recebido</Badge>;
@@ -180,7 +186,10 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
                     )}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(account.due_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    {(() => {
+                      const [y, m, d] = account.due_date.split('-');
+                      return `${d}/${m}/${y}`;
+                    })()}
                   </TableCell>
                   <TableCell className="font-medium">{formatCurrency(account.amount)}</TableCell>
                   <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
