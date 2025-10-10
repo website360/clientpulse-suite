@@ -194,7 +194,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Visão geral do sistema de tickets
+            Visão geral do sistema de gerenciamento
           </p>
         </div>
 
