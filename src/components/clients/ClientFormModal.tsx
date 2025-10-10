@@ -36,12 +36,11 @@ const clientSchema = z.object({
   client_type: z.enum(['person', 'company']),
   full_name: z.string().max(200).optional().nullable(),
   company_name: z.string().max(200).optional().nullable(),
+  responsible_name: z.string().optional().nullable(),
   cpf_cnpj: z.string().optional().nullable(),
   email: z.string().email('Email inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
-  responsible_name: z.string().optional().nullable(),
   birth_date: z.date().optional().nullable(),
-  gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional().nullable(),
   address_cep: z.string().optional().nullable(),
   address_street: z.string().optional().nullable(),
   address_number: z.string().optional().nullable(),
@@ -53,7 +52,7 @@ const clientSchema = z.object({
   if (data.client_type === 'person' && (!data.full_name || data.full_name.trim().length === 0)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Nome é obrigatório',
+      message: 'Nome Completo é obrigatório',
       path: ['full_name'],
     });
   }
@@ -62,6 +61,20 @@ const clientSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: 'Razão Social é obrigatória',
       path: ['company_name'],
+    });
+  }
+  if (data.client_type === 'person' && !data.cpf_cnpj) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'CPF é obrigatório',
+      path: ['cpf_cnpj'],
+    });
+  }
+  if (data.client_type === 'company' && !data.cpf_cnpj) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'CNPJ é obrigatório',
+      path: ['cpf_cnpj'],
     });
   }
 });
@@ -103,7 +116,6 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         phone: client.phone,
         responsible_name: client.responsible_name || '',
         birth_date: client.birth_date ? new Date(client.birth_date) : undefined,
-        gender: client.gender || undefined,
         address_cep: client.address_cep || '',
         address_street: client.address_street || '',
         address_number: client.address_number || '',
@@ -122,7 +134,6 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         phone: '',
         responsible_name: '',
         birth_date: undefined,
-        gender: undefined,
         address_cep: '',
         address_street: '',
         address_number: '',
@@ -168,7 +179,6 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         email: data.email,
         phone: data.phone,
         responsible_name: data.responsible_name || null,
-        gender: data.gender || null,
         birth_date: data.birth_date ? format(data.birth_date, 'yyyy-MM-dd') : null,
         address_cep: data.address_cep || null,
         address_street: data.address_street || null,
@@ -225,220 +235,198 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Info */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Informações Básicas</h3>
-              <div>
-                <Label>Tipo de Cliente</Label>
-                <RadioGroup
-                  value={form.watch('client_type')}
-                  onValueChange={(value: any) => form.setValue('client_type', value)}
-                  className="flex gap-4 mt-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="person" id="person" />
-                    <Label htmlFor="person" className="cursor-pointer">Pessoa Física</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="company" id="company" />
-                    <Label htmlFor="company" className="cursor-pointer">Pessoa Jurídica</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {clientType === 'person' ? (
-                <>
-                  <div>
-                    <Label htmlFor="full_name">Nome Completo *</Label>
-                    <Input
-                      id="full_name"
-                      {...form.register('full_name')}
-                      placeholder="João Silva"
-                    />
-                    {form.formState.errors.full_name && (
-                      <p className="text-sm text-error mt-1">
-                        {form.formState.errors.full_name.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="cpf_cnpj">CPF</Label>
-                    <Input
-                      id="cpf_cnpj"
-                      {...form.register('cpf_cnpj')}
-                      placeholder="000.000.000-00"
-                      maxLength={14}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <Label htmlFor="company_name">Razão Social *</Label>
-                    <Input
-                      id="company_name"
-                      {...form.register('company_name')}
-                      placeholder="Empresa LTDA"
-                    />
-                    {form.formState.errors.company_name && (
-                      <p className="text-sm text-error mt-1">
-                        {form.formState.errors.company_name.message}
-                      </p>
-                    )}
-                    {form.formState.errors.full_name && (
-                      <p className="text-sm text-error mt-1">
-                        {form.formState.errors.full_name.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="cpf_cnpj">CNPJ</Label>
-                    <Input
-                      id="cpf_cnpj"
-                      {...form.register('cpf_cnpj')}
-                      placeholder="00.000.000/0000-00"
-                      maxLength={18}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="responsible_name">Nome do Responsável</Label>
-                    <Input
-                      id="responsible_name"
-                      {...form.register('responsible_name')}
-                      placeholder="João Silva"
-                    />
-                  </div>
-                </>
-              )}
-          </div>
-
-          {/* Contact Information */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Contato</h3>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register('email')}
-                  placeholder="cliente@email.com"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-sm text-error mt-1">
-                    {form.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="phone">Telefone *</Label>
-                <Input
-                  id="phone"
-                  {...form.register('phone')}
-                  placeholder="(00) 00000-0000"
-                  maxLength={15}
-                />
-                {form.formState.errors.phone && (
-                  <p className="text-sm text-error mt-1">
-                    {form.formState.errors.phone.message}
-                  </p>
-                )}
-              </div>
-          </div>
-
-          {/* Personal Data - Only for person type */}
-          {clientType === 'person' && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-foreground border-b pb-2">Dados Pessoais</h3>
-              <div>
-                <Label>Data de Nascimento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !form.watch('birth_date') && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.watch('birth_date') ? (
-                        format(form.watch('birth_date')!, 'PPP', { locale: ptBR })
-                      ) : (
-                        <span>Selecione uma data</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={form.watch('birth_date')}
-                      onSelect={(date) => form.setValue('birth_date', date)}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date('1900-01-01')
-                      }
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <Label htmlFor="gender">Gênero</Label>
-                <Select
-                  value={form.watch('gender')}
-                  onValueChange={(value: any) => form.setValue('gender', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Masculino</SelectItem>
-                    <SelectItem value="female">Feminino</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                    <SelectItem value="prefer_not_to_say">Prefiro não dizer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {/* Address Information */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground border-b pb-2">Endereço</h3>
-              <div>
-                <Label htmlFor="address_cep">CEP</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="address_cep"
-                    {...form.register('address_cep')}
-                    placeholder="00000-000"
-                    maxLength={9}
-                    onBlur={(e) => fetchAddressByCep(e.target.value)}
-                  />
-                  {fetchingCep && <Loader2 className="h-5 w-5 animate-spin" />}
+            <div>
+              <Label>Tipo de Cliente</Label>
+              <RadioGroup
+                value={form.watch('client_type')}
+                onValueChange={(value: any) => form.setValue('client_type', value)}
+                className="flex gap-4 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="person" id="person" />
+                  <Label htmlFor="person" className="cursor-pointer">Pessoa Física</Label>
                 </div>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="company" id="company" />
+                  <Label htmlFor="company" className="cursor-pointer">Pessoa Jurídica</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="address_street">Endereço</Label>
+            {clientType === 'person' ? (
+              <>
+                <div>
+                  <Label htmlFor="responsible_name">Apelido</Label>
                   <Input
-                    id="address_street"
-                    {...form.register('address_street')}
-                    placeholder="Rua, Avenida..."
+                    id="responsible_name"
+                    {...form.register('responsible_name')}
+                    placeholder="Apelido"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="address_number">Número</Label>
+                  <Label htmlFor="full_name">Nome Completo *</Label>
                   <Input
-                    id="address_number"
-                    {...form.register('address_number')}
-                    placeholder="123"
+                    id="full_name"
+                    {...form.register('full_name')}
+                    placeholder="João Silva"
+                  />
+                  {form.formState.errors.full_name && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.full_name.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="cpf_cnpj">CPF *</Label>
+                  <Input
+                    id="cpf_cnpj"
+                    {...form.register('cpf_cnpj')}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                  />
+                  {form.formState.errors.cpf_cnpj && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.cpf_cnpj.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Data de Nascimento</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !form.watch('birth_date') && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {form.watch('birth_date') ? (
+                          format(form.watch('birth_date')!, 'PPP', { locale: ptBR })
+                        ) : (
+                          <span>Selecione uma data</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={form.watch('birth_date')}
+                        onSelect={(date) => form.setValue('birth_date', date)}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date('1900-01-01')
+                        }
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="responsible_name">Apelido</Label>
+                  <Input
+                    id="responsible_name"
+                    {...form.register('responsible_name')}
+                    placeholder="Apelido"
                   />
                 </div>
-              </div>
+                <div>
+                  <Label htmlFor="cpf_cnpj">CNPJ *</Label>
+                  <Input
+                    id="cpf_cnpj"
+                    {...form.register('cpf_cnpj')}
+                    placeholder="00.000.000/0000-00"
+                    maxLength={18}
+                  />
+                  {form.formState.errors.cpf_cnpj && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.cpf_cnpj.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="company_name">Razão Social *</Label>
+                  <Input
+                    id="company_name"
+                    {...form.register('company_name')}
+                    placeholder="Empresa LTDA"
+                  />
+                  {form.formState.errors.company_name && (
+                    <p className="text-sm text-destructive mt-1">
+                      {form.formState.errors.company_name.message}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
 
+            <div>
+              <Label htmlFor="phone">Telefone *</Label>
+              <Input
+                id="phone"
+                {...form.register('phone')}
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+              {form.formState.errors.phone && (
+                <p className="text-sm text-destructive mt-1">
+                  {form.formState.errors.phone.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                {...form.register('email')}
+                placeholder="cliente@email.com"
+              />
+              {form.formState.errors.email && (
+                <p className="text-sm text-destructive mt-1">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="address_cep">CEP</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="address_cep"
+                  {...form.register('address_cep')}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  onBlur={(e) => fetchAddressByCep(e.target.value)}
+                />
+                {fetchingCep && <Loader2 className="h-5 w-5 animate-spin" />}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="address_street">Endereço</Label>
+              <Input
+                id="address_street"
+                {...form.register('address_street')}
+                placeholder="Rua, Avenida..."
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="address_number">Número</Label>
+                <Input
+                  id="address_number"
+                  {...form.register('address_number')}
+                  placeholder="123"
+                />
+              </div>
               <div>
                 <Label htmlFor="address_complement">Complemento</Label>
                 <Input
@@ -447,29 +435,31 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   placeholder="Apto, Sala..."
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="address_neighborhood">Bairro</Label>
-                  <Input
-                    id="address_neighborhood"
-                    {...form.register('address_neighborhood')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="address_city">Cidade</Label>
-                  <Input id="address_city" {...form.register('address_city')} />
-                </div>
-                <div>
-                  <Label htmlFor="address_state">Estado</Label>
-                  <Input
-                    id="address_state"
-                    {...form.register('address_state')}
-                    maxLength={2}
-                    placeholder="SP"
-                  />
-                </div>
+            <div>
+              <Label htmlFor="address_neighborhood">Bairro</Label>
+              <Input
+                id="address_neighborhood"
+                {...form.register('address_neighborhood')}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="address_city">Cidade</Label>
+                <Input id="address_city" {...form.register('address_city')} />
               </div>
+              <div>
+                <Label htmlFor="address_state">Estado</Label>
+                <Input
+                  id="address_state"
+                  {...form.register('address_state')}
+                  maxLength={2}
+                  placeholder="SP"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}

@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Download, Mail } from 'lucide-react';
+import { Plus, LayoutGrid, Table as TableIcon, Download } from 'lucide-react';
 import { ClientTable } from '@/components/clients/ClientTable';
 import { ClientCards } from '@/components/clients/ClientCards';
 import { ClientFilters } from '@/components/clients/ClientFilters';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
-import { ClientDetailsModal } from '@/components/clients/ClientDetailsModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [clients, setClients] = useState<any[]>([]);
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [formModalOpen, setFormModalOpen] = useState(false);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [filters, setFilters] = useState({
     search: '',
@@ -90,8 +90,7 @@ export default function Clients() {
   };
 
   const handleView = (client: any) => {
-    setSelectedClient(client);
-    setDetailsModalOpen(true);
+    navigate(`/clients/${client.id}`);
   };
 
   const handleDelete = async (clientId: string) => {
@@ -221,12 +220,6 @@ export default function Clients() {
             setFormModalOpen(false);
             setSelectedClient(null);
           }}
-        />
-
-        <ClientDetailsModal
-          open={detailsModalOpen}
-          onOpenChange={setDetailsModalOpen}
-          client={selectedClient}
         />
       </div>
     </DashboardLayout>
