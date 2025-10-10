@@ -153,6 +153,7 @@ export function PayableTable({ filters }: PayableTableProps) {
               <TableHead>Descrição</TableHead>
               <TableHead>Fornecedor</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Ocorrência</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Vencimento</TableHead>
               <TableHead>Status</TableHead>
@@ -162,7 +163,7 @@ export function PayableTable({ filters }: PayableTableProps) {
           <TableBody>
             {accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Nenhuma conta encontrada
                 </TableCell>
               </TableRow>
@@ -172,6 +173,14 @@ export function PayableTable({ filters }: PayableTableProps) {
                   <TableCell className="font-medium">{account.description}</TableCell>
                   <TableCell>{account.supplier?.name}</TableCell>
                   <TableCell>{account.category}</TableCell>
+                  <TableCell className="capitalize">
+                    {account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}
+                    {account.occurrence_type === 'parcelada' && account.installment_number && account.total_installments && (
+                      <span className="ml-1">
+                        {String(account.installment_number).padStart(2, '0')}/{String(account.total_installments).padStart(2, '0')}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>{formatCurrency(account.amount)}</TableCell>
                   <TableCell>
                     {format(new Date(account.due_date), 'dd/MM/yyyy', { locale: ptBR })}

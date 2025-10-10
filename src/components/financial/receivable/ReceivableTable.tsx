@@ -171,7 +171,14 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.client?.nickname || account.client?.company_name || account.client?.full_name}</TableCell>
                   <TableCell>{account.category}</TableCell>
-                  <TableCell className="capitalize">{account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}</TableCell>
+                  <TableCell className="capitalize">
+                    {account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}
+                    {account.occurrence_type === 'parcelada' && account.installment_number && account.total_installments && (
+                      <span className="ml-1">
+                        {String(account.installment_number).padStart(2, '0')}/{String(account.total_installments).padStart(2, '0')}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {format(new Date(account.due_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
