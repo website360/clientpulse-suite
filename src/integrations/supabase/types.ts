@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts_payable: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          category: string
+          client_id: string
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          category: string
+          client_id: string
+          created_at?: string
+          created_by: string
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          category?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_payable_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounts_receivable: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          category: string
+          client_id: string
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          category: string
+          client_id: string
+          created_at?: string
+          created_by: string
+          description: string
+          due_date: string
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          category?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_receivable_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_contacts: {
         Row: {
           client_id: string
@@ -425,6 +560,7 @@ export type Database = {
       client_type: "person" | "company"
       domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "waiting" | "resolved" | "closed"
     }
@@ -558,6 +694,7 @@ export const Constants = {
       client_type: ["person", "company"],
       domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "waiting", "resolved", "closed"],
     },

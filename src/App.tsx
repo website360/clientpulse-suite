@@ -11,6 +11,8 @@ import Tickets from "./pages/Tickets";
 import TicketDetails from "./pages/TicketDetails";
 import Settings from "./pages/Settings";
 import Domains from "./pages/Domains";
+import AccountsPayable from "./pages/AccountsPayable";
+import AccountsReceivable from "./pages/AccountsReceivable";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +32,9 @@ const App = () => (
             <Route path="/tickets" element={<Tickets />} />
             <Route path="/tickets/:id" element={<TicketDetails />} />
             <Route path="/domains" element={<Domains />} />
+            <Route path="/financeiro" element={<Navigate to="/financeiro/pagar" replace />} />
+            <Route path="/financeiro/pagar" element={<AccountsPayable />} />
+            <Route path="/financeiro/receber" element={<AccountsReceivable />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />
