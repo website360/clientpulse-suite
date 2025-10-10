@@ -37,16 +37,21 @@ const formSchema = z.object({
   if (data.occurrence_type === 'unica') {
     return data.due_date !== undefined;
   }
-  if (['mensal', 'trimestral', 'semestral', 'anual'].includes(data.occurrence_type)) {
-    return data.due_day !== undefined;
-  }
-  if (data.occurrence_type === 'parcelada') {
-    return data.due_day !== undefined && data.installments !== undefined;
+  if (['mensal', 'trimestral', 'semestral', 'anual', 'parcelada'].includes(data.occurrence_type)) {
+    return data.due_date !== undefined && data.due_day !== undefined;
   }
   return true;
 }, {
   message: "Preencha todos os campos obrigatórios para o tipo de ocorrência selecionado",
 });
+
+// Helper function to format date without timezone issues
+const formatDateToString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 interface ReceivableFormModalProps {
   open: boolean;
@@ -161,7 +166,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
         occurrence_type: values.occurrence_type,
         due_day: values.due_day || null,
         installments: values.installments || null,
-        issue_date: values.issue_date.toISOString().split('T')[0],
+        issue_date: formatDateToString(values.issue_date),
       };
 
       if (account) {
@@ -171,7 +176,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           .update({
             ...baseReceivableData,
             amount: parseFloat(values.amount),
-            due_date: values.due_date ? values.due_date.toISOString().split('T')[0] : values.issue_date.toISOString().split('T')[0],
+            due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
           })
           .eq('id', account.id);
 
@@ -190,7 +195,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
             .insert([{
               ...baseReceivableData,
               amount: parseFloat(values.amount),
-              due_date: values.due_date!.toISOString().split('T')[0],
+              due_date: formatDateToString(values.due_date!),
             }]);
 
           if (error) throw error;
@@ -207,14 +212,15 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           
           const charges = [];
           for (let i = 0; i < installments; i++) {
-            const dueDate = new Date(values.issue_date);
+            // Use due_date as base and add months
+            const dueDate = new Date(values.due_date!);
             dueDate.setMonth(dueDate.getMonth() + i);
             dueDate.setDate(values.due_day!);
             
             charges.push({
               ...baseReceivableData,
               amount: amountPerInstallment,
-              due_date: dueDate.toISOString().split('T')[0],
+              due_date: formatDateToString(dueDate),
               description: `${values.description} - ${String(i + 1).padStart(2, '0')} de ${String(installments).padStart(2, '0')}`,
               installment_number: i + 1,
               total_installments: installments,
@@ -239,14 +245,15 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                                   values.occurrence_type === 'semestral' ? 6 : 12;
           
           for (let i = 0; i < 12; i++) {
-            const dueDate = new Date(values.issue_date);
+            // Use due_date as base and add months
+            const dueDate = new Date(values.due_date!);
             dueDate.setMonth(dueDate.getMonth() + (i * monthsIncrement));
             dueDate.setDate(values.due_day!);
             
             charges.push({
               ...baseReceivableData,
               amount: parseFloat(values.amount),
-              due_date: dueDate.toISOString().split('T')[0],
+              due_date: formatDateToString(dueDate),
             });
           }
 
@@ -461,6 +468,46 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
+                  name="due_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Data do 1º Vencimento</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>Selecione</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
                   name="due_day"
                   render={({ field }) => (
                     <FormItem>
@@ -479,29 +526,29 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                     </FormItem>
                   )}
                 />
-
-                {occurrenceType === 'parcelada' && (
-                  <FormField
-                    control={form.control}
-                    name="installments"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número de Parcelas</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            placeholder="Ex: 12"
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
               </div>
+            )}
+
+            {occurrenceType === 'parcelada' && (
+              <FormField
+                control={form.control}
+                name="installments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número de Parcelas</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        placeholder="Ex: 12"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
 
             <div className="grid grid-cols-2 gap-4">
