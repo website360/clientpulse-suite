@@ -7,12 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { maskDate, parseDateBR, formatDateBR } from '@/lib/masks';
 
 interface Client {
   id: string;
@@ -43,7 +39,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
   const [formData, setFormData] = useState({
     domain: '',
     client_id: '',
-    expires_at: new Date(),
+    expires_at: '',
     owner: 'client' as 'agency' | 'client',
   });
 
@@ -54,14 +50,14 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
         setFormData({
           domain: domain.domain,
           client_id: domain.client_id,
-          expires_at: new Date(domain.expires_at),
+          expires_at: formatDateBR(new Date(domain.expires_at)),
           owner: domain.owner,
         });
       } else {
         setFormData({
           domain: '',
           client_id: '',
-          expires_at: new Date(),
+          expires_at: '',
           owner: 'client',
         });
       }
@@ -86,13 +82,21 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar data
+    const parsedDate = parseDateBR(formData.expires_at);
+    if (!parsedDate) {
+      toast.error('Data de vencimento inválida. Use o formato DD/MM/AAAA');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const domainData = {
         domain: formData.domain,
         client_id: formData.client_id,
-        expires_at: format(formData.expires_at, 'yyyy-MM-dd'),
+        expires_at: format(parsedDate, 'yyyy-MM-dd'),
         owner: formData.owner,
         created_by: user?.id,
       };
@@ -168,34 +172,16 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           </div>
 
           <div className="space-y-2">
-            <Label>Data de Vencimento *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !formData.expires_at && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.expires_at ? (
-                    format(formData.expires_at, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                  ) : (
-                    <span>Selecione uma data</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.expires_at}
-                  onSelect={(date) => date && setFormData({ ...formData, expires_at: date })}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="expires_at">Data de Vencimento *</Label>
+            <Input
+              id="expires_at"
+              type="text"
+              placeholder="DD/MM/AAAA"
+              value={formData.expires_at}
+              onChange={(e) => setFormData({ ...formData, expires_at: maskDate(e.target.value) })}
+              maxLength={10}
+              required
+            />
           </div>
 
           <div className="space-y-2">

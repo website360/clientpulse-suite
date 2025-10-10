@@ -95,7 +95,7 @@ export const parseDateBR = (dateStr: string): Date | null => {
   const year = parseInt(parts[2], 10);
   
   if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-  if (year < 1900 || year > new Date().getFullYear()) return null;
+  if (year < 1900 || year > 2100) return null;
   
   const date = new Date(year, month, day);
   if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
