@@ -1,4 +1,4 @@
-import { User } from 'lucide-react';
+import { User, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,11 +25,29 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchAvatar();
     }
+    
+    // Check initial theme
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+    
+    // Observer para mudanças no tema
+    const observer = new MutationObserver(() => {
+      const newIsDark = document.documentElement.classList.contains('dark');
+      setIsDark(newIsDark);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
   }, [user]);
 
   const fetchAvatar = async () => {
@@ -57,6 +75,18 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
     await signOut();
   };
 
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    if (newIsDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-sidebar-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center gap-4 px-6">
@@ -82,7 +112,21 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <User className="mr-2 h-4 w-4" />
                 Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleTheme}>
+                {isDark ? (
+                  <>
+                    <Sun className="mr-2 h-4 w-4" />
+                    Modo Claro
+                  </>
+                ) : (
+                  <>
+                    <Moon className="mr-2 h-4 w-4" />
+                    Modo Escuro
+                  </>
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>

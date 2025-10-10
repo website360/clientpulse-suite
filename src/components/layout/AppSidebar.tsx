@@ -179,16 +179,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto border-t border-sidebar-border p-4">
-        <Button
-          variant="ghost"
-          size="default"
-          onClick={toggleTheme}
-          className="w-full justify-start"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-        </Button>
-        <div className="text-xs text-muted-foreground text-center pt-2">
+        <div className="text-xs text-muted-foreground text-center">
           v1.0.0
         </div>
       </SidebarFooter>
