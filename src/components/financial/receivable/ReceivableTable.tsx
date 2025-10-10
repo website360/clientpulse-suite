@@ -231,7 +231,18 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
             ) : (
               accounts.map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.client?.nickname || account.client?.company_name || account.client?.full_name}</TableCell>
+                  <TableCell className="font-medium">
+                    {account.client?.nickname ? (
+                      <div>
+                        <div>{account.client.nickname}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {account.client.company_name || account.client.full_name}
+                        </div>
+                      </div>
+                    ) : (
+                      account.client?.company_name || account.client?.full_name
+                    )}
+                  </TableCell>
                   <TableCell>{account.category}</TableCell>
                   <TableCell className="capitalize">
                     {account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}
