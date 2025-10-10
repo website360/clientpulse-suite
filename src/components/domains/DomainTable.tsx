@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Globe, Calendar, User } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DomainFormModal } from './DomainFormModal';
 import {
@@ -61,7 +61,7 @@ export function DomainTable({ onEdit }: DomainTableProps) {
         .order('expires_at', { ascending: true });
 
       if (error) throw error;
-      setDomains(data || []);
+      setDomains((data as any) || []);
     } catch (error) {
       console.error('Error fetching domains:', error);
       toast.error('Erro ao carregar domínios');
@@ -105,14 +105,18 @@ export function DomainTable({ onEdit }: DomainTableProps) {
   };
 
   const isExpiringSoon = (expiresAt: string) => {
-    const daysUntilExpiry = Math.ceil(
-      (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const exp = parse(expiresAt, 'yyyy-MM-dd', new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysUntilExpiry = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 30;
   };
 
   const isExpired = (expiresAt: string) => {
-    return new Date(expiresAt) < new Date();
+    const exp = parse(expiresAt, 'yyyy-MM-dd', new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return exp.getTime() < today.getTime();
   };
 
   if (loading) {
@@ -163,7 +167,7 @@ export function DomainTable({ onEdit }: DomainTableProps) {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {format(new Date(domain.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </span>
                     {isExpired(domain.expires_at) && (
                       <Badge variant="destructive">Vencido</Badge>

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { maskDate, parseDateBR, formatDateBR } from '@/lib/masks';
 
 interface Client {
@@ -52,7 +52,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
         setFormData({
           domain: domain.domain,
           client_id: domain.client_id,
-          expires_at: formatDateBR(new Date(domain.expires_at)),
+          expires_at: formatDateBR(parse(domain.expires_at, 'yyyy-MM-dd', new Date())),
           owner: domain.owner,
         });
       } else {
