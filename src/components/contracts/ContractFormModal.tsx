@@ -66,7 +66,8 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         const end = new Date(contract.end_date);
         const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
         
-        if (months === 1) period = 'monthly';
+        if (months === 0) period = 'single';
+        else if (months === 1) period = 'monthly';
         else if (months === 12) period = 'annual';
         else if (months === 24) period = 'biannual';
       }
@@ -183,14 +184,20 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
       if (formData.start_date && formData.contract_period) {
         const start = new Date(formData.start_date);
         const monthsToAdd = {
+          single: 0,
           monthly: 1,
           annual: 12,
           biannual: 24,
         }[formData.contract_period] || 0;
         
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + monthsToAdd);
-        end_date = end.toISOString().split('T')[0];
+        if (monthsToAdd > 0) {
+          const end = new Date(start);
+          end.setMonth(end.getMonth() + monthsToAdd);
+          end_date = end.toISOString().split('T')[0];
+        } else {
+          // Para pagamento único, end_date é igual a start_date
+          end_date = formData.start_date;
+        }
       }
 
       const payload = {
@@ -352,6 +359,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
                   <SelectValue placeholder="Selecione o período" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="single">Pagamento único</SelectItem>
                   <SelectItem value="monthly">Mensal</SelectItem>
                   <SelectItem value="annual">Anual</SelectItem>
                   <SelectItem value="biannual">Bi-anual</SelectItem>
