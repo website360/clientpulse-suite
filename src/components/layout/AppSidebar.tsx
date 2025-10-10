@@ -15,17 +15,33 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const { userRole } = useAuth();
   const collapsed = state === 'collapsed';
   const [isDark, setIsDark] = useState(false);
+  const [ticketCount, setTicketCount] = useState(0);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
+    fetchTicketCount();
   }, []);
+
+  const fetchTicketCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      setTicketCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching ticket count:', error);
+    }
+  };
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
@@ -54,10 +70,9 @@ export function AppSidebar() {
 
   const items = userRole === 'admin' ? adminItems : clientItems;
 
-  // Mock badge counts - will be replaced with real data
   const badgeCounts: Record<string, number> = {
-    'Tickets': 5,
-    'Meus Tickets': 3,
+    'Tickets': ticketCount,
+    'Meus Tickets': ticketCount,
   };
 
   return (

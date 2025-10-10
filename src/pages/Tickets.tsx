@@ -225,7 +225,7 @@ export default function Tickets() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="p-4 rounded-lg border border-border bg-card">
             <p className="text-sm text-muted-foreground">Total</p>
             <p className="text-2xl font-bold">{filteredTickets.length}</p>
@@ -251,7 +251,13 @@ export default function Tickets() {
           <div className="p-4 rounded-lg border-2 border-green-600/40 bg-green-600/10">
             <p className="text-sm text-green-700">Resolvido</p>
             <p className="text-2xl font-bold text-green-600">
-              {filteredTickets.filter((t) => t.status === 'resolved' || t.status === 'closed').length}
+              {filteredTickets.filter((t) => t.status === 'resolved').length}
+            </p>
+          </div>
+          <div className="p-4 rounded-lg border-2 border-gray-500/40 bg-gray-500/10">
+            <p className="text-sm text-gray-700">Fechado</p>
+            <p className="text-2xl font-bold text-gray-600">
+              {filteredTickets.filter((t) => t.status === 'closed').length}
             </p>
           </div>
         </div>
