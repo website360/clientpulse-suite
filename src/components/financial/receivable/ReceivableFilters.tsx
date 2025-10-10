@@ -20,17 +20,18 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
   };
 
   const changeMonth = (direction: 'prev' | 'next') => {
-    const currentDate = new Date(filters.dateFrom || new Date());
-    const newDate = new Date(currentDate);
+    // Parse the date string properly to avoid timezone issues
+    const [year, month, day] = (filters.dateFrom || '').split('-').map(Number);
+    const currentDate = year && month ? new Date(year, month - 1, day || 1) : new Date();
     
     if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
+      currentDate.setMonth(currentDate.getMonth() - 1);
     } else {
-      newDate.setMonth(newDate.getMonth() + 1);
+      currentDate.setMonth(currentDate.getMonth() + 1);
     }
     
-    const firstDay = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
-    const lastDay = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
