@@ -10,6 +10,7 @@ import ClientDetail from "./pages/ClientDetail";
 import Tickets from "./pages/Tickets";
 import TicketDetails from "./pages/TicketDetails";
 import Settings from "./pages/Settings";
+import Domains from "./pages/Domains";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/clients/:id" element={<ClientDetail />} />
             <Route path="/tickets" element={<Tickets />} />
             <Route path="/tickets/:id" element={<TicketDetails />} />
+            <Route path="/domains" element={<Domains />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />

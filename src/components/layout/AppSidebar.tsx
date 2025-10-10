@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -109,6 +109,7 @@ export function AppSidebar() {
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'Clientes', url: '/clients', icon: Users },
     { title: 'Tickets', url: '/tickets', icon: Ticket },
+    { title: 'Domínios', url: '/domains', icon: Globe },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];
 

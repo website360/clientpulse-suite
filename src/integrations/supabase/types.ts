@@ -157,6 +157,47 @@ export type Database = {
         }
         Relationships: []
       }
+      domains: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          domain: string
+          expires_at: string
+          id: string
+          owner: Database["public"]["Enums"]["domain_owner"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          domain: string
+          expires_at: string
+          id?: string
+          owner?: Database["public"]["Enums"]["domain_owner"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          domain?: string
+          expires_at?: string
+          id?: string
+          owner?: Database["public"]["Enums"]["domain_owner"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domains_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -379,6 +420,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "client"
       client_type: "person" | "company"
+      domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "waiting" | "resolved" | "closed"
@@ -511,6 +553,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "client"],
       client_type: ["person", "company"],
+      domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "waiting", "resolved", "closed"],
