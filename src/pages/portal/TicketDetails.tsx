@@ -485,54 +485,62 @@ export default function ClientTicketDetails() {
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {messages.map((message) => (
-                      <Card 
-                        key={message.id} 
-                        className={
-                          message.isAdmin
-                            ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900'
-                            : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
-                        }
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className={`font-semibold text-sm ${message.isAdmin ? 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
-                                  {message.displayName}
-                                  {message.isAdmin && (
-                                    <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
-                                      Suporte
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                </span>
-                                {message.attachmentNames && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span>
-                                          <Paperclip className="h-3 w-3 text-muted-foreground" />
-                                        </span>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p className="text-xs">{message.attachmentNames}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </div>
-                              <div
-                                className="text-sm"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                     {messages.map((message) => (
+                       <Card 
+                         key={message.id} 
+                         className={
+                           message.isAdmin
+                             ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900'
+                             : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
+                         }
+                       >
+                         <CardContent className="p-4">
+                           <div className="flex items-start gap-3">
+                             <div className="flex-1">
+                               <div className="flex items-center gap-2 mb-2">
+                                 <span className={`font-semibold text-sm ${message.isAdmin ? 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                                   {message.displayName}
+                                   {message.isAdmin && (
+                                     <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
+                                       Suporte
+                                     </span>
+                                   )}
+                                 </span>
+                                 <span className="text-xs text-muted-foreground">
+                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                 </span>
+                                 {message.attachmentNames && (
+                                   <TooltipProvider>
+                                     <Tooltip>
+                                       <TooltipTrigger asChild>
+                                         <span>
+                                           <Paperclip className="h-3 w-3 text-muted-foreground" />
+                                         </span>
+                                       </TooltipTrigger>
+                                       <TooltipContent>
+                                         <p className="text-xs">{message.attachmentNames}</p>
+                                       </TooltipContent>
+                                     </Tooltip>
+                                   </TooltipProvider>
+                                 )}
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => quoteMessage(message)}
+                                   className="ml-auto h-6 text-xs"
+                                 >
+                                   Citar
+                                 </Button>
+                               </div>
+                               <div
+                                 className="text-sm"
+                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                               />
+                             </div>
+                           </div>
+                         </CardContent>
+                       </Card>
+                     ))}
                   </div>
                 )}
 
@@ -552,7 +560,7 @@ export default function ClientTicketDetails() {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || sending}
+                      disabled={!stripHtml(newMessageHtml).trim() || sending}
                       className="w-full"
                     >
                       <Send className="h-4 w-4 mr-2" />

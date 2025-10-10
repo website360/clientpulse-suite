@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
@@ -35,9 +35,9 @@ export function TicketReviewModal({ open, onOpenChange, onSubmit }: TicketReview
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Avaliar Atendimento</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Avalie o atendimento recebido e ajude-nos a melhorar
-          </p>
+          <DialogDescription>
+            Por favor, avalie a qualidade do atendimento recebido.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
