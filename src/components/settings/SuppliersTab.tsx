@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
@@ -32,22 +32,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Supplier {
   id: string;
-  company_name: string;
-  trade_name: string | null;
-  cnpj: string | null;
-  email: string;
-  phone: string;
-  contact_name: string | null;
-  contact_phone: string | null;
-  contact_email: string | null;
+  name: string;
+  link?: string;
   is_active: boolean;
-  notes: string | null;
-  created_at: string;
 }
 
 export function SuppliersTab() {
@@ -58,15 +49,8 @@ export function SuppliersTab() {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [supplierToDelete, setSupplierToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    company_name: '',
-    trade_name: '',
-    cnpj: '',
-    email: '',
-    phone: '',
-    contact_name: '',
-    contact_phone: '',
-    contact_email: '',
-    notes: '',
+    name: '',
+    link: '',
   });
   const { toast } = useToast();
 
@@ -80,7 +64,7 @@ export function SuppliersTab() {
       const { data, error } = await supabase
         .from('suppliers')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('name');
 
       if (error) throw error;
       setSuppliers(data || []);
@@ -98,6 +82,16 @@ export function SuppliersTab() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Nome é obrigatório',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -114,13 +108,8 @@ export function SuppliersTab() {
         const { error } = await supabase
           .from('suppliers')
           .update({
-            ...formData,
-            trade_name: formData.trade_name || null,
-            cnpj: formData.cnpj || null,
-            contact_name: formData.contact_name || null,
-            contact_phone: formData.contact_phone || null,
-            contact_email: formData.contact_email || null,
-            notes: formData.notes || null,
+            name: formData.name,
+            link: formData.link || null,
           })
           .eq('id', editingSupplier.id);
 
@@ -133,13 +122,8 @@ export function SuppliersTab() {
         const { error } = await supabase
           .from('suppliers')
           .insert([{
-            ...formData,
-            trade_name: formData.trade_name || null,
-            cnpj: formData.cnpj || null,
-            contact_name: formData.contact_name || null,
-            contact_phone: formData.contact_phone || null,
-            contact_email: formData.contact_email || null,
-            notes: formData.notes || null,
+            name: formData.name,
+            link: formData.link || null,
             created_by: user.id,
           }]);
 
@@ -152,15 +136,8 @@ export function SuppliersTab() {
       setModalOpen(false);
       setEditingSupplier(null);
       setFormData({
-        company_name: '',
-        trade_name: '',
-        cnpj: '',
-        email: '',
-        phone: '',
-        contact_name: '',
-        contact_phone: '',
-        contact_email: '',
-        notes: '',
+        name: '',
+        link: '',
       });
       fetchSuppliers();
     } catch (error) {
@@ -176,15 +153,8 @@ export function SuppliersTab() {
   const handleEdit = (supplier: Supplier) => {
     setEditingSupplier(supplier);
     setFormData({
-      company_name: supplier.company_name,
-      trade_name: supplier.trade_name || '',
-      cnpj: supplier.cnpj || '',
-      email: supplier.email,
-      phone: supplier.phone,
-      contact_name: supplier.contact_name || '',
-      contact_phone: supplier.contact_phone || '',
-      contact_email: supplier.contact_email || '',
-      notes: supplier.notes || '',
+      name: supplier.name,
+      link: supplier.link || '',
     });
     setModalOpen(true);
   };
@@ -248,15 +218,8 @@ export function SuppliersTab() {
   const openNewModal = () => {
     setEditingSupplier(null);
     setFormData({
-      company_name: '',
-      trade_name: '',
-      cnpj: '',
-      email: '',
-      phone: '',
-      contact_name: '',
-      contact_phone: '',
-      contact_email: '',
-      notes: '',
+      name: '',
+      link: '',
     });
     setModalOpen(true);
   };
@@ -287,10 +250,8 @@ export function SuppliersTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Razão Social</TableHead>
-                  <TableHead>Nome Fantasia</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Contato</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Link</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -298,14 +259,18 @@ export function SuppliersTab() {
               <TableBody>
                 {suppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
-                    <TableCell className="font-medium">{supplier.company_name}</TableCell>
-                    <TableCell>{supplier.trade_name || '-'}</TableCell>
-                    <TableCell>{supplier.cnpj || '-'}</TableCell>
+                    <TableCell className="font-medium">{supplier.name}</TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        <div>{supplier.phone}</div>
-                        <div className="text-muted-foreground">{supplier.email}</div>
-                      </div>
+                      {supplier.link ? (
+                        <a 
+                          href={supplier.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {supplier.link}
+                        </a>
+                      ) : "-"}
                     </TableCell>
                     <TableCell>
                       <Switch
@@ -315,6 +280,13 @@ export function SuppliersTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(supplier)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -333,7 +305,7 @@ export function SuppliersTab() {
       </Card>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {editingSupplier ? 'Editar Fornecedor' : 'Novo Fornecedor'}
@@ -344,96 +316,24 @@ export function SuppliersTab() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="company_name">Razão Social *</Label>
-                  <Input
-                    id="company_name"
-                    value={formData.company_name}
-                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="trade_name">Nome Fantasia</Label>
-                  <Input
-                    id="trade_name"
-                    value={formData.trade_name}
-                    onChange={(e) => setFormData({ ...formData, trade_name: e.target.value })}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="cnpj">CNPJ</Label>
-                  <Input
-                    id="cnpj"
-                    value={formData.cnpj}
-                    onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                    placeholder="00.000.000/0000-00"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Telefone *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="email">E-mail *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome *</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
-
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-3">Dados do Contato</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="contact_name">Nome</Label>
-                    <Input
-                      id="contact_name"
-                      value={formData.contact_name}
-                      onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contact_phone">Telefone</Label>
-                    <Input
-                      id="contact_phone"
-                      value={formData.contact_phone}
-                      onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Label htmlFor="contact_email">E-mail</Label>
-                  <Input
-                    id="contact_email"
-                    type="email"
-                    value={formData.contact_email}
-                    onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Observações</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
+              
+              <div className="space-y-2">
+                <Label htmlFor="link">Link</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://"
                 />
               </div>
             </div>

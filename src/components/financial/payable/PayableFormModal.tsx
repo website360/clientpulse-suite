@@ -125,7 +125,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
           payment_method: account.payment_method || '',
           notes: account.notes || '',
         });
-        setSupplierSearch(account.supplier?.company_name || account.supplier?.trade_name || '');
+        setSupplierSearch(account.supplier?.name || '');
       } else {
         form.reset({
           occurrence_type: 'unica',
@@ -137,9 +137,9 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
   const fetchSuppliers = async () => {
     const { data } = await supabase
       .from('suppliers')
-      .select('id, company_name, trade_name')
+      .select('id, name')
       .eq('is_active', true)
-      .order('company_name');
+      .order('name');
     
     setSuppliers(data || []);
   };
@@ -304,7 +304,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
                         <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
                           {suppliers
                             .filter(supplier => {
-                              const name = (supplier.company_name || supplier.trade_name || '').toLowerCase();
+                              const name = (supplier.name || '').toLowerCase();
                               return name.includes(supplierSearch.toLowerCase());
                             })
                             .map((supplier) => (
@@ -313,11 +313,11 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
                                 className="px-3 py-2 cursor-pointer hover:bg-accent"
                                 onClick={() => {
                                   field.onChange(supplier.id);
-                                  setSupplierSearch(supplier.company_name || supplier.trade_name || '');
+                                  setSupplierSearch(supplier.name || '');
                                   setShowSupplierDropdown(false);
                                 }}
                               >
-                                {supplier.company_name || supplier.trade_name}
+                                {supplier.name}
                               </div>
                             ))}
                         </div>

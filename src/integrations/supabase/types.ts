@@ -478,72 +478,30 @@ export type Database = {
       }
       suppliers: {
         Row: {
-          address_cep: string | null
-          address_city: string | null
-          address_complement: string | null
-          address_neighborhood: string | null
-          address_number: string | null
-          address_state: string | null
-          address_street: string | null
-          cnpj: string | null
-          company_name: string
-          contact_email: string | null
-          contact_name: string | null
-          contact_phone: string | null
           created_at: string
           created_by: string
-          email: string
           id: string
           is_active: boolean | null
-          notes: string | null
-          phone: string
-          trade_name: string | null
+          link: string | null
+          name: string
           updated_at: string
         }
         Insert: {
-          address_cep?: string | null
-          address_city?: string | null
-          address_complement?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
-          address_state?: string | null
-          address_street?: string | null
-          cnpj?: string | null
-          company_name: string
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
           created_at?: string
           created_by: string
-          email: string
           id?: string
           is_active?: boolean | null
-          notes?: string | null
-          phone: string
-          trade_name?: string | null
+          link?: string | null
+          name: string
           updated_at?: string
         }
         Update: {
-          address_cep?: string | null
-          address_city?: string | null
-          address_complement?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
-          address_state?: string | null
-          address_street?: string | null
-          cnpj?: string | null
-          company_name?: string
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
           created_at?: string
           created_by?: string
-          email?: string
           id?: string
           is_active?: boolean | null
-          notes?: string | null
-          phone?: string
-          trade_name?: string | null
+          link?: string | null
+          name?: string
           updated_at?: string
         }
         Relationships: []
