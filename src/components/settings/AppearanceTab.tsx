@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -95,12 +95,12 @@ export function AppearanceTab() {
     const [preview, setPreview] = useState<string>('');
 
     // Tentar carregar preview do localStorage ou das imagens padrão
-    useState(() => {
+    useEffect(() => {
       const savedUrl = localStorage.getItem(`app-${type}`);
       if (savedUrl) {
         setPreview(savedUrl);
       }
-    });
+    }, [type]);
 
     return (
       <div className="space-y-2">
@@ -109,7 +109,15 @@ export function AppearanceTab() {
         
         {preview && (
           <div className="border rounded-lg p-4 bg-muted/50 inline-block">
-            <img src={preview} alt={label} className="h-16 w-auto object-contain" />
+            <img 
+              src={preview} 
+              alt={label} 
+              className="h-16 w-auto object-contain"
+              onError={(e) => {
+                console.error('Error loading image:', preview);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
           </div>
         )}
         
