@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PayableFiltersProps {
   filters: {
@@ -16,6 +17,33 @@ interface PayableFiltersProps {
 export function PayableFilters({ filters, onFiltersChange }: PayableFiltersProps) {
   const updateFilter = (key: string, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
+  };
+
+  const changeMonth = (direction: 'prev' | 'next') => {
+    const currentDate = new Date(filters.dateFrom || new Date());
+    const newDate = new Date(currentDate);
+    
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    
+    const firstDay = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+    const lastDay = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
+    
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    onFiltersChange({
+      ...filters,
+      dateFrom: formatDate(firstDay),
+      dateTo: formatDate(lastDay)
+    });
   };
 
   return (
@@ -58,21 +86,41 @@ export function PayableFilters({ filters, onFiltersChange }: PayableFiltersProps
         </SelectContent>
       </Select>
 
-      <Input
-        type="date"
-        value={filters.dateFrom}
-        onChange={(e) => updateFilter('dateFrom', e.target.value)}
-        className="w-[150px]"
-        placeholder="Data inicial"
-      />
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => changeMonth('prev')}
+          title="Mês anterior"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <Input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => updateFilter('dateFrom', e.target.value)}
+          className="w-[150px]"
+          placeholder="Data inicial"
+        />
 
-      <Input
-        type="date"
-        value={filters.dateTo}
-        onChange={(e) => updateFilter('dateTo', e.target.value)}
-        className="w-[150px]"
-        placeholder="Data final"
-      />
+        <Input
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => updateFilter('dateTo', e.target.value)}
+          className="w-[150px]"
+          placeholder="Data final"
+        />
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => changeMonth('next')}
+          title="Próximo mês"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
