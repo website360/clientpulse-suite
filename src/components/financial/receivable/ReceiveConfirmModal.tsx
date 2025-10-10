@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ export function ReceiveConfirmModal({ open, onOpenChange, account, onConfirm }: 
   const [displayValue, setDisplayValue] = useState('');
 
   // Formata o valor inicial quando o modal abre
-  useState(() => {
+  useEffect(() => {
     if (account && open) {
       const formatted = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -38,7 +38,7 @@ export function ReceiveConfirmModal({ open, onOpenChange, account, onConfirm }: 
       setAmountValue(account.amount.toFixed(2));
       setPaymentDate(new Date());
     }
-  });
+  }, [account, open]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
