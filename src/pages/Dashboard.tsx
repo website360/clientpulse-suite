@@ -20,6 +20,7 @@ interface DashboardStats {
   closedTickets: number;
   totalClients: number;
   totalContacts: number;
+  totalContracts: number;
   totalReceivable: number;
   totalPayable: number;
   overdueAccounts: number;
@@ -37,6 +38,7 @@ export default function Dashboard() {
     closedTickets: 0,
     totalClients: 0,
     totalContacts: 0,
+    totalContracts: 0,
     totalReceivable: 0,
     totalPayable: 0,
     overdueAccounts: 0,
@@ -104,10 +106,15 @@ export default function Dashboard() {
           .from('client_contacts')
           .select('*', { count: 'exact', head: true });
         
+        const { count: contractsCount } = await supabase
+          .from('contracts')
+          .select('*', { count: 'exact', head: true });
+        
         setStats(prev => ({ 
           ...prev, 
           totalClients: clientsCount || 0,
-          totalContacts: contactsCount || 0 
+          totalContacts: contactsCount || 0,
+          totalContracts: contractsCount || 0
         }));
 
         // Fetch financial data
@@ -311,7 +318,7 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg border border-border bg-card">
                 <p className="text-sm text-muted-foreground">Total de Clientes</p>
                 <p className="text-2xl font-bold">{stats.totalClients}</p>
@@ -319,6 +326,10 @@ export default function Dashboard() {
               <div className="p-4 rounded-lg border border-border bg-card">
                 <p className="text-sm text-muted-foreground">Total de Contatos</p>
                 <p className="text-2xl font-bold">{stats.totalContacts}</p>
+              </div>
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-sm text-muted-foreground">Total de Contratos</p>
+                <p className="text-2xl font-bold">{stats.totalContracts}</p>
               </div>
             </div>
 
