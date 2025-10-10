@@ -85,15 +85,17 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
+      pending_signature: 'secondary',
       active: 'default',
-      expired: 'secondary',
-      cancelled: 'destructive',
+      expired: 'destructive',
+      completed: 'secondary',
     };
 
     const labels: Record<string, string> = {
+      pending_signature: 'Aguardando Assinatura',
       active: 'Ativo',
-      expired: 'Expirado',
-      cancelled: 'Cancelado',
+      expired: 'Vencido',
+      completed: 'Concluído',
     };
 
     return (

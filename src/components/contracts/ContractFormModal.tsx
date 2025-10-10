@@ -47,7 +47,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
     payment_terms: '',
     start_date: '',
     contract_period: '',
-    status: 'active',
+    status: 'pending_signature',
   });
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
 
@@ -83,7 +83,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         payment_terms: contract.payment_terms || '',
         start_date: contract.start_date || '',
         contract_period: period,
-        status: contract.status || 'active',
+        status: contract.status || 'pending_signature',
       });
     } else {
       setFormData({
@@ -94,7 +94,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         payment_terms: '',
         start_date: '',
         contract_period: '',
-        status: 'active',
+        status: 'pending_signature',
       });
     }
   }, [contract]);
@@ -378,9 +378,10 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="pending_signature">Aguardando Assinatura</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="expired">Expirado</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="expired">Vencido</SelectItem>
+                <SelectItem value="completed">Concluído</SelectItem>
               </SelectContent>
             </Select>
           </div>
