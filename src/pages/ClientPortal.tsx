@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -149,35 +150,26 @@ export default function ClientPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">
-                Bem-vindo, {client?.responsible_name || client?.full_name || client?.company_name}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Portal do Cliente
-              </p>
-            </div>
-            <Button onClick={() => supabase.auth.signOut()} variant="outline">
-              Sair
-            </Button>
-          </div>
+    <DashboardLayout breadcrumbLabel="Portal do Cliente">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">
+            Bem-vindo, {client?.responsible_name || client?.full_name || client?.company_name}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie seus tickets e contratos
+          </p>
         </div>
-      </header>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList>
             <TabsTrigger value="dashboard" className="gap-2">
@@ -377,6 +369,7 @@ export default function ClientPortal() {
           }}
         />
       )}
-    </div>
+    </DashboardLayout>
   );
 }
+
