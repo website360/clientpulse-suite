@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -23,9 +23,8 @@ import logoDark from '@/assets/logo-dark.png';
 import { cn } from '@/lib/utils';
 
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const { user, userRole } = useAuth();
-  const collapsed = state === 'collapsed';
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
   const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(null);
@@ -126,7 +125,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
+    <Sidebar collapsible="none" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <img 
@@ -134,7 +133,7 @@ export function AppSidebar() {
             alt="Logo" 
             className="h-10 w-10 flex-shrink-0 object-contain"
           />
-          {!collapsed && profile && (
+          {profile && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
               <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
@@ -155,25 +154,20 @@ export function AppSidebar() {
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        cn(
-                          collapsed ? 'justify-center' : '',
-                          isActive
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'hover:bg-sidebar-accent/50'
-                        )
+                        isActive
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                          : 'hover:bg-sidebar-accent/50'
                       }
                     >
-                      <item.icon className={collapsed ? 'h-6 w-6' : 'h-4 w-4'} />
-                      {!collapsed && (
-                        <div className="flex items-center justify-between flex-1">
-                          <span>{item.title}</span>
-                          {badgeCounts[item.title] && (
-                            <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
-                              {badgeCounts[item.title]}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
+                      <item.icon className="h-4 w-4" />
+                      <div className="flex items-center justify-between flex-1">
+                        <span>{item.title}</span>
+                        {badgeCounts[item.title] && (
+                          <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
+                            {badgeCounts[item.title]}
+                          </Badge>
+                        )}
+                      </div>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -183,51 +177,18 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-sidebar-border">
-        <div className="p-4 space-y-2">
-          <Button
-            variant="ghost"
-            size={collapsed ? "icon" : "default"}
-            onClick={toggleSidebar}
-            className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4" />
-                <span className="ml-2">Recolher Menu</span>
-              </>
-            )}
-          </Button>
-          
-          {!collapsed && (
-            <>
-              <Button
-                variant="ghost"
-                size="default"
-                onClick={toggleTheme}
-                className="w-full justify-start"
-              >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-              </Button>
-              <div className="text-xs text-muted-foreground text-center pt-2">
-                v1.0.0
-              </div>
-            </>
-          )}
-          
-          {collapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="w-full justify-center"
-            >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-          )}
+      <SidebarFooter className="mt-auto border-t border-sidebar-border p-4">
+        <Button
+          variant="ghost"
+          size="default"
+          onClick={toggleTheme}
+          className="w-full justify-start"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
+        </Button>
+        <div className="text-xs text-muted-foreground text-center pt-2">
+          v1.0.0
         </div>
       </SidebarFooter>
     </Sidebar>
