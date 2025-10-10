@@ -171,17 +171,24 @@ export function FinancialSettingsTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
-            <AlertDescription className="space-y-2">
-              <p className="font-medium">Execute este comando no cron todo dia 1º de cada mês:</p>
+            <AlertDescription className="space-y-4">
+              <div>
+                <p className="font-medium mb-2">Execute este comando no cron todo dia 1º de cada mês:</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Este comando irá verificar as cobranças recorrentes que estão próximas de vencer (dentro de 1 mês) 
+                  e gerar automaticamente as próximas 12 cobranças.
+                </p>
+              </div>
               <div className="relative">
-                <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm">
-                  <code>{cronCommand}</code>
+                <pre className="bg-muted p-3 rounded-md text-xs break-all whitespace-pre-wrap max-w-full">
+                  <code className="block">{cronCommand}</code>
                 </pre>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2"
                   onClick={copyToClipboard}
+                  title="Copiar comando"
                 >
                   {copiedCron ? (
                     <Check className="h-4 w-4 text-green-500" />
@@ -190,10 +197,6 @@ export function FinancialSettingsTab() {
                   )}
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Este comando irá verificar as cobranças recorrentes que estão próximas de vencer (dentro de 1 mês) 
-                e gerar automaticamente as próximas 12 cobranças.
-              </p>
             </AlertDescription>
           </Alert>
         </CardContent>
