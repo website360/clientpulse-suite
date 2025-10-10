@@ -72,6 +72,7 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
           is_active: boolean | null
+          nickname: string | null
           phone: string
           responsible_name: string | null
           updated_at: string
@@ -96,6 +97,7 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           is_active?: boolean | null
+          nickname?: string | null
           phone: string
           responsible_name?: string | null
           updated_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           is_active?: boolean | null
+          nickname?: string | null
           phone?: string
           responsible_name?: string | null
           updated_at?: string
