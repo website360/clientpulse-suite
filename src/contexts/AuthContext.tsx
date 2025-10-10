@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 0);
         } else {
           setUserRole(null);
+          setLoading(false);
         }
       }
     );
@@ -64,10 +65,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) throw error;
-      setUserRole(data?.role as 'admin' | 'client' || 'client');
+      
+      const role = (data?.role as 'admin' | 'client') || 'client';
+      setUserRole(role);
+      
+      // Redirect based on role
+      const currentPath = window.location.pathname;
+      if (role === 'client' && !currentPath.startsWith('/portal') && currentPath !== '/auth') {
+        navigate('/portal');
+      } else if (role === 'admin' && currentPath === '/portal') {
+        navigate('/');
+      }
     } catch (error) {
       console.error('Error fetching user role:', error);
       setUserRole('client');
+      navigate('/portal');
     } finally {
       setLoading(false);
     }
