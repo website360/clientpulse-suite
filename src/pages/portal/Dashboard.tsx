@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Ticket, FileText, Clock } from 'lucide-react';
 
 export default function ClientDashboard() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [stats, setStats] = useState({
     totalTickets: 0,
     openTickets: 0,
@@ -58,16 +58,25 @@ export default function ClientDashboard() {
         openTicketsQuery = openTicketsQuery.eq('created_by', user?.id);
       }
 
-      const [ticketsRes, openTicketsRes, contractsRes] = await Promise.all([
+      const [ticketsRes, openTicketsRes] = await Promise.all([
         ticketsQuery,
         openTicketsQuery,
-        supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('client_id', clientId).eq('status', 'active'),
       ]);
+
+      let contractsCount = 0;
+      if (!isContact) {
+        const { count } = await supabase
+          .from('contracts')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', clientId)
+          .eq('status', 'active');
+        contractsCount = count || 0;
+      }
 
       setStats({
         totalTickets: ticketsRes.count || 0,
         openTickets: openTicketsRes.count || 0,
-        activeContracts: contractsRes.count || 0,
+        activeContracts: contractsCount,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -96,7 +105,7 @@ export default function ClientDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className={`grid gap-4 ${userRole === 'contato' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Tickets</CardTitle>
@@ -117,15 +126,17 @@ export default function ClientDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeContracts}</div>
-            </CardContent>
-          </Card>
+          {userRole !== 'contato' && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeContracts}</div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </DashboardLayout>

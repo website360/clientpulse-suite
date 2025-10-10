@@ -26,8 +26,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { user, userRole } = useAuth();
   const [isDark, setIsDark] = useState(false);
-  
-  console.log('Current userRole:', userRole);
   const [ticketCount, setTicketCount] = useState(0);
   const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(null);
   const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
