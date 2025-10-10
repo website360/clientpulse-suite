@@ -23,7 +23,8 @@ export default function Contracts() {
         *,
         clients (
           full_name,
-          company_name
+          company_name,
+          nickname
         ),
         services (
           name

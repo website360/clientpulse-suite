@@ -23,6 +23,7 @@ interface Contract {
   clients: {
     full_name: string | null;
     company_name: string | null;
+    nickname: string | null;
   };
   services: {
     name: string;
@@ -139,7 +140,7 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
               contracts.map((contract) => (
                 <TableRow key={contract.id}>
                   <TableCell className="font-medium">
-                    {contract.clients.company_name || contract.clients.full_name}
+                    {contract.clients.nickname || contract.clients.company_name || contract.clients.full_name}
                   </TableCell>
                   <TableCell>{contract.services.name}</TableCell>
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
