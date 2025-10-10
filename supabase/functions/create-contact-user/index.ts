@@ -82,12 +82,15 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
-    // Assign 'contato' role
+    // Assign 'contato' role (upsert to avoid duplicate key errors)
     const { error: roleError } = await supabase
       .from('user_roles')
-      .insert({
+      .upsert({
         user_id: userData.user.id,
         role: 'contato',
+      }, {
+        onConflict: 'user_id,role',
+        ignoreDuplicates: true,
       });
 
     if (roleError) {
