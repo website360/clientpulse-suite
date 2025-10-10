@@ -35,6 +35,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
+  const [key, setKey] = useState(0);
   
   const [formData, setFormData] = useState({
     domain: '',
@@ -46,6 +47,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
   useEffect(() => {
     if (isOpen) {
       fetchClients();
+      setKey(prev => prev + 1); // Force re-render do Select
       if (domain) {
         setFormData({
           domain: domain.domain,
@@ -148,6 +150,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           <div className="space-y-2">
             <Label htmlFor="client">Cliente *</Label>
             <Select
+              key={`client-${key}`}
               value={formData.client_id}
               onValueChange={(value) => setFormData({ ...formData, client_id: value })}
               required
@@ -193,6 +196,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           <div className="space-y-2">
             <Label htmlFor="owner">Proprietário *</Label>
             <Select
+              key={`owner-${key}`}
               value={formData.owner}
               onValueChange={(value: 'agency' | 'client') => 
                 setFormData({ ...formData, owner: value })
