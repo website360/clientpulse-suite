@@ -143,8 +143,8 @@ export function DomainTable({ onEdit }: DomainTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Domínio</TableHead>
               <TableHead>Cliente</TableHead>
+              <TableHead>Domínio</TableHead>
               <TableHead>Vencimento</TableHead>
               <TableHead>Proprietário</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -153,16 +153,16 @@ export function DomainTable({ onEdit }: DomainTableProps) {
           <TableBody>
             {domains.map((domain) => (
               <TableRow key={domain.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    {domain.domain}
-                  </div>
-                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     {getClientName(domain)}
+                  </div>
+                </TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    {domain.domain}
                   </div>
                 </TableCell>
                 <TableCell>
