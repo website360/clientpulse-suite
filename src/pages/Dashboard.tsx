@@ -19,6 +19,7 @@ interface DashboardStats {
   resolvedTickets: number;
   closedTickets: number;
   totalClients: number;
+  totalContacts: number;
   totalReceivable: number;
   totalPayable: number;
   overdueAccounts: number;
@@ -35,6 +36,7 @@ export default function Dashboard() {
     resolvedTickets: 0,
     closedTickets: 0,
     totalClients: 0,
+    totalContacts: 0,
     totalReceivable: 0,
     totalPayable: 0,
     overdueAccounts: 0,
@@ -93,12 +95,20 @@ export default function Dashboard() {
 
       // Fetch clients count (admin only)
       if (userRole === 'admin') {
-        const { count } = await supabase
+        const { count: clientsCount } = await supabase
           .from('clients')
           .select('*', { count: 'exact', head: true })
           .eq('is_active', true);
         
-        setStats(prev => ({ ...prev, totalClients: count || 0 }));
+        const { count: contactsCount } = await supabase
+          .from('client_contacts')
+          .select('*', { count: 'exact', head: true });
+        
+        setStats(prev => ({ 
+          ...prev, 
+          totalClients: clientsCount || 0,
+          totalContacts: contactsCount || 0 
+        }));
 
         // Fetch financial data
         const today = new Date();
@@ -301,10 +311,14 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded-lg border border-border bg-card">
                 <p className="text-sm text-muted-foreground">Total de Clientes</p>
                 <p className="text-2xl font-bold">{stats.totalClients}</p>
+              </div>
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-sm text-muted-foreground">Total de Contatos</p>
+                <p className="text-2xl font-bold">{stats.totalContacts}</p>
               </div>
             </div>
 
