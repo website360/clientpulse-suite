@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -148,6 +155,52 @@ export default function TicketDetails() {
     }
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      fetchTicketDetails();
+      toast({
+        title: 'Status atualizado',
+        description: 'O status do ticket foi alterado com sucesso.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar status',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePriorityChange = async (newPriority: string) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ priority: newPriority as 'low' | 'medium' | 'high' | 'urgent' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      fetchTicketDetails();
+      toast({
+        title: 'Prioridade atualizada',
+        description: 'A prioridade do ticket foi alterada com sucesso.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar prioridade',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
@@ -218,27 +271,17 @@ export default function TicketDetails() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/tickets')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
-              <p className="text-muted-foreground">{ticket.subject}</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <span className={getPriorityColor(ticket.priority)}>
-              {getPriorityLabel(ticket.priority)}
-            </span>
-            <span className={getStatusColor(ticket.status)}>
-              {getStatusLabel(ticket.status)}
-            </span>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/tickets')}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
+            <p className="text-muted-foreground">{ticket.subject}</p>
           </div>
         </div>
 
@@ -319,6 +362,44 @@ export default function TicketDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Status and Priority */}
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle>Status e Prioridade</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Status</p>
+                  <Select value={ticket.status} onValueChange={handleStatusChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Aberto</SelectItem>
+                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="waiting">Aguardando</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Prioridade</p>
+                  <Select value={ticket.priority} onValueChange={handlePriorityChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Client Info */}
             <Card className="card-elevated">
               <CardHeader>

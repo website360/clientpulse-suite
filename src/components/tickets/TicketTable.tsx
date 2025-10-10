@@ -127,41 +127,14 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange }: Ticke
                 </Badge>
               </TableCell>
               <TableCell>
-                <Select
-                  value={ticket.priority}
-                  onValueChange={(value) => onPriorityChange(ticket.id, value)}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <span className={getPriorityColor(ticket.priority)}>
-                      {getPriorityLabel(ticket.priority)}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
+                <span className={getPriorityColor(ticket.priority)}>
+                  {getPriorityLabel(ticket.priority)}
+                </span>
               </TableCell>
               <TableCell>
-                <Select
-                  value={ticket.status}
-                  onValueChange={(value) => onStatusChange(ticket.id, value)}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <span className={getStatusColor(ticket.status)}>
-                      {getStatusLabel(ticket.status)}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Aberto</SelectItem>
-                    <SelectItem value="in_progress">Em Andamento</SelectItem>
-                    <SelectItem value="waiting">Aguardando</SelectItem>
-                    <SelectItem value="resolved">Resolvido</SelectItem>
-                    <SelectItem value="closed">Fechado</SelectItem>
-                  </SelectContent>
-                </Select>
+                <span className={getStatusColor(ticket.status)}>
+                  {getStatusLabel(ticket.status)}
+                </span>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}

@@ -123,40 +123,12 @@ export function TicketCards({ tickets, onStatusChange, onPriorityChange }: Ticke
 
             {/* Priority and Status */}
             <div className="flex gap-2 mb-4">
-              <Select
-                value={ticket.priority}
-                onValueChange={(value) => onPriorityChange(ticket.id, value)}
-              >
-                <SelectTrigger className="flex-1">
-                  <span className={getPriorityColor(ticket.priority)}>
-                    {getPriorityLabel(ticket.priority)}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={ticket.status}
-                onValueChange={(value) => onStatusChange(ticket.id, value)}
-              >
-                <SelectTrigger className="flex-1">
-                  <span className={getStatusColor(ticket.status)}>
-                    {getStatusLabel(ticket.status)}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">Aberto</SelectItem>
-                  <SelectItem value="in_progress">Em Andamento</SelectItem>
-                  <SelectItem value="waiting">Aguardando</SelectItem>
-                  <SelectItem value="resolved">Resolvido</SelectItem>
-                  <SelectItem value="closed">Fechado</SelectItem>
-                </SelectContent>
-              </Select>
+              <span className={getPriorityColor(ticket.priority)}>
+                {getPriorityLabel(ticket.priority)}
+              </span>
+              <span className={getStatusColor(ticket.status)}>
+                {getStatusLabel(ticket.status)}
+              </span>
             </div>
 
             {/* Date */}
