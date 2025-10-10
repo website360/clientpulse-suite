@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -138,13 +139,36 @@ export function DepartmentsTab() {
     setDeleteDialogOpen(true);
   };
 
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('departments')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({
+        title: 'Status atualizado',
+        description: `Departamento ${!currentStatus ? 'ativado' : 'desativado'} com sucesso.`,
+      });
+      fetchDepartments();
+    } catch (error) {
+      console.error('Error toggling department status:', error);
+      toast({
+        title: 'Erro ao atualizar status',
+        description: 'Não foi possível atualizar o status do departamento.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const confirmDelete = async () => {
     if (!departmentToDelete) return;
 
     try {
       const { error } = await supabase
         .from('departments')
-        .update({ is_active: false })
+        .delete()
         .eq('id', departmentToDelete);
 
       if (error) throw error;
@@ -220,9 +244,10 @@ export function DepartmentsTab() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={dept.is_active ? 'default' : 'secondary'}>
-                        {dept.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
+                      <Switch
+                        checked={dept.is_active}
+                        onCheckedChange={() => toggleActive(dept.id, dept.is_active)}
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -315,7 +340,7 @@ export function DepartmentsTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Departamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este departamento? Esta ação pode ser revertida posteriormente.
+              Tem certeza que deseja excluir este departamento? Esta ação não pode ser revertida.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

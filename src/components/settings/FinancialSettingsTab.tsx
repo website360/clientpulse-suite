@@ -7,14 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function FinancialSettingsTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newMethodName, setNewMethodName] = useState("");
+  const [copiedCron, setCopiedCron] = useState(false);
+
+  const cronCommand = `0 0 1 * * curl -X POST https://pjnbsuwkxzxcfaetywjs.supabase.co/functions/v1/generate-recurring-receivables \\
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbmJzdXdreHp4Y2ZhZXR5d2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDM4NDksImV4cCI6MjA3NTQ3OTg0OX0.LNtnhVO7Ma06WOKfWvWis5M4G7bIHKzN0OsAZo_zQR0" \\
+  -H "Content-Type: application/json"`;
 
   // Fetch payment categories
   const { data: categories } = useQuery({
@@ -144,8 +150,54 @@ export function FinancialSettingsTab() {
   const payableCategories = categories?.filter((c) => c.type === "payable") || [];
   const receivableCategories = categories?.filter((c) => c.type === "receivable") || [];
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(cronCommand);
+    setCopiedCron(true);
+    setTimeout(() => setCopiedCron(false), 2000);
+    toast({
+      title: "Comando copiado",
+      description: "O comando cron foi copiado para a área de transferência.",
+    });
+  };
+
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configuração do Cron Job</CardTitle>
+          <CardDescription>
+            Configure este comando no cron do seu servidor para gerar automaticamente as cobranças recorrentes mensalmente
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <AlertDescription className="space-y-2">
+              <p className="font-medium">Execute este comando no cron todo dia 1º de cada mês:</p>
+              <div className="relative">
+                <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm">
+                  <code>{cronCommand}</code>
+                </pre>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={copyToClipboard}
+                >
+                  {copiedCron ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Este comando irá verificar as cobranças recorrentes que estão próximas de vencer (dentro de 1 mês) 
+                e gerar automaticamente as próximas 12 cobranças.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
       <Tabs defaultValue="categories" className="w-full">
         <TabsList>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
