@@ -31,6 +31,8 @@ import {
 import { Edit, Trash2, Mail, User2, UserPlus, Copy, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ContactsListProps {
   contacts: any[];
@@ -46,6 +48,11 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
   const [grantingAccess, setGrantingAccess] = useState(false);
   const [accessCredentials, setAccessCredentials] = useState<{ email: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [accessPasswordDialogOpen, setAccessPasswordDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any | null>(null);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleDelete = (contactId: string) => {
     setContactToDelete(contactId);
@@ -82,7 +89,7 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
     }
   };
 
-  const handleGrantAccess = async (contact: any) => {
+  const handleGrantAccess = (contact: any) => {
     if (contact.user_id) {
       toast({
         title: 'Acesso já concedido',
@@ -90,26 +97,38 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
       });
       return;
     }
+    setSelectedContact(contact);
+    setPassword('');
+    setConfirmPassword('');
+    setPasswordError(null);
+    setAccessPasswordDialogOpen(true);
+  };
+
+  const handleConfirmGrantAccess = async () => {
+    if (!selectedContact) return;
+    // Validações simples de senha
+    if (password.length < 6) {
+      setPasswordError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError('As senhas não coincidem.');
+      return;
+    }
+    setPasswordError(null);
 
     setGrantingAccess(true);
-
     try {
       const { data, error } = await supabase.functions.invoke('create-contact-user', {
-        body: { contactId: contact.id },
+        body: { contactId: selectedContact.id, password },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setAccessCredentials({
-        email: data.email,
-        password: data.tempPassword,
-      });
+      setAccessCredentials({ email: data.email, password });
+      setAccessPasswordDialogOpen(false);
       setAccessDialogOpen(true);
-
       onContactsChange();
     } catch (error: any) {
       toast({
@@ -119,6 +138,9 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
       });
     } finally {
       setGrantingAccess(false);
+      setSelectedContact(null);
+      setPassword('');
+      setConfirmPassword('');
     }
   };
 
@@ -239,6 +261,40 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={accessPasswordDialogOpen} onOpenChange={setAccessPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Conceder Acesso ao Sistema</DialogTitle>
+            <DialogDescription>
+              Defina a senha para o contato acessar o portal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="p-3 bg-muted rounded-md font-mono text-sm">{selectedContact?.email}</div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Defina uma senha" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">Confirmar Senha</Label>
+              <Input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a senha" />
+            </div>
+            {passwordError && (
+              <p className="text-sm text-destructive">{passwordError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAccessPasswordDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmGrantAccess} disabled={grantingAccess}>
+              {grantingAccess ? 'Concedendo...' : 'Conceder Acesso'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={accessDialogOpen} onOpenChange={setAccessDialogOpen}>
         <DialogContent>

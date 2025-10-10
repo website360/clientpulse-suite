@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     });
 
     // Get request body
-    const { contactId } = await req.json();
+    const { contactId, password } = await req.json();
 
     if (!contactId) {
       throw new Error('Contact ID is required');
@@ -50,8 +50,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate a temporary password
-    const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
+    // Use provided password or generate a temporary one
+    const tempPassword = typeof password === 'string' && password.length >= 6
+      ? password
+      : `Temp${Math.random().toString(36).slice(-8)}!`;
 
     // Create user using Admin API
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
