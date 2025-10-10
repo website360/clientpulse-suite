@@ -692,20 +692,60 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor {occurrenceType === 'parcelada' && '(Total)'} (R$)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0,00" 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Formata o valor inicial quando há um account sendo editado
+                  const initialValue = account && field.value ? 
+                    new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(parseFloat(field.value)) : '';
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Valor {occurrenceType === 'parcelada' && '(Total)'}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          defaultValue={initialValue}
+                          placeholder="R$ 0,00"
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            // Remove tudo exceto dígitos
+                            value = value.replace(/\D/g, '');
+                            // Converte para número e divide por 100 para ter os centavos
+                            const numValue = parseInt(value || '0') / 100;
+                            // Formata como moeda BRL
+                            const formatted = new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(numValue);
+                            e.target.value = formatted;
+                            // Armazena o valor numérico no formato string para o form
+                            field.onChange(numValue.toFixed(2));
+                          }}
+                          onBlur={(e) => {
+                            // Garante formatação ao perder foco
+                            const numValue = parseFloat(field.value || '0');
+                            const formatted = new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(numValue);
+                            e.target.value = formatted;
+                          }}
+                          onFocus={(e) => {
+                            // Mantém formatação ao focar
+                            const numValue = parseFloat(field.value || '0');
+                            const formatted = new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(numValue);
+                            e.target.value = formatted;
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 

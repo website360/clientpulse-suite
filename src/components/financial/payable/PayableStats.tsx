@@ -140,12 +140,6 @@ export function PayableStats({ filters }: PayableStatsProps) {
         className="bg-card"
       />
       <MetricCard
-        title="Contas Vencidas"
-        value={formatCurrency(stats.overdue)}
-        icon={AlertCircle}
-        className="bg-card"
-      />
-      <MetricCard
         title="Pagas Este Mês"
         value={formatCurrency(stats.paidThisMonth)}
         icon={CheckCircle}
@@ -155,6 +149,12 @@ export function PayableStats({ filters }: PayableStatsProps) {
         title="Vencem em 3 Dias"
         value={formatCurrency(stats.dueSoon)}
         icon={Clock}
+        className="bg-card"
+      />
+      <MetricCard
+        title="Contas Vencidas"
+        value={formatCurrency(stats.overdue)}
+        icon={AlertCircle}
         className="bg-card"
       />
     </div>

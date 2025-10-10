@@ -140,12 +140,6 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
         className="bg-card"
       />
       <MetricCard
-        title="Contas Vencidas"
-        value={formatCurrency(stats.overdue)}
-        icon={AlertCircle}
-        className="bg-card"
-      />
-      <MetricCard
         title="Recebidas Este Mês"
         value={formatCurrency(stats.receivedThisMonth)}
         icon={CheckCircle}
@@ -155,6 +149,12 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
         title="Vencem em 3 Dias"
         value={formatCurrency(stats.dueSoon)}
         icon={Clock}
+        className="bg-card"
+      />
+      <MetricCard
+        title="Contas Vencidas"
+        value={formatCurrency(stats.overdue)}
+        icon={AlertCircle}
         className="bg-card"
       />
     </div>
