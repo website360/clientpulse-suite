@@ -17,6 +17,7 @@ import Contracts from "./pages/Contracts";
 import ClientDashboard from './pages/portal/Dashboard';
 import ClientTickets from './pages/portal/Tickets';
 import ClientContracts from './pages/portal/Contracts';
+import ClientTicketDetails from './pages/portal/TicketDetails';
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -31,9 +32,10 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/portal" element={<ClientDashboard />} />
-            <Route path="/portal/tickets" element={<ClientTickets />} />
-            <Route path="/portal/contracts" element={<ClientContracts />} />
+          <Route path="/portal" element={<ClientDashboard />} />
+          <Route path="/portal/tickets" element={<ClientTickets />} />
+          <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
+          <Route path="/portal/contracts" element={<ClientContracts />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetail />} />
             <Route path="/tickets" element={<Tickets />} />

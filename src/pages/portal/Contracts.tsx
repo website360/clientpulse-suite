@@ -51,7 +51,7 @@ export default function ClientContracts() {
 
       const { data: contractsData, error: contractsError } = await supabase
         .from('contracts')
-        .select('*, services(name), payment_methods(name)')
+        .select('*, services(name), payment_methods(name), attachment_url')
         .eq('client_id', client.id)
         .order('start_date', { ascending: false });
 

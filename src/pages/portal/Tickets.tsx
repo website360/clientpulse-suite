@@ -228,7 +228,7 @@ export default function ClientTickets() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+                        onClick={() => navigate(`/portal/tickets/${ticket.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
