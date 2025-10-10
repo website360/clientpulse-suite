@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -19,7 +20,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Mail, User2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Edit, Trash2, Mail, User2, UserPlus, Copy, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,6 +42,10 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+  const [accessDialogOpen, setAccessDialogOpen] = useState(false);
+  const [grantingAccess, setGrantingAccess] = useState(false);
+  const [accessCredentials, setAccessCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleDelete = (contactId: string) => {
     setContactToDelete(contactId);
@@ -69,6 +82,58 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
     }
   };
 
+  const handleGrantAccess = async (contact: any) => {
+    if (contact.user_id) {
+      toast({
+        title: 'Acesso já concedido',
+        description: 'Este contato já possui acesso ao sistema.',
+      });
+      return;
+    }
+
+    setGrantingAccess(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-contact-user', {
+        body: { contactId: contact.id },
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setAccessCredentials({
+        email: data.email,
+        password: data.tempPassword,
+      });
+      setAccessDialogOpen(true);
+
+      onContactsChange();
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao conceder acesso',
+        description: error.message || 'Não foi possível criar o acesso ao sistema.',
+        variant: 'destructive',
+      });
+    } finally {
+      setGrantingAccess(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (accessCredentials) {
+      navigator.clipboard.writeText(accessCredentials.password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: 'Copiado!',
+        description: 'Senha copiada para a área de transferência.',
+      });
+    }
+  };
+
   if (contacts.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -90,6 +155,7 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
               <TableHead>Nome</TableHead>
               <TableHead>Departamento</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,8 +180,27 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
                     </a>
                   </div>
                 </TableCell>
+                <TableCell>
+                  {contact.user_id ? (
+                    <Badge variant="default">Com Acesso</Badge>
+                  ) : (
+                    <Badge variant="outline">Sem Acesso</Badge>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
+                    {!contact.user_id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGrantAccess(contact)}
+                        disabled={grantingAccess}
+                        title="Dar Acesso ao Sistema"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Dar Acesso
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -154,6 +239,57 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={accessDialogOpen} onOpenChange={setAccessDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Acesso Concedido com Sucesso!</DialogTitle>
+            <DialogDescription>
+              O acesso ao sistema foi criado. Compartilhe estas credenciais com o contato:
+            </DialogDescription>
+          </DialogHeader>
+          {accessCredentials && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <div className="p-3 bg-muted rounded-md font-mono text-sm">
+                  {accessCredentials.email}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Senha Temporária</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 p-3 bg-muted rounded-md font-mono text-sm">
+                    {accessCredentials.password}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyPassword}
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                <strong>Importante:</strong> O contato deverá trocar a senha no primeiro acesso.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => {
+              setAccessDialogOpen(false);
+              setAccessCredentials(null);
+            }}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

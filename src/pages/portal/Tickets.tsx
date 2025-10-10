@@ -52,13 +52,31 @@ export default function ClientTickets() {
 
   const fetchData = async () => {
     try {
-      const { data: client } = await supabase
+      // Get client data
+      const { data: clientData } = await supabase
         .from('clients')
         .select('id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      if (!client) {
+      // Get contact data (if user is a contact)
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('id, client_id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      // Get user role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      const isContact = roleData?.role === 'contato';
+      const clientId = clientData?.id || contactData?.client_id;
+
+      if (!clientId) {
         toast({
           title: 'Erro',
           description: 'Cliente não encontrado',
@@ -67,13 +85,21 @@ export default function ClientTickets() {
         return;
       }
 
-      setClientId(client.id);
+      setClientId(clientId);
 
-      const { data: ticketsData, error: ticketsError } = await supabase
+      // Build the query based on user type
+      let query = supabase
         .from('tickets')
         .select('*, clients(*), departments(*)')
-        .eq('client_id', client.id)
+        .eq('client_id', clientId)
         .order('created_at', { ascending: false });
+
+      // If user is a contact, filter by their created tickets only
+      if (isContact) {
+        query = query.eq('created_by', user?.id);
+      }
+
+      const { data: ticketsData, error: ticketsError } = await query;
 
       if (ticketsError) throw ticketsError;
 

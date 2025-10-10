@@ -22,18 +22,46 @@ export default function ClientDashboard() {
 
   const fetchStats = async () => {
     try {
-      const { data: client } = await supabase
+      // Get client data
+      const { data: clientData } = await supabase
         .from('clients')
         .select('id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      if (!client) return;
+      // Get contact data (if user is a contact)
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('id, client_id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      // Get user role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      const isContact = roleData?.role === 'contato';
+      const clientId = clientData?.id || contactData?.client_id;
+
+      if (!clientId) return;
+
+      // Build queries based on user type
+      let ticketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId);
+      let openTicketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId).neq('status', 'closed');
+      
+      // If user is a contact, filter by their created tickets only
+      if (isContact) {
+        ticketsQuery = ticketsQuery.eq('created_by', user?.id);
+        openTicketsQuery = openTicketsQuery.eq('created_by', user?.id);
+      }
 
       const [ticketsRes, openTicketsRes, contractsRes] = await Promise.all([
-        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', client.id),
-        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', client.id).neq('status', 'closed'),
-        supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('client_id', client.id).eq('status', 'active'),
+        ticketsQuery,
+        openTicketsQuery,
+        supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('client_id', clientId).eq('status', 'active'),
       ]);
 
       setStats({

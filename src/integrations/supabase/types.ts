@@ -214,6 +214,7 @@ export type Database = {
           id: string
           name: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           client_id: string
@@ -223,6 +224,7 @@ export type Database = {
           id?: string
           name: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           client_id?: string
@@ -232,6 +234,7 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -879,7 +882,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "client"
+      app_role: "admin" | "client" | "contato"
       client_type: "person" | "company"
       domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
@@ -1013,7 +1016,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "client"],
+      app_role: ["admin", "client", "contato"],
       client_type: ["person", "company"],
       domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],

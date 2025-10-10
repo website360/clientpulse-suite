@@ -9,8 +9,8 @@ verify_jwt = false
 [functions.check-expiring-items]
 verify_jwt = false
 
-[functions.contract-status-cron]
-verify_jwt = false
-
 [functions.create-client-user]
+verify_jwt = true
+
+[functions.create-contact-user]
 verify_jwt = true
