@@ -121,7 +121,12 @@ export function AppSidebar() {
     { title: 'Contratos', url: '/portal/contracts', icon: FileText },
   ];
 
-  const items = userRole === 'admin' ? adminItems : clientItems;
+  const contatoItems = [
+    { title: 'Dashboard', url: '/portal', icon: LayoutDashboard },
+    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
+  ];
+
+  const items = userRole === 'admin' ? adminItems : userRole === 'contato' ? contatoItems : clientItems;
 
   const badgeCounts: Record<string, number> = {
     'Tickets': ticketCount,
