@@ -128,7 +128,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
       return <Badge variant="secondary">Cancelado</Badge>;
     }
     if (status === 'pending' && due < today) {
-      return <Badge variant="destructive">Vencido</Badge>;
+      return <Badge variant="outline" className="border-destructive text-destructive">Vencido</Badge>;
     }
     return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
   };
