@@ -47,8 +47,47 @@ export default function TicketDetails() {
       fetchTicketDetails();
       fetchMessages();
       fetchAttachments();
+      markTicketAsViewed();
+      markNotificationsAsRead();
     }
   }, [id]);
+
+  const markTicketAsViewed = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('ticket_views')
+        .upsert({
+          ticket_id: id,
+          user_id: user.id,
+          last_viewed_at: new Date().toISOString()
+        }, {
+          onConflict: 'ticket_id,user_id'
+        });
+    } catch (error) {
+      console.error('Error marking ticket as viewed:', error);
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Marcar como lidas todas as notificações relacionadas a este ticket
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('reference_type', 'ticket')
+        .eq('reference_id', id)
+        .eq('read', false);
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
 
   const fetchTicketDetails = async () => {
     try {

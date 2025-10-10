@@ -48,7 +48,7 @@ export default function Tickets() {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data: ticketsData, error } = await supabase
         .from('tickets')
         .select(`
           *,
@@ -58,7 +58,60 @@ export default function Tickets() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTickets(data || []);
+
+      // Buscar o usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Buscar última mensagem de cada ticket
+        const ticketIds = ticketsData?.map(t => t.id) || [];
+        
+        const { data: lastMessages } = await supabase
+          .from('ticket_messages')
+          .select('ticket_id, created_at, user_id')
+          .in('ticket_id', ticketIds)
+          .order('created_at', { ascending: false });
+
+        const { data: ticketViews } = await supabase
+          .from('ticket_views')
+          .select('ticket_id, last_viewed_at')
+          .in('ticket_id', ticketIds)
+          .eq('user_id', user.id);
+
+        // Mapear última mensagem por ticket
+        const lastMessageMap = new Map();
+        lastMessages?.forEach(msg => {
+          if (!lastMessageMap.has(msg.ticket_id)) {
+            lastMessageMap.set(msg.ticket_id, { created_at: msg.created_at, user_id: msg.user_id });
+          }
+        });
+
+        // Mapear última visualização por ticket
+        const viewsMap = new Map();
+        ticketViews?.forEach(view => {
+          viewsMap.set(view.ticket_id, view.last_viewed_at);
+        });
+
+        // Adicionar flag de não lido
+        const ticketsWithUnread = ticketsData?.map(ticket => {
+          const lastMessage = lastMessageMap.get(ticket.id);
+          const lastViewDate = viewsMap.get(ticket.id);
+          
+          // Só mostrar como não lido se a última mensagem foi de OUTRA pessoa (não do usuário logado)
+          const hasUnread = lastMessage && 
+                           lastMessage.user_id !== user.id && 
+                           (!lastViewDate || new Date(lastMessage.created_at) > new Date(lastViewDate));
+          
+          return {
+            ...ticket,
+            hasUnread
+          };
+        });
+
+        setTickets(ticketsWithUnread || []);
+      } else {
+        setTickets(ticketsData || []);
+      }
     } catch (error) {
       console.error('Error fetching tickets:', error);
       toast({

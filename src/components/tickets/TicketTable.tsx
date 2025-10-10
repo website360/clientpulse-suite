@@ -118,11 +118,18 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
             <TableRow key={ticket.id} className="hover:bg-accent/50">
               <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
               <TableCell>
-                <div>
-                  <p className="font-medium line-clamp-1">{ticket.subject}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {ticket.description}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <p className="font-medium line-clamp-1">{ticket.subject}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {ticket.description}
+                    </p>
+                  </div>
+                  {ticket.hasUnread && (
+                    <div className="flex-shrink-0">
+                      <span className="flex h-2 w-2 rounded-full bg-blue-600" title="Mensagens não lidas" />
+                    </div>
+                  )}
                 </div>
               </TableCell>
               <TableCell>

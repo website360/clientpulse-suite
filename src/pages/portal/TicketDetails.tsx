@@ -54,7 +54,7 @@ export default function ClientTicketDetails() {
     
     try {
       // Inserir ou atualizar a visualização do ticket
-      const { error } = await supabase
+      await supabase
         .from('ticket_views')
         .upsert({
           ticket_id: id,
@@ -64,7 +64,14 @@ export default function ClientTicketDetails() {
           onConflict: 'ticket_id,user_id'
         });
 
-      if (error) throw error;
+      // Marcar notificações relacionadas como lidas
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('reference_type', 'ticket')
+        .eq('reference_id', id)
+        .eq('read', false);
     } catch (error) {
       console.error('Error marking ticket as viewed:', error);
     }
