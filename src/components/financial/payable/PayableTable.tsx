@@ -134,20 +134,37 @@ export function PayableTable({ filters }: PayableTableProps) {
         if (error) throw error;
       } else if (actionType === 'following') {
         // Delete this and following installments/occurrences
+        const parentId = account.parent_payable_id || id;
+        
+        // First delete the current one
+        await supabase
+          .from('accounts_payable')
+          .delete()
+          .eq('id', id);
+        
+        // Then delete all following ones with same parent and due_date >= current
         const { error } = await supabase
           .from('accounts_payable')
           .delete()
-          .eq('parent_payable_id', account.parent_payable_id || id)
+          .eq('parent_payable_id', parentId)
           .gte('due_date', account.due_date);
 
         if (error) throw error;
       } else if (actionType === 'all') {
         // Delete all related installments/occurrences
         const parentId = account.parent_payable_id || id;
+        
+        // Delete the parent if it exists
+        await supabase
+          .from('accounts_payable')
+          .delete()
+          .eq('id', parentId);
+        
+        // Delete all children
         const { error } = await supabase
           .from('accounts_payable')
           .delete()
-          .or(`id.eq.${parentId},parent_payable_id.eq.${parentId}`);
+          .eq('parent_payable_id', parentId);
 
         if (error) throw error;
       }

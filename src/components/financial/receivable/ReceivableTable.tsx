@@ -134,20 +134,37 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
         if (error) throw error;
       } else if (actionType === 'following') {
         // Delete this and following installments/occurrences
+        const parentId = account.parent_receivable_id || id;
+        
+        // First delete the current one
+        await supabase
+          .from('accounts_receivable')
+          .delete()
+          .eq('id', id);
+        
+        // Then delete all following ones with same parent and due_date >= current
         const { error } = await supabase
           .from('accounts_receivable')
           .delete()
-          .eq('parent_receivable_id', account.parent_receivable_id || id)
+          .eq('parent_receivable_id', parentId)
           .gte('due_date', account.due_date);
 
         if (error) throw error;
       } else if (actionType === 'all') {
         // Delete all related installments/occurrences
         const parentId = account.parent_receivable_id || id;
+        
+        // Delete the parent if it exists
+        await supabase
+          .from('accounts_receivable')
+          .delete()
+          .eq('id', parentId);
+        
+        // Delete all children
         const { error } = await supabase
           .from('accounts_receivable')
           .delete()
-          .or(`id.eq.${parentId},parent_receivable_id.eq.${parentId}`);
+          .eq('parent_receivable_id', parentId);
 
         if (error) throw error;
       }
