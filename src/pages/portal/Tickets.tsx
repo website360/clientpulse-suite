@@ -82,7 +82,7 @@ export default function ClientTickets() {
       
       const { data: lastMessages } = await supabase
         .from('ticket_messages')
-        .select('ticket_id, created_at')
+        .select('ticket_id, created_at, user_id')
         .in('ticket_id', ticketIds)
         .order('created_at', { ascending: false });
 
@@ -96,7 +96,7 @@ export default function ClientTickets() {
       const lastMessageMap = new Map();
       lastMessages?.forEach(msg => {
         if (!lastMessageMap.has(msg.ticket_id)) {
-          lastMessageMap.set(msg.ticket_id, msg.created_at);
+          lastMessageMap.set(msg.ticket_id, { created_at: msg.created_at, user_id: msg.user_id });
         }
       });
 
@@ -108,10 +108,13 @@ export default function ClientTickets() {
 
       // Adicionar flag de não lido
       const ticketsWithUnread = ticketsData?.map(ticket => {
-        const lastMessageDate = lastMessageMap.get(ticket.id);
+        const lastMessage = lastMessageMap.get(ticket.id);
         const lastViewDate = viewsMap.get(ticket.id);
         
-        const hasUnread = lastMessageDate && (!lastViewDate || new Date(lastMessageDate) > new Date(lastViewDate));
+        // Só mostrar como não lido se a última mensagem foi de OUTRA pessoa (não do usuário logado)
+        const hasUnread = lastMessage && 
+                         lastMessage.user_id !== user?.id && 
+                         (!lastViewDate || new Date(lastMessage.created_at) > new Date(lastViewDate));
         
         return {
           ...ticket,
