@@ -38,10 +38,11 @@ type TicketFormData = z.infer<typeof ticketSchema>;
 interface NewTicketModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
+  preSelectedClientId?: string;
 }
 
-export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModalProps) {
+export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClientId }: NewTicketModalProps) {
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -62,8 +63,11 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
     if (open) {
       fetchClients();
       fetchDepartments();
+      if (preSelectedClientId) {
+        form.setValue('client_id', preSelectedClientId);
+      }
     }
-  }, [open]);
+  }, [open, preSelectedClientId]);
 
   const fetchClients = async () => {
     const { data } = await supabase
@@ -117,7 +121,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
 
       form.reset();
       setAttachments([]);
-      onSuccess();
+      onSuccess?.();
     } catch (error) {
       console.error('Error creating ticket:', error);
       toast({
@@ -179,6 +183,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
             <Select
               value={form.watch('client_id')}
               onValueChange={(value) => form.setValue('client_id', value)}
+              disabled={!!preSelectedClientId}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um cliente" />

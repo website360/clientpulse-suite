@@ -117,8 +117,8 @@ export function AppSidebar() {
 
   const clientItems = [
     { title: 'Dashboard', url: '/portal', icon: LayoutDashboard },
-    { title: 'Meus Tickets', url: '/portal', icon: Ticket },
-    { title: 'Contratos', url: '/portal', icon: FileText },
+    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
+    { title: 'Contratos', url: '/portal/contracts', icon: FileText },
   ];
 
   const items = userRole === 'admin' ? adminItems : clientItems;
