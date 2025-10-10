@@ -84,7 +84,20 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
     link.click();
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (contract: Contract) => {
+    const { status, end_date } = contract;
+    
+    // Determinar status baseado na data de vencimento
+    let displayStatus = status;
+    
+    if (end_date) {
+      if (isExpired(end_date)) {
+        displayStatus = 'expired';
+      } else if (isExpiringSoon(end_date) && status === 'active') {
+        displayStatus = 'expiring';
+      }
+    }
+
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending_signature: 'secondary',
       active: 'default',
@@ -94,7 +107,7 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
     };
 
     const labels: Record<string, string> = {
-      pending_signature: 'Aguardando Assinatura',
+      pending_signature: 'Assinatura',
       active: 'Ativo',
       expiring: 'A Vencer',
       expired: 'Vencido',
@@ -103,10 +116,10 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
 
     return (
       <Badge 
-        variant={variants[status] || 'default'}
-        className={status === 'expiring' ? 'border-warning text-warning' : ''}
+        variant={variants[displayStatus] || 'default'}
+        className={displayStatus === 'expiring' ? 'border-warning text-warning' : ''}
       >
-        {labels[status] || status}
+        {labels[displayStatus] || displayStatus}
       </Badge>
     );
   };
@@ -171,26 +184,12 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {contract.end_date ? (
-                        <>
-                          <span>
-                            {format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })}
-                          </span>
-                          {isExpired(contract.end_date) && (
-                            <Badge variant="destructive">Vencido</Badge>
-                          )}
-                          {!isExpired(contract.end_date) && isExpiringSoon(contract.end_date) && (
-                            <Badge variant="secondary" className="bg-warning/20 text-warning">
-                              Vence em breve
-                            </Badge>
-                          )}
-                        </>
-                      ) : (
-                        'Indeterminado'
-                      )}
+                      {contract.end_date
+                        ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
+                        : 'Indeterminado'}
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                  <TableCell>{getStatusBadge(contract)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {contract.attachment_url && (
