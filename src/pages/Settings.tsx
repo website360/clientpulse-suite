@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { DepartmentsTab } from '@/components/settings/DepartmentsTab';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -132,6 +133,7 @@ export default function Settings() {
           <TabsList>
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="security">Segurança</TabsTrigger>
+            <TabsTrigger value="departments">Departamentos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -223,6 +225,10 @@ export default function Settings() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="departments">
+            <DepartmentsTab />
           </TabsContent>
         </Tabs>
       </div>
