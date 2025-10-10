@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
+import { ContactFormModal } from '@/components/clients/ContactFormModal';
+import { ContactsList } from '@/components/clients/ContactsList';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -24,10 +26,15 @@ export default function ClientDetail() {
   const [breadcrumbLabel, setBreadcrumbLabel] = useState<string>('');
   const [tickets, setTickets] = useState<any[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<any>(null);
 
   useEffect(() => {
     fetchClient();
     fetchClientTickets();
+    fetchClientContacts();
   }, [id]);
 
   const fetchClient = async () => {
@@ -135,6 +142,39 @@ export default function ClientDetail() {
     }
   };
 
+  const fetchClientContacts = async () => {
+    try {
+      setLoadingContacts(true);
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .select('*')
+        .eq('client_id', id)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      toast({
+        title: 'Erro ao carregar contatos',
+        description: 'Não foi possível carregar os contatos do cliente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const handleEditContact = (contact: any) => {
+    setEditingContact(contact);
+    setContactFormOpen(true);
+  };
+
+  const handleNewContact = () => {
+    setEditingContact(null);
+    setContactFormOpen(true);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -192,6 +232,7 @@ export default function ClientDetail() {
           <TabsList>
             <TabsTrigger value="geral">Geral</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="geral" className="space-y-4">
@@ -307,6 +348,29 @@ export default function ClientDetail() {
               />
             )}
           </TabsContent>
+
+          <TabsContent value="contatos" className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={handleNewContact} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Contato
+              </Button>
+            </div>
+            
+            {loadingContacts ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Carregando contatos...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <ContactsList
+                contacts={contacts}
+                onEdit={handleEditContact}
+                onContactsChange={fetchClientContacts}
+              />
+            )}
+          </TabsContent>
         </Tabs>
 
         {/* Edit Modal */}
@@ -318,6 +382,15 @@ export default function ClientDetail() {
             fetchClient();
             setFormModalOpen(false);
           }}
+        />
+
+        {/* Contact Form Modal */}
+        <ContactFormModal
+          open={contactFormOpen}
+          onOpenChange={setContactFormOpen}
+          clientId={id!}
+          contact={editingContact}
+          onSuccess={fetchClientContacts}
         />
       </div>
     </DashboardLayout>
