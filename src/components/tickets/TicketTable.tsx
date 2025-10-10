@@ -134,7 +134,7 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
               </TableCell>
               <TableCell>
                 <div className="text-sm">
-                  {ticket.clients?.full_name || ticket.clients?.company_name || '-'}
+                  {ticket.clients?.nickname || ticket.clients?.company_name || ticket.clients?.full_name || '-'}
                 </div>
               </TableCell>
               <TableCell>

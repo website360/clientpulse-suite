@@ -99,7 +99,7 @@ export function DomainTable({ onEdit }: DomainTableProps) {
   };
 
   const getClientName = (domain: Domain) => {
-    return domain.clients.responsible_name || domain.clients.nickname || domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
+    return domain.clients.nickname || domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
   };
 
   const getOwnerLabel = (owner: 'agency' | 'client') => {
