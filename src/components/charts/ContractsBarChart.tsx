@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
 const STATUS_COLORS = {
-  pending_signature: '#94a3b8',
-  active: '#22c55e',
-  expired: '#ef4444',
-  completed: '#64748b',
+  pending_signature: '#a78bfa', // roxo suave
+  active: '#34d399', // verde
+  expired: '#fb7185', // vermelho suave
+  completed: '#60a5fa', // azul suave
 };
 
 const STATUS_LABELS = {
@@ -17,9 +16,17 @@ const STATUS_LABELS = {
   completed: 'Concluído',
 };
 
+interface ContractData {
+  status: string;
+  count: number;
+  color: string;
+  label: string;
+}
+
 export function ContractsBarChart() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<ContractData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [maxValue, setMaxValue] = useState(0);
 
   useEffect(() => {
     fetchContractsData();
@@ -42,11 +49,14 @@ export function ContractsBarChart() {
 
       // Formatar dados para o gráfico
       const chartData = Object.entries(STATUS_LABELS).map(([key, label]) => ({
-        name: label,
-        value: statusCount?.[key] || 0,
+        status: key,
+        count: statusCount?.[key] || 0,
         color: STATUS_COLORS[key as keyof typeof STATUS_COLORS],
+        label,
       }));
 
+      const max = Math.max(...chartData.map(d => d.count), 1);
+      setMaxValue(max);
       setData(chartData);
     } catch (error) {
       console.error('Error fetching contracts data:', error);
@@ -76,30 +86,26 @@ export function ContractsBarChart() {
         <CardTitle>Contratos</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="name" width={150} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
-              }}
-            />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-              <LabelList dataKey="value" position="right" />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="space-y-4">
+          {data.map((item, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-muted-foreground">{item.label}</span>
+                <span className="font-bold" style={{ color: item.color }}>{item.count}</span>
+              </div>
+              <div className="relative h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
+                  style={{
+                    width: `${(item.count / maxValue) * 100}%`,
+                    backgroundColor: item.color,
+                    opacity: 0.9,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
