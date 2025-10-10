@@ -289,40 +289,42 @@ export default function Dashboard() {
               value={stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
               icon={Ticket}
               variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
             />
             <MetricCard
               title="Aberto"
               value={stats.openTickets}
               icon={Ticket}
               variant="default"
-              className="bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-blue-500/20"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
             />
             <MetricCard
               title="Em Andamento"
               value={stats.inProgressTickets}
               icon={Clock}
               variant="default"
-              className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 border-yellow-500/20"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-yellow-50 [&_.icon-wrapper]:to-yellow-100/50 dark:[&_.icon-wrapper]:from-yellow-950/50 dark:[&_.icon-wrapper]:to-yellow-900/30 [&_.icon-wrapper_.lucide]:text-yellow-600 dark:[&_.icon-wrapper_.lucide]:text-yellow-400"
             />
             <MetricCard
               title="Aguardando"
               value={stats.waitingTickets}
               icon={Clock}
               variant="default"
-              className="bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-purple-500/20"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-purple-50 [&_.icon-wrapper]:to-purple-100/50 dark:[&_.icon-wrapper]:from-purple-950/50 dark:[&_.icon-wrapper]:to-purple-900/30 [&_.icon-wrapper_.lucide]:text-purple-600 dark:[&_.icon-wrapper_.lucide]:text-purple-400"
             />
             <MetricCard
               title="Resolvido"
               value={stats.resolvedTickets}
               icon={CheckCircle}
-              variant="success"
+              variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-emerald-50 [&_.icon-wrapper]:to-emerald-100/50 dark:[&_.icon-wrapper]:from-emerald-950/50 dark:[&_.icon-wrapper]:to-emerald-900/30 [&_.icon-wrapper_.lucide]:text-emerald-600 dark:[&_.icon-wrapper_.lucide]:text-emerald-400"
             />
             <MetricCard
               title="Fechado"
               value={stats.closedTickets}
               icon={XCircle}
               variant="default"
-              className="bg-gradient-to-br from-gray-500/5 to-gray-600/10 border-gray-500/20"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-gray-50 [&_.icon-wrapper]:to-gray-100/50 dark:[&_.icon-wrapper]:from-gray-950/50 dark:[&_.icon-wrapper]:to-gray-900/30 [&_.icon-wrapper_.lucide]:text-gray-600 dark:[&_.icon-wrapper_.lucide]:text-gray-400"
             />
           </div>
         </div>

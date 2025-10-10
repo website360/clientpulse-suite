@@ -41,8 +41,8 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
               {value}
             </h3>
-            <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
-              <Icon className={`h-7 w-7 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
+            <div className={`icon-wrapper h-14 w-14 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
+              <Icon className={`lucide h-7 w-7 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
             </div>
           </div>
           {trend && (
