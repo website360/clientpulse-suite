@@ -124,62 +124,79 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
   const performDelete = async (id: string, actionType: BulkActionType) => {
     try {
       const account = accounts.find(a => a.id === id);
-      
+      if (!account) throw new Error('Conta não encontrada na lista atual.');
+
       if (actionType === 'single') {
         const { error } = await supabase
           .from('accounts_receivable')
           .delete()
           .eq('id', id);
-
         if (error) throw error;
       } else if (actionType === 'following') {
-        // Delete this and following installments/occurrences
-        const parentId = account.parent_receivable_id || id;
-        
-        // First delete the current one
-        await supabase
-          .from('accounts_receivable')
-          .delete()
-          .eq('id', id);
-        
-        // Then delete all following ones with same parent and due_date >= current
-        const { error } = await supabase
-          .from('accounts_receivable')
-          .delete()
-          .eq('parent_receivable_id', parentId)
-          .gte('due_date', account.due_date);
+        const parentId: string = account.parent_receivable_id || (account.occurrence_type !== 'unica' ? account.id : '');
+        if (!parentId) {
+          // Não é série – apenas apaga atual
+          const { error } = await supabase.from('accounts_receivable').delete().eq('id', id);
+          if (error) throw error;
+        } else {
+          // Buscar IDs a excluir: a atual + todas do mesmo pai com due_date >= atual
+          const { data: following, error: selErr } = await supabase
+            .from('accounts_receivable')
+            .select('id, due_date, parent_receivable_id')
+            .eq('parent_receivable_id', parentId)
+            .gte('due_date', account.due_date);
+          if (selErr) throw selErr;
 
-        if (error) throw error;
+          const idsToDelete = [id, ...(following?.map(r => r.id) || [])];
+          if (idsToDelete.length) {
+            const { error: delErr } = await supabase
+              .from('accounts_receivable')
+              .delete()
+              .in('id', idsToDelete);
+            if (delErr) throw delErr;
+          }
+        }
       } else if (actionType === 'all') {
-        // Delete all related installments/occurrences
-        const parentId = account.parent_receivable_id || id;
-        
-        // Delete the parent if it exists
-        await supabase
-          .from('accounts_receivable')
-          .delete()
-          .eq('id', parentId);
-        
-        // Delete all children
-        const { error } = await supabase
-          .from('accounts_receivable')
-          .delete()
-          .eq('parent_receivable_id', parentId);
+        const parentId: string = account.parent_receivable_id || (account.occurrence_type !== 'unica' ? account.id : '');
+        if (!parentId) {
+          // Não é série – apenas apaga atual
+          const { error } = await supabase.from('accounts_receivable').delete().eq('id', id);
+          if (error) throw error;
+        } else {
+          // Buscar todos os IDs da série (pai + filhos) e excluir de uma vez
+          const idsToDelete: string[] = [];
 
-        if (error) throw error;
+          // Tentar incluir o pai (se existir)
+          const { data: parentRow, error: parentSelErr } = await supabase
+            .from('accounts_receivable')
+            .select('id')
+            .eq('id', parentId)
+            .single();
+          if (!parentSelErr && parentRow?.id) idsToDelete.push(parentRow.id);
+
+          // Incluir todos os filhos
+          const { data: children, error: childrenSelErr } = await supabase
+            .from('accounts_receivable')
+            .select('id')
+            .eq('parent_receivable_id', parentId);
+          if (childrenSelErr) throw childrenSelErr;
+          idsToDelete.push(...(children?.map(r => r.id) || []));
+
+          // Se nada encontrado, pelo menos apaga o item atual
+          if (idsToDelete.length === 0) idsToDelete.push(id);
+
+          const { error: delErr } = await supabase
+            .from('accounts_receivable')
+            .delete()
+            .in('id', idsToDelete);
+          if (delErr) throw delErr;
+        }
       }
 
-      toast({
-        title: 'Sucesso',
-        description: 'Conta(s) excluída(s) com sucesso'
-      });
+      toast({ title: 'Sucesso', description: 'Conta(s) excluída(s) com sucesso' });
       fetchAccounts();
     } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     }
   };
 

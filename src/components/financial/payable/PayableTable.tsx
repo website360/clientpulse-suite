@@ -124,62 +124,72 @@ export function PayableTable({ filters }: PayableTableProps) {
   const performDelete = async (id: string, actionType: BulkActionType) => {
     try {
       const account = accounts.find(a => a.id === id);
+      if (!account) throw new Error('Conta não encontrada na lista atual.');
       
       if (actionType === 'single') {
         const { error } = await supabase
           .from('accounts_payable')
           .delete()
           .eq('id', id);
-
         if (error) throw error;
       } else if (actionType === 'following') {
-        // Delete this and following installments/occurrences
-        const parentId = account.parent_payable_id || id;
-        
-        // First delete the current one
-        await supabase
-          .from('accounts_payable')
-          .delete()
-          .eq('id', id);
-        
-        // Then delete all following ones with same parent and due_date >= current
-        const { error } = await supabase
-          .from('accounts_payable')
-          .delete()
-          .eq('parent_payable_id', parentId)
-          .gte('due_date', account.due_date);
+        const parentId: string = account.parent_payable_id || (account.occurrence_type !== 'unica' ? account.id : '');
+        if (!parentId) {
+          const { error } = await supabase.from('accounts_payable').delete().eq('id', id);
+          if (error) throw error;
+        } else {
+          const { data: following, error: selErr } = await supabase
+            .from('accounts_payable')
+            .select('id, due_date, parent_payable_id')
+            .eq('parent_payable_id', parentId)
+            .gte('due_date', account.due_date);
+          if (selErr) throw selErr;
 
-        if (error) throw error;
+          const idsToDelete = [id, ...(following?.map(r => r.id) || [])];
+          if (idsToDelete.length) {
+            const { error: delErr } = await supabase
+              .from('accounts_payable')
+              .delete()
+              .in('id', idsToDelete);
+            if (delErr) throw delErr;
+          }
+        }
       } else if (actionType === 'all') {
-        // Delete all related installments/occurrences
-        const parentId = account.parent_payable_id || id;
-        
-        // Delete the parent if it exists
-        await supabase
-          .from('accounts_payable')
-          .delete()
-          .eq('id', parentId);
-        
-        // Delete all children
-        const { error } = await supabase
-          .from('accounts_payable')
-          .delete()
-          .eq('parent_payable_id', parentId);
+        const parentId: string = account.parent_payable_id || (account.occurrence_type !== 'unica' ? account.id : '');
+        if (!parentId) {
+          const { error } = await supabase.from('accounts_payable').delete().eq('id', id);
+          if (error) throw error;
+        } else {
+          const idsToDelete: string[] = [];
 
-        if (error) throw error;
+          const { data: parentRow, error: parentSelErr } = await supabase
+            .from('accounts_payable')
+            .select('id')
+            .eq('id', parentId)
+            .single();
+          if (!parentSelErr && parentRow?.id) idsToDelete.push(parentRow.id);
+
+          const { data: children, error: childrenSelErr } = await supabase
+            .from('accounts_payable')
+            .select('id')
+            .eq('parent_payable_id', parentId);
+          if (childrenSelErr) throw childrenSelErr;
+          idsToDelete.push(...(children?.map(r => r.id) || []));
+
+          if (idsToDelete.length === 0) idsToDelete.push(id);
+
+          const { error: delErr } = await supabase
+            .from('accounts_payable')
+            .delete()
+            .in('id', idsToDelete);
+          if (delErr) throw delErr;
+        }
       }
 
-      toast({
-        title: 'Sucesso',
-        description: 'Conta(s) excluída(s) com sucesso'
-      });
+      toast({ title: 'Sucesso', description: 'Conta(s) excluída(s) com sucesso' });
       fetchAccounts();
     } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     }
   };
 
