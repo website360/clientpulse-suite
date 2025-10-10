@@ -7,6 +7,7 @@ import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { PayableFormModal } from './PayableFormModal';
+import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,6 +19,11 @@ export function PayableTable({ filters }: PayableTableProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAccount, setEditingAccount] = useState<any>(null);
+  const [bulkActionModal, setBulkActionModal] = useState<{
+    open: boolean;
+    type: 'edit' | 'delete';
+    account: any;
+  }>({ open: false, type: 'edit', account: null });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,20 +98,52 @@ export function PayableTable({ filters }: PayableTableProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
+  const handleDelete = async (account: any) => {
+    // Check if it's a recurring or installment payment
+    const isRecurring = account.occurrence_type !== 'unica';
+    
+    if (isRecurring) {
+      setBulkActionModal({ open: true, type: 'delete', account });
+    } else {
+      if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
+      await performDelete(account.id, 'single');
+    }
+  };
 
+  const performDelete = async (id: string, actionType: BulkActionType) => {
     try {
-      const { error } = await supabase
-        .from('accounts_payable')
-        .delete()
-        .eq('id', id);
+      const account = accounts.find(a => a.id === id);
+      
+      if (actionType === 'single') {
+        const { error } = await supabase
+          .from('accounts_payable')
+          .delete()
+          .eq('id', id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else if (actionType === 'following') {
+        // Delete this and following installments/occurrences
+        const { error } = await supabase
+          .from('accounts_payable')
+          .delete()
+          .eq('parent_payable_id', account.parent_payable_id || id)
+          .gte('due_date', account.due_date);
+
+        if (error) throw error;
+      } else if (actionType === 'all') {
+        // Delete all related installments/occurrences
+        const parentId = account.parent_payable_id || id;
+        const { error } = await supabase
+          .from('accounts_payable')
+          .delete()
+          .or(`id.eq.${parentId},parent_payable_id.eq.${parentId}`);
+
+        if (error) throw error;
+      }
 
       toast({
         title: 'Sucesso',
-        description: 'Conta excluída com sucesso'
+        description: 'Conta(s) excluída(s) com sucesso'
       });
       fetchAccounts();
     } catch (error: any) {
@@ -114,6 +152,24 @@ export function PayableTable({ filters }: PayableTableProps) {
         description: error.message,
         variant: 'destructive'
       });
+    }
+  };
+
+  const handleEdit = (account: any) => {
+    const isRecurring = account.occurrence_type !== 'unica';
+    
+    if (isRecurring) {
+      setBulkActionModal({ open: true, type: 'edit', account });
+    } else {
+      setEditingAccount(account);
+    }
+  };
+
+  const handleBulkActionConfirm = (actionType: BulkActionType) => {
+    if (bulkActionModal.type === 'delete') {
+      performDelete(bulkActionModal.account.id, actionType);
+    } else {
+      setEditingAccount({ ...bulkActionModal.account, bulkActionType: actionType });
     }
   };
 
@@ -203,7 +259,7 @@ export function PayableTable({ filters }: PayableTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditingAccount(account)}>
+                        <DropdownMenuItem onClick={() => handleEdit(account)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
@@ -214,7 +270,7 @@ export function PayableTable({ filters }: PayableTableProps) {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(account.id)}
+                          onClick={() => handleDelete(account)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -238,6 +294,14 @@ export function PayableTable({ filters }: PayableTableProps) {
           onSuccess={fetchAccounts}
         />
       )}
+
+      <BulkActionModal
+        open={bulkActionModal.open}
+        onOpenChange={(open) => setBulkActionModal({ ...bulkActionModal, open })}
+        actionType={bulkActionModal.type}
+        occurrenceType={bulkActionModal.account?.occurrence_type || ''}
+        onConfirm={handleBulkActionConfirm}
+      />
     </>
   );
 }

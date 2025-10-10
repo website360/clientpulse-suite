@@ -172,17 +172,47 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
       };
 
       if (account) {
-        // Edição - não gera cobranças múltiplas
-        const { error } = await supabase
-          .from('accounts_payable')
-          .update({
-            ...basePayableData,
-            amount: parseFloat(values.amount),
-            due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
-          })
-          .eq('id', account.id);
+        // Edição - verifica o tipo de ação bulk
+        const bulkActionType = account.bulkActionType || 'single';
+        
+        if (bulkActionType === 'single') {
+          const { error } = await supabase
+            .from('accounts_payable')
+            .update({
+              ...basePayableData,
+              amount: parseFloat(values.amount),
+              due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
+            })
+            .eq('id', account.id);
 
-        if (error) throw error;
+          if (error) throw error;
+        } else if (bulkActionType === 'following') {
+          // Update this and following occurrences
+          const { error } = await supabase
+            .from('accounts_payable')
+            .update({
+              ...basePayableData,
+              amount: parseFloat(values.amount),
+              due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
+            })
+            .eq('parent_payable_id', account.parent_payable_id || account.id)
+            .gte('due_date', account.due_date);
+
+          if (error) throw error;
+        } else if (bulkActionType === 'all') {
+          // Update all occurrences
+          const parentId = account.parent_payable_id || account.id;
+          const { error } = await supabase
+            .from('accounts_payable')
+            .update({
+              ...basePayableData,
+              amount: parseFloat(values.amount),
+              due_date: values.due_date ? formatDateToString(values.due_date) : formatDateToString(values.issue_date),
+            })
+            .or(`id.eq.${parentId},parent_payable_id.eq.${parentId}`);
+
+          if (error) throw error;
+        }
 
         toast({
           title: 'Sucesso',
@@ -207,14 +237,33 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
             description: 'Conta a pagar cadastrada com sucesso',
           });
         } else if (values.occurrence_type === 'parcelada') {
-          // Cobrança parcelada
+          // Cobrança parcelada - primeira cobrança será o parent
           const totalAmount = parseFloat(values.amount);
           const installments = values.installments!;
           const amountPerInstallment = totalAmount / installments;
           
+          // Create first installment as parent
+          const firstDueDate = new Date(values.due_date!);
+          firstDueDate.setDate(values.due_day!);
+          
+          const { data: parentData, error: parentError } = await supabase
+            .from('accounts_payable')
+            .insert([{
+              ...basePayableData,
+              amount: amountPerInstallment,
+              due_date: formatDateToString(firstDueDate),
+              description: `${values.description} - 01 de ${String(installments).padStart(2, '0')}`,
+              installment_number: 1,
+              total_installments: installments,
+            }])
+            .select()
+            .single();
+
+          if (parentError) throw parentError;
+
+          // Create remaining installments
           const charges = [];
-          for (let i = 0; i < installments; i++) {
-            // Use due_date as base and add months
+          for (let i = 1; i < installments; i++) {
             const dueDate = new Date(values.due_date!);
             dueDate.setMonth(dueDate.getMonth() + i);
             dueDate.setDate(values.due_day!);
@@ -226,14 +275,17 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               description: `${values.description} - ${String(i + 1).padStart(2, '0')} de ${String(installments).padStart(2, '0')}`,
               installment_number: i + 1,
               total_installments: installments,
+              parent_payable_id: parentData.id,
             });
           }
 
-          const { error } = await supabase
-            .from('accounts_payable')
-            .insert(charges);
+          if (charges.length > 0) {
+            const { error } = await supabase
+              .from('accounts_payable')
+              .insert(charges);
 
-          if (error) throw error;
+            if (error) throw error;
+          }
 
           toast({
             title: 'Sucesso',
@@ -241,13 +293,29 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
           });
         } else {
           // Cobrança recorrente (mensal, trimestral, semestral, anual)
-          const charges = [];
           const monthsIncrement = values.occurrence_type === 'mensal' ? 1 :
                                   values.occurrence_type === 'trimestral' ? 3 :
                                   values.occurrence_type === 'semestral' ? 6 : 12;
           
-          for (let i = 0; i < 12; i++) {
-            // Use due_date as base and add months
+          // Create first occurrence as parent
+          const firstDueDate = new Date(values.due_date!);
+          firstDueDate.setDate(values.due_day!);
+          
+          const { data: parentData, error: parentError } = await supabase
+            .from('accounts_payable')
+            .insert([{
+              ...basePayableData,
+              amount: parseFloat(values.amount),
+              due_date: formatDateToString(firstDueDate),
+            }])
+            .select()
+            .single();
+
+          if (parentError) throw parentError;
+
+          // Create remaining occurrences
+          const charges = [];
+          for (let i = 1; i < 12; i++) {
             const dueDate = new Date(values.due_date!);
             dueDate.setMonth(dueDate.getMonth() + (i * monthsIncrement));
             dueDate.setDate(values.due_day!);
@@ -256,6 +324,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               ...basePayableData,
               amount: parseFloat(values.amount),
               due_date: formatDateToString(dueDate),
+              parent_payable_id: parentData.id,
             });
           }
 
