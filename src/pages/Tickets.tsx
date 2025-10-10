@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Plus, LayoutGrid, Table as TableIcon, Download } from 'lucide-react';
 import { TicketTable } from '@/components/tickets/TicketTable';
-import { TicketCards } from '@/components/tickets/TicketCards';
+import { TicketKanban } from '@/components/tickets/TicketKanban';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Tickets() {
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [tickets, setTickets] = useState<any[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -214,9 +214,9 @@ export default function Tickets() {
                 <TableIcon className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
                 size="sm"
-                onClick={() => setViewMode('cards')}
+                onClick={() => setViewMode('kanban')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
@@ -274,10 +274,9 @@ export default function Tickets() {
             onPriorityChange={handlePriorityChange}
           />
         ) : (
-          <TicketCards
+          <TicketKanban
             tickets={filteredTickets}
             onStatusChange={handleStatusChange}
-            onPriorityChange={handlePriorityChange}
           />
         )}
 

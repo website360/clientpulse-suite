@@ -66,22 +66,6 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
       </Select>
 
       <Select
-        value={filters.priority}
-        onValueChange={(value) => onFiltersChange({ ...filters, priority: value })}
-      >
-        <SelectTrigger className="w-[150px]">
-          <SelectValue placeholder="Prioridade" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas</SelectItem>
-          <SelectItem value="low">Baixa</SelectItem>
-          <SelectItem value="medium">Média</SelectItem>
-          <SelectItem value="high">Alta</SelectItem>
-          <SelectItem value="urgent">Urgente</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select
         value={filters.department}
         onValueChange={(value) => onFiltersChange({ ...filters, department: value })}
       >
@@ -95,6 +79,22 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
               {dept.name}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.priority}
+        onValueChange={(value) => onFiltersChange({ ...filters, priority: value })}
+      >
+        <SelectTrigger className="w-[150px]">
+          <SelectValue placeholder="Prioridade" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas</SelectItem>
+          <SelectItem value="low">Baixa</SelectItem>
+          <SelectItem value="medium">Média</SelectItem>
+          <SelectItem value="high">Alta</SelectItem>
+          <SelectItem value="urgent">Urgente</SelectItem>
         </SelectContent>
       </Select>
     </div>
