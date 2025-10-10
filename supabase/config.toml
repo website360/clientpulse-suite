@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.check-expiring-items]
 verify_jwt = false
+
+[functions.create-client-user]
+verify_jwt = true

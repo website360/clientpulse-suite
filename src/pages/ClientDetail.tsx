@@ -286,42 +286,29 @@ export default function ClientDetail() {
     try {
       setSavingAccess(true);
 
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: client.email,
-        password: password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: client.client_type === 'person' ? client.full_name : client.company_name,
-          }
+      // Call edge function to create user (doesn't logout current user)
+      const { data, error } = await supabase.functions.invoke('create-client-user', {
+        body: {
+          email: client.email,
+          password: password,
+          fullName: client.client_type === 'person' ? client.full_name : client.company_name,
+          clientId: id,
         }
       });
 
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          toast({
-            title: 'Email já cadastrado',
-            description: 'Este email já possui uma conta no sistema.',
-            variant: 'destructive',
-          });
-        } else {
-          throw authError;
-        }
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Erro ao criar acesso');
+      }
+
+      if (data?.error) {
+        toast({
+          title: data.error,
+          description: data.message || 'Não foi possível criar acesso ao sistema.',
+          variant: 'destructive',
+        });
         return;
       }
-
-      if (!authData.user) {
-        throw new Error('Usuário não foi criado');
-      }
-
-      // Update client with user_id
-      const { error: updateError } = await supabase
-        .from('clients')
-        .update({ user_id: authData.user.id })
-        .eq('id', id);
-
-      if (updateError) throw updateError;
 
       toast({
         title: 'Acesso criado',
