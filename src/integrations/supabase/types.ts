@@ -90,12 +90,19 @@ export type Database = {
           created_by: string
           description: string
           due_date: string
+          due_day: number | null
           id: string
+          installment_number: number | null
+          installments: number | null
           invoice_number: string | null
+          issue_date: string | null
           notes: string | null
+          occurrence_type: string | null
+          parent_receivable_id: string | null
           payment_date: string | null
           payment_method: string | null
           status: Database["public"]["Enums"]["payment_status"]
+          total_installments: number | null
           updated_at: string
         }
         Insert: {
@@ -107,12 +114,19 @@ export type Database = {
           created_by: string
           description: string
           due_date: string
+          due_day?: number | null
           id?: string
+          installment_number?: number | null
+          installments?: number | null
           invoice_number?: string | null
+          issue_date?: string | null
           notes?: string | null
+          occurrence_type?: string | null
+          parent_receivable_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          total_installments?: number | null
           updated_at?: string
         }
         Update: {
@@ -124,12 +138,19 @@ export type Database = {
           created_by?: string
           description?: string
           due_date?: string
+          due_day?: number | null
           id?: string
+          installment_number?: number | null
+          installments?: number | null
           invoice_number?: string | null
+          issue_date?: string | null
           notes?: string | null
+          occurrence_type?: string | null
+          parent_receivable_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          total_installments?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -145,6 +166,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_parent_receivable_id_fkey"
+            columns: ["parent_receivable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_receivable"
             referencedColumns: ["id"]
           },
         ]
