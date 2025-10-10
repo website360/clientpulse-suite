@@ -24,8 +24,11 @@ import {
   Building2, 
   FileText,
   Send,
-  AlertCircle
+  AlertCircle,
+  Download,
+  File
 } from 'lucide-react';
+import { FileUpload } from '@/components/tickets/FileUpload';
 
 export default function TicketDetails() {
   const { id } = useParams();
@@ -33,6 +36,8 @@ export default function TicketDetails() {
   const { toast } = useToast();
   const [ticket, setTicket] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [messageAttachments, setMessageAttachments] = useState<File[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -41,6 +46,7 @@ export default function TicketDetails() {
     if (id) {
       fetchTicketDetails();
       fetchMessages();
+      fetchAttachments();
     }
   }, [id]);
 
@@ -118,6 +124,21 @@ export default function TicketDetails() {
     }
   };
 
+  const fetchAttachments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ticket_attachments')
+        .select('*')
+        .eq('ticket_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAttachments(data || []);
+    } catch (error: any) {
+      console.error('Error fetching attachments:', error);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !id) return;
 
@@ -126,19 +147,28 @@ export default function TicketDetails() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { error } = await supabase
+      const { data: messageData, error } = await supabase
         .from('ticket_messages')
         .insert({
           ticket_id: id,
           user_id: user.id,
           message: newMessage,
           is_internal: false,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Upload attachments if any
+      if (messageAttachments.length > 0) {
+        await uploadMessageAttachments(messageData.id, messageAttachments);
+      }
+
       setNewMessage('');
+      setMessageAttachments([]);
       fetchMessages();
+      fetchAttachments();
       
       toast({
         title: 'Mensagem enviada',
@@ -152,6 +182,65 @@ export default function TicketDetails() {
       });
     } finally {
       setSending(false);
+    }
+  };
+
+  const uploadMessageAttachments = async (messageId: string, files: File[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('ticket-attachments')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        await supabase.from('ticket_attachments').insert({
+          ticket_id: id,
+          message_id: messageId,
+          file_name: file.name,
+          file_url: fileName,
+          file_type: file.type,
+          file_size: file.size,
+          uploaded_by: user?.id,
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading attachments:', error);
+      toast({
+        title: 'Erro ao enviar anexos',
+        description: 'Alguns arquivos não puderam ser enviados.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const downloadAttachment = async (attachment: any) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('ticket-attachments')
+        .download(attachment.file_url);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao baixar arquivo',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -359,6 +448,11 @@ export default function TicketDetails() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={3}
                   />
+                  <FileUpload
+                    onFilesChange={setMessageAttachments}
+                    maxSizeMB={1}
+                    multiple={true}
+                  />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sending}
@@ -441,6 +535,46 @@ export default function TicketDetails() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Attachments */}
+            {attachments.length > 0 && (
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <File className="h-5 w-5" />
+                    Anexos ({attachments.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between p-2 rounded-md bg-muted hover:bg-muted/70 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {attachment.file_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(attachment.file_size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => downloadAttachment(attachment)}
+                        className="flex-shrink-0"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Department Info */}
             <Card className="card-elevated">

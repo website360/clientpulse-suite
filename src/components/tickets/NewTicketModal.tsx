@@ -23,6 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { FileUpload } from './FileUpload';
 
 const ticketSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -44,6 +45,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -95,9 +97,18 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
         status: 'open',
       };
 
-      const { error } = await supabase.from('tickets').insert([payload]);
+      const { data: ticketData, error } = await supabase
+        .from('tickets')
+        .insert([payload])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Upload attachments if any
+      if (attachments.length > 0 && ticketData) {
+        await uploadAttachments(ticketData.id, attachments);
+      }
 
       toast({
         title: 'Ticket criado',
@@ -105,6 +116,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
       });
 
       form.reset();
+      setAttachments([]);
       onSuccess();
     } catch (error) {
       console.error('Error creating ticket:', error);
@@ -115,6 +127,41 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const uploadAttachments = async (ticketId: string, files: File[]) => {
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${ticketId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('ticket-attachments')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('ticket-attachments')
+          .getPublicUrl(fileName);
+
+        await supabase.from('ticket_attachments').insert({
+          ticket_id: ticketId,
+          file_name: file.name,
+          file_url: fileName,
+          file_type: file.type,
+          file_size: file.size,
+          uploaded_by: user?.id,
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading attachments:', error);
+      toast({
+        title: 'Erro ao enviar anexos',
+        description: 'Alguns arquivos não puderam ser enviados.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -225,6 +272,16 @@ export function NewTicketModal({ open, onOpenChange, onSuccess }: NewTicketModal
                 {form.formState.errors.description.message}
               </p>
             )}
+          </div>
+
+          {/* File Upload */}
+          <div>
+            <Label>Anexos</Label>
+            <FileUpload
+              onFilesChange={setAttachments}
+              maxSizeMB={1}
+              multiple={true}
+            />
           </div>
 
           {/* Actions */}
