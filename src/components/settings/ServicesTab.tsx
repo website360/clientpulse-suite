@@ -188,14 +188,6 @@ export function ServicesTab() {
                   rows={3}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-                <Label htmlFor="is_active">Ativo</Label>
-              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={handleClose}>
                   Cancelar
