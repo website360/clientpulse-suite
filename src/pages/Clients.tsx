@@ -33,13 +33,13 @@ export default function Clients() {
   const [filters, setFilters] = useState({
     search: '',
     type: 'all',
-    status: 'all',
+    status: 'active',
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [filters.status]);
 
   useEffect(() => {
     applyFilters();
@@ -48,10 +48,22 @@ export default function Clients() {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      // Filter by active status by default
+      if (filters.status === 'active' || filters.status === 'all') {
+        if (filters.status === 'active') {
+          query = query.eq('is_active', true);
+        }
+      } else {
+        query = query.eq('is_active', false);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setClients(data || []);
@@ -85,12 +97,6 @@ export default function Clients() {
     // Type filter
     if (filters.type !== 'all') {
       filtered = filtered.filter((client) => client.client_type === filters.type);
-    }
-
-    // Status filter
-    if (filters.status !== 'all') {
-      const isActive = filters.status === 'active';
-      filtered = filtered.filter((client) => client.is_active === isActive);
     }
 
     setFilteredClients(filtered);
