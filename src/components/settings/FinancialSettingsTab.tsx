@@ -3,12 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function FinancialSettingsTab() {
@@ -16,8 +15,6 @@ export function FinancialSettingsTab() {
   const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newMethodName, setNewMethodName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
 
   // Fetch payment categories
   const { data: categories } = useQuery({
@@ -86,45 +83,41 @@ export function FinancialSettingsTab() {
     },
   });
 
-  // Update category mutation
-  const updateCategoryMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+  // Delete category mutation
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("payment_categories")
-        .update({ name })
+        .delete()
         .eq("id", id);
       
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-categories"] });
-      toast({ title: "Categoria atualizada com sucesso" });
-      setEditingId(null);
-      setEditingName("");
+      toast({ title: "Categoria excluída com sucesso" });
     },
     onError: () => {
-      toast({ title: "Erro ao atualizar categoria", variant: "destructive" });
+      toast({ title: "Erro ao excluir categoria", variant: "destructive" });
     },
   });
 
-  // Update method mutation
-  const updateMethodMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+  // Delete method mutation
+  const deleteMethodMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("payment_methods")
-        .update({ name })
+        .delete()
         .eq("id", id);
       
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
-      toast({ title: "Forma de pagamento atualizada com sucesso" });
-      setEditingId(null);
-      setEditingName("");
+      toast({ title: "Forma de pagamento excluída com sucesso" });
     },
     onError: () => {
-      toast({ title: "Erro ao atualizar forma de pagamento", variant: "destructive" });
+      toast({ title: "Erro ao excluir forma de pagamento", variant: "destructive" });
     },
   });
 
@@ -195,85 +188,34 @@ export function FinancialSettingsTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[100px]">Ativo</TableHead>
+                    <TableHead className="w-[80px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {payableCategories.map((category) => (
                     <TableRow key={category.id}>
+                      <TableCell>{category.name}</TableCell>
                       <TableCell>
-                        {editingId === category.id ? (
-                          <div className="flex gap-2">
-                            <Input
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  updateCategoryMutation.mutate({ id: category.id, name: editingName });
-                                }
-                                if (e.key === "Escape") {
-                                  setEditingId(null);
-                                  setEditingName("");
-                                }
-                              }}
-                              autoFocus
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => updateCategoryMutation.mutate({ id: category.id, name: editingName })}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditingName("");
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          category.name
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={category.is_active ? "default" : "secondary"}>
-                          {category.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
+                        <Switch
+                          checked={category.is_active}
+                          onCheckedChange={() =>
+                            toggleActiveMutation.mutate({
+                              table: "payment_categories",
+                              id: category.id,
+                              isActive: category.is_active,
+                            })
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-right">
-                        {editingId !== category.id && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(category.id);
-                                setEditingName(category.name);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                toggleActiveMutation.mutate({
-                                  table: "payment_categories",
-                                  id: category.id,
-                                  isActive: category.is_active,
-                                })
-                              }
-                            >
-                              {category.is_active ? <Trash2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -317,85 +259,34 @@ export function FinancialSettingsTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[100px]">Ativo</TableHead>
+                    <TableHead className="w-[80px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {receivableCategories.map((category) => (
                     <TableRow key={category.id}>
+                      <TableCell>{category.name}</TableCell>
                       <TableCell>
-                        {editingId === category.id ? (
-                          <div className="flex gap-2">
-                            <Input
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  updateCategoryMutation.mutate({ id: category.id, name: editingName });
-                                }
-                                if (e.key === "Escape") {
-                                  setEditingId(null);
-                                  setEditingName("");
-                                }
-                              }}
-                              autoFocus
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => updateCategoryMutation.mutate({ id: category.id, name: editingName })}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditingName("");
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          category.name
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={category.is_active ? "default" : "secondary"}>
-                          {category.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
+                        <Switch
+                          checked={category.is_active}
+                          onCheckedChange={() =>
+                            toggleActiveMutation.mutate({
+                              table: "payment_categories",
+                              id: category.id,
+                              isActive: category.is_active,
+                            })
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-right">
-                        {editingId !== category.id && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(category.id);
-                                setEditingName(category.name);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                toggleActiveMutation.mutate({
-                                  table: "payment_categories",
-                                  id: category.id,
-                                  isActive: category.is_active,
-                                })
-                              }
-                            >
-                              {category.is_active ? <Trash2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -440,85 +331,34 @@ export function FinancialSettingsTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[100px]">Ativo</TableHead>
+                    <TableHead className="w-[80px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {methods?.map((method) => (
                     <TableRow key={method.id}>
+                      <TableCell>{method.name}</TableCell>
                       <TableCell>
-                        {editingId === method.id ? (
-                          <div className="flex gap-2">
-                            <Input
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  updateMethodMutation.mutate({ id: method.id, name: editingName });
-                                }
-                                if (e.key === "Escape") {
-                                  setEditingId(null);
-                                  setEditingName("");
-                                }
-                              }}
-                              autoFocus
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => updateMethodMutation.mutate({ id: method.id, name: editingName })}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditingName("");
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          method.name
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={method.is_active ? "default" : "secondary"}>
-                          {method.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
+                        <Switch
+                          checked={method.is_active}
+                          onCheckedChange={() =>
+                            toggleActiveMutation.mutate({
+                              table: "payment_methods",
+                              id: method.id,
+                              isActive: method.is_active,
+                            })
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-right">
-                        {editingId !== method.id && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(method.id);
-                                setEditingName(method.name);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                toggleActiveMutation.mutate({
-                                  table: "payment_methods",
-                                  id: method.id,
-                                  isActive: method.is_active,
-                                })
-                              }
-                            >
-                              {method.is_active ? <Trash2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteMethodMutation.mutate(method.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
