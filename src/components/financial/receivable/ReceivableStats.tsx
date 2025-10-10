@@ -32,11 +32,34 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
 
-    // Total a receber (pending)
+    // Apply common filters
+    const applyFilters = (query: any) => {
+      if (filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+      if (filters.dateFrom) {
+        query = query.gte('due_date', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        query = query.lte('due_date', filters.dateTo);
+      }
+      if (filters.search) {
+        query = query.ilike('description', `%${filters.search}%`);
+      }
+      return query;
+    };
+
+    // Total a receber (pending or based on filter status)
     let totalQuery = supabase
       .from('accounts_receivable')
-      .select('amount', { count: 'exact' })
-      .eq('status', 'pending');
+      .select('amount', { count: 'exact' });
+    
+    if (filters.status === 'all') {
+      totalQuery = totalQuery.eq('status', 'pending');
+    } else {
+      totalQuery = totalQuery.eq('status', filters.status as any);
+    }
+    totalQuery = applyFilters(totalQuery);
 
     // Vencidas
     let overdueQuery = supabase
@@ -44,14 +67,33 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
       .select('amount', { count: 'exact' })
       .eq('status', 'pending')
       .lt('due_date', today.toISOString().split('T')[0]);
+    overdueQuery = applyFilters(overdueQuery);
 
-    // Recebidas este mês
+    // Recebidas no período dos filtros (ou este mês se não houver filtro de data)
     let receivedThisMonthQuery = supabase
       .from('accounts_receivable')
       .select('amount', { count: 'exact' })
-      .eq('status', 'received')
-      .gte('payment_date', firstDayOfMonth.toISOString().split('T')[0])
-      .lte('payment_date', lastDayOfMonth.toISOString().split('T')[0]);
+      .eq('status', 'received');
+    
+    if (filters.dateFrom || filters.dateTo) {
+      if (filters.dateFrom) {
+        receivedThisMonthQuery = receivedThisMonthQuery.gte('payment_date', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        receivedThisMonthQuery = receivedThisMonthQuery.lte('payment_date', filters.dateTo);
+      }
+    } else {
+      receivedThisMonthQuery = receivedThisMonthQuery
+        .gte('payment_date', firstDayOfMonth.toISOString().split('T')[0])
+        .lte('payment_date', lastDayOfMonth.toISOString().split('T')[0]);
+    }
+    
+    if (filters.category !== 'all') {
+      receivedThisMonthQuery = receivedThisMonthQuery.eq('category', filters.category);
+    }
+    if (filters.search) {
+      receivedThisMonthQuery = receivedThisMonthQuery.ilike('description', `%${filters.search}%`);
+    }
 
     // Próximas a vencer (3 dias)
     let dueSoonQuery = supabase
@@ -60,6 +102,7 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
       .eq('status', 'pending')
       .gte('due_date', today.toISOString().split('T')[0])
       .lte('due_date', threeDaysFromNow.toISOString().split('T')[0]);
+    dueSoonQuery = applyFilters(dueSoonQuery);
 
     const [totalRes, overdueRes, receivedRes, dueSoonRes] = await Promise.all([
       totalQuery,

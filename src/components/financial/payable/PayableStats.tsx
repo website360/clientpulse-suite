@@ -32,11 +32,34 @@ export function PayableStats({ filters }: PayableStatsProps) {
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
 
-    // Total a pagar (pending)
+    // Apply common filters
+    const applyFilters = (query: any) => {
+      if (filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+      if (filters.dateFrom) {
+        query = query.gte('due_date', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        query = query.lte('due_date', filters.dateTo);
+      }
+      if (filters.search) {
+        query = query.ilike('description', `%${filters.search}%`);
+      }
+      return query;
+    };
+
+    // Total a pagar (pending or based on filter status)
     let totalQuery = supabase
       .from('accounts_payable')
-      .select('amount', { count: 'exact' })
-      .eq('status', 'pending');
+      .select('amount', { count: 'exact' });
+    
+    if (filters.status === 'all') {
+      totalQuery = totalQuery.eq('status', 'pending');
+    } else {
+      totalQuery = totalQuery.eq('status', filters.status as any);
+    }
+    totalQuery = applyFilters(totalQuery);
 
     // Vencidas
     let overdueQuery = supabase
@@ -44,14 +67,33 @@ export function PayableStats({ filters }: PayableStatsProps) {
       .select('amount', { count: 'exact' })
       .eq('status', 'pending')
       .lt('due_date', today.toISOString().split('T')[0]);
+    overdueQuery = applyFilters(overdueQuery);
 
-    // Pagas este mês
+    // Pagas no período dos filtros (ou este mês se não houver filtro de data)
     let paidThisMonthQuery = supabase
       .from('accounts_payable')
       .select('amount', { count: 'exact' })
-      .eq('status', 'paid')
-      .gte('payment_date', firstDayOfMonth.toISOString().split('T')[0])
-      .lte('payment_date', lastDayOfMonth.toISOString().split('T')[0]);
+      .eq('status', 'paid');
+    
+    if (filters.dateFrom || filters.dateTo) {
+      if (filters.dateFrom) {
+        paidThisMonthQuery = paidThisMonthQuery.gte('payment_date', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        paidThisMonthQuery = paidThisMonthQuery.lte('payment_date', filters.dateTo);
+      }
+    } else {
+      paidThisMonthQuery = paidThisMonthQuery
+        .gte('payment_date', firstDayOfMonth.toISOString().split('T')[0])
+        .lte('payment_date', lastDayOfMonth.toISOString().split('T')[0]);
+    }
+    
+    if (filters.category !== 'all') {
+      paidThisMonthQuery = paidThisMonthQuery.eq('category', filters.category);
+    }
+    if (filters.search) {
+      paidThisMonthQuery = paidThisMonthQuery.ilike('description', `%${filters.search}%`);
+    }
 
     // Próximas a vencer (3 dias)
     let dueSoonQuery = supabase
@@ -60,6 +102,7 @@ export function PayableStats({ filters }: PayableStatsProps) {
       .eq('status', 'pending')
       .gte('due_date', today.toISOString().split('T')[0])
       .lte('due_date', threeDaysFromNow.toISOString().split('T')[0]);
+    dueSoonQuery = applyFilters(dueSoonQuery);
 
     const [totalRes, overdueRes, paidRes, dueSoonRes] = await Promise.all([
       totalQuery,
