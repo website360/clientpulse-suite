@@ -369,7 +369,7 @@ export default function TicketDetails() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout breadcrumbLabel={`Ticket #${ticket.ticket_number}`}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">

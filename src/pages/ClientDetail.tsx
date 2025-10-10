@@ -20,6 +20,7 @@ export default function ClientDetail() {
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [breadcrumbLabel, setBreadcrumbLabel] = useState<string>('');
 
   useEffect(() => {
     fetchClient();
@@ -36,6 +37,12 @@ export default function ClientDetail() {
 
       if (error) throw error;
       setClient(data);
+      
+      // Set breadcrumb label
+      const label = data.client_type === 'person' 
+        ? (data.responsible_name || data.full_name)
+        : (data.responsible_name || data.company_name);
+      setBreadcrumbLabel(label || 'Cliente');
     } catch (error) {
       console.error('Error fetching client:', error);
       toast({
@@ -69,7 +76,7 @@ export default function ClientDetail() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout breadcrumbLabel={breadcrumbLabel}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

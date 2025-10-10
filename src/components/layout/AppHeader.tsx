@@ -15,7 +15,11 @@ import { Breadcrumbs } from './Breadcrumbs';
 import { NotificationCenter } from './NotificationCenter';
 import { GlobalSearch } from './GlobalSearch';
 
-export function AppHeader() {
+interface AppHeaderProps {
+  breadcrumbLabel?: string;
+}
+
+export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
   const { user, userRole, signOut } = useAuth();
 
   const getInitials = (email: string) => {
@@ -31,7 +35,7 @@ export function AppHeader() {
       <div className="flex h-16 items-center gap-4 px-6">
         <SidebarTrigger className="lg:hidden" />
         
-        <Breadcrumbs />
+        <Breadcrumbs customLabel={breadcrumbLabel} />
 
         <div className="flex-1 flex items-center justify-end gap-4">
           <GlobalSearch />

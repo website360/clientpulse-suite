@@ -20,7 +20,11 @@ const routeNames: Record<string, string> = {
   '/new-ticket': 'Novo Ticket',
 };
 
-export function Breadcrumbs() {
+interface BreadcrumbsProps {
+  customLabel?: string;
+}
+
+export function Breadcrumbs({ customLabel }: BreadcrumbsProps) {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
@@ -38,7 +42,12 @@ export function Breadcrumbs() {
         {pathnames.map((pathname, index) => {
           const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;
           const isLast = index === pathnames.length - 1;
-          const name = routeNames[routeTo] || pathname;
+          
+          // Use custom label for last item if provided
+          let name = routeNames[routeTo] || pathname;
+          if (isLast && customLabel) {
+            name = customLabel;
+          }
 
           return (
             <div key={routeTo} className="flex items-center gap-1.5">

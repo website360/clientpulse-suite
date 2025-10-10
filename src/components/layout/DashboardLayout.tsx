@@ -6,9 +6,10 @@ import { AppHeader } from './AppHeader';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  breadcrumbLabel?: string;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -28,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col w-full">
-          <AppHeader />
+          <AppHeader breadcrumbLabel={breadcrumbLabel} />
           <main className="flex-1 p-6 bg-background-secondary overflow-auto">
             {children}
           </main>
