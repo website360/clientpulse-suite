@@ -327,13 +327,9 @@ export default function ClientTicketDetails() {
 
   const handleReviewSubmit = async (rating: number, feedback: string) => {
     try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ 
-          status: 'closed',
-          closed_at: new Date().toISOString()
-        })
-        .eq('id', id);
+      const { error } = await supabase.rpc('close_ticket', {
+        p_ticket_id: id
+      });
 
       if (error) throw error;
 

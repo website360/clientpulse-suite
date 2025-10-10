@@ -866,6 +866,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      close_ticket: {
+        Args: { p_ticket_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
