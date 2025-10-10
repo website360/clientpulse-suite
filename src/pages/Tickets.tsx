@@ -196,31 +196,29 @@ export default function Tickets() {
         </div>
 
         {/* Filters and Actions */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <TicketFilters filters={filters} onFiltersChange={setFilters} />
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
+          <Button variant="outline" size="sm" onClick={handleExport} className="gap-2 shrink-0">
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
+          
+          <div className="flex items-center gap-1 border rounded-lg p-1 shrink-0">
+            <Button
+              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+            >
+              <TableIcon className="h-4 w-4" />
             </Button>
-            
-            <div className="flex items-center gap-1 border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                <TableIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('kanban')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

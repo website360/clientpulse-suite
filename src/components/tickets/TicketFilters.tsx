@@ -37,8 +37,8 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
   };
 
   return (
-    <div className="flex items-center gap-4 flex-1 max-w-3xl flex-wrap">
-      <div className="relative flex-1 min-w-[250px]">
+    <>
+      <div className="relative min-w-[200px] flex-1 max-w-xs">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por número, assunto, cliente..."
@@ -52,7 +52,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.status}
         onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
       >
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-[145px] shrink-0">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -69,7 +69,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.department}
         onValueChange={(value) => onFiltersChange({ ...filters, department: value })}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[160px] shrink-0">
           <SelectValue placeholder="Departamento" />
         </SelectTrigger>
         <SelectContent>
@@ -86,7 +86,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         value={filters.priority}
         onValueChange={(value) => onFiltersChange({ ...filters, priority: value })}
       >
-        <SelectTrigger className="w-[150px]">
+        <SelectTrigger className="w-[135px] shrink-0">
           <SelectValue placeholder="Prioridade" />
         </SelectTrigger>
         <SelectContent>
@@ -97,6 +97,6 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
           <SelectItem value="urgent">Urgente</SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </>
   );
 }
