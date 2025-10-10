@@ -9,6 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { DepartmentsTab } from '@/components/settings/DepartmentsTab';
+import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from 'lucide-react';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -18,7 +21,9 @@ export default function Settings() {
     full_name: '',
     email: '',
     phone: '',
+    avatar_url: '',
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -40,6 +45,7 @@ export default function Settings() {
           full_name: data.full_name || '',
           email: data.email || '',
           phone: data.phone || '',
+          avatar_url: data.avatar_url || '',
         });
       }
     } catch (error) {
@@ -75,6 +81,73 @@ export default function Settings() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, selecione apenas arquivos de imagem.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'A imagem deve ter no máximo 2MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('ticket-attachments')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('ticket-attachments')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user?.id);
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, avatar_url: data.publicUrl });
+
+      toast({
+        title: 'Avatar atualizado',
+        description: 'Seu avatar foi atualizado com sucesso.',
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Erro ao fazer upload',
+        description: 'Não foi possível fazer upload do avatar.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -133,6 +206,7 @@ export default function Settings() {
           <TabsList>
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="security">Segurança</TabsTrigger>
+            <TabsTrigger value="appearance">Aparência</TabsTrigger>
             <TabsTrigger value="departments">Departamentos</TabsTrigger>
           </TabsList>
 
@@ -146,6 +220,35 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="flex items-center gap-6">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={profile.avatar_url} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                        <User className="h-12 w-12" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar">Foto de Perfil</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('avatar')?.click()}
+                        disabled={uploadingAvatar}
+                      >
+                        {uploadingAvatar ? 'Enviando...' : 'Alterar Foto'}
+                      </Button>
+                      <input
+                        id="avatar"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPG ou GIF (máx. 2MB)
+                      </p>
+                    </div>
+                  </div>
                   <div>
                     <Label htmlFor="full_name">Nome Completo</Label>
                     <Input
@@ -225,6 +328,10 @@ export default function Settings() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <AppearanceTab />
           </TabsContent>
 
           <TabsContent value="departments">

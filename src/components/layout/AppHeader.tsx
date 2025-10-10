@@ -4,23 +4,50 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Breadcrumbs } from './Breadcrumbs';
 import { NotificationCenter } from './NotificationCenter';
 import { GlobalSearch } from './GlobalSearch';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AppHeaderProps {
   breadcrumbLabel?: string;
 }
 
 export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
-  const { user, userRole, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (user) {
+      fetchAvatar();
+    }
+  }, [user]);
+
+  const fetchAvatar = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    } catch (error) {
+      console.error('Error fetching avatar:', error);
+    }
+  };
 
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
@@ -46,6 +73,7 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar>
+                  <AvatarImage src={avatarUrl} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user?.email ? getInitials(user.email) : <User className="h-4 w-4" />}
                   </AvatarFallback>
@@ -53,18 +81,10 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.email}</p>
-                  <p className="text-xs leading-none text-muted-foreground capitalize">
-                    {userRole}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
                 Perfil
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
                 Sair
               </DropdownMenuItem>

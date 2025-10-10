@@ -10,6 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+  SidebarHeader,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -20,18 +22,23 @@ import logoIconLight from '@/assets/logo-icon-light.png';
 import logoIconDark from '@/assets/logo-icon-dark.png';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
+import { Separator } from '@/components/ui/separator';
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const { userRole } = useAuth();
+  const { user, userRole } = useAuth();
   const collapsed = state === 'collapsed';
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
+  const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
     fetchTicketCount();
+    if (user) {
+      fetchProfile();
+    }
 
     // Observer para mudanças no tema
     const observer = new MutationObserver(() => {
@@ -45,7 +52,22 @@ export function AppSidebar() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user?.id)
+        .single();
+      
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchTicketCount = async () => {
     try {
@@ -93,23 +115,33 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
-      <div className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           {collapsed ? (
             <img 
               src={isDark ? logoIconDark : logoIconLight} 
-              alt="AgênciaMay" 
+              alt="Logo" 
               className="h-8 w-8"
             />
           ) : (
             <img 
               src={isDark ? logoDark : logoLight} 
-              alt="AgênciaMay" 
+              alt="Logo" 
               className="h-8 w-auto"
             />
           )}
         </div>
-      </div>
+        
+        {!collapsed && profile && (
+          <>
+            <Separator className="my-3" />
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">{profile.full_name}</p>
+              <p className="text-xs text-muted-foreground">{profile.email}</p>
+            </div>
+          </>
+        )}
+      </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
@@ -148,7 +180,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <div className="mt-auto p-4 border-t border-sidebar-border">
+      <SidebarFooter className="p-4 border-t border-sidebar-border">
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "default"}
@@ -163,7 +195,7 @@ export function AppSidebar() {
             v1.0.0
           </div>
         )}
-      </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
