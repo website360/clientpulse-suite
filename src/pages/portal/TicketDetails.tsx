@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -130,26 +131,38 @@ export default function ClientTicketDetails() {
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      // Buscar anexos das mensagens
+      // Buscar anexos das mensagens com nomes dos arquivos
       const messageIds = messagesData.map(m => m.id);
       const { data: attachmentsData } = await supabase
         .from('ticket_attachments')
-        .select('message_id, id')
+        .select('message_id, id, file_name')
         .in('message_id', messageIds);
 
       const messagesWithProfiles = messagesData.map(message => {
+        const profile = profilesData?.find(p => p.id === message.user_id);
         const isAdmin = rolesData?.some(r => r.user_id === message.user_id && r.role === 'admin') || false;
         const isCurrentUser = message.user_id === user?.id;
         const messageAttachments = attachmentsData?.filter(a => a.message_id === message.id) || [];
         
+        let displayName = 'Usuário';
+        
+        if (isAdmin) {
+          // Se é admin, mostra o nome completo do perfil
+          displayName = profile?.full_name || 'Administrador';
+        } else if (isCurrentUser) {
+          // Se é o cliente logado, mostra o apelido ou nome completo
+          displayName = clientData?.nickname || clientData?.full_name || 'Cliente';
+        } else {
+          // Outros usuários mostram o nome do perfil
+          displayName = profile?.full_name || 'Usuário';
+        }
+        
         return {
           ...message,
-          profiles: profilesData?.find(p => p.id === message.user_id) || null,
+          profiles: profile || null,
           isAdmin,
-          displayName: isCurrentUser && !isAdmin 
-            ? (clientData?.nickname || clientData?.full_name || 'Cliente')
-            : profilesData?.find(p => p.id === message.user_id)?.full_name || 'Usuário',
-          hasAttachments: messageAttachments.length > 0
+          displayName,
+          attachmentNames: messageAttachments.map(a => a.file_name).join(', ') || ''
         };
       });
 
@@ -457,10 +470,19 @@ export default function ClientTicketDetails() {
                                 <span className="text-xs text-muted-foreground">
                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                 </span>
-                                {message.hasAttachments && (
-                                  <span title="Mensagem com anexo">
-                                    <Paperclip className="h-3 w-3 text-muted-foreground" />
-                                  </span>
+                                {message.attachmentNames && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span>
+                                          <Paperclip className="h-3 w-3 text-muted-foreground" />
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="text-xs">{message.attachmentNames}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 )}
                               </div>
                               <p className="text-sm whitespace-pre-wrap">
