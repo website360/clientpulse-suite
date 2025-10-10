@@ -79,7 +79,7 @@ export default function ClientContracts() {
     };
 
     const labels: Record<string, string> = {
-      pending_signature: 'Aguardando Assinatura',
+      pending_signature: 'Assinatura',
       active: 'Ativo',
       expiring: 'A Vencer',
       expired: 'Vencido',

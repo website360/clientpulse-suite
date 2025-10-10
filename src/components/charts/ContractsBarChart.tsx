@@ -11,7 +11,7 @@ const STATUS_COLORS = {
 };
 
 const STATUS_LABELS = {
-  pending_signature: 'Aguardando Assinatura',
+  pending_signature: 'Assinatura',
   active: 'Ativo',
   expiring: 'A Vencer',
   expired: 'Vencido',
