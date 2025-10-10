@@ -62,7 +62,10 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
       setFormData({
         client_id: contract.client_id || '',
         service_id: contract.service_id || '',
-        amount: contract.amount || '',
+        amount: Number(contract.amount).toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
         payment_method_id: contract.payment_method_id || '',
         payment_terms: contract.payment_terms || '',
         start_date: contract.start_date || '',
@@ -116,6 +119,25 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
     }
   };
 
+  const formatCurrency = (value: string) => {
+    // Remove tudo que não é dígito
+    const digits = value.replace(/\D/g, '');
+    
+    // Converte para número e divide por 100 para ter os centavos
+    const number = Number(digits) / 100;
+    
+    // Formata como moeda brasileira
+    return number.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrency(e.target.value);
+    setFormData({ ...formData, amount: formatted });
+  };
+
   const uploadAttachment = async (): Promise<string | null> => {
     if (!attachmentFile) return null;
 
@@ -146,7 +168,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
 
       const payload = {
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount.replace(/\./g, '').replace(',', '.')),
         attachment_url,
         created_by: user.id,
       };
@@ -228,14 +250,20 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
 
             <div>
               <Label htmlFor="amount">Valor *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  R$
+                </span>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={formData.amount}
+                  onChange={handleAmountChange}
+                  className="pl-10"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
             </div>
 
             <div>
