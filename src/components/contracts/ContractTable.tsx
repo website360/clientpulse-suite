@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download } from 'lucide-react';
-import { format } from 'date-fns';
+import { Pencil, Trash2, Download, Calendar } from 'lucide-react';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -118,6 +118,21 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
     }).format(value);
   };
 
+  const isExpiringSoon = (endDate: string) => {
+    const exp = parse(endDate, 'yyyy-MM-dd', new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysUntilExpiry = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+  };
+
+  const isExpired = (endDate: string) => {
+    const exp = parse(endDate, 'yyyy-MM-dd', new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return exp.getTime() < today.getTime();
+  };
+
   return (
     <>
       <div className="border rounded-lg">
@@ -129,7 +144,7 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
               <TableHead>Valor</TableHead>
               <TableHead>Meio de Pagamento</TableHead>
               <TableHead>Início</TableHead>
-              <TableHead>Término</TableHead>
+              <TableHead>Vencimento</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -154,9 +169,26 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
                     {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
                   <TableCell>
-                    {contract.end_date
-                      ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
-                      : 'Indeterminado'}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {contract.end_date ? (
+                        <>
+                          <span>
+                            {format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })}
+                          </span>
+                          {isExpired(contract.end_date) && (
+                            <Badge variant="destructive">Vencido</Badge>
+                          )}
+                          {!isExpired(contract.end_date) && isExpiringSoon(contract.end_date) && (
+                            <Badge variant="secondary" className="bg-warning/20 text-warning">
+                              Vence em breve
+                            </Badge>
+                          )}
+                        </>
+                      ) : (
+                        'Indeterminado'
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(contract.status)}</TableCell>
                   <TableCell className="text-right">
