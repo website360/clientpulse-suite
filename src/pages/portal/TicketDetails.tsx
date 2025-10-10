@@ -116,9 +116,16 @@ export default function ClientTicketDetails() {
 
       if (profilesError) throw profilesError;
 
+      // Buscar roles dos usuários
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
       const messagesWithProfiles = messagesData.map(message => ({
         ...message,
-        profiles: profilesData?.find(p => p.id === message.user_id) || null
+        profiles: profilesData?.find(p => p.id === message.user_id) || null,
+        isAdmin: rolesData?.some(r => r.user_id === message.user_id && r.role === 'admin') || false
       }));
 
       setMessages(messagesWithProfiles);
@@ -402,13 +409,25 @@ export default function ClientTicketDetails() {
                 ) : (
                   <div className="space-y-4">
                     {messages.map((message) => (
-                      <Card key={message.id} className="bg-muted/30">
+                      <Card 
+                        key={message.id} 
+                        className={
+                          message.isAdmin
+                            ? 'bg-primary/10 border-primary/20'
+                            : 'bg-muted/30'
+                        }
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-sm">
+                                <span className={`font-semibold text-sm ${message.isAdmin ? 'text-primary' : ''}`}>
                                   {message.profiles?.full_name || 'Usuário'}
+                                  {message.isAdmin && (
+                                    <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                                      Suporte
+                                    </span>
+                                  )}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
