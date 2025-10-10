@@ -19,7 +19,8 @@ import {
   AlertCircle,
   Download,
   File,
-  CheckCircle
+  CheckCircle,
+  Paperclip
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketReviewModal } from '@/components/tickets/TicketReviewModal';
@@ -122,11 +123,35 @@ export default function ClientTicketDetails() {
         .select('user_id, role')
         .in('user_id', userIds);
 
-      const messagesWithProfiles = messagesData.map(message => ({
-        ...message,
-        profiles: profilesData?.find(p => p.id === message.user_id) || null,
-        isAdmin: rolesData?.some(r => r.user_id === message.user_id && r.role === 'admin') || false
-      }));
+      // Buscar cliente para pegar apelido
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('user_id, nickname, full_name')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      // Buscar anexos das mensagens
+      const messageIds = messagesData.map(m => m.id);
+      const { data: attachmentsData } = await supabase
+        .from('ticket_attachments')
+        .select('message_id, id')
+        .in('message_id', messageIds);
+
+      const messagesWithProfiles = messagesData.map(message => {
+        const isAdmin = rolesData?.some(r => r.user_id === message.user_id && r.role === 'admin') || false;
+        const isCurrentUser = message.user_id === user?.id;
+        const messageAttachments = attachmentsData?.filter(a => a.message_id === message.id) || [];
+        
+        return {
+          ...message,
+          profiles: profilesData?.find(p => p.id === message.user_id) || null,
+          isAdmin,
+          displayName: isCurrentUser && !isAdmin 
+            ? (clientData?.nickname || clientData?.full_name || 'Cliente')
+            : profilesData?.find(p => p.id === message.user_id)?.full_name || 'Usuário',
+          hasAttachments: messageAttachments.length > 0
+        };
+      });
 
       setMessages(messagesWithProfiles);
     } catch (error: any) {
@@ -413,18 +438,18 @@ export default function ClientTicketDetails() {
                         key={message.id} 
                         className={
                           message.isAdmin
-                            ? 'bg-primary/10 border-primary/20'
-                            : 'bg-muted/30'
+                            ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900'
+                            : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
                         }
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`font-semibold text-sm ${message.isAdmin ? 'text-primary' : ''}`}>
-                                  {message.profiles?.full_name || 'Usuário'}
+                                <span className={`font-semibold text-sm ${message.isAdmin ? 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                                  {message.displayName}
                                   {message.isAdmin && (
-                                    <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                                    <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
                                       Suporte
                                     </span>
                                   )}
@@ -432,6 +457,11 @@ export default function ClientTicketDetails() {
                                 <span className="text-xs text-muted-foreground">
                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                 </span>
+                                {message.hasAttachments && (
+                                  <span title="Mensagem com anexo">
+                                    <Paperclip className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                )}
                               </div>
                               <p className="text-sm whitespace-pre-wrap">
                                 {message.message}
