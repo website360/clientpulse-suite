@@ -125,6 +125,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
     try {
       const account = accounts.find(a => a.id === id);
       if (!account) throw new Error('Conta não encontrada na lista atual.');
+      console.log('[Receivable Delete] start', { id, actionType, accountId: account.id, parent: account.parent_receivable_id, occ: account.occurrence_type, due: account.due_date });
 
       if (actionType === 'single') {
         const { error } = await supabase
@@ -132,22 +133,24 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
           .delete()
           .eq('id', id);
         if (error) throw error;
+        console.log('[Receivable Delete] single deleted', { id });
       } else if (actionType === 'following') {
         const parentId: string = account.parent_receivable_id || (account.occurrence_type !== 'unica' ? account.id : '');
         if (!parentId) {
-          // Não é série – apenas apaga atual
           const { error } = await supabase.from('accounts_receivable').delete().eq('id', id);
           if (error) throw error;
+          console.log('[Receivable Delete] following: no parent, only current deleted', { id });
         } else {
-          // Buscar IDs a excluir: a atual + todas do mesmo pai com due_date >= atual
           const { data: following, error: selErr } = await supabase
             .from('accounts_receivable')
             .select('id, due_date, parent_receivable_id')
             .eq('parent_receivable_id', parentId)
             .gte('due_date', account.due_date);
           if (selErr) throw selErr;
+          console.log('[Receivable Delete] following: found children', { parentId, count: following?.length || 0 });
 
           const idsToDelete = [id, ...(following?.map(r => r.id) || [])];
+          console.log('[Receivable Delete] following: idsToDelete', idsToDelete);
           if (idsToDelete.length) {
             const { error: delErr } = await supabase
               .from('accounts_receivable')
@@ -159,14 +162,12 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
       } else if (actionType === 'all') {
         const parentId: string = account.parent_receivable_id || (account.occurrence_type !== 'unica' ? account.id : '');
         if (!parentId) {
-          // Não é série – apenas apaga atual
           const { error } = await supabase.from('accounts_receivable').delete().eq('id', id);
           if (error) throw error;
+          console.log('[Receivable Delete] all: no parent, only current deleted', { id });
         } else {
-          // Buscar todos os IDs da série (pai + filhos) e excluir de uma vez
           const idsToDelete: string[] = [];
 
-          // Tentar incluir o pai (se existir)
           const { data: parentRow, error: parentSelErr } = await supabase
             .from('accounts_receivable')
             .select('id')
@@ -174,16 +175,16 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
             .single();
           if (!parentSelErr && parentRow?.id) idsToDelete.push(parentRow.id);
 
-          // Incluir todos os filhos
           const { data: children, error: childrenSelErr } = await supabase
             .from('accounts_receivable')
             .select('id')
             .eq('parent_receivable_id', parentId);
           if (childrenSelErr) throw childrenSelErr;
           idsToDelete.push(...(children?.map(r => r.id) || []));
+          console.log('[Receivable Delete] all: parent/children', { parentId, parentIncluded: !!parentRow, childCount: children?.length || 0 });
 
-          // Se nada encontrado, pelo menos apaga o item atual
           if (idsToDelete.length === 0) idsToDelete.push(id);
+          console.log('[Receivable Delete] all: idsToDelete', idsToDelete);
 
           const { error: delErr } = await supabase
             .from('accounts_receivable')
@@ -196,6 +197,7 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
       toast({ title: 'Sucesso', description: 'Conta(s) excluída(s) com sucesso' });
       fetchAccounts();
     } catch (error: any) {
+      console.error('[Receivable Delete] error', error);
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     }
   };
