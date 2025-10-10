@@ -87,13 +87,14 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
   const getStatusBadge = (contract: Contract) => {
     const { status, end_date } = contract;
     
-    // Determinar status baseado na data de vencimento
+    // Apenas recalcular status baseado na data se o status for 'active'
+    // Status definidos manualmente prevalecem
     let displayStatus = status;
     
-    if (end_date) {
+    if (status === 'active' && end_date) {
       if (isExpired(end_date)) {
         displayStatus = 'expired';
-      } else if (isExpiringSoon(end_date) && status === 'active') {
+      } else if (isExpiringSoon(end_date)) {
         displayStatus = 'expiring';
       }
     }

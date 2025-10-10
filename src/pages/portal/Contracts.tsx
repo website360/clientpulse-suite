@@ -69,7 +69,28 @@ export default function ClientContracts() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (contract: any) => {
+    const { status, end_date } = contract;
+    
+    // Apenas recalcular status baseado na data se o status for 'active'
+    // Status definidos manualmente prevalecem
+    let displayStatus = status;
+    
+    if (status === 'active' && end_date) {
+      const endDate = new Date(end_date);
+      endDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilExpiry < 0) {
+        displayStatus = 'expired';
+      } else if (daysUntilExpiry <= 30) {
+        displayStatus = 'expiring';
+      }
+    }
+
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending_signature: 'secondary',
       active: 'default',
@@ -88,10 +109,10 @@ export default function ClientContracts() {
 
     return (
       <Badge 
-        variant={variants[status] || 'default'}
-        className={status === 'expiring' ? 'border-warning text-warning' : ''}
+        variant={variants[displayStatus] || 'default'}
+        className={displayStatus === 'expiring' ? 'border-warning text-warning' : ''}
       >
-        {labels[status] || status}
+        {labels[displayStatus] || displayStatus}
       </Badge>
     );
   };
@@ -176,7 +197,7 @@ export default function ClientContracts() {
                         ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
                         : 'Indeterminado'}
                     </TableCell>
-                    <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                    <TableCell>{getStatusBadge(contract)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         {(contract as any).attachment_url && (

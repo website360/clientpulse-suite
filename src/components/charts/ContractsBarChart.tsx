@@ -55,6 +55,7 @@ export function ContractsBarChart() {
       };
 
       contracts?.forEach(contract => {
+        // Status definidos manualmente prevalecem
         if (contract.status === 'completed') {
           statusCount.completed++;
           return;
@@ -65,20 +66,36 @@ export function ContractsBarChart() {
           return;
         }
 
-        if (contract.end_date) {
-          const endDate = new Date(contract.end_date);
-          endDate.setHours(0, 0, 0, 0);
-          
-          const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (daysUntilExpiry < 0) {
-            statusCount.expired++;
-          } else if (daysUntilExpiry <= 30) {
-            statusCount.expiring++;
+        if (contract.status === 'expired') {
+          statusCount.expired++;
+          return;
+        }
+
+        if (contract.status === 'expiring') {
+          statusCount.expiring++;
+          return;
+        }
+
+        // Apenas recalcular status baseado na data se o status for 'active'
+        if (contract.status === 'active') {
+          if (contract.end_date) {
+            const endDate = new Date(contract.end_date);
+            endDate.setHours(0, 0, 0, 0);
+            
+            const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntilExpiry < 0) {
+              statusCount.expired++;
+            } else if (daysUntilExpiry <= 30) {
+              statusCount.expiring++;
+            } else {
+              statusCount.active++;
+            }
           } else {
             statusCount.active++;
           }
         } else {
+          // Se não for nenhum dos status conhecidos, contar como active
           statusCount.active++;
         }
       });
