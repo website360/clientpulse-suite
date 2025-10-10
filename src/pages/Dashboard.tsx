@@ -20,7 +20,9 @@ interface DashboardStats {
   closedTickets: number;
   totalClients: number;
   totalContacts: number;
-  totalContracts: number;
+  activeContracts: number;
+  expiringContracts: number;
+  expiredContracts: number;
   totalReceivable: number;
   totalPayable: number;
   overdueAccounts: number;
@@ -38,7 +40,9 @@ export default function Dashboard() {
     closedTickets: 0,
     totalClients: 0,
     totalContacts: 0,
-    totalContracts: 0,
+    activeContracts: 0,
+    expiringContracts: 0,
+    expiredContracts: 0,
     totalReceivable: 0,
     totalPayable: 0,
     overdueAccounts: 0,
@@ -106,19 +110,47 @@ export default function Dashboard() {
           .from('client_contacts')
           .select('*', { count: 'exact', head: true });
         
-        const { count: contractsCount } = await supabase
+        // Buscar contratos com end_date para calcular status dinamicamente
+        const { data: contractsData } = await supabase
           .from('contracts')
-          .select('*', { count: 'exact', head: true });
+          .select('end_date, status');
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let activeContracts = 0;
+        let expiringContracts = 0;
+        let expiredContracts = 0;
+        
+        contractsData?.forEach(contract => {
+          if (contract.end_date) {
+            const endDate = new Date(contract.end_date);
+            endDate.setHours(0, 0, 0, 0);
+            
+            const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntilExpiry < 0) {
+              expiredContracts++;
+            } else if (daysUntilExpiry <= 30) {
+              expiringContracts++;
+            } else if (contract.status === 'active' || contract.status === 'pending_signature') {
+              activeContracts++;
+            }
+          } else if (contract.status === 'active' || contract.status === 'pending_signature') {
+            activeContracts++;
+          }
+        });
         
         setStats(prev => ({ 
           ...prev, 
           totalClients: clientsCount || 0,
           totalContacts: contactsCount || 0,
-          totalContracts: contractsCount || 0
+          activeContracts,
+          expiringContracts,
+          expiredContracts
         }));
 
         // Fetch financial data
-        const today = new Date();
         const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
         const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
         const todayFormatted = format(today, 'yyyy-MM-dd');
@@ -318,7 +350,7 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded-lg border border-border bg-card">
                 <p className="text-sm text-muted-foreground">Total de Clientes</p>
                 <p className="text-2xl font-bold">{stats.totalClients}</p>
@@ -327,9 +359,20 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground">Total de Contatos</p>
                 <p className="text-2xl font-bold">{stats.totalContacts}</p>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-sm text-muted-foreground">Total de Contratos</p>
-                <p className="text-2xl font-bold">{stats.totalContracts}</p>
+                <p className="text-sm text-muted-foreground">Contratos Ativos</p>
+                <p className="text-2xl font-bold">{stats.activeContracts}</p>
+              </div>
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-sm text-muted-foreground">Contratos A Vencer</p>
+                <p className="text-2xl font-bold text-warning">{stats.expiringContracts}</p>
+              </div>
+              <div className="p-4 rounded-lg border border-border bg-card">
+                <p className="text-sm text-muted-foreground">Contratos Vencidos</p>
+                <p className="text-2xl font-bold text-destructive">{stats.expiredContracts}</p>
               </div>
             </div>
 
