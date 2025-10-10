@@ -45,8 +45,30 @@ export default function ClientTicketDetails() {
       fetchTicketDetails();
       fetchMessages();
       fetchAttachments();
+      markAsViewed();
     }
   }, [id, user]);
+
+  const markAsViewed = async () => {
+    if (!id || !user?.id) return;
+    
+    try {
+      // Inserir ou atualizar a visualização do ticket
+      const { error } = await supabase
+        .from('ticket_views')
+        .upsert({
+          ticket_id: id,
+          user_id: user.id,
+          last_viewed_at: new Date().toISOString()
+        }, {
+          onConflict: 'ticket_id,user_id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking ticket as viewed:', error);
+    }
+  };
 
   const fetchTicketDetails = async () => {
     try {

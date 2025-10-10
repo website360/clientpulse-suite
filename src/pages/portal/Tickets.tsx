@@ -76,7 +76,50 @@ export default function ClientTickets() {
         .order('created_at', { ascending: false });
 
       if (ticketsError) throw ticketsError;
-      setTickets(ticketsData || []);
+
+      // Buscar última mensagem de cada ticket e última visualização
+      const ticketIds = ticketsData?.map(t => t.id) || [];
+      
+      const { data: lastMessages } = await supabase
+        .from('ticket_messages')
+        .select('ticket_id, created_at')
+        .in('ticket_id', ticketIds)
+        .order('created_at', { ascending: false });
+
+      const { data: ticketViews } = await supabase
+        .from('ticket_views')
+        .select('ticket_id, last_viewed_at')
+        .in('ticket_id', ticketIds)
+        .eq('user_id', user?.id);
+
+      // Mapear última mensagem por ticket
+      const lastMessageMap = new Map();
+      lastMessages?.forEach(msg => {
+        if (!lastMessageMap.has(msg.ticket_id)) {
+          lastMessageMap.set(msg.ticket_id, msg.created_at);
+        }
+      });
+
+      // Mapear última visualização por ticket
+      const viewsMap = new Map();
+      ticketViews?.forEach(view => {
+        viewsMap.set(view.ticket_id, view.last_viewed_at);
+      });
+
+      // Adicionar flag de não lido
+      const ticketsWithUnread = ticketsData?.map(ticket => {
+        const lastMessageDate = lastMessageMap.get(ticket.id);
+        const lastViewDate = viewsMap.get(ticket.id);
+        
+        const hasUnread = lastMessageDate && (!lastViewDate || new Date(lastMessageDate) > new Date(lastViewDate));
+        
+        return {
+          ...ticket,
+          hasUnread
+        };
+      });
+
+      setTickets(ticketsWithUnread || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -194,7 +237,12 @@ export default function ClientTickets() {
                     <TableCell className="font-medium">#{(ticket as any).ticket_number}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium line-clamp-1">{ticket.subject}</p>
+                        <p className="font-medium line-clamp-1 flex items-center gap-2">
+                          {ticket.subject}
+                          {(ticket as any).hasUnread && (
+                            <span className="inline-flex h-2 w-2 rounded-full bg-blue-600" title="Mensagens não lidas" />
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground line-clamp-1">
                           {ticket.description}
                         </p>
