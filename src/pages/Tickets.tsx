@@ -6,6 +6,16 @@ import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketKanban } from '@/components/tickets/TicketKanban';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +26,8 @@ export default function Tickets() {
   const [filteredTickets, setFilteredTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTicketModalOpen, setNewTicketModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     search: '',
     status: 'all',
@@ -176,6 +188,40 @@ export default function Tickets() {
     a.click();
   };
 
+  const handleDelete = (ticketId: string) => {
+    setTicketToDelete(ticketId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!ticketToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .delete()
+        .eq('id', ticketToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Ticket excluído',
+        description: 'Ticket excluído com sucesso.',
+      });
+      fetchTickets();
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      toast({
+        title: 'Erro ao excluir ticket',
+        description: 'Não foi possível excluir o ticket.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setTicketToDelete(null);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -274,6 +320,7 @@ export default function Tickets() {
             tickets={filteredTickets}
             onStatusChange={handleStatusChange}
             onPriorityChange={handlePriorityChange}
+            onDelete={handleDelete}
           />
         ) : (
           <TicketKanban
@@ -291,6 +338,24 @@ export default function Tickets() {
             setNewTicketModalOpen(false);
           }}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Ticket</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este ticket? Esta ação não pode ser revertida.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

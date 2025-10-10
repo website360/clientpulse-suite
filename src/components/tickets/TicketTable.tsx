@@ -1,4 +1,4 @@
-import { Eye, Ticket as TicketIcon } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,15 +20,18 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TicketTableProps {
   tickets: any[];
   onStatusChange: (ticketId: string, newStatus: string) => void;
   onPriorityChange: (ticketId: string, newPriority: string) => void;
+  onDelete?: (ticketId: string) => void;
 }
 
-export function TicketTable({ tickets, onStatusChange, onPriorityChange }: TicketTableProps) {
+export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete }: TicketTableProps) {
   const navigate = useNavigate();
+  const { userRole } = useAuth();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -152,13 +155,24 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange }: Ticke
                 {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(`/tickets/${ticket.id}`)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {userRole === 'admin' && onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(ticket.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
