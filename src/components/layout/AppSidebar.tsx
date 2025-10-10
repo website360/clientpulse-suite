@@ -116,7 +116,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {collapsed ? (
             <img 
               src={isDark ? logoIconDark : logoIconLight} 
@@ -124,23 +124,21 @@ export function AppSidebar() {
               className="h-8 w-8"
             />
           ) : (
-            <img 
-              src={isDark ? logoDark : logoLight} 
-              alt="Logo" 
-              className="h-8 w-auto"
-            />
+            <>
+              <img 
+                src={isDark ? logoDark : logoLight} 
+                alt="Logo" 
+                className="h-8 w-auto"
+              />
+              {profile && (
+                <div className="flex-1 min-w-0 ml-2">
+                  <p className="text-sm font-medium truncate">{profile.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
-        
-        {!collapsed && profile && (
-          <>
-            <Separator className="my-3" />
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">{profile.full_name}</p>
-              <p className="text-xs text-muted-foreground">{profile.email}</p>
-            </div>
-          </>
-        )}
       </SidebarHeader>
 
       <SidebarContent>

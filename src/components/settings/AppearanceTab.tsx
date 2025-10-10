@@ -91,30 +91,49 @@ export function AppearanceTab() {
     label: string;
     description: string;
     type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark';
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <p className="text-sm text-muted-foreground">{description}</p>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => document.getElementById(id)?.click()}
-          disabled={uploading}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          {uploading ? 'Enviando...' : 'Fazer Upload'}
-        </Button>
-        <input
-          id={id}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e, type)}
-        />
+  }) => {
+    const [preview, setPreview] = useState<string>('');
+
+    // Tentar carregar preview do localStorage ou das imagens padrão
+    useState(() => {
+      const savedUrl = localStorage.getItem(`app-${type}`);
+      if (savedUrl) {
+        setPreview(savedUrl);
+      }
+    });
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={id}>{label}</Label>
+        <p className="text-sm text-muted-foreground">{description}</p>
+        
+        {preview && (
+          <div className="border rounded-lg p-4 bg-muted/50 inline-block">
+            <img src={preview} alt={label} className="h-16 w-auto object-contain" />
+          </div>
+        )}
+        
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById(id)?.click()}
+            disabled={uploading}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {uploading ? 'Enviando...' : 'Fazer Upload'}
+          </Button>
+          <input
+            id={id}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileUpload(e, type)}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
