@@ -46,7 +46,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
     payment_method_id: '',
     payment_terms: '',
     start_date: '',
-    end_date: '',
+    contract_period: '',
     status: 'active',
   });
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
@@ -59,6 +59,18 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
 
   useEffect(() => {
     if (contract) {
+      // Calcular o período baseado nas datas
+      let period = '';
+      if (contract.start_date && contract.end_date) {
+        const start = new Date(contract.start_date);
+        const end = new Date(contract.end_date);
+        const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+        
+        if (months === 1) period = 'monthly';
+        else if (months === 12) period = 'annual';
+        else if (months === 24) period = 'biannual';
+      }
+      
       setFormData({
         client_id: contract.client_id || '',
         service_id: contract.service_id || '',
@@ -69,7 +81,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         payment_method_id: contract.payment_method_id || '',
         payment_terms: contract.payment_terms || '',
         start_date: contract.start_date || '',
-        end_date: contract.end_date || '',
+        contract_period: period,
         status: contract.status || 'active',
       });
     } else {
@@ -80,7 +92,7 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         payment_method_id: '',
         payment_terms: '',
         start_date: '',
-        end_date: '',
+        contract_period: '',
         status: 'active',
       });
     }
@@ -166,9 +178,30 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         attachment_url = await uploadAttachment();
       }
 
+      // Calcular end_date baseado no período
+      let end_date = null;
+      if (formData.start_date && formData.contract_period) {
+        const start = new Date(formData.start_date);
+        const monthsToAdd = {
+          monthly: 1,
+          annual: 12,
+          biannual: 24,
+        }[formData.contract_period] || 0;
+        
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + monthsToAdd);
+        end_date = end.toISOString().split('T')[0];
+      }
+
       const payload = {
-        ...formData,
+        client_id: formData.client_id,
+        service_id: formData.service_id,
         amount: parseFloat(formData.amount.replace(/\./g, '').replace(',', '.')),
+        payment_method_id: formData.payment_method_id || null,
+        payment_terms: formData.payment_terms || null,
+        start_date: formData.start_date,
+        end_date,
+        status: formData.status,
         attachment_url,
         created_by: user.id,
       };
@@ -297,13 +330,21 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
             </div>
 
             <div>
-              <Label htmlFor="end_date">Data de Término</Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              />
+              <Label htmlFor="contract_period">Período do Contrato *</Label>
+              <Select
+                value={formData.contract_period}
+                onValueChange={(value) => setFormData({ ...formData, contract_period: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="annual">Anual</SelectItem>
+                  <SelectItem value="biannual">Bi-anual</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
