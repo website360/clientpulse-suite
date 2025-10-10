@@ -38,21 +38,55 @@ export function ContractsBarChart() {
     try {
       const { data: contracts, error } = await supabase
         .from('contracts')
-        .select('status');
+        .select('status, end_date');
 
       if (error) throw error;
 
-      // Contar contratos por status
-      const statusCount = contracts?.reduce((acc: any, contract) => {
-        const status = contract.status;
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-      }, {});
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calcular status dinâmico baseado nas datas
+      const statusCount: Record<string, number> = {
+        pending_signature: 0,
+        active: 0,
+        expiring: 0,
+        expired: 0,
+        completed: 0,
+      };
+
+      contracts?.forEach(contract => {
+        if (contract.status === 'completed') {
+          statusCount.completed++;
+          return;
+        }
+
+        if (contract.status === 'pending_signature') {
+          statusCount.pending_signature++;
+          return;
+        }
+
+        if (contract.end_date) {
+          const endDate = new Date(contract.end_date);
+          endDate.setHours(0, 0, 0, 0);
+          
+          const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilExpiry < 0) {
+            statusCount.expired++;
+          } else if (daysUntilExpiry <= 30) {
+            statusCount.expiring++;
+          } else {
+            statusCount.active++;
+          }
+        } else {
+          statusCount.active++;
+        }
+      });
 
       // Formatar dados para o gráfico
       const chartData = Object.entries(STATUS_LABELS).map(([key, label]) => ({
         status: key,
-        count: statusCount?.[key] || 0,
+        count: statusCount[key] || 0,
         color: STATUS_COLORS[key as keyof typeof STATUS_COLORS],
         label,
       }));
