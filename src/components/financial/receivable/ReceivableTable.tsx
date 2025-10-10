@@ -150,11 +150,10 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Descrição</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Categoria</TableHead>
-              <TableHead>Valor</TableHead>
               <TableHead>Vencimento</TableHead>
+              <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -162,20 +161,19 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
           <TableBody>
             {accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Nenhuma conta encontrada
                 </TableCell>
               </TableRow>
             ) : (
               accounts.map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.description}</TableCell>
-                  <TableCell>{account.client?.company_name || account.client?.full_name}</TableCell>
+                  <TableCell className="font-medium">{account.client?.company_name || account.client?.full_name}</TableCell>
                   <TableCell>{account.category}</TableCell>
-                  <TableCell>{formatCurrency(account.amount)}</TableCell>
                   <TableCell>
                     {format(new Date(account.due_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
+                  <TableCell className="font-medium">{formatCurrency(account.amount)}</TableCell>
                   <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
