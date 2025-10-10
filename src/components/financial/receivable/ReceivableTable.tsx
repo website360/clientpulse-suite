@@ -223,11 +223,18 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
         if (error) throw error;
       } else if (actionType === 'all') {
         const parentId = original.parent_receivable_id || original.id;
-        const { error } = await supabase
+        // Update parent row
+        const { error: errParent } = await supabase
           .from('accounts_receivable')
           .update(payload)
-          .or(`id.eq.${parentId},parent_receivable_id.eq.${parentId}`);
-        if (error) throw error;
+          .eq('id', parentId);
+        if (errParent) throw errParent;
+        // Update all children rows
+        const { error: errChildren } = await supabase
+          .from('accounts_receivable')
+          .update(payload)
+          .eq('parent_receivable_id', parentId);
+        if (errChildren) throw errChildren;
       }
 
       toast({ title: 'Sucesso', description: 'Conta atualizada com sucesso' });
