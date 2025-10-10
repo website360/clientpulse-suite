@@ -25,6 +25,9 @@ import {
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketReviewModal } from '@/components/tickets/TicketReviewModal';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
 
 export default function ClientTicketDetails() {
   const { id } = useParams();
@@ -35,7 +38,7 @@ export default function ClientTicketDetails() {
   const [messages, setMessages] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [messageAttachments, setMessageAttachments] = useState<File[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessageHtml, setNewMessageHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -211,16 +214,18 @@ export default function ClientTicketDetails() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !id) return;
+    const plain = stripHtml(newMessageHtml).trim();
+    if (!plain || !id) return;
 
     setSending(true);
     try {
+      const sanitized = DOMPurify.sanitize(newMessageHtml, { USE_PROFILES: { html: true } });
       const { data: messageData, error } = await supabase
         .from('ticket_messages')
         .insert({
           ticket_id: id,
           user_id: user?.id,
-          message: newMessage,
+          message: sanitized,
           is_internal: false,
         })
         .select()
@@ -232,7 +237,7 @@ export default function ClientTicketDetails() {
         await uploadMessageAttachments(messageData.id, messageAttachments);
       }
 
-      setNewMessage('');
+      setNewMessageHtml('');
       setMessageAttachments([]);
       fetchMessages();
       fetchAttachments();
@@ -307,6 +312,17 @@ export default function ClientTicketDetails() {
         variant: 'destructive',
       });
     }
+  };
+
+  // Helpers
+  const stripHtml = (html: string) => DOMPurify.sanitize(html || '', { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '');
+
+  const quoteMessage = (msg: any) => {
+    const author = msg.displayName || 'Usuário';
+    const time = format(new Date(msg.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    const sanitizedMsg = DOMPurify.sanitize(msg.message || '');
+    const quoteHtml = `<blockquote><strong>${author}</strong> em ${time}<div>${sanitizedMsg}</div></blockquote><p><br/></p>`;
+    setNewMessageHtml((prev) => `${prev}${quoteHtml}`);
   };
 
   const handleReviewSubmit = async (rating: number, feedback: string) => {
@@ -508,9 +524,10 @@ export default function ClientTicketDetails() {
                                   </TooltipProvider>
                                 )}
                               </div>
-                              <p className="text-sm whitespace-pre-wrap">
-                                {message.message}
-                              </p>
+                              <div
+                                className="text-sm"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                              />
                             </div>
                           </div>
                         </CardContent>
@@ -522,11 +539,11 @@ export default function ClientTicketDetails() {
                 {/* New Message */}
                 {canResolve && (
                   <div className="space-y-2 pt-4 border-t">
-                    <Textarea
+                    <ReactQuill
+                      theme="snow"
+                      value={newMessageHtml}
+                      onChange={setNewMessageHtml}
                       placeholder="Escreva sua mensagem..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      rows={3}
                     />
                     <FileUpload
                       onFilesChange={setMessageAttachments}
