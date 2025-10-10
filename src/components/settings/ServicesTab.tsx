@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -98,13 +99,22 @@ export function ServicesTab() {
     setIsOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Deseja realmente excluir este serviço?')) return;
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; service: Service | null }>({
+    isOpen: false,
+    service: null,
+  });
+
+  const handleDelete = (service: Service) => {
+    setDeleteConfirmModal({ isOpen: true, service });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmModal.service) return;
 
     const { error } = await supabase
       .from('services')
       .delete()
-      .eq('id', id);
+      .eq('id', deleteConfirmModal.service.id);
 
     if (error) {
       toast.error('Erro ao excluir serviço');
@@ -112,6 +122,7 @@ export function ServicesTab() {
     }
 
     toast.success('Serviço excluído com sucesso');
+    setDeleteConfirmModal({ isOpen: false, service: null });
     fetchServices();
   };
 
@@ -212,7 +223,7 @@ export function ServicesTab() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(service.id)}
+                    onClick={() => handleDelete(service)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -229,6 +240,25 @@ export function ServicesTab() {
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={deleteConfirmModal.isOpen}
+        onOpenChange={(open) => setDeleteConfirmModal({ isOpen: open, service: null })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o serviço "{deleteConfirmModal.service?.name}"?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
