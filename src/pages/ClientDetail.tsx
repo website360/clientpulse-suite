@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
@@ -13,6 +13,8 @@ import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
 import { ContactsList } from '@/components/clients/ContactsList';
 import { ClientDomains } from '@/components/clients/ClientDomains';
+import { ContractTable } from '@/components/contracts/ContractTable';
+import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -31,11 +33,16 @@ export default function ClientDetail() {
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
+  const [contracts, setContracts] = useState<any[]>([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
+  const [contractFormOpen, setContractFormOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<any>(null);
 
   useEffect(() => {
     fetchClient();
     fetchClientTickets();
     fetchClientContacts();
+    fetchClientContracts();
   }, [id]);
 
   const fetchClient = async () => {
@@ -176,6 +183,52 @@ export default function ClientDetail() {
     setContactFormOpen(true);
   };
 
+  const fetchClientContracts = async () => {
+    try {
+      setLoadingContracts(true);
+      const { data, error } = await supabase
+        .from('contracts')
+        .select(`
+          *,
+          clients (
+            full_name,
+            company_name,
+            nickname
+          ),
+          services (
+            name
+          ),
+          payment_methods (
+            name
+          )
+        `)
+        .eq('client_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setContracts(data || []);
+    } catch (error) {
+      console.error('Error fetching contracts:', error);
+      toast({
+        title: 'Erro ao carregar contratos',
+        description: 'Não foi possível carregar os contratos do cliente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingContracts(false);
+    }
+  };
+
+  const handleEditContract = (contract: any) => {
+    setEditingContract(contract);
+    setContractFormOpen(true);
+  };
+
+  const handleNewContract = () => {
+    setEditingContract(null);
+    setContractFormOpen(true);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -233,6 +286,7 @@ export default function ClientDetail() {
           <TabsList>
             <TabsTrigger value="geral">Geral</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="dominios">Domínios</TabsTrigger>
             <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
@@ -351,6 +405,29 @@ export default function ClientDetail() {
             )}
           </TabsContent>
 
+          <TabsContent value="contratos" className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={handleNewContract} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Contrato
+              </Button>
+            </div>
+            
+            {loadingContracts ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Carregando contratos...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <ContractTable
+                contracts={contracts}
+                onEdit={handleEditContract}
+                onRefresh={fetchClientContracts}
+              />
+            )}
+          </TabsContent>
+
           <TabsContent value="dominios" className="space-y-4">
             <ClientDomains clientId={id!} />
           </TabsContent>
@@ -397,6 +474,21 @@ export default function ClientDetail() {
           clientId={id!}
           contact={editingContact}
           onSuccess={fetchClientContacts}
+        />
+
+        {/* Contract Form Modal */}
+        <ContractFormModal
+          isOpen={contractFormOpen}
+          onClose={() => {
+            setContractFormOpen(false);
+            setEditingContract(null);
+          }}
+          onSuccess={() => {
+            fetchClientContracts();
+            setContractFormOpen(false);
+            setEditingContract(null);
+          }}
+          contract={editingContract}
         />
       </div>
     </DashboardLayout>
