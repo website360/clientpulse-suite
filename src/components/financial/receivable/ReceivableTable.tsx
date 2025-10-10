@@ -224,17 +224,27 @@ export function ReceivableTable({ filters }: ReceivableTableProps) {
       } else if (actionType === 'all') {
         const parentId = original.parent_receivable_id || original.id;
         // Update parent row
-        const { error: errParent } = await supabase
+        const { data: parentUpdated, error: errParent } = await supabase
           .from('accounts_receivable')
           .update(payload)
-          .eq('id', parentId);
+          .eq('id', parentId)
+          .select('id');
         if (errParent) throw errParent;
         // Update all children rows
-        const { error: errChildren } = await supabase
+        const { data: childrenUpdated, error: errChildren } = await supabase
           .from('accounts_receivable')
           .update(payload)
-          .eq('parent_receivable_id', parentId);
+          .eq('parent_receivable_id', parentId)
+          .select('id');
         if (errChildren) throw errChildren;
+        console.log('[Receivable ALL] Updated rows:', {
+          parentId,
+          parentCount: parentUpdated?.length || 0,
+          childrenCount: childrenUpdated?.length || 0,
+        });
+        if ((parentUpdated?.length || 0) + (childrenUpdated?.length || 0) === 0) {
+          toast({ title: 'Aviso', description: 'Nenhuma cobrança foi atualizada.', variant: 'destructive' });
+        }
       }
 
       toast({ title: 'Sucesso', description: 'Conta atualizada com sucesso' });
