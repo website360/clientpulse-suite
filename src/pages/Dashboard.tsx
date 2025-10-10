@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 
 interface DashboardStats {
   openTickets: number;
@@ -30,6 +31,33 @@ export default function Dashboard() {
     totalClients: 0,
   });
   const [recentTickets, setRecentTickets] = useState<any[]>([]);
+
+  const activities = [
+    {
+      id: '1',
+      type: 'message' as const,
+      description: 'Respondeu ao ticket sobre problema de login',
+      user: 'Admin',
+      timestamp: '5 min atrás',
+      ticketNumber: '1234',
+    },
+    {
+      id: '2',
+      type: 'status_change' as const,
+      description: 'Marcou ticket como resolvido',
+      user: 'Admin',
+      timestamp: '15 min atrás',
+      ticketNumber: '1233',
+    },
+    {
+      id: '3',
+      type: 'ticket_created' as const,
+      description: 'Criou um novo ticket',
+      user: 'João Silva',
+      timestamp: '1 hora atrás',
+      ticketNumber: '1235',
+    },
+  ];
 
   useEffect(() => {
     fetchDashboardData();
@@ -167,84 +195,88 @@ export default function Dashboard() {
               {stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
             </p>
           </div>
-          <div className="p-4 rounded-lg border-2 border-blue-500/40 bg-blue-500/10">
-            <p className="text-sm text-blue-700">Aberto</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.openTickets}</p>
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <p className="text-sm text-muted-foreground">Aberto</p>
+            <p className="text-2xl font-bold">{stats.openTickets}</p>
           </div>
-          <div className="p-4 rounded-lg border-2 border-amber-500/40 bg-amber-500/10">
-            <p className="text-sm text-amber-700">Em Andamento</p>
-            <p className="text-2xl font-bold text-amber-600">{stats.inProgressTickets}</p>
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <p className="text-sm text-muted-foreground">Em Andamento</p>
+            <p className="text-2xl font-bold">{stats.inProgressTickets}</p>
           </div>
-          <div className="p-4 rounded-lg border-2 border-purple-500/40 bg-purple-500/10">
-            <p className="text-sm text-purple-700">Aguardando</p>
-            <p className="text-2xl font-bold text-purple-600">{stats.waitingTickets}</p>
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <p className="text-sm text-muted-foreground">Aguardando</p>
+            <p className="text-2xl font-bold">{stats.waitingTickets}</p>
           </div>
-          <div className="p-4 rounded-lg border-2 border-green-600/40 bg-green-600/10">
-            <p className="text-sm text-green-700">Resolvido</p>
-            <p className="text-2xl font-bold text-green-600">{stats.resolvedTickets}</p>
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <p className="text-sm text-muted-foreground">Resolvido</p>
+            <p className="text-2xl font-bold">{stats.resolvedTickets}</p>
           </div>
-          <div className="p-4 rounded-lg border-2 border-gray-500/40 bg-gray-500/10">
-            <p className="text-sm text-gray-700">Fechado</p>
-            <p className="text-2xl font-bold text-gray-600">{stats.closedTickets}</p>
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <p className="text-sm text-muted-foreground">Fechado</p>
+            <p className="text-2xl font-bold">{stats.closedTickets}</p>
           </div>
         </div>
 
         {userRole === 'admin' && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg border-2 border-primary/40 bg-primary/10">
-              <p className="text-sm text-primary/80">Total de Clientes</p>
-              <p className="text-2xl font-bold text-primary">{stats.totalClients}</p>
+            <div className="p-4 rounded-lg border border-border bg-card">
+              <p className="text-sm text-muted-foreground">Total de Clientes</p>
+              <p className="text-2xl font-bold">{stats.totalClients}</p>
             </div>
           </div>
         )}
 
-        {/* Recent Tickets */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Últimos Tickets Criados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentTickets.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Nenhum ticket encontrado
-                </p>
-              ) : (
-                recentTickets.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    onClick={() => navigate(`/tickets/${ticket.id}`)}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-all cursor-pointer"
-                  >
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono text-muted-foreground">
-                          #{ticket.ticket_number}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {ticket.departments?.name}
-                        </Badge>
-                        <Badge className={getPriorityColor(ticket.priority)}>
-                          {getPriorityLabel(ticket.priority)}
-                        </Badge>
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {getStatusLabel(ticket.status)}
-                        </Badge>
+        {/* Activity and Recent Tickets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ActivityTimeline activities={activities} />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Últimos Tickets Criados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentTickets.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    Nenhum ticket encontrado
+                  </p>
+                ) : (
+                  recentTickets.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-muted-foreground">
+                            #{ticket.ticket_number}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {ticket.departments?.name}
+                          </Badge>
+                          <Badge className={getPriorityColor(ticket.priority)}>
+                            {getPriorityLabel(ticket.priority)}
+                          </Badge>
+                          <Badge className={getStatusColor(ticket.status)}>
+                            {getStatusLabel(ticket.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium">{ticket.subject}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Cliente: {ticket.clients?.company_name || ticket.clients?.full_name}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium">{ticket.subject}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Cliente: {ticket.clients?.company_name || ticket.clients?.full_name}
-                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
