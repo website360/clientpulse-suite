@@ -16,9 +16,14 @@ export function FinancialSettingsTab() {
   const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newMethodName, setNewMethodName] = useState("");
-  const [copiedCron, setCopiedCron] = useState(false);
+  const [copiedReceivableCron, setCopiedReceivableCron] = useState(false);
+  const [copiedPayableCron, setCopiedPayableCron] = useState(false);
 
-  const cronCommand = `0 0 1 * * curl -X POST https://pjnbsuwkxzxcfaetywjs.supabase.co/functions/v1/generate-recurring-receivables \\
+  const receivableCronCommand = `0 0 1 * * curl -X POST https://pjnbsuwkxzxcfaetywjs.supabase.co/functions/v1/generate-recurring-receivables \\
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbmJzdXdreHp4Y2ZhZXR5d2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDM4NDksImV4cCI6MjA3NTQ3OTg0OX0.LNtnhVO7Ma06WOKfWvWis5M4G7bIHKzN0OsAZo_zQR0" \\
+  -H "Content-Type: application/json"`;
+
+  const payableCronCommand = `0 0 1 * * curl -X POST https://pjnbsuwkxzxcfaetywjs.supabase.co/functions/v1/generate-recurring-payables \\
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbmJzdXdreHp4Y2ZhZXR5d2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDM4NDksImV4cCI6MjA3NTQ3OTg0OX0.LNtnhVO7Ma06WOKfWvWis5M4G7bIHKzN0OsAZo_zQR0" \\
   -H "Content-Type: application/json"`;
 
@@ -150,13 +155,23 @@ export function FinancialSettingsTab() {
   const payableCategories = categories?.filter((c) => c.type === "payable") || [];
   const receivableCategories = categories?.filter((c) => c.type === "receivable") || [];
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(cronCommand);
-    setCopiedCron(true);
-    setTimeout(() => setCopiedCron(false), 2000);
+  const copyReceivableCronToClipboard = () => {
+    navigator.clipboard.writeText(receivableCronCommand);
+    setCopiedReceivableCron(true);
+    setTimeout(() => setCopiedReceivableCron(false), 2000);
     toast({
       title: "Comando copiado",
-      description: "O comando cron foi copiado para a área de transferência.",
+      description: "O comando cron de contas a receber foi copiado.",
+    });
+  };
+
+  const copyPayableCronToClipboard = () => {
+    navigator.clipboard.writeText(payableCronCommand);
+    setCopiedPayableCron(true);
+    setTimeout(() => setCopiedPayableCron(false), 2000);
+    toast({
+      title: "Comando copiado",
+      description: "O comando cron de contas a pagar foi copiado.",
     });
   };
 
@@ -164,16 +179,16 @@ export function FinancialSettingsTab() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Configuração do Cron Job</CardTitle>
+          <CardTitle>Configuração dos Cron Jobs</CardTitle>
           <CardDescription>
-            Configure este comando no cron do seu servidor para gerar automaticamente as cobranças recorrentes mensalmente
+            Configure estes comandos no cron do seu servidor para gerar automaticamente as cobranças recorrentes mensalmente
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <Alert>
             <AlertDescription className="space-y-4">
               <div>
-                <p className="font-medium mb-2">Execute este comando no cron todo dia 1º de cada mês:</p>
+                <p className="font-medium mb-2">Contas a Receber - Execute todo dia 1º de cada mês:</p>
                 <p className="text-sm text-muted-foreground mb-3">
                   Este comando irá verificar as cobranças recorrentes que estão próximas de vencer (dentro de 1 mês) 
                   e gerar automaticamente as próximas 12 cobranças.
@@ -181,16 +196,46 @@ export function FinancialSettingsTab() {
               </div>
               <div className="relative">
                 <pre className="bg-muted p-3 rounded-md text-xs break-all whitespace-pre-wrap max-w-full">
-                  <code className="block">{cronCommand}</code>
+                  <code className="block">{receivableCronCommand}</code>
                 </pre>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={copyToClipboard}
+                  onClick={copyReceivableCronToClipboard}
                   title="Copiar comando"
                 >
-                  {copiedCron ? (
+                  {copiedReceivableCron ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+
+          <Alert>
+            <AlertDescription className="space-y-4">
+              <div>
+                <p className="font-medium mb-2">Contas a Pagar - Execute todo dia 1º de cada mês:</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Este comando irá verificar as contas a pagar recorrentes que estão próximas de vencer (dentro de 1 mês) 
+                  e gerar automaticamente as próximas 12 cobranças.
+                </p>
+              </div>
+              <div className="relative">
+                <pre className="bg-muted p-3 rounded-md text-xs break-all whitespace-pre-wrap max-w-full">
+                  <code className="block">{payableCronCommand}</code>
+                </pre>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={copyPayableCronToClipboard}
+                  title="Copiar comando"
+                >
+                  {copiedPayableCron ? (
                     <Check className="h-4 w-4 text-green-500" />
                   ) : (
                     <Copy className="h-4 w-4" />

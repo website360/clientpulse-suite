@@ -31,7 +31,7 @@ export function PayableTable({ filters }: PayableTableProps) {
         .from('accounts_payable')
         .select(`
           *,
-          client:clients(full_name, company_name)
+          supplier:suppliers(company_name, trade_name)
         `)
         .order('due_date', { ascending: true });
 
@@ -151,7 +151,7 @@ export function PayableTable({ filters }: PayableTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Descrição</TableHead>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Fornecedor</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Vencimento</TableHead>
@@ -170,7 +170,7 @@ export function PayableTable({ filters }: PayableTableProps) {
               accounts.map((account) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.description}</TableCell>
-                  <TableCell>{account.client?.company_name || account.client?.full_name}</TableCell>
+                  <TableCell>{account.supplier?.company_name || account.supplier?.trade_name}</TableCell>
                   <TableCell>{account.category}</TableCell>
                   <TableCell>{formatCurrency(account.amount)}</TableCell>
                   <TableCell>

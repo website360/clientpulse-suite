@@ -2,3 +2,6 @@ project_id = "pjnbsuwkxzxcfaetywjs"
 
 [functions.generate-recurring-receivables]
 verify_jwt = false
+
+[functions.generate-recurring-payables]
+verify_jwt = false
