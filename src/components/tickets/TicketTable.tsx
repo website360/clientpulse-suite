@@ -46,8 +46,20 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange }: Ticke
   };
 
   const getStatusColor = (status: string) => {
-    if (status === 'resolved' || status === 'closed') return 'badge-status-resolved';
-    return 'badge-status-open';
+    switch (status) {
+      case 'open':
+        return 'badge-status-open';
+      case 'in_progress':
+        return 'badge-status-in-progress';
+      case 'waiting':
+        return 'badge-status-waiting';
+      case 'resolved':
+        return 'badge-status-resolved';
+      case 'closed':
+        return 'badge-status-closed';
+      default:
+        return 'badge-status-open';
+    }
   };
 
   const getStatusLabel = (status: string) => {

@@ -225,26 +225,32 @@ export default function Tickets() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="p-4 rounded-lg border border-border bg-card">
             <p className="text-sm text-muted-foreground">Total</p>
             <p className="text-2xl font-bold">{filteredTickets.length}</p>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Abertos</p>
-            <p className="text-2xl font-bold text-info">
+          <div className="p-4 rounded-lg border-2 border-blue-500/40 bg-blue-500/10">
+            <p className="text-sm text-blue-700">Aberto</p>
+            <p className="text-2xl font-bold text-blue-600">
               {filteredTickets.filter((t) => t.status === 'open').length}
             </p>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Em Andamento</p>
-            <p className="text-2xl font-bold text-warning">
+          <div className="p-4 rounded-lg border-2 border-amber-500/40 bg-amber-500/10">
+            <p className="text-sm text-amber-700">Em Andamento</p>
+            <p className="text-2xl font-bold text-amber-600">
               {filteredTickets.filter((t) => t.status === 'in_progress').length}
             </p>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Resolvidos</p>
-            <p className="text-2xl font-bold text-success">
+          <div className="p-4 rounded-lg border-2 border-purple-500/40 bg-purple-500/10">
+            <p className="text-sm text-purple-700">Aguardando</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {filteredTickets.filter((t) => t.status === 'waiting').length}
+            </p>
+          </div>
+          <div className="p-4 rounded-lg border-2 border-green-600/40 bg-green-600/10">
+            <p className="text-sm text-green-700">Resolvido</p>
+            <p className="text-2xl font-bold text-green-600">
               {filteredTickets.filter((t) => t.status === 'resolved' || t.status === 'closed').length}
             </p>
           </div>
