@@ -144,9 +144,11 @@ export default function ClientTicketDetails() {
         let displayName = 'Usuário';
         
         if (isAdmin) {
-          displayName = profile?.full_name || 'Administrador';
+          // Mensagens de outros (administradores/suporte)
+          displayName = profile?.full_name || 'Suporte';
         } else {
-          displayName = clientData?.nickname || currentProfile?.full_name || 'Cliente';
+          // Mensagens do próprio usuário logado - usar apelido do cliente ou nome do perfil
+          displayName = clientData?.nickname || clientData?.full_name || currentProfile?.full_name || 'Você';
         }
         
         return {
