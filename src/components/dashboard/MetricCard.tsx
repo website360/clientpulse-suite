@@ -35,21 +35,21 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
   return (
     <Card className={`group overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${getCardBorder()} ${className || ''}`}>
       <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground/80 uppercase tracking-wide whitespace-nowrap">{title}</p>
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
+          <div className="flex items-center justify-between">
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
               {value}
             </h3>
-            {trend && (
-              <p className={`text-xs font-medium flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                {trend.value}
-              </p>
-            )}
+            <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
+              <Icon className={`h-7 w-7 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
+            </div>
           </div>
-          <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm`}>
-            <Icon className={`h-7 w-7 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
-          </div>
+          {trend && (
+            <p className={`text-xs font-medium flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {trend.value}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
