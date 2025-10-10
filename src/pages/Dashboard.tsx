@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
+import { MetricCard } from '@/components/dashboard/MetricCard';
 
 interface DashboardStats {
   openTickets: number;
@@ -310,82 +311,42 @@ export default function Dashboard() {
             <div>
               <h2 className="text-xl font-bold mb-4">Indicadores Financeiros</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total a Receber
-                    </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(stats.totalReceivable)}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Mês atual
-                    </p>
-                  </CardContent>
-                </Card>
+                <MetricCard
+                  title="Total a Receber"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.totalReceivable)}
+                  icon={TrendingUp}
+                  variant="success"
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total a Pagar
-                    </CardTitle>
-                    <TrendingDown className="h-4 w-4 text-red-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-red-600">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(stats.totalPayable)}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Mês atual
-                    </p>
-                  </CardContent>
-                </Card>
+                <MetricCard
+                  title="Total a Pagar"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.totalPayable)}
+                  icon={TrendingDown}
+                  variant="destructive"
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Contas Vencidas
-                    </CardTitle>
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {stats.overdueAccounts}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      A pagar + A receber
-                    </p>
-                  </CardContent>
-                </Card>
+                <MetricCard
+                  title="Contas Vencidas"
+                  value={stats.overdueAccounts}
+                  icon={AlertCircle}
+                  variant="destructive"
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Fluxo de Caixa
-                    </CardTitle>
-                    <DollarSign className={`h-4 w-4 ${stats.cashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`text-2xl font-bold ${stats.cashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(stats.cashFlow)}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recebido - Pago no mês
-                    </p>
-                  </CardContent>
-                </Card>
+                <MetricCard
+                  title="Fluxo de Caixa"
+                  value={new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(stats.cashFlow)}
+                  icon={DollarSign}
+                  variant={stats.cashFlow >= 0 ? 'success' : 'destructive'}
+                />
               </div>
             </div>
           </>
