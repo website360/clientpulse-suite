@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
+import { cn } from '@/lib/utils';
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
@@ -127,29 +128,17 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border transition-all duration-300">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <img 
-              src={isDark ? menuLogo.dark : menuLogo.light} 
-              alt="Logo" 
-              className="h-10 w-10 flex-shrink-0 object-contain"
-            />
-            {!collapsed && profile && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
-                <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-              </div>
-            )}
-          </div>
-          {!collapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="h-8 w-8 flex-shrink-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+        <div className="flex items-center gap-3">
+          <img 
+            src={isDark ? menuLogo.dark : menuLogo.light} 
+            alt="Logo" 
+            className="h-10 w-10 flex-shrink-0 object-contain"
+          />
+          {!collapsed && profile && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+            </div>
           )}
         </div>
       </SidebarHeader>
@@ -166,12 +155,15 @@ export function AppSidebar() {
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        isActive
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                          : 'hover:bg-sidebar-accent/50'
+                        cn(
+                          collapsed ? 'justify-center' : '',
+                          isActive
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                            : 'hover:bg-sidebar-accent/50'
+                        )
                       }
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={collapsed ? 'h-6 w-6' : 'h-4 w-4'} />
                       {!collapsed && (
                         <div className="flex items-center justify-between flex-1">
                           <span>{item.title}</span>
@@ -191,21 +183,52 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
-        <Button
-          variant="ghost"
-          size={collapsed ? "icon" : "default"}
-          onClick={toggleTheme}
-          className="w-full justify-start"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {!collapsed && <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>}
-        </Button>
-        {!collapsed && (
-          <div className="mt-2 text-xs text-muted-foreground text-center">
-            v1.0.0
-          </div>
-        )}
+      <SidebarFooter className="mt-auto border-t border-sidebar-border">
+        <div className="p-4 space-y-2">
+          <Button
+            variant="ghost"
+            size={collapsed ? "icon" : "default"}
+            onClick={toggleSidebar}
+            className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <>
+                <ChevronLeft className="h-4 w-4" />
+                <span className="ml-2">Recolher Menu</span>
+              </>
+            )}
+          </Button>
+          
+          {!collapsed && (
+            <>
+              <Button
+                variant="ghost"
+                size="default"
+                onClick={toggleTheme}
+                className="w-full justify-start"
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <span className="ml-2">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
+              </Button>
+              <div className="text-xs text-muted-foreground text-center pt-2">
+                v1.0.0
+              </div>
+            </>
+          )}
+          
+          {collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="w-full justify-center"
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
