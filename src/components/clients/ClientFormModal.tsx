@@ -31,6 +31,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { maskPhone, maskCEP, maskCPF, maskCNPJ } from '@/lib/masks';
 
 const clientSchema = z.object({
   client_type: z.enum(['person', 'company']),
@@ -281,7 +282,11 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   <Label htmlFor="cpf_cnpj">CPF *</Label>
                   <Input
                     id="cpf_cnpj"
-                    {...form.register('cpf_cnpj')}
+                    value={form.watch('cpf_cnpj') || ''}
+                    onChange={(e) => {
+                      const masked = maskCPF(e.target.value);
+                      form.setValue('cpf_cnpj', masked);
+                    }}
                     placeholder="000.000.000-00"
                     maxLength={14}
                   />
@@ -339,7 +344,11 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
                   <Label htmlFor="cpf_cnpj">CNPJ *</Label>
                   <Input
                     id="cpf_cnpj"
-                    {...form.register('cpf_cnpj')}
+                    value={form.watch('cpf_cnpj') || ''}
+                    onChange={(e) => {
+                      const masked = maskCNPJ(e.target.value);
+                      form.setValue('cpf_cnpj', masked);
+                    }}
                     placeholder="00.000.000/0000-00"
                     maxLength={18}
                   />
@@ -369,7 +378,11 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
               <Label htmlFor="phone">Telefone *</Label>
               <Input
                 id="phone"
-                {...form.register('phone')}
+                value={form.watch('phone') || ''}
+                onChange={(e) => {
+                  const masked = maskPhone(e.target.value);
+                  form.setValue('phone', masked);
+                }}
                 placeholder="(00) 00000-0000"
                 maxLength={15}
               />
@@ -400,7 +413,11 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
               <div className="flex gap-2">
                 <Input
                   id="address_cep"
-                  {...form.register('address_cep')}
+                  value={form.watch('address_cep') || ''}
+                  onChange={(e) => {
+                    const masked = maskCEP(e.target.value);
+                    form.setValue('address_cep', masked);
+                  }}
                   placeholder="00000-000"
                   maxLength={9}
                   onBlur={(e) => fetchAddressByCep(e.target.value)}

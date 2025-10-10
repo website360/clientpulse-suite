@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
+import { formatPhone, formatCpfCnpj } from '@/lib/masks';
 
 interface ClientTableProps {
   clients: any[];
@@ -19,18 +20,6 @@ interface ClientTableProps {
 }
 
 export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTableProps) {
-  const formatPhone = (phone: string) => {
-    if (!phone) return '-';
-    return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-  };
-
-  const formatCpfCnpj = (doc: string) => {
-    if (!doc) return '-';
-    if (doc.length === 11) {
-      return doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-    return doc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-  };
 
   if (clients.length === 0) {
     return (
@@ -72,11 +61,16 @@ export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTablePr
                   </div>
                   <div>
                     <p className="font-medium">
-                      {client.full_name || client.company_name}
+                      {client.responsible_name || client.full_name || client.company_name}
                     </p>
-                    {client.responsible_name && (
+                    {client.client_type === 'person' && client.full_name && (
                       <p className="text-xs text-muted-foreground">
-                        Resp: {client.responsible_name}
+                        {client.full_name}
+                      </p>
+                    )}
+                    {client.client_type === 'company' && client.company_name && (
+                      <p className="text-xs text-muted-foreground">
+                        {client.company_name}
                       </p>
                     )}
                   </div>

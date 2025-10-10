@@ -2,6 +2,7 @@ import { Eye, Pencil, Trash2, Building2, User, Mail, Phone, FileText } from 'luc
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { formatPhone, formatCpfCnpj } from '@/lib/masks';
 
 interface ClientCardsProps {
   clients: any[];
@@ -11,10 +12,6 @@ interface ClientCardsProps {
 }
 
 export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsProps) {
-  const formatPhone = (phone: string) => {
-    if (!phone) return '-';
-    return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-  };
 
   if (clients.length === 0) {
     return (
@@ -54,12 +51,17 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
             </div>
 
             <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-              {client.full_name || client.company_name}
+              {client.responsible_name || client.full_name || client.company_name}
             </h3>
             
-            {client.responsible_name && (
+            {client.client_type === 'person' && client.full_name && (
               <p className="text-sm text-muted-foreground mb-3">
-                Responsável: {client.responsible_name}
+                {client.full_name}
+              </p>
+            )}
+            {client.client_type === 'company' && client.company_name && (
+              <p className="text-sm text-muted-foreground mb-3">
+                {client.company_name}
               </p>
             )}
 
@@ -76,7 +78,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="h-4 w-4" />
                   <span className="text-xs">
-                    {client.client_type === 'person' ? 'CPF' : 'CNPJ'}: {client.cpf_cnpj}
+                    {client.client_type === 'person' ? 'CPF' : 'CNPJ'}: {formatCpfCnpj(client.cpf_cnpj)}
                   </span>
                 </div>
               )}

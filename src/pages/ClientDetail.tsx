@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
 
 export default function ClientDetail() {
   const { id } = useParams();
@@ -45,24 +46,6 @@ export default function ClientDetail() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatPhone = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 11) {
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
-    }
-    return phone;
-  };
-
-  const formatCpfCnpj = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length === 11) {
-      return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9)}`;
-    } else if (cleaned.length === 14) {
-      return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5, 8)}/${cleaned.slice(8, 12)}-${cleaned.slice(12)}`;
-    }
-    return value;
   };
 
   if (loading) {
@@ -205,12 +188,12 @@ export default function ClientDetail() {
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {client.address_neighborhood && `${client.address_neighborhood}, `}
-                          {client.address_city && `${client.address_city}`}
-                          {client.address_state && ` - ${client.address_state}`}
-                        </p>
-                        {client.address_cep && (
-                          <p className="text-sm text-muted-foreground">CEP: {client.address_cep}</p>
-                        )}
+                        {client.address_city && `${client.address_city}`}
+                        {client.address_state && ` - ${client.address_state}`}
+                      </p>
+                      {client.address_cep && (
+                        <p className="text-sm text-muted-foreground">CEP: {formatCEP(client.address_cep)}</p>
+                      )}
                       </div>
                     </div>
                   </CardContent>
