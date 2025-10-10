@@ -220,15 +220,23 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="flex items-center gap-6">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src={profile.avatar_url} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                        <User className="h-12 w-12" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-2">
-                      <Label htmlFor="avatar">Foto de Perfil</Label>
+                  <div className="flex items-start gap-6">
+                    <div className="space-y-3">
+                      <Label>Foto Atual</Label>
+                      <Avatar className="h-32 w-32 border-2 border-border">
+                        <AvatarImage src={profile.avatar_url} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+                          <User className="h-16 w-16" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <Label htmlFor="avatar">Foto de Perfil</Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Esta foto será exibida no menu superior
+                        </p>
+                      </div>
                       <Button
                         type="button"
                         variant="outline"
@@ -245,7 +253,7 @@ export default function Settings() {
                         onChange={handleAvatarUpload}
                       />
                       <p className="text-xs text-muted-foreground">
-                        PNG, JPG ou GIF (máx. 2MB)
+                        Formatos aceitos: PNG, JPG ou GIF (máx. 2MB)
                       </p>
                     </div>
                   </div>
