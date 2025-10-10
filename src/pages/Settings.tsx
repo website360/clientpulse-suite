@@ -22,6 +22,7 @@ export default function Settings() {
     email: '',
     phone: '',
     avatar_url: '',
+    nickname: '',
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -46,6 +47,7 @@ export default function Settings() {
           email: data.email || '',
           phone: data.phone || '',
           avatar_url: data.avatar_url || '',
+          nickname: data.nickname || '',
         });
       }
     } catch (error) {
@@ -63,6 +65,7 @@ export default function Settings() {
         .update({
           full_name: profile.full_name,
           phone: profile.phone,
+          nickname: profile.nickname,
         })
         .eq('id', user?.id);
 
@@ -274,6 +277,20 @@ export default function Settings() {
                       }
                       required
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="nickname">Apelido</Label>
+                    <Input
+                      id="nickname"
+                      value={profile.nickname}
+                      onChange={(e) =>
+                        setProfile({ ...profile, nickname: e.target.value })
+                      }
+                      placeholder="Como você prefere ser chamado?"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Este nome será exibido no menu lateral
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>

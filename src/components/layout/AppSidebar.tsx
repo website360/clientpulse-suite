@@ -27,7 +27,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
-  const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(null);
   const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
     light: logoLight,
     dark: logoDark,
@@ -69,7 +69,7 @@ export function AppSidebar() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, email')
+        .select('full_name, email, nickname')
         .eq('id', user?.id)
         .single();
       
@@ -132,27 +132,25 @@ export function AppSidebar() {
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
-              className="h-8 w-8 flex-shrink-0 object-contain"
+              className="h-10 w-10 flex-shrink-0 object-contain"
             />
             {!collapsed && profile && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile.full_name}</p>
+                <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
                 <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
               </div>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 flex-shrink-0"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
+          {!collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8 flex-shrink-0"
+            >
               <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
+            </Button>
+          )}
         </div>
       </SidebarHeader>
 
