@@ -8,12 +8,12 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Yellow Corporate Design System */
+    /* Corporate Design System - Dark Blue Primary with Yellow Accents */
     
-    /* Primary Yellow Palette */
-    --primary: 45 93% 47%;         /* #F59E0B - Corporate Yellow/Gold */
-    --primary-light: 48 96% 53%;   /* #FBBF24 - Hover State */
-    --primary-dark: 38 92% 50%;    /* #D97706 - Selected */
+    /* Primary Dark Blue/Navy Palette */
+    --primary: 220 60% 25%;        /* #1A2F5A - Corporate Dark Blue */
+    --primary-light: 220 55% 35%;  /* #2A4573 - Hover State */
+    --primary-dark: 220 65% 18%;   /* #0F1D38 - Selected */
     --primary-foreground: 0 0% 100%;
     
     /* Secondary Gray-Blue */
@@ -56,17 +56,17 @@ All colors MUST be HSL.
     
     --border: 214 32% 91%;         /* #E2E8F0 */
     --input: 214 32% 91%;
-    --ring: 45 93% 47%;
+    --ring: 45 93% 47%;            /* Yellow ring for focus */
     
     --radius: 0.75rem;
     
     /* Sidebar Specific */
     --sidebar-background: 210 40% 98%;
     --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 45 93% 47%;
+    --sidebar-primary: 220 60% 25%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 215 25% 15%;
+    --sidebar-accent: 48 96% 95%;  /* Light yellow accent */
+    --sidebar-accent-foreground: 220 60% 25%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 45 93% 47%;
     
@@ -93,10 +93,10 @@ All colors MUST be HSL.
     --popover: 215 25% 15%;
     --popover-foreground: 210 40% 95%;
     
-    --primary: 48 96% 53%;         /* Lighter yellow in dark mode */
-    --primary-light: 48 96% 63%;
-    --primary-dark: 45 93% 47%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 220 55% 45%;        /* Lighter blue in dark mode */
+    --primary-light: 220 50% 55%;
+    --primary-dark: 220 60% 35%;
+    --primary-foreground: 0 0% 100%;
     
     --secondary: 215 20% 48%;
     --secondary-light: 214 24% 58%;
@@ -122,14 +122,14 @@ All colors MUST be HSL.
     --ring: 48 96% 53%;
     
     /* Dark Sidebar */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 218 11% 65%;
-    --sidebar-primary: 48 96% 53%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 215 25% 15%;
-    --sidebar-accent-foreground: 210 40% 95%;
-    --sidebar-border: 215 28% 20%;
-    --sidebar-ring: 48 96% 53%;
+    --sidebar-background: 220 60% 15%;  /* Dark blue sidebar */
+    --sidebar-foreground: 218 11% 85%;
+    --sidebar-primary: 220 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 93% 47%;       /* Yellow accent in dark mode */
+    --sidebar-accent-foreground: 220 60% 15%;
+    --sidebar-border: 220 50% 25%;
+    --sidebar-ring: 45 93% 47%;
   }
 }
 
