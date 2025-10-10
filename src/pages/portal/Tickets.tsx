@@ -3,11 +3,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Ticket {
   id: string;
@@ -21,6 +33,7 @@ interface Ticket {
 export default function ClientTickets() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [clientId, setClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +71,7 @@ export default function ClientTickets() {
 
       const { data: ticketsData, error: ticketsError } = await supabase
         .from('tickets')
-        .select('*')
+        .select('*, clients(*), departments(*)')
         .eq('client_id', client.id)
         .order('created_at', { ascending: false });
 
@@ -76,22 +89,57 @@ export default function ClientTickets() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      open: 'default',
-      in_progress: 'secondary',
-      closed: 'destructive',
-    };
-    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return 'badge-priority-urgent';
+      case 'high':
+        return 'badge-priority-high';
+      case 'medium':
+        return 'badge-priority-medium';
+      case 'low':
+        return 'badge-priority-low';
+      default:
+        return 'badge-priority-medium';
+    }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      low: 'secondary',
-      medium: 'default',
-      high: 'destructive',
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open':
+        return 'badge-status-open';
+      case 'in_progress':
+        return 'badge-status-in-progress';
+      case 'waiting':
+        return 'badge-status-waiting';
+      case 'resolved':
+        return 'badge-status-resolved';
+      case 'closed':
+        return 'badge-status-closed';
+      default:
+        return 'badge-status-open';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      open: 'Aberto',
+      in_progress: 'Em Andamento',
+      waiting: 'Aguardando',
+      resolved: 'Resolvido',
+      closed: 'Fechado',
     };
-    return <Badge variant={variants[priority] || 'default'}>{priority}</Badge>;
+    return labels[status] || status;
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    const labels: Record<string, string> = {
+      low: 'Baixa',
+      medium: 'Média',
+      high: 'Alta',
+      urgent: 'Urgente',
+    };
+    return labels[priority] || priority;
   };
 
   if (loading) {
@@ -120,37 +168,77 @@ export default function ClientTickets() {
           </Button>
         </div>
 
-        <div className="grid gap-4">
-          {tickets.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                Nenhum ticket encontrado
-              </CardContent>
-            </Card>
-          ) : (
-            tickets.map((ticket) => (
-              <Card key={ticket.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle>{ticket.subject}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {getStatusBadge(ticket.status)}
-                      {getPriorityBadge(ticket.priority)}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{ticket.description}</p>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+        <Card className="card-elevated">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">#</TableHead>
+                <TableHead>Assunto</TableHead>
+                <TableHead>Departamento</TableHead>
+                <TableHead>Prioridade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Criado em</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tickets.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    Nenhum ticket encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                tickets.map((ticket) => (
+                  <TableRow key={ticket.id} className="hover:bg-accent/50">
+                    <TableCell className="font-medium">#{(ticket as any).ticket_number}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium line-clamp-1">{ticket.subject}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {ticket.description}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline"
+                        style={{ 
+                          borderColor: (ticket as any).departments?.color || '#1E40AF',
+                          color: (ticket as any).departments?.color || '#1E40AF'
+                        }}
+                      >
+                        {(ticket as any).departments?.name || 'N/A'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className={getPriorityColor(ticket.priority)}>
+                        {getPriorityLabel(ticket.priority)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={getStatusColor(ticket.status)}>
+                        {getStatusLabel(ticket.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
 
       {showNewTicket && clientId && (

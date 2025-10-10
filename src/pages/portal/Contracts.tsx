@@ -3,9 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Download, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast as sonnerToast } from 'sonner';
 
 interface Contract {
   id: string;
@@ -47,7 +51,7 @@ export default function ClientContracts() {
 
       const { data: contractsData, error: contractsError } = await supabase
         .from('contracts')
-        .select('*, services(name)')
+        .select('*, services(name), payment_methods(name)')
         .eq('client_id', client.id)
         .order('start_date', { ascending: false });
 
@@ -67,16 +71,48 @@ export default function ClientContracts() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
+      pending_signature: 'secondary',
       active: 'default',
-      pending: 'secondary',
       expired: 'destructive',
+      completed: 'secondary',
     };
+
     const labels: Record<string, string> = {
+      pending_signature: 'Aguardando Assinatura',
       active: 'Ativo',
-      pending: 'Pendente',
-      expired: 'Expirado',
+      expired: 'Vencido',
+      completed: 'Concluído',
     };
-    return <Badge variant={variants[status] || 'default'}>{labels[status] || status}</Badge>;
+
+    return (
+      <Badge variant={variants[status] || 'default'}>
+        {labels[status] || status}
+      </Badge>
+    );
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+  const downloadAttachment = async (url: string) => {
+    const { data, error } = await supabase.storage
+      .from('contract-attachments')
+      .download(url);
+
+    if (error) {
+      sonnerToast.error('Erro ao baixar anexo');
+      return;
+    }
+
+    const blob = new Blob([data]);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = url.split('/').pop() || 'contrato';
+    link.click();
   };
 
   if (loading) {
@@ -99,38 +135,60 @@ export default function ClientContracts() {
           </p>
         </div>
 
-        <div className="grid gap-4">
-          {contracts.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                Nenhum contrato encontrado
-              </CardContent>
-            </Card>
-          ) : (
-            contracts.map((contract) => (
-              <Card key={contract.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <CardTitle>{(contract as any).services?.name || 'Serviço'}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {new Date(contract.start_date).toLocaleDateString('pt-BR')} - {new Date(contract.end_date).toLocaleDateString('pt-BR')}
-                        </p>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Serviço</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Meio de Pagamento</TableHead>
+                <TableHead>Início</TableHead>
+                <TableHead>Término</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contracts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    Nenhum contrato encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                contracts.map((contract) => (
+                  <TableRow key={contract.id}>
+                    <TableCell className="font-medium">{(contract as any).services.name}</TableCell>
+                    <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
+                    <TableCell>{(contract as any).payment_methods?.name || '-'}</TableCell>
+                    <TableCell>
+                      {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>
+                      {contract.end_date
+                        ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
+                        : 'Indeterminado'}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {(contract as any).attachment_url && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => downloadAttachment((contract as any).attachment_url)}
+                            title="Baixar anexo"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                    {getStatusBadge(contract.status)}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold">
-                    R$ {contract.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </DashboardLayout>
