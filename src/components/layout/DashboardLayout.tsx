@@ -26,11 +26,11 @@ export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutPr
 
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex min-h-screen w-full">
+      <div className="flex w-full">
         <AppSidebar />
-        <div className="flex-1 flex flex-col w-full">
+        <div className="flex-1 flex flex-col w-full min-h-screen">
           <AppHeader breadcrumbLabel={breadcrumbLabel} />
-          <main className="flex-1 p-6 bg-background-secondary overflow-auto">
+          <main className="flex-1 p-6 bg-background-secondary">
             {children}
           </main>
         </div>

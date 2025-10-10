@@ -125,7 +125,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="none" className="border-r border-sidebar-border">
+    <Sidebar collapsible="none" className="border-r border-sidebar-border h-screen sticky top-0">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <img 
