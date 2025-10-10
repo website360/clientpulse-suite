@@ -48,8 +48,8 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
-      <div className="relative flex-1 min-w-[200px]">
+    <div className="flex flex-row flex-wrap items-center gap-4">
+      <div className="relative min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar por descrição..."
@@ -60,11 +60,11 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
       </div>
 
       <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos os Status</SelectItem>
+          <SelectItem value="all">Todos</SelectItem>
           <SelectItem value="pending">Pendente</SelectItem>
           <SelectItem value="received">Recebido</SelectItem>
           <SelectItem value="overdue">Vencido</SelectItem>
@@ -73,11 +73,11 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
       </Select>
 
       <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Categoria" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todas Categorias</SelectItem>
+          <SelectItem value="all">Todas</SelectItem>
           <SelectItem value="Serviços">Serviços</SelectItem>
           <SelectItem value="Produtos">Produtos</SelectItem>
           <SelectItem value="Mensalidades">Mensalidades</SelectItem>
@@ -100,7 +100,7 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
           type="date"
           value={filters.dateFrom}
           onChange={(e) => updateFilter('dateFrom', e.target.value)}
-          className="w-[150px]"
+          className="w-[140px]"
           placeholder="Data inicial"
         />
 
@@ -108,7 +108,7 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
           type="date"
           value={filters.dateTo}
           onChange={(e) => updateFilter('dateTo', e.target.value)}
-          className="w-[150px]"
+          className="w-[140px]"
           placeholder="Data final"
         />
         
