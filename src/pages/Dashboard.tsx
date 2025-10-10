@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Ticket, CheckCircle, Clock, Users, XCircle, DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
@@ -33,7 +28,6 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     openTickets: 0,
     inProgressTickets: 0,
@@ -51,34 +45,6 @@ export default function Dashboard() {
     payableDueSoon: 0,
     overduePayable: 0,
   });
-  const [recentTickets, setRecentTickets] = useState<any[]>([]);
-
-  const activities = [
-    {
-      id: '1',
-      type: 'message' as const,
-      description: 'Respondeu ao ticket sobre problema de login',
-      user: 'Admin',
-      timestamp: '5 min atrás',
-      ticketNumber: '1234',
-    },
-    {
-      id: '2',
-      type: 'status_change' as const,
-      description: 'Marcou ticket como resolvido',
-      user: 'Admin',
-      timestamp: '15 min atrás',
-      ticketNumber: '1233',
-    },
-    {
-      id: '3',
-      type: 'ticket_created' as const,
-      description: 'Criou um novo ticket',
-      user: 'João Silva',
-      timestamp: '1 hora atrás',
-      ticketNumber: '1235',
-    },
-  ];
 
   useEffect(() => {
     fetchDashboardData();
@@ -216,90 +182,8 @@ export default function Dashboard() {
           overduePayable,
         }));
       }
-
-      // Fetch recent tickets
-      const { data: recent } = await supabase
-        .from('tickets')
-        .select(`
-          id,
-          ticket_number,
-          subject,
-          priority,
-          status,
-          created_at,
-          clients (full_name, company_name),
-          departments (name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      setRecentTickets(recent || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-500/10 text-red-600 border-red-500/20';
-      case 'high':
-        return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
-      case 'medium':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
-      case 'low':
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
-      default:
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
-    }
-  };
-
-  const getPriorityLabel = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'Urgente';
-      case 'high':
-        return 'Alta';
-      case 'medium':
-        return 'Média';
-      case 'low':
-        return 'Baixa';
-      default:
-        return priority;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
-      case 'in_progress':
-        return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-      case 'waiting':
-        return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
-      case 'resolved':
-        return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'closed':
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
-      default:
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'Aberto';
-      case 'in_progress':
-        return 'Em Andamento';
-      case 'waiting':
-        return 'Aguardando';
-      case 'resolved':
-        return 'Resolvido';
-      case 'closed':
-        return 'Fechado';
-      default:
-        return status;
     }
   };
 
@@ -365,14 +249,24 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-sm text-muted-foreground">Total de Clientes</p>
-                <p className="text-2xl font-bold">{stats.totalClients}</p>
-              </div>
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <p className="text-sm text-muted-foreground">Total de Contatos</p>
-                <p className="text-2xl font-bold">{stats.totalContacts}</p>
+            {/* Client Indicators */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Indicadores de Clientes</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <MetricCard
+                  title="Total de Clientes"
+                  value={stats.totalClients}
+                  icon={Users}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+                />
+                <MetricCard
+                  title="Total de Contatos"
+                  value={stats.totalContacts}
+                  icon={Users}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+                />
               </div>
             </div>
 
@@ -474,61 +368,13 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Activity and Recent Tickets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ActivityTimeline activities={activities} />
-          
-          {userRole === 'admin' && <ContractsBarChart />}
-          
-          {userRole === 'admin' && <DomainsBarChart />}
-          
-          <Card className={userRole === 'admin' ? 'lg:col-span-2' : ''}>
-            <CardHeader>
-              <CardTitle>Últimos Tickets Criados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentTickets.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    Nenhum ticket encontrado
-                  </p>
-                ) : (
-                  recentTickets.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      onClick={() => navigate(`/tickets/${ticket.id}`)}
-                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-all cursor-pointer"
-                    >
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-muted-foreground">
-                            #{ticket.ticket_number}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {ticket.departments?.name}
-                          </Badge>
-                          <Badge className={getPriorityColor(ticket.priority)}>
-                            {getPriorityLabel(ticket.priority)}
-                          </Badge>
-                          <Badge className={getStatusColor(ticket.status)}>
-                            {getStatusLabel(ticket.status)}
-                          </Badge>
-                        </div>
-                        <p className="text-sm font-medium">{ticket.subject}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Cliente: {ticket.clients?.company_name || ticket.clients?.full_name}
-                        </p>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Charts */}
+        {userRole === 'admin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ContractsBarChart />
+            <DomainsBarChart />
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
