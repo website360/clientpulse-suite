@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Download } from 'lucide-react';
+import { Plus, LayoutGrid, Table as TableIcon, Download, Ticket, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketKanban } from '@/components/tickets/TicketKanban';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
+import { MetricCard } from '@/components/dashboard/MetricCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -281,8 +282,8 @@ export default function Tickets() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Tickets</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl font-bold">Tickets</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Gerencie todos os tickets de suporte
             </p>
           </div>
@@ -326,41 +327,49 @@ export default function Tickets() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold">{filteredTickets.length}</p>
-          </div>
-          <div className="p-4 rounded-lg border-2 border-blue-500/40 bg-blue-500/10">
-            <p className="text-sm text-blue-700">Aberto</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {filteredTickets.filter((t) => t.status === 'open').length}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border-2 border-amber-500/40 bg-amber-500/10">
-            <p className="text-sm text-amber-700">Em Andamento</p>
-            <p className="text-2xl font-bold text-amber-600">
-              {filteredTickets.filter((t) => t.status === 'in_progress').length}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border-2 border-purple-500/40 bg-purple-500/10">
-            <p className="text-sm text-purple-700">Aguardando</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {filteredTickets.filter((t) => t.status === 'waiting').length}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border-2 border-green-600/40 bg-green-600/10">
-            <p className="text-sm text-green-700">Resolvido</p>
-            <p className="text-2xl font-bold text-green-600">
-              {filteredTickets.filter((t) => t.status === 'resolved').length}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border-2 border-gray-500/40 bg-gray-500/10">
-            <p className="text-sm text-gray-700">Fechado</p>
-            <p className="text-2xl font-bold text-gray-600">
-              {filteredTickets.filter((t) => t.status === 'closed').length}
-            </p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <MetricCard
+            title="Total"
+            value={filteredTickets.length}
+            icon={Ticket}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Aberto"
+            value={filteredTickets.filter((t) => t.status === 'open').length}
+            icon={Ticket}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Em Andamento"
+            value={filteredTickets.filter((t) => t.status === 'in_progress').length}
+            icon={Clock}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Aguardando"
+            value={filteredTickets.filter((t) => t.status === 'waiting').length}
+            icon={Clock}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Resolvido"
+            value={filteredTickets.filter((t) => t.status === 'resolved').length}
+            icon={CheckCircle}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Fechado"
+            value={filteredTickets.filter((t) => t.status === 'closed').length}
+            icon={XCircle}
+            variant="default"
+            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
         </div>
 
         {/* Content */}
