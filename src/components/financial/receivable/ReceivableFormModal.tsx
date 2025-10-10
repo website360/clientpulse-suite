@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 const formSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -35,6 +36,37 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Fetch payment categories for receivable
+  const { data: categories } = useQuery({
+    queryKey: ["payment-categories", "receivable"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_categories")
+        .select("*")
+        .eq("type", "receivable")
+        .eq("is_active", true)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch payment methods
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -194,11 +226,11 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Serviços">Serviços</SelectItem>
-                        <SelectItem value="Produtos">Produtos</SelectItem>
-                        <SelectItem value="Mensalidades">Mensalidades</SelectItem>
-                        <SelectItem value="Consultoria">Consultoria</SelectItem>
-                        <SelectItem value="Outros">Outros</SelectItem>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -254,11 +286,11 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="PIX">PIX</SelectItem>
-                        <SelectItem value="Cartão">Cartão</SelectItem>
-                        <SelectItem value="Boleto">Boleto</SelectItem>
-                        <SelectItem value="Transferência">Transferência</SelectItem>
+                        {paymentMethods?.map((method) => (
+                          <SelectItem key={method.id} value={method.name}>
+                            {method.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

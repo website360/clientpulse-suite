@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 const formSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -34,6 +35,37 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Fetch payment categories for payable
+  const { data: categories } = useQuery({
+    queryKey: ["payment-categories", "payable"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_categories")
+        .select("*")
+        .eq("type", "payable")
+        .eq("is_active", true)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch payment methods
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -190,12 +222,11 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Fornecedores">Fornecedores</SelectItem>
-                        <SelectItem value="Impostos">Impostos</SelectItem>
-                        <SelectItem value="Salários">Salários</SelectItem>
-                        <SelectItem value="Aluguel">Aluguel</SelectItem>
-                        <SelectItem value="Serviços">Serviços</SelectItem>
-                        <SelectItem value="Outros">Outros</SelectItem>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -251,11 +282,11 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="PIX">PIX</SelectItem>
-                        <SelectItem value="Cartão">Cartão</SelectItem>
-                        <SelectItem value="Boleto">Boleto</SelectItem>
-                        <SelectItem value="Transferência">Transferência</SelectItem>
+                        {paymentMethods?.map((method) => (
+                          <SelectItem key={method.id} value={method.name}>
+                            {method.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

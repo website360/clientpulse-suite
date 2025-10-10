@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { DepartmentsTab } from '@/components/settings/DepartmentsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -218,6 +219,7 @@ export default function Settings() {
             <TabsTrigger value="security">Segurança</TabsTrigger>
             <TabsTrigger value="appearance">Aparência</TabsTrigger>
             <TabsTrigger value="departments">Departamentos</TabsTrigger>
+            <TabsTrigger value="financial">Financeiro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -368,6 +370,10 @@ export default function Settings() {
 
           <TabsContent value="departments">
             <DepartmentsTab />
+          </TabsContent>
+
+          <TabsContent value="financial">
+            <FinancialSettingsTab />
           </TabsContent>
         </Tabs>
       </div>
