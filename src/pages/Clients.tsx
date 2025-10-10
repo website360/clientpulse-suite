@@ -122,15 +122,15 @@ export default function Clients() {
       if (error) throw error;
 
       toast({
-        title: 'Cliente desativado',
-        description: 'Cliente desativado com sucesso.',
+        title: 'Cliente excluído',
+        description: 'Cliente excluído com sucesso.',
       });
       fetchClients();
     } catch (error) {
       console.error('Error deactivating client:', error);
       toast({
-        title: 'Erro ao desativar cliente',
-        description: 'Não foi possível desativar o cliente.',
+        title: 'Erro ao excluir cliente',
+        description: 'Não foi possível excluir o cliente.',
         variant: 'destructive',
       });
     } finally {
@@ -246,15 +246,15 @@ export default function Clients() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Desativar Cliente</AlertDialogTitle>
+              <AlertDialogTitle>Excluir Cliente</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja desativar este cliente? Esta ação pode ser revertida posteriormente.
+                Tem certeza que deseja excluir este cliente? Esta ação pode ser revertida posteriormente.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete}>
-                Desativar
+                Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -149,15 +149,15 @@ export default function Departments() {
 
       if (error) throw error;
       toast({
-        title: 'Departamento desativado',
-        description: 'Departamento desativado com sucesso.',
+        title: 'Departamento excluído',
+        description: 'Departamento excluído com sucesso.',
       });
       fetchDepartments();
     } catch (error) {
       console.error('Error deleting department:', error);
       toast({
-        title: 'Erro ao desativar',
-        description: 'Não foi possível desativar o departamento.',
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o departamento.',
         variant: 'destructive',
       });
     } finally {
@@ -312,15 +312,15 @@ export default function Departments() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Desativar Departamento</AlertDialogTitle>
+              <AlertDialogTitle>Excluir Departamento</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja desativar este departamento? Esta ação pode ser revertida posteriormente.
+                Tem certeza que deseja excluir este departamento? Esta ação pode ser revertida posteriormente.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete}>
-                Desativar
+                Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
