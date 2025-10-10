@@ -56,7 +56,7 @@ interface PayableFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   account?: any;
-  onSuccess?: () => void;
+  onSuccess?: (formValues?: any, isRecurring?: boolean) => void;
 }
 
 export function PayableFormModal({ open, onOpenChange, account, onSuccess }: PayableFormModalProps) {
@@ -341,9 +341,24 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
         }
       }
 
-      form.reset();
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
+
+      // Call onSuccess with appropriate parameters
+      if (account) {
+        // Editing - check if we need to show bulk action modal
+        const isRecurring = account.occurrence_type !== 'unica';
+        const needsBulkAction = isRecurring && !account.bulkActionType;
+        
+        if (needsBulkAction) {
+          // Pass the account data and flag to show bulk modal
+          if (onSuccess) onSuccess(values, true);
+        } else {
+          // Already processed bulk action or single occurrence
+          if (onSuccess) onSuccess();
+        }
+      } else {
+        // Creating new - just refresh
+        if (onSuccess) onSuccess();
+      }
     } catch (error: any) {
       toast({
         title: 'Erro',

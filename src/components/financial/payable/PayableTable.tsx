@@ -99,13 +99,14 @@ export function PayableTable({ filters }: PayableTableProps) {
   };
 
   const handleDelete = async (account: any) => {
+    if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
+    
     // Check if it's a recurring or installment payment
     const isRecurring = account.occurrence_type !== 'unica';
     
     if (isRecurring) {
       setBulkActionModal({ open: true, type: 'delete', account });
     } else {
-      if (!confirm('Tem certeza que deseja excluir esta conta?')) return;
       await performDelete(account.id, 'single');
     }
   };
@@ -156,20 +157,35 @@ export function PayableTable({ filters }: PayableTableProps) {
   };
 
   const handleEdit = (account: any) => {
-    const isRecurring = account.occurrence_type !== 'unica';
-    
-    if (isRecurring) {
-      setBulkActionModal({ open: true, type: 'edit', account });
+    setEditingAccount(account);
+  };
+
+  const handleEditSaved = (formValues: any, isRecurring: boolean) => {
+    if (isRecurring && editingAccount) {
+      // Store the form values to apply after bulk action selection
+      setBulkActionModal({ 
+        open: true, 
+        type: 'edit', 
+        account: { ...editingAccount, formValues } 
+      });
     } else {
-      setEditingAccount(account);
+      setEditingAccount(null);
+      fetchAccounts();
     }
   };
 
   const handleBulkActionConfirm = (actionType: BulkActionType) => {
-    if (bulkActionModal.type === 'delete') {
-      performDelete(bulkActionModal.account.id, actionType);
+    if (bulkActionModal.type === 'edit') {
+      // Apply the edit with the selected bulk action type
+      setEditingAccount({ 
+        ...bulkActionModal.account, 
+        bulkActionType: actionType 
+      });
+      setBulkActionModal({ ...bulkActionModal, open: false });
     } else {
-      setEditingAccount({ ...bulkActionModal.account, bulkActionType: actionType });
+      // Delete action
+      performDelete(bulkActionModal.account.id, actionType);
+      setBulkActionModal({ ...bulkActionModal, open: false });
     }
   };
 
@@ -289,9 +305,14 @@ export function PayableTable({ filters }: PayableTableProps) {
       {editingAccount && (
         <PayableFormModal
           open={!!editingAccount}
-          onOpenChange={(open) => !open && setEditingAccount(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingAccount(null);
+              setBulkActionModal({ open: false, type: 'edit', account: null });
+            }
+          }}
           account={editingAccount}
-          onSuccess={fetchAccounts}
+          onSuccess={handleEditSaved}
         />
       )}
 
