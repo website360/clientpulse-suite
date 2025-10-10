@@ -8,13 +8,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Trust-Blue Corporate Design System */
+    /* Yellow Corporate Design System */
     
-    /* Primary Trust-Blue Palette */
-    --primary: 221 83% 39%;        /* #1E40AF - Corporate Blue */
-    --primary-light: 221 91% 60%;  /* #3B82F6 - Hover State */
-    --primary-dark: 224 76% 31%;   /* #1E3A8A - Selected */
-    --primary-foreground: 210 40% 98%;
+    /* Primary Yellow Palette */
+    --primary: 45 93% 47%;         /* #F59E0B - Corporate Yellow/Gold */
+    --primary-light: 48 96% 53%;   /* #FBBF24 - Hover State */
+    --primary-dark: 38 92% 50%;    /* #D97706 - Selected */
+    --primary-foreground: 0 0% 100%;
     
     /* Secondary Gray-Blue */
     --secondary: 215 20% 48%;      /* #64748B */
@@ -56,19 +56,19 @@ All colors MUST be HSL.
     
     --border: 214 32% 91%;         /* #E2E8F0 */
     --input: 214 32% 91%;
-    --ring: 221 83% 39%;
+    --ring: 45 93% 47%;
     
     --radius: 0.75rem;
     
     /* Sidebar Specific */
     --sidebar-background: 210 40% 98%;
     --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 221 83% 39%;
-    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-primary: 45 93% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 40% 96%;
     --sidebar-accent-foreground: 215 25% 15%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 221 83% 39%;
+    --sidebar-ring: 45 93% 47%;
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -93,9 +93,9 @@ All colors MUST be HSL.
     --popover: 215 25% 15%;
     --popover-foreground: 210 40% 95%;
     
-    --primary: 221 91% 60%;        /* Lighter in dark mode */
-    --primary-light: 221 91% 70%;
-    --primary-dark: 221 83% 39%;
+    --primary: 48 96% 53%;         /* Lighter yellow in dark mode */
+    --primary-light: 48 96% 63%;
+    --primary-dark: 45 93% 47%;
     --primary-foreground: 222 47% 11%;
     
     --secondary: 215 20% 48%;
@@ -119,17 +119,17 @@ All colors MUST be HSL.
     
     --border: 215 28% 20%;         /* #334155 */
     --input: 215 28% 20%;
-    --ring: 221 91% 60%;
+    --ring: 48 96% 53%;
     
     /* Dark Sidebar */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 218 11% 65%;
-    --sidebar-primary: 221 91% 60%;
+    --sidebar-primary: 48 96% 53%;
     --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 215 25% 15%;
     --sidebar-accent-foreground: 210 40% 95%;
     --sidebar-border: 215 28% 20%;
-    --sidebar-ring: 221 91% 60%;
+    --sidebar-ring: 48 96% 53%;
   }
 }
 
