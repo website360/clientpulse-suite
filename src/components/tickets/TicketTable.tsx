@@ -1,4 +1,4 @@
-import { Eye, Ticket as TicketIcon, Trash2 } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -159,7 +159,10 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
                 </span>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                </div>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">

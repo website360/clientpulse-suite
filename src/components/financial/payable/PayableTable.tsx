@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2, Calendar } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { PayableFormModal } from './PayableFormModal';
@@ -324,10 +324,13 @@ export function PayableTable({ filters }: PayableTableProps) {
                   </TableCell>
                   <TableCell>{formatCurrency(account.amount)}</TableCell>
                   <TableCell>
-                    {(() => {
-                      const [y, m, d] = account.due_date.split('-');
-                      return `${d}/${m}/${y}`;
-                    })()}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {(() => {
+                        const [y, m, d] = account.due_date.split('-');
+                        return `${d}/${m}/${y}`;
+                      })()}
+                    </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
                   <TableCell className="text-right">

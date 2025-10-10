@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Download, Eye } from 'lucide-react';
+import { Download, Eye, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast as sonnerToast } from 'sonner';
 
@@ -190,12 +190,18 @@ export default function ClientContracts() {
                     <TableCell>{(contract as any).payment_methods?.name || '-'}</TableCell>
                     <TableCell>{(contract as any).payment_terms || '-'}</TableCell>
                     <TableCell>
-                      {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {contract.end_date
-                        ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
-                        : 'Indeterminado'}
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {contract.end_date
+                          ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
+                          : 'Indeterminado'}
+                      </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(contract)}</TableCell>
                     <TableCell className="text-right">
