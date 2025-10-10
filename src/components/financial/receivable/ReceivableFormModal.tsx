@@ -139,7 +139,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           invoice_number: account.invoice_number || '',
           notes: account.notes || '',
         });
-        setClientSearch(account.client?.full_name || account.client?.company_name || '');
+        setClientSearch(account.client?.nickname || account.client?.full_name || account.client?.company_name || '');
       } else {
         form.reset({
           occurrence_type: 'unica',
@@ -151,7 +151,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const fetchClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, full_name, company_name')
+      .select('id, full_name, company_name, nickname')
       .eq('is_active', true)
       .order('full_name');
     
@@ -417,8 +417,10 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                         <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
                           {clients
                             .filter(client => {
+                              const searchLower = clientSearch.toLowerCase();
                               const name = (client.full_name || client.company_name || '').toLowerCase();
-                              return name.includes(clientSearch.toLowerCase());
+                              const nickname = (client.nickname || '').toLowerCase();
+                              return name.includes(searchLower) || nickname.includes(searchLower);
                             })
                             .map((client) => (
                               <div
@@ -426,11 +428,11 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                                 className="px-3 py-2 cursor-pointer hover:bg-accent"
                                 onClick={() => {
                                   field.onChange(client.id);
-                                  setClientSearch(client.full_name || client.company_name || '');
+                                  setClientSearch(client.nickname || client.full_name || client.company_name || '');
                                   setShowClientDropdown(false);
                                 }}
                               >
-                                {client.full_name || client.company_name}
+                                {client.nickname || client.full_name || client.company_name}
                               </div>
                             ))}
                         </div>
