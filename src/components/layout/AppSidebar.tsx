@@ -28,11 +28,25 @@ export function AppSidebar() {
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
   const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
+  const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
+    light: logoLight,
+    dark: logoDark,
+  });
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
     fetchTicketCount();
+    
+    // Carregar logos customizados do localStorage
+    const customLogoLight = localStorage.getItem('app-logo-light');
+    const customLogoDark = localStorage.getItem('app-logo-dark');
+    
+    setMenuLogo({
+      light: customLogoLight || logoLight,
+      dark: customLogoDark || logoDark,
+    });
+    
     if (user) {
       fetchProfile();
     }
@@ -116,9 +130,9 @@ export function AppSidebar() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <img 
-              src={isDark ? logoDark : logoLight} 
+              src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
-              className="h-8 w-8 flex-shrink-0"
+              className="h-8 w-8 flex-shrink-0 object-contain"
             />
             {!collapsed && profile && (
               <div className="flex-1 min-w-0">

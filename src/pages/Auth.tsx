@@ -9,16 +9,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
+import authLogoLight from '@/assets/logo-icon-light.png';
+import authLogoDark from '@/assets/logo-icon-dark.png';
 
 export default function Auth() {
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [authLogo, setAuthLogo] = useState<{ light: string; dark: string }>({
+    light: authLogoLight,
+    dark: authLogoDark,
+  });
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
+
+    // Carregar logos customizados do localStorage
+    const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
+    const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
+    
+    setAuthLogo({
+      light: customAuthLogoLight || authLogoLight,
+      dark: customAuthLogoDark || authLogoDark,
+    });
 
     // Observer para mudanças no tema
     const observer = new MutationObserver(() => {
@@ -101,15 +116,11 @@ export default function Auth() {
         <CardHeader className="text-center">
           <div className="mx-auto mb-6">
             <img 
-              src={isDark ? logoDark : logoLight} 
-              alt="AgênciaMay Logo" 
-              className="h-16 w-auto mx-auto"
+              src={isDark ? authLogo.dark : authLogo.light} 
+              alt="Logo" 
+              className="h-24 w-auto mx-auto"
             />
           </div>
-          <CardTitle className="text-2xl">ClientPulse Suite</CardTitle>
-          <CardDescription>
-            Plataforma profissional de gestão de clientes e suporte
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
