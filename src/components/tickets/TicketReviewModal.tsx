@@ -35,6 +35,9 @@ export function TicketReviewModal({ open, onOpenChange, onSubmit }: TicketReview
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Avaliar Atendimento</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Avalie o atendimento recebido e ajude-nos a melhorar
+          </p>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
