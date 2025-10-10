@@ -110,7 +110,7 @@ export function AppSidebar() {
     { title: 'Clientes', url: '/clients', icon: Users },
     { title: 'Tickets', url: '/tickets', icon: Ticket },
     { title: 'Domínios', url: '/domains', icon: Globe },
-    { title: 'Financeiro', url: '/financeiro/pagar', icon: DollarSign },
+    { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
     { title: 'Contratos', url: '/contracts', icon: FileText },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];
