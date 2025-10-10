@@ -90,6 +90,12 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
       return;
     }
 
+    // Validar client_id
+    if (!formData.client_id) {
+      toast.error('Selecione um cliente');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -98,7 +104,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
         client_id: formData.client_id,
         expires_at: format(parsedDate, 'yyyy-MM-dd'),
         owner: formData.owner,
-        created_by: user?.id,
+        ...(domain ? {} : { created_by: user?.id })
       };
 
       if (domain) {
@@ -112,7 +118,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
       } else {
         const { error } = await supabase
           .from('domains')
-          .insert([domainData]);
+          .insert([{ ...domainData, created_by: user?.id }]);
 
         if (error) throw error;
         toast.success('Domínio cadastrado com sucesso!');

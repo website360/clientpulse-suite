@@ -12,6 +12,7 @@ import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
 import { ContactsList } from '@/components/clients/ContactsList';
+import { ClientDomains } from '@/components/clients/ClientDomains';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -232,6 +233,7 @@ export default function ClientDetail() {
           <TabsList>
             <TabsTrigger value="geral">Geral</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="dominios">Domínios</TabsTrigger>
             <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
 
@@ -347,6 +349,10 @@ export default function ClientDetail() {
                 onPriorityChange={handlePriorityChange}
               />
             )}
+          </TabsContent>
+
+          <TabsContent value="dominios" className="space-y-4">
+            <ClientDomains clientId={id!} />
           </TabsContent>
 
           <TabsContent value="contatos" className="space-y-4">
