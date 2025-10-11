@@ -209,13 +209,13 @@ serve(async (req) => {
       adminEmails = adminProfiles?.map((p: any) => p.email).filter(Boolean) || [];
     }
 
-    // Caso 1: Cliente criou/respondeu → enviar para admins
+    // Caso 1: Cliente criou/respondeu → enviar para admins (excluindo quem criou)
     if (!isCreatorAdmin && !isCreatorContact && template.send_to_admin) {
       console.log("Caso 1: Cliente criou/respondeu - enviando para admins");
       recipients.push(...adminEmails);
     }
 
-    // Caso 2: Contato criou/respondeu → enviar para admins E cliente responsável
+    // Caso 2: Contato criou/respondeu → enviar para admins E cliente responsável (excluindo quem criou)
     if (isCreatorContact && !isCreatorAdmin && template.send_to_admin) {
       console.log("Caso 2: Contato criou/respondeu - enviando para admins e cliente");
       recipients.push(...adminEmails);
@@ -256,8 +256,8 @@ serve(async (req) => {
       }
     }
 
-    // Remove duplicates
-    const uniqueRecipients = [...new Set(recipients)];
+    // Remove duplicates and filter out the creator's email
+    const uniqueRecipients = [...new Set(recipients)].filter(email => email !== creatorProfile?.email);
     
     console.log("Creator email:", creatorProfile?.email);
     console.log("Is creator admin:", isCreatorAdmin);

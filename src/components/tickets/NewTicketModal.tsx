@@ -76,7 +76,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
     if (userRole === 'contato') {
       const { data: contactData } = await supabase
         .from('client_contacts')
-        .select('client_id')
+        .select('client_id, clients(id, full_name, company_name, email)')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -84,6 +84,10 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         setIsContact(true);
         setContactClientId(contactData.client_id);
         form.setValue('client_id', contactData.client_id);
+        // Set the client in the clients array so it shows in the select
+        if (contactData.clients) {
+          setClients([contactData.clients]);
+        }
       }
     } else {
       setIsContact(false);
@@ -220,33 +224,31 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Client Selection - Hidden for contacts */}
-          {!isContact && (
-            <div>
-              <Label htmlFor="client_id">Cliente *</Label>
-              <Select
-                value={form.watch('client_id')}
-                onValueChange={(value) => form.setValue('client_id', value)}
-                disabled={!!preSelectedClientId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.full_name || client.company_name} ({client.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.formState.errors.client_id && (
-                <p className="text-sm text-error mt-1">
-                  {form.formState.errors.client_id.message}
-                </p>
-              )}
-            </div>
-          )}
+          {/* Client Selection - Shows for contacts but disabled */}
+          <div>
+            <Label htmlFor="client_id">Cliente *</Label>
+            <Select
+              value={form.watch('client_id')}
+              onValueChange={(value) => form.setValue('client_id', value)}
+              disabled={isContact || !!preSelectedClientId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.full_name || client.company_name} ({client.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.client_id && (
+              <p className="text-sm text-error mt-1">
+                {form.formState.errors.client_id.message}
+              </p>
+            )}
+          </div>
 
           {/* Department and Priority */}
           <div className="grid grid-cols-2 gap-4">

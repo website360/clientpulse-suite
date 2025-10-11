@@ -113,7 +113,15 @@ export default function TicketDetails() {
         .single();
 
       if (error) throw error;
-      setTicket(data);
+
+      // Check if ticket was created by a contact
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('id, name, email')
+        .eq('user_id', data.created_by)
+        .maybeSingle();
+
+      setTicket({ ...data, contact_creator: contactData });
     } catch (error: any) {
       toast({
         title: 'Erro ao carregar ticket',
@@ -445,6 +453,20 @@ export default function TicketDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Contact Creator Info */}
+            {ticket.contact_creator && (
+              <Card className="card-elevated border-blue-500/50 bg-blue-500/5">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Criado pelo contato: {ticket.contact_creator.name} ({ticket.contact_creator.email})
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Description */}
             <Card className="card-elevated">
               <CardHeader>
