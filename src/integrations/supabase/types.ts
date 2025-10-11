@@ -273,6 +273,7 @@ export type Database = {
           default_billing_type: string
           environment: string
           id: string
+          is_active: boolean
           updated_at: string
           webhook_token: string | null
         }
@@ -283,6 +284,7 @@ export type Database = {
           default_billing_type?: string
           environment?: string
           id?: string
+          is_active?: boolean
           updated_at?: string
           webhook_token?: string | null
         }
@@ -293,6 +295,7 @@ export type Database = {
           default_billing_type?: string
           environment?: string
           id?: string
+          is_active?: boolean
           updated_at?: string
           webhook_token?: string | null
         }
