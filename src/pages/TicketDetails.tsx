@@ -460,7 +460,7 @@ export default function TicketDetails() {
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                     <User className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      Criado pelo contato: {ticket.contact_creator.name} ({ticket.contact_creator.email})
+                      Criado por: {ticket.contact_creator.name} ({ticket.contact_creator.email})
                     </span>
                   </div>
                 </CardContent>
