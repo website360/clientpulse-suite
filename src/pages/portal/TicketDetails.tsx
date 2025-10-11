@@ -42,6 +42,7 @@ export default function ClientTicketDetails() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isContact, setIsContact] = useState(false);
 
   useEffect(() => {
     if (id && user) {
@@ -90,10 +91,11 @@ export default function ClientTicketDetails() {
         .maybeSingle();
 
       let resolvedClientId: string | null = null;
-      let isContact = false;
+      let userIsContact = false;
 
       if (contactData?.client_id) {
-        isContact = true;
+        userIsContact = true;
+        setIsContact(true);
         resolvedClientId = contactData.client_id;
       } else {
         const { data: clientData } = await supabase
@@ -127,7 +129,7 @@ export default function ClientTicketDetails() {
         .eq('id', id)
         .eq('client_id', resolvedClientId);
 
-      if (isContact) {
+      if (userIsContact) {
         query = query.eq('created_by', user?.id);
       }
 
@@ -520,8 +522,8 @@ export default function ClientTicketDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Contact Creator Info */}
-            {ticket.contact_creator && (
+            {/* Contact Creator Info - Hidden for contacts */}
+            {!isContact && ticket.contact_creator && (
               <Card className="card-elevated border-blue-500/50 bg-blue-500/5">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
