@@ -159,11 +159,41 @@ export default function TicketDetails() {
 
       if (profilesError) throw profilesError;
 
+      // Buscar roles dos usuários
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      // Buscar contatos
+      const { data: contactsData } = await supabase
+        .from('client_contacts')
+        .select('user_id, name')
+        .in('user_id', userIds);
+
       // Combinar mensagens com perfis
-      const messagesWithProfiles = messagesData.map(message => ({
-        ...message,
-        profiles: profilesData?.find(p => p.id === message.user_id) || null
-      }));
+      const messagesWithProfiles = messagesData.map(message => {
+        const profile = profilesData?.find(p => p.id === message.user_id) || null;
+        const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
+        const isContact = contactsData?.some(c => c.user_id === message.user_id);
+        const isAdmin = userRole === 'admin';
+        
+        let messageType: 'admin' | 'client' | 'contact' = 'client';
+        
+        if (isAdmin) {
+          messageType = 'admin';
+        } else if (isContact) {
+          messageType = 'contact';
+        }
+        
+        return {
+          ...message,
+          profiles: profile,
+          messageType,
+          isAdmin,
+          isContact
+        };
+      });
 
       setMessages(messagesWithProfiles);
     } catch (error: any) {
@@ -494,27 +524,60 @@ export default function TicketDetails() {
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {messages.map((message) => (
-                      <Card key={message.id} className="bg-muted/30">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-semibold text-sm">
-                                  {message.profiles?.full_name || 'Usuário'}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                </span>
+                    {messages.map((message) => {
+                      const colorClasses = 
+                        message.messageType === 'admin' 
+                          ? 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-900'
+                          : message.messageType === 'contact'
+                          ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
+                          : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900';
+                      
+                      const textColor = 
+                        message.messageType === 'admin'
+                          ? 'text-gray-700 dark:text-gray-400'
+                          : message.messageType === 'contact'
+                          ? 'text-green-700 dark:text-green-400'
+                          : 'text-blue-700 dark:text-blue-400';
+                      
+                      const badgeClasses =
+                        message.messageType === 'admin'
+                          ? 'bg-gray-600'
+                          : message.messageType === 'contact'
+                          ? 'bg-green-600'
+                          : 'bg-blue-600';
+                      
+                      return (
+                        <Card key={message.id} className={colorClasses}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className={`font-semibold text-sm ${textColor}`}>
+                                    {message.profiles?.full_name || 'Usuário'}
+                                    {message.isAdmin && (
+                                      <span className={`ml-2 text-xs text-white px-2 py-0.5 rounded ${badgeClasses}`}>
+                                        Admin
+                                      </span>
+                                    )}
+                                    {message.isContact && !message.isAdmin && (
+                                      <span className={`ml-2 text-xs text-white px-2 py-0.5 rounded ${badgeClasses}`}>
+                                        Contato
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  </span>
+                                </div>
+                                <p className="text-sm whitespace-pre-wrap">
+                                  {message.message}
+                                </p>
                               </div>
-                              <p className="text-sm whitespace-pre-wrap">
-                                {message.message}
-                              </p>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
 
