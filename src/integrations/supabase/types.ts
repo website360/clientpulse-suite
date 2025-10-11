@@ -111,6 +111,11 @@ export type Database = {
       accounts_receivable: {
         Row: {
           amount: number
+          asaas_billing_type: string | null
+          asaas_customer_id: string | null
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
+          asaas_status: string | null
           attachment_url: string | null
           category: string
           client_id: string
@@ -127,14 +132,21 @@ export type Database = {
           notes: string | null
           occurrence_type: string | null
           parent_receivable_id: string | null
+          payment_confirmation_date: string | null
           payment_date: string | null
           payment_method: string | null
           status: Database["public"]["Enums"]["payment_status"]
+          sync_with_asaas: boolean | null
           total_installments: number | null
           updated_at: string
         }
         Insert: {
           amount: number
+          asaas_billing_type?: string | null
+          asaas_customer_id?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_status?: string | null
           attachment_url?: string | null
           category: string
           client_id: string
@@ -151,14 +163,21 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_receivable_id?: string | null
+          payment_confirmation_date?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          sync_with_asaas?: boolean | null
           total_installments?: number | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          asaas_billing_type?: string | null
+          asaas_customer_id?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_status?: string | null
           attachment_url?: string | null
           category?: string
           client_id?: string
@@ -175,9 +194,11 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_receivable_id?: string | null
+          payment_confirmation_date?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
+          sync_with_asaas?: boolean | null
           total_installments?: number | null
           updated_at?: string
         }
@@ -211,6 +232,104 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      asaas_customers: {
+        Row: {
+          asaas_customer_id: string
+          client_id: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          asaas_customer_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          asaas_customer_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_customers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asaas_settings: {
+        Row: {
+          auto_create_on_receivable: boolean
+          auto_sync_payments: boolean
+          created_at: string
+          default_billing_type: string
+          environment: string
+          id: string
+          updated_at: string
+          webhook_token: string | null
+        }
+        Insert: {
+          auto_create_on_receivable?: boolean
+          auto_sync_payments?: boolean
+          created_at?: string
+          default_billing_type?: string
+          environment?: string
+          id?: string
+          updated_at?: string
+          webhook_token?: string | null
+        }
+        Update: {
+          auto_create_on_receivable?: boolean
+          auto_sync_payments?: boolean
+          created_at?: string
+          default_billing_type?: string
+          environment?: string
+          id?: string
+          updated_at?: string
+          webhook_token?: string | null
+        }
+        Relationships: []
+      }
+      asaas_webhooks: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          payment_id: string
+          processed: boolean
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          payment_id: string
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          payment_id?: string
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Relationships: []
       }
       client_contacts: {
         Row: {
