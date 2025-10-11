@@ -4,13 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { ReceivableFormModal } from './ReceivableFormModal';
 import { ReceiveConfirmModal } from './ReceiveConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AsaasPaymentDetailsModal } from './AsaasPaymentDetailsModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -41,6 +42,11 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     open: boolean;
     account: any;
   }>({ open: false, account: null });
+  const [asaasDetailsModal, setAsaasDetailsModal] = useState<{
+    open: boolean;
+    account: any;
+  }>({ open: false, account: null });
+  const [syncing, setSyncing] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -397,6 +403,71 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     }).format(value);
   };
 
+  const handleCreateInAsaas = async (account: any) => {
+    setSyncing(account.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-asaas-payment', {
+        body: { receivableId: account.id },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: 'Sucesso',
+          description: 'Cobrança criada no Asaas com sucesso',
+        });
+        fetchAccounts();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(null);
+    }
+  };
+
+  const handleSyncFromAsaas = async (account: any) => {
+    setSyncing(account.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-asaas-payment', {
+        body: { receivableId: account.id },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: 'Sucesso',
+          description: 'Status sincronizado com Asaas',
+        });
+        fetchAccounts();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(null);
+    }
+  };
+
+  const getAsaasStatusBadge = (status: string) => {
+    const labels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      'PENDING': { label: 'Pendente', variant: 'secondary' },
+      'RECEIVED': { label: 'Recebido', variant: 'default' },
+      'CONFIRMED': { label: 'Confirmado', variant: 'default' },
+      'OVERDUE': { label: 'Vencido', variant: 'destructive' },
+    };
+    const config = labels[status] || { label: status, variant: 'outline' as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>;
   }
@@ -413,13 +484,14 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
               <SortableTableHead column="due_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <TableHead>Asaas</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Nenhuma conta encontrada
                 </TableCell>
               </TableRow>
@@ -449,6 +521,26 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                   </TableCell>
                   <TableCell className="font-medium">{formatCurrency(account.amount)}</TableCell>
                   <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
+                  <TableCell>
+                    {account.sync_with_asaas && account.asaas_payment_id ? (
+                      <div className="flex flex-col gap-1">
+                        {getAsaasStatusBadge(account.asaas_status)}
+                        {account.asaas_invoice_url && (
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => window.open(account.asaas_invoice_url, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Ver Fatura
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Não sincronizado</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -466,6 +558,38 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Marcar como Recebido
                           </DropdownMenuItem>
+                        )}
+                        {!account.asaas_payment_id && (
+                          <DropdownMenuItem 
+                            onClick={() => handleCreateInAsaas(account)}
+                            disabled={syncing === account.id}
+                          >
+                            {syncing === account.id ? (
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Plus className="h-4 w-4 mr-2" />
+                            )}
+                            Criar no Asaas
+                          </DropdownMenuItem>
+                        )}
+                        {account.asaas_payment_id && (
+                          <>
+                            <DropdownMenuItem 
+                              onClick={() => handleSyncFromAsaas(account)}
+                              disabled={syncing === account.id}
+                            >
+                              {syncing === account.id ? (
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                              )}
+                              Sincronizar Status
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setAsaasDetailsModal({ open: true, account })}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Detalhes Asaas
+                            </DropdownMenuItem>
+                          </>
                         )}
                         <DropdownMenuItem 
                           onClick={() => handleDelete(account)}
@@ -529,6 +653,12 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         onOpenChange={(open) => setReceiveConfirmModal({ ...receiveConfirmModal, open })}
         account={receiveConfirmModal.account}
         onConfirm={confirmReceive}
+      />
+
+      <AsaasPaymentDetailsModal
+        open={asaasDetailsModal.open}
+        onOpenChange={(open) => setAsaasDetailsModal({ ...asaasDetailsModal, open })}
+        account={asaasDetailsModal.account}
       />
     </>
   );

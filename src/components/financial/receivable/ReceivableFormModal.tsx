@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -73,6 +74,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [syncWithAsaas, setSyncWithAsaas] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -801,6 +803,21 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                 </FormItem>
               )}
             />
+
+            {!account && (
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <FormLabel>Criar automaticamente no Asaas</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    A cobrança será criada automaticamente no Asaas após salvar
+                  </p>
+                </div>
+                <Switch
+                  checked={syncWithAsaas}
+                  onCheckedChange={setSyncWithAsaas}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
