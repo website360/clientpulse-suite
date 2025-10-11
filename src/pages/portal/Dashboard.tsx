@@ -6,13 +6,14 @@ import { Ticket, FileText, Clock } from 'lucide-react';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 
 export default function ClientDashboard() {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalTickets: 0,
     openTickets: 0,
     activeContracts: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isContact, setIsContact] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -22,29 +23,28 @@ export default function ClientDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Get client data
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      // Get contact data (if user is a contact)
+      // Detect if user is a contact
       const { data: contactData } = await supabase
         .from('client_contacts')
-        .select('id, client_id')
+        .select('client_id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      // Get user role
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .maybeSingle();
+      const userIsContact = !!contactData?.client_id;
+      setIsContact(userIsContact);
 
-      const isContact = roleData?.role === 'contato';
-      const clientId = clientData?.id || contactData?.client_id;
+      let clientId: string | null = null;
+
+      if (userIsContact) {
+        clientId = contactData!.client_id;
+      } else {
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        clientId = clientData?.id || null;
+      }
 
       if (!clientId) return;
 
@@ -53,7 +53,7 @@ export default function ClientDashboard() {
       let openTicketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId).neq('status', 'closed');
       
       // If user is a contact, filter by their created tickets only
-      if (isContact) {
+      if (userIsContact) {
         ticketsQuery = ticketsQuery.eq('created_by', user?.id);
         openTicketsQuery = openTicketsQuery.eq('created_by', user?.id);
       }
@@ -64,7 +64,7 @@ export default function ClientDashboard() {
       ]);
 
       let contractsCount = 0;
-      if (!isContact) {
+      if (!userIsContact && clientId) {
         const { count } = await supabase
           .from('contracts')
           .select('*', { count: 'exact', head: true })
@@ -105,7 +105,7 @@ export default function ClientDashboard() {
           </p>
         </div>
 
-        <div className={`grid gap-4 ${userRole === 'contato' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+        <div className={`grid gap-4 ${isContact ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
           <MetricCard
             title="Total de Tickets"
             value={stats.totalTickets}
@@ -122,7 +122,7 @@ export default function ClientDashboard() {
             className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
           />
 
-          {userRole !== 'contato' && (
+          {!isContact && (
             <MetricCard
               title="Contratos Ativos"
               value={stats.activeContracts}
