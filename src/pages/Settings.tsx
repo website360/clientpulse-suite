@@ -14,7 +14,6 @@ import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
 import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
-import { SystemResetTab } from '@/components/settings/SystemResetTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -229,7 +228,6 @@ export default function Settings() {
                 <TabsTrigger value="financial">Financeiro</TabsTrigger>
                 <TabsTrigger value="services">Serviços</TabsTrigger>
                 <TabsTrigger value="emails">Emails</TabsTrigger>
-                <TabsTrigger value="system-reset">Sistema</TabsTrigger>
               </>
             )}
           </TabsList>
@@ -400,10 +398,6 @@ export default function Settings() {
 
               <TabsContent value="emails">
                 <EmailSettingsTab />
-              </TabsContent>
-
-              <TabsContent value="system-reset">
-                <SystemResetTab />
               </TabsContent>
             </>
           )}
