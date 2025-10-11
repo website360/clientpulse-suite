@@ -77,79 +77,103 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-purple-500 to-purple-700 relative overflow-hidden">
-        {/* Decorative Elements */}
-        <div className="absolute top-10 left-10 w-20 h-20 border-2 border-white/20 rounded-full" />
-        <div className="absolute top-32 right-20 w-16 h-16 border-2 border-white/20 rotate-45" />
-        <div className="absolute bottom-20 left-20 w-2 h-2 bg-white/40 rounded-full" />
-        <div className="absolute bottom-40 right-32 w-3 h-3 bg-white/40 rounded-full" />
-        <div className="absolute top-1/2 left-1/4 w-4 h-4 bg-white/30 rounded-full" />
-        
-        {/* Wavy Lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0,100 Q150,150 300,100 T600,100 T900,100"
-            stroke="white"
-            strokeWidth="3"
-            fill="none"
-            className="animate-pulse"
-          />
-          <path
-            d="M0,200 Q150,250 300,200 T600,200 T900,200"
-            stroke="white"
-            strokeWidth="2"
-            fill="none"
-            style={{ animationDelay: '0.5s' }}
-            className="animate-pulse"
-          />
-          <path
-            d="M0,350 Q200,400 400,350 T800,350"
-            stroke="white"
-            strokeWidth="2.5"
-            fill="none"
-            style={{ animationDelay: '1s' }}
-            className="animate-pulse"
-          />
-        </svg>
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary-dark relative overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full">
+            {/* Grid Pattern */}
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'linear-gradient(hsl(var(--accent) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent) / 0.1) 1px, transparent 1px)',
+              backgroundSize: '50px 50px'
+            }} />
+          </div>
+        </div>
+
+        {/* Floating Decorative Elements */}
+        <div className="absolute top-20 left-16 w-24 h-24 border-2 border-accent/30 rounded-full animate-pulse" />
+        <div className="absolute top-40 right-24 w-16 h-16 bg-accent/20 rounded-lg rotate-45 animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute bottom-32 left-24 w-20 h-20 border-2 border-accent/30 rotate-12 animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-16 w-3 h-3 bg-accent rounded-full animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.7s' }} />
+        <div className="absolute top-2/3 left-1/3 w-4 h-4 bg-accent/40 rounded-full animate-pulse" style={{ animationDelay: '1.2s' }} />
+
+        {/* Gradient Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.3s' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.8s' }} />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <h1 className="text-5xl font-bold mb-4">Bem-vindo de volta!</h1>
-          <p className="text-xl text-white/90">
-            Faça login para acessar sua conta
-          </p>
+          <div className="space-y-6 animate-fade-in">
+            <div className="inline-block px-4 py-2 bg-accent/20 backdrop-blur-sm rounded-full border border-accent/30">
+              <span className="text-accent font-semibold text-sm">Gestão Empresarial</span>
+            </div>
+            <h1 className="text-6xl font-bold leading-tight">
+              Bem-vindo
+              <span className="block text-accent">de volta!</span>
+            </h1>
+            <p className="text-xl text-white/80 max-w-md leading-relaxed">
+              Acesse sua conta e continue gerenciando seus projetos com eficiência
+            </p>
+            <div className="flex gap-8 pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-semibold">Seguro</div>
+                  <div className="text-sm text-white/70">Dados protegidos</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-semibold">Rápido</div>
+                  <div className="text-sm text-white/70">Acesso imediato</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Bottom decorative circles */}
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-32 translate-y-32" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-48 -translate-y-48" />
+        {/* Bottom Wave */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary-dark/50 to-transparent" />
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
+        {/* Subtle decorative elements */}
+        <div className="absolute top-10 right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl" />
+        
+        <div className="w-full max-w-md relative z-10 animate-fade-in">
           {/* Logo */}
-          <div className="mb-8 text-center lg:text-left">
+          <div className="mb-12 text-center lg:text-left">
             <img 
               src={isDark ? authLogo.dark : authLogo.light} 
               alt="Logo" 
-              className="h-20 w-auto mx-auto lg:mx-0"
+              className="h-24 w-auto mx-auto lg:mx-0 drop-shadow-lg"
             />
           </div>
 
           {/* Sign In Form */}
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle className="text-2xl">Entrar</CardTitle>
-              <CardDescription>
+          <Card className="border-2 shadow-xl backdrop-blur-sm bg-card/95">
+            <CardHeader className="space-y-3">
+              <CardTitle className="text-3xl font-bold">Entrar</CardTitle>
+              <CardDescription className="text-base">
                 Digite suas credenciais para acessar o sistema
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    E-mail ou usuário
+                  <Label htmlFor="email" className="text-sm font-semibold">
+                    E-mail
                   </Label>
                   <Input
                     id="email"
@@ -157,18 +181,18 @@ export default function Auth() {
                     placeholder="seu@email.com"
                     value={signInEmail}
                     onChange={(e) => setSignInEmail(e.target.value)}
-                    className="h-11"
+                    className="h-12 text-base"
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-medium">
+                    <Label htmlFor="password" className="text-sm font-semibold">
                       Senha
                     </Label>
                     <button
                       type="button"
-                      className="text-xs text-primary hover:underline"
+                      className="text-sm text-primary hover:text-primary/80 hover:underline transition-colors font-medium"
                       onClick={() => toast.info('Entre em contato com o administrador')}
                     >
                       Esqueceu a senha?
@@ -180,20 +204,37 @@ export default function Auth() {
                     placeholder="••••••••"
                     value={signInPassword}
                     onChange={(e) => setSignInPassword(e.target.value)}
-                    className="h-11"
+                    className="h-12 text-base"
                     required
                   />
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full h-11 bg-purple-600 hover:bg-purple-700 text-white font-medium" 
+                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
                   disabled={loading}
                 >
-                  {loading ? 'Entrando...' : 'Entrar'}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Entrando...
+                    </span>
+                  ) : (
+                    'Entrar no Sistema'
+                  )}
                 </Button>
               </form>
             </CardContent>
           </Card>
+
+          {/* Footer Info */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Protegido por criptografia de ponta a ponta
+            </p>
+          </div>
         </div>
       </div>
     </div>
