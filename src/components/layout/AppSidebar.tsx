@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
 import { cn } from '@/lib/utils';
@@ -120,6 +121,18 @@ export function AppSidebar() {
       setIsContact(false);
     }
   };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const link = `${window.location.origin}/base-conhecimento`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: 'Link copiado!',
+      description: 'O link da Base de Conhecimento foi copiado para a área de transferência.',
+    });
+  };
+
   const adminItems = [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'Clientes', url: '/clients', icon: Users },
@@ -188,11 +201,23 @@ export function AppSidebar() {
                       <item.icon className="h-4 w-4" />
                       <div className="flex items-center justify-between flex-1">
                         <span className="text-[15px]">{item.title}</span>
-                        {badgeCounts[item.title] && (
-                          <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
-                            {badgeCounts[item.title]}
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1 ml-auto">
+                          {badgeCounts[item.title] && (
+                            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                              {badgeCounts[item.title]}
+                            </Badge>
+                          )}
+                          {item.title === 'Base de Conhecimento' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={handleCopyLink}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </NavLink>
                   </SidebarMenuButton>
