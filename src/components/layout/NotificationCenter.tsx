@@ -86,6 +86,24 @@ export function NotificationCenter() {
     }
   };
 
+  const markAllAsRead = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('read', false);
+
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, read: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const getTypeColor = (type: Notification['type']) => {
@@ -119,11 +137,23 @@ export function NotificationCenter() {
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notificações</span>
-          {unreadCount > 0 && (
-            <Badge variant="secondary" className="ml-auto">
-              {unreadCount} nova{unreadCount > 1 ? 's' : ''}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <>
+                <Badge variant="secondary">
+                  {unreadCount} nova{unreadCount > 1 ? 's' : ''}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={markAllAsRead}
+                >
+                  Limpar
+                </Button>
+              </>
+            )}
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[300px]">
