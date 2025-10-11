@@ -44,11 +44,11 @@ export default function Clients() {
 
   useEffect(() => {
     fetchClients();
-  }, [filters.status, currentPage, pageSize, sortColumn, sortDirection]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection]);
 
   useEffect(() => {
-    applyFilters();
-  }, [clients, filters]);
+    setFilteredClients(clients);
+  }, [clients]);
 
   const fetchClients = async () => {
     try {
@@ -65,6 +65,17 @@ export default function Clients() {
         countQuery = countQuery.eq('is_active', false);
       }
 
+      // Apply search filter to count
+      if (filters.search) {
+        const searchLower = `%${filters.search.toLowerCase()}%`;
+        countQuery = countQuery.or(`full_name.ilike.${searchLower},company_name.ilike.${searchLower},email.ilike.${searchLower},cpf_cnpj.ilike.${searchLower}`);
+      }
+
+      // Apply type filter to count
+      if (filters.type !== 'all') {
+        countQuery = countQuery.eq('client_type', filters.type as 'person' | 'company');
+      }
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -78,6 +89,17 @@ export default function Clients() {
         query = query.eq('is_active', true);
       } else if (filters.status === 'inactive') {
         query = query.eq('is_active', false);
+      }
+
+      // Apply search filter
+      if (filters.search) {
+        const searchLower = `%${filters.search.toLowerCase()}%`;
+        query = query.or(`full_name.ilike.${searchLower},company_name.ilike.${searchLower},email.ilike.${searchLower},cpf_cnpj.ilike.${searchLower}`);
+      }
+
+      // Apply type filter
+      if (filters.type !== 'all') {
+        query = query.eq('client_type', filters.type as 'person' | 'company');
       }
 
       // Apply sorting
@@ -106,28 +128,6 @@ export default function Clients() {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...clients];
-
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (client) =>
-          client.full_name?.toLowerCase().includes(searchLower) ||
-          client.company_name?.toLowerCase().includes(searchLower) ||
-          client.email?.toLowerCase().includes(searchLower) ||
-          client.cpf_cnpj?.includes(searchLower)
-      );
-    }
-
-    // Type filter
-    if (filters.type !== 'all') {
-      filtered = filtered.filter((client) => client.client_type === filters.type);
-    }
-
-    setFilteredClients(filtered);
-  };
 
   const handleEdit = (client: any) => {
     setSelectedClient(client);
@@ -203,7 +203,7 @@ export default function Clients() {
       setSortColumn(column);
       setSortDirection('asc');
     }
-    setCurrentPage(1); // Reset to first page when sorting
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
