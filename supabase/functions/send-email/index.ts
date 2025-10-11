@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import nodemailer from "https://esm.sh/nodemailer@6.9.15";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,14 +49,16 @@ serve(async (req) => {
       );
     }
 
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      host: settings.smtp_host,
-      port: settings.smtp_port,
-      secure: settings.smtp_secure,
-      auth: {
-        user: settings.smtp_user,
-        pass: settings.smtp_password,
+    // Create SMTP client
+    const client = new SMTPClient({
+      connection: {
+        hostname: settings.smtp_host,
+        port: settings.smtp_port,
+        tls: settings.smtp_secure,
+        auth: {
+          username: settings.smtp_user,
+          password: settings.smtp_password,
+        },
       },
     });
 
@@ -64,23 +66,22 @@ serve(async (req) => {
     if (requestData.test) {
       console.log("Testing SMTP connection...");
       try {
-        await transporter.verify();
-        
-        // Send test email
-        await transporter.sendMail({
-          from: `"${settings.from_name}" <${settings.from_email}>`,
+        await client.send({
+          from: `${settings.from_name} <${settings.from_email}>`,
           to: requestData.recipient || settings.from_email,
           subject: "Teste de Configuração SMTP",
+          content: "Email de Teste\n\nSe você está lendo isso, suas configurações SMTP estão funcionando corretamente!",
           html: "<h2>Email de Teste</h2><p>Se você está lendo isso, suas configurações SMTP estão funcionando corretamente!</p>",
-          text: "Email de Teste\n\nSe você está lendo isso, suas configurações SMTP estão funcionando corretamente!",
         });
 
+        await client.close();
         console.log("Test email sent successfully");
         return new Response(
           JSON.stringify({ success: true, message: "Email de teste enviado com sucesso" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch (error: any) {
+        await client.close();
         console.error("SMTP test failed:", error);
         return new Response(
           JSON.stringify({ success: false, error: error.message }),
@@ -187,12 +188,12 @@ serve(async (req) => {
     const results = [];
     for (const recipient of uniqueRecipients) {
       try {
-        await transporter.sendMail({
-          from: `"${settings.from_name}" <${settings.from_email}>`,
+        await client.send({
+          from: `${settings.from_name} <${settings.from_email}>`,
           to: recipient,
           subject: subject,
+          content: bodyText,
           html: bodyHtml,
-          text: bodyText,
         });
 
         // Log success
@@ -224,6 +225,8 @@ serve(async (req) => {
         results.push({ recipient, success: false, error: error.message });
       }
     }
+
+    await client.close();
 
     return new Response(
       JSON.stringify({ success: true, results }),
