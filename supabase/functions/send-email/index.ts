@@ -182,13 +182,13 @@ serve(async (req) => {
     const recipients: string[] = [];
 
     // Lógica de envio de emails:
-    // 1. Se client criou/respondeu → enviar para admin
-    // 2. Se contato criou/respondeu → enviar para admin E client
-    // 3. Se admin respondeu/mudou status de ticket do client → enviar para client
-    // 4. Se admin respondeu/mudou status de ticket do contato → enviar para contato E client
+    // 1. Se cliente/contato criou ticket → enviar para admins
+    // 2. Se admin criou/respondeu → enviar para cliente
+    // 3. Se cliente/contato respondeu → enviar para admins
+    // 4. Nunca enviar para quem criou/respondeu (evitar auto-notificação)
 
-    if (template.send_to_admin || !isCreatorAdmin) {
-      // Buscar todos os admins
+    // ENVIAR PARA ADMINS (quando cliente ou contato cria/responde)
+    if (template.send_to_admin && !isCreatorAdmin) {
       const { data: admins } = await supabase
         .from("user_roles")
         .select("user_id, profiles!inner(email)")
@@ -196,40 +196,39 @@ serve(async (req) => {
 
       if (admins) {
         admins.forEach((admin: any) => {
-          if (admin.profiles?.email && admin.profiles.email !== creatorProfile?.email) {
+          if (admin.profiles?.email) {
             recipients.push(admin.profiles.email);
           }
         });
       }
     }
 
-    if (template.send_to_client || isCreatorAdmin || isCreatorContact) {
-      // Se admin criou/respondeu ou se contato criou/respondeu, enviar para o client
-      if (clientRow?.email && clientRow.email !== creatorProfile?.email) {
+    // ENVIAR PARA CLIENTE (quando admin responde ou muda status)
+    if (template.send_to_client && isCreatorAdmin) {
+      if (clientRow?.email) {
         recipients.push(clientRow.email);
       }
     }
 
-    if (template.send_to_contact || (isCreatorAdmin && isCreatorContact)) {
-      // Se admin respondeu ticket criado por contato, enviar para o contato
-      if (isCreatorContact && creatorContact?.email) {
+    // ENVIAR PARA CONTATO (quando admin responde ticket de contato)
+    if (template.send_to_contact && isCreatorAdmin && isCreatorContact) {
+      if (creatorContact?.email) {
         recipients.push(creatorContact.email);
-      } else if (clientRow?.user_id && !isCreatorAdmin) {
-        // Se não for admin que criou, enviar para o perfil do cliente
-        const { data: clientProfile } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", clientRow.user_id)
-          .maybeSingle();
-
-        if (clientProfile?.email && clientProfile.email !== creatorProfile?.email) {
-          recipients.push(clientProfile.email);
-        }
       }
     }
 
-    // Remove duplicates
-    const uniqueRecipients = [...new Set(recipients)];
+    // Remove duplicates and the creator's email (no self-notification)
+    const uniqueRecipients = [...new Set(recipients)].filter(
+      email => email !== creatorProfile?.email
+    );
+    
+    console.log("Creator email:", creatorProfile?.email);
+    console.log("Is creator admin:", isCreatorAdmin);
+    console.log("Template settings:", {
+      send_to_admin: template.send_to_admin,
+      send_to_client: template.send_to_client,
+      send_to_contact: template.send_to_contact
+    });
     console.log("Sending to recipients:", uniqueRecipients);
 
     // Send emails
