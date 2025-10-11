@@ -97,12 +97,12 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
               data-status={column.id}
               className="flex flex-col min-h-[500px]"
             >
-              <div className={`p-4 rounded-t-lg border-2 ${column.color} flex items-center justify-between`}>
+              <div className={`p-3 rounded-t-lg border-2 ${column.color} flex items-center justify-between`}>
                 <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5" />
-                  <h3 className="font-semibold">{column.label}</h3>
+                  <Icon className="h-4 w-4" />
+                  <h3 className="font-medium text-sm">{column.label}</h3>
                 </div>
-                <Badge variant="secondary">{columnTickets.length}</Badge>
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs">{columnTickets.length}</Badge>
               </div>
               
               <div
@@ -139,36 +139,36 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
                       activeId === ticket.id ? 'opacity-50' : ''
                     }`}
                   >
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2 p-3">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-mono text-muted-foreground">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[10px] font-mono text-muted-foreground">
                               #{ticket.ticket_number}
                             </span>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-[10px] h-4 px-1">
                               {ticket.departments?.name}
                             </Badge>
                           </div>
-                          <h4 className="font-semibold text-sm line-clamp-2">
+                          <h4 className="font-medium text-xs line-clamp-2">
                             {ticket.subject}
                           </h4>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                    <CardContent className="space-y-2 p-3 pt-0">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {ticket.description}
                       </p>
                       
-                      <div className="flex items-center gap-2">
-                        <Badge className={getPriorityColor(ticket.priority)}>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className={`${getPriorityColor(ticket.priority)} text-[10px] h-4 px-1.5`}>
                           {getPriorityLabel(ticket.priority)}
                         </Badge>
                       </div>
                       
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(ticket.created_at), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                      <div className="text-[10px] text-muted-foreground">
+                        {format(new Date(ticket.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </div>
                     </CardContent>
                   </Card>
@@ -181,15 +181,15 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
 
       <DragOverlay>
         {activeTicket ? (
-          <Card className="cursor-move shadow-lg rotate-3">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono">#{activeTicket.ticket_number}</span>
-                <Badge variant="outline" className="text-xs">
+          <Card className="cursor-move shadow-lg rotate-3 w-64">
+            <CardHeader className="pb-2 p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] font-mono">#{activeTicket.ticket_number}</span>
+                <Badge variant="outline" className="text-[10px] h-4 px-1">
                   {activeTicket.departments?.name}
                 </Badge>
               </div>
-              <h4 className="font-semibold text-sm">{activeTicket.subject}</h4>
+              <h4 className="font-medium text-xs line-clamp-2">{activeTicket.subject}</h4>
             </CardHeader>
           </Card>
         ) : null}
