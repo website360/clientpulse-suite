@@ -115,14 +115,38 @@ serve(async (req) => {
       throw new Error("Ticket não encontrado");
     }
 
-    // Fetch related client, department and assigned profile
-    const [{ data: clientRow }, { data: departmentRow }, { data: assignedProfile }] = await Promise.all([
+    // Fetch related client, department, assigned profile and creator
+    const [
+      { data: clientRow },
+      { data: departmentRow },
+      { data: assignedProfile },
+      { data: creatorProfile }
+    ] = await Promise.all([
       supabase.from("clients").select("id, full_name, company_name, nickname, email, user_id").eq("id", ticket.client_id).maybeSingle(),
       supabase.from("departments").select("name").eq("id", ticket.department_id).maybeSingle(),
       ticket.assigned_to
-        ? supabase.from("profiles").select("full_name").eq("id", ticket.assigned_to).maybeSingle()
+        ? supabase.from("profiles").select("full_name, email").eq("id", ticket.assigned_to).maybeSingle()
         : Promise.resolve({ data: null as any }),
+      supabase.from("profiles").select("full_name, email").eq("id", ticket.created_by).maybeSingle(),
     ]);
+
+    // Check if creator is admin
+    const { data: creatorRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", ticket.created_by)
+      .maybeSingle();
+
+    const isCreatorAdmin = creatorRole?.role === 'admin';
+
+    // Check if creator is a contact
+    const { data: creatorContact } = await supabase
+      .from("client_contacts")
+      .select("id, email")
+      .eq("user_id", ticket.created_by)
+      .maybeSingle();
+
+    const isCreatorContact = !!creatorContact;
 
     // Get app URL
     const appUrl = supabaseUrl.replace(".supabase.co", ".lovable.app");
@@ -138,7 +162,7 @@ serve(async (req) => {
       priority: getPriorityLabel(ticket.priority),
       status: getStatusLabel(ticket.status),
       url: ticketUrl,
-      sender_name: assignedProfile?.full_name || "Sistema",
+      sender_name: assignedProfile?.full_name || creatorProfile?.full_name || "Sistema",
       message: "", // Will be set if this is a message notification
     };
 
@@ -154,10 +178,17 @@ serve(async (req) => {
       bodyText = bodyText.replace(regex, value);
     });
 
-    // Collect recipients
+    // Determine recipients based on template and ticket creator
     const recipients: string[] = [];
 
-    if (template.send_to_admin) {
+    // Lógica de envio de emails:
+    // 1. Se client criou/respondeu → enviar para admin
+    // 2. Se contato criou/respondeu → enviar para admin E client
+    // 3. Se admin respondeu/mudou status de ticket do client → enviar para client
+    // 4. Se admin respondeu/mudou status de ticket do contato → enviar para contato E client
+
+    if (template.send_to_admin || !isCreatorAdmin) {
+      // Buscar todos os admins
       const { data: admins } = await supabase
         .from("user_roles")
         .select("user_id, profiles!inner(email)")
@@ -165,23 +196,36 @@ serve(async (req) => {
 
       if (admins) {
         admins.forEach((admin: any) => {
-          if (admin.profiles?.email) recipients.push(admin.profiles.email);
+          if (admin.profiles?.email && admin.profiles.email !== creatorProfile?.email) {
+            recipients.push(admin.profiles.email);
+          }
         });
       }
     }
 
-    if (template.send_to_client && clientRow?.email) {
-      recipients.push(clientRow.email);
+    if (template.send_to_client || isCreatorAdmin || isCreatorContact) {
+      // Se admin criou/respondeu ou se contato criou/respondeu, enviar para o client
+      if (clientRow?.email && clientRow.email !== creatorProfile?.email) {
+        recipients.push(clientRow.email);
+      }
     }
 
-    if (template.send_to_contact && clientRow?.user_id) {
-      const { data: clientProfile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", clientRow.user_id)
-        .maybeSingle();
+    if (template.send_to_contact || (isCreatorAdmin && isCreatorContact)) {
+      // Se admin respondeu ticket criado por contato, enviar para o contato
+      if (isCreatorContact && creatorContact?.email) {
+        recipients.push(creatorContact.email);
+      } else if (clientRow?.user_id && !isCreatorAdmin) {
+        // Se não for admin que criou, enviar para o perfil do cliente
+        const { data: clientProfile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", clientRow.user_id)
+          .maybeSingle();
 
-      if (clientProfile?.email) recipients.push(clientProfile.email);
+        if (clientProfile?.email && clientProfile.email !== creatorProfile?.email) {
+          recipients.push(clientProfile.email);
+        }
+      }
     }
 
     // Remove duplicates
