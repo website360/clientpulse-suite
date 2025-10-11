@@ -103,22 +103,26 @@ serve(async (req) => {
       throw new Error("Template não encontrado ou inativo");
     }
 
-    // Fetch ticket data
+    // Fetch ticket data (no joins, then fetch related records separately)
     const { data: ticket, error: ticketError } = await supabase
       .from("tickets")
-      .select(`
-        *,
-        client:clients(*),
-        department:departments(*),
-        assigned:profiles!tickets_assigned_to_fkey(*)
-      `)
+      .select("*")
       .eq("id", requestData.ticket_id)
-      .single();
+      .maybeSingle();
 
     if (ticketError || !ticket) {
       console.error("Ticket not found:", ticketError);
       throw new Error("Ticket não encontrado");
     }
+
+    // Fetch related client, department and assigned profile
+    const [{ data: clientRow }, { data: departmentRow }, { data: assignedProfile }] = await Promise.all([
+      supabase.from("clients").select("id, full_name, company_name, nickname, email, user_id").eq("id", ticket.client_id).maybeSingle(),
+      supabase.from("departments").select("name").eq("id", ticket.department_id).maybeSingle(),
+      ticket.assigned_to
+        ? supabase.from("profiles").select("full_name").eq("id", ticket.assigned_to).maybeSingle()
+        : Promise.resolve({ data: null as any }),
+    ]);
 
     // Get app URL
     const appUrl = supabaseUrl.replace(".supabase.co", ".lovable.app");
@@ -126,15 +130,15 @@ serve(async (req) => {
 
     // Prepare variables for template
     const variables: Record<string, string> = {
-      ticket_number: ticket.ticket_number.toString(),
+      ticket_number: String(ticket.ticket_number),
       subject: ticket.subject,
       description: ticket.description,
-      client_name: ticket.client.nickname || ticket.client.company_name || ticket.client.full_name,
-      department: ticket.department.name,
+      client_name: clientRow?.nickname || clientRow?.company_name || clientRow?.full_name || "",
+      department: departmentRow?.name || "",
       priority: getPriorityLabel(ticket.priority),
       status: getStatusLabel(ticket.status),
       url: ticketUrl,
-      sender_name: ticket.assigned?.full_name || "Sistema",
+      sender_name: assignedProfile?.full_name || "Sistema",
       message: "", // Will be set if this is a message notification
     };
 
@@ -166,16 +170,16 @@ serve(async (req) => {
       }
     }
 
-    if (template.send_to_client && ticket.client.email) {
-      recipients.push(ticket.client.email);
+    if (template.send_to_client && clientRow?.email) {
+      recipients.push(clientRow.email);
     }
 
-    if (template.send_to_contact && ticket.client.user_id) {
+    if (template.send_to_contact && clientRow?.user_id) {
       const { data: clientProfile } = await supabase
         .from("profiles")
         .select("email")
-        .eq("id", ticket.client.user_id)
-        .single();
+        .eq("id", clientRow.user_id)
+        .maybeSingle();
 
       if (clientProfile?.email) recipients.push(clientProfile.email);
     }
