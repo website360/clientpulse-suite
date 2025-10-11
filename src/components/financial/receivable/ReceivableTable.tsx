@@ -213,6 +213,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
           }
         }
       } else if (actionType === 'all') {
+        // Improved parent ID identification: use parent_receivable_id if exists, otherwise use own ID if recurring/installment
         const parentId: string = account.parent_receivable_id || (account.occurrence_type !== 'unica' ? account.id : '');
         if (!parentId) {
           const { error } = await supabase.from('accounts_receivable').delete().eq('id', id);

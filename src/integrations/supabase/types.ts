@@ -203,6 +203,13 @@ export type Database = {
             referencedRelation: "accounts_receivable"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_parent_receivable"
+            columns: ["parent_receivable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_receivable"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_contacts: {
@@ -998,6 +1005,10 @@ export type Database = {
       close_ticket: {
         Args: { p_ticket_id: string }
         Returns: undefined
+      }
+      get_receivable_parent_id: {
+        Args: { receivable_id: string }
+        Returns: string
       }
       has_role: {
         Args: {

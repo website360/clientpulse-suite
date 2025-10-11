@@ -41,10 +41,12 @@ Deno.serve(async (req) => {
     oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
     // Find recurring receivables where the last charge expires within a month
+    // Exclude installment payments (they should not be renewed)
     const { data: existingReceivables, error: fetchError } = await supabase
       .from('accounts_receivable')
       .select('*')
       .in('occurrence_type', ['mensal', 'trimestral', 'semestral', 'anual'])
+      .is('installment_number', null)
       .eq('status', 'pending')
       .order('due_date', { ascending: false });
 
@@ -55,11 +57,13 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${existingReceivables?.length || 0} recurring receivables`);
 
-    // Group by client_id, description, category, occurrence_type
+    // Group by parent_receivable_id or id (for parent records)
     const grouped = new Map<string, Receivable[]>();
     
     existingReceivables?.forEach((receivable) => {
-      const key = `${receivable.client_id}-${receivable.description}-${receivable.category}-${receivable.occurrence_type}`;
+      // Identify the parent: if has parent_receivable_id, use it; otherwise it's the parent itself
+      const parentId = receivable.parent_receivable_id || receivable.id;
+      const key = parentId;
       if (!grouped.has(key)) {
         grouped.set(key, []);
       }
@@ -70,16 +74,16 @@ Deno.serve(async (req) => {
     const newCharges: any[] = [];
 
     // For each group, check if we need to generate new charges
-    for (const [key, receivables] of grouped.entries()) {
+    for (const [parentId, receivables] of grouped.entries()) {
       // Get the latest charge
       const latestCharge = receivables[0]; // Already sorted by due_date desc
       const latestDueDate = new Date(latestCharge.due_date);
 
-      console.log(`Checking group ${key}, latest due date: ${latestDueDate.toISOString()}`);
+      console.log(`Checking group ${parentId}, latest due date: ${latestDueDate.toISOString()}`);
 
       // If the latest charge expires within a month, generate 12 more
       if (latestDueDate <= oneMonthFromNow) {
-        console.log(`Generating new charges for group ${key}`);
+        console.log(`Generating new charges for group ${parentId}`);
 
         const monthsIncrement = latestCharge.occurrence_type === 'mensal' ? 1 :
                                 latestCharge.occurrence_type === 'trimestral' ? 3 :
@@ -106,6 +110,7 @@ Deno.serve(async (req) => {
             invoice_number: latestCharge.invoice_number,
             notes: latestCharge.notes,
             status: 'pending',
+            parent_receivable_id: parentId, // CRITICAL: Preserve parent relationship
           });
           totalGenerated++;
         }
