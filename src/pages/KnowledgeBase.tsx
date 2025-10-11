@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Eye, Edit, Trash2, Filter, Copy } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Filter, Copy } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -224,7 +224,6 @@ export default function KnowledgeBase() {
                     <TableHead>Título</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Visualizações</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -232,7 +231,7 @@ export default function KnowledgeBase() {
                 <TableBody>
                   {filteredPosts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
                         Nenhum post encontrado
                       </TableCell>
                     </TableRow>
@@ -276,12 +275,6 @@ export default function KnowledgeBase() {
                           <Badge variant={post.is_published ? 'default' : 'secondary'}>
                             {post.is_published ? 'Publicado' : 'Rascunho'}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                            {post.view_count}
-                          </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {formatDistanceToNow(new Date(post.created_at), {
