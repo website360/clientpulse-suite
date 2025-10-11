@@ -14,6 +14,7 @@ import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
 import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
+import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -228,6 +229,7 @@ export default function Settings() {
                 <TabsTrigger value="financial">Financeiro</TabsTrigger>
                 <TabsTrigger value="services">Serviços</TabsTrigger>
                 <TabsTrigger value="emails">Emails</TabsTrigger>
+                <TabsTrigger value="asaas">Asaas</TabsTrigger>
               </>
             )}
           </TabsList>
@@ -374,33 +376,37 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          {userRole === 'admin' && (
-            <>
-              <TabsContent value="appearance">
-                <AppearanceTab />
-              </TabsContent>
+              {userRole === 'admin' && (
+                <>
+                  <TabsContent value="appearance">
+                    <AppearanceTab />
+                  </TabsContent>
 
-              <TabsContent value="departments">
-                <DepartmentsTab />
-              </TabsContent>
+                  <TabsContent value="departments">
+                    <DepartmentsTab />
+                  </TabsContent>
 
-              <TabsContent value="suppliers">
-                <SuppliersTab />
-              </TabsContent>
+                  <TabsContent value="suppliers">
+                    <SuppliersTab />
+                  </TabsContent>
 
-              <TabsContent value="financial">
-                <FinancialSettingsTab />
-              </TabsContent>
+                  <TabsContent value="financial">
+                    <FinancialSettingsTab />
+                  </TabsContent>
 
-              <TabsContent value="services">
-                <ServicesTab />
-              </TabsContent>
+                  <TabsContent value="services">
+                    <ServicesTab />
+                  </TabsContent>
 
-              <TabsContent value="emails">
-                <EmailSettingsTab />
-              </TabsContent>
-            </>
-          )}
+                  <TabsContent value="emails">
+                    <EmailSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="asaas">
+                    <AsaasSettingsTab />
+                  </TabsContent>
+                </>
+              )}
         </Tabs>
       </div>
     </DashboardLayout>
