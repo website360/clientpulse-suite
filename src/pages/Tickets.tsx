@@ -31,6 +31,8 @@ export default function Tickets() {
   const [newTicketModalOpen, setNewTicketModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
+  const [sortColumn, setSortColumn] = useState<string | null>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filters, setFilters] = useState({
     search: '',
     status: 'all',
@@ -40,7 +42,29 @@ export default function Tickets() {
   const { toast } = useToast();
   const { userRole } = useAuth();
 
-  // Client-side pagination for filtered tickets
+  // Apply sorting to filtered tickets
+  const sortedTickets = [...filteredTickets].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    const aVal = a[sortColumn];
+    const bVal = b[sortColumn];
+    
+    if (aVal === null || aVal === undefined) return 1;
+    if (bVal === null || bVal === undefined) return -1;
+    
+    let comparison = 0;
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      comparison = aVal.localeCompare(bVal);
+    } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+      comparison = aVal - bVal;
+    } else {
+      comparison = String(aVal).localeCompare(String(bVal));
+    }
+    
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  // Client-side pagination for sorted tickets
   const {
     paginatedItems: paginatedTickets,
     currentPage,
@@ -49,7 +73,7 @@ export default function Tickets() {
     totalItems,
     handlePageChange,
     handlePageSizeChange,
-  } = useClientPagination(filteredTickets, 100);
+  } = useClientPagination(sortedTickets, 100);
 
   useEffect(() => {
     fetchTickets();
@@ -135,6 +159,15 @@ export default function Tickets() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
     }
   };
 
@@ -397,6 +430,9 @@ export default function Tickets() {
               onStatusChange={handleStatusChange}
               onPriorityChange={handlePriorityChange}
               onDelete={handleDelete}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
             />
             <TablePagination
               currentPage={currentPage}

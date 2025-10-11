@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2, Calendar } from 'lucide-react';
@@ -370,13 +371,13 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Descrição</TableHead>
+              <SortableTableHead column="description" label="Descrição" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Fornecedor</TableHead>
-              <TableHead>Categoria</TableHead>
+              <SortableTableHead column="category" label="Categoria" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Ocorrência</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Vencimento</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="due_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>

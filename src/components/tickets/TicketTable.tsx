@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Card } from '@/components/ui/card';
 import {
   Select,
@@ -27,9 +28,12 @@ interface TicketTableProps {
   onStatusChange: (ticketId: string, newStatus: string) => void;
   onPriorityChange: (ticketId: string, newPriority: string) => void;
   onDelete?: (ticketId: string) => void;
+  sortColumn?: string | null;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (column: string) => void;
 }
 
-export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete }: TicketTableProps) {
+export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete, sortColumn, sortDirection, onSort }: TicketTableProps) {
   const navigate = useNavigate();
   const { userRole } = useAuth();
 
@@ -103,13 +107,13 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">#</TableHead>
-            <TableHead>Assunto</TableHead>
+            <SortableTableHead column="ticket_number" label="#" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[100px]" />
+            <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <TableHead>Cliente</TableHead>
             <TableHead>Departamento</TableHead>
-            <TableHead>Prioridade</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Criado em</TableHead>
+            <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="created_at" label="Criado em" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
