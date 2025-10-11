@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Eye, Edit, Trash2, Filter } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Filter, Copy } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -140,6 +140,15 @@ export default function KnowledgeBase() {
   const openEditModal = (post: Post) => {
     setEditingPost(post);
     setIsModalOpen(true);
+  };
+
+  const handleCopyLink = (slug: string) => {
+    const link = `${window.location.origin}/base-conhecimento/${slug}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: 'Link copiado!',
+      description: 'O link do artigo foi copiado para a área de transferência.',
+    });
   };
 
   const filteredPosts = posts.filter((post) =>
@@ -282,6 +291,14 @@ export default function KnowledgeBase() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopyLink(post.slug)}
+                              title="Copiar link"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
