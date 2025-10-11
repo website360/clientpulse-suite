@@ -14,6 +14,7 @@ import Domains from "./pages/Domains";
 import AccountsPayable from "./pages/AccountsPayable";
 import AccountsReceivable from "./pages/AccountsReceivable";
 import Contracts from "./pages/Contracts";
+import Reports from "./pages/Reports";
 import ClientDashboard from './pages/portal/Dashboard';
 import ClientTickets from './pages/portal/Tickets';
 import ClientContracts from './pages/portal/Contracts';
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/financeiro/pagar" element={<AccountsPayable />} />
             <Route path="/financeiro/receber" element={<AccountsReceivable />} />
             <Route path="/contracts" element={<Contracts />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />
