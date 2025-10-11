@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
@@ -209,8 +209,8 @@ export default function Settings() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Configurações</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold">Configurações</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Gerencie suas preferências e informações pessoais
           </p>
         </div>
@@ -219,11 +219,15 @@ export default function Settings() {
           <TabsList>
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="security">Segurança</TabsTrigger>
-            <TabsTrigger value="appearance">Aparência</TabsTrigger>
-            <TabsTrigger value="departments">Departamentos</TabsTrigger>
-            <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-            <TabsTrigger value="financial">Financeiro</TabsTrigger>
-            <TabsTrigger value="services">Serviços</TabsTrigger>
+            {userRole === 'admin' && (
+              <>
+                <TabsTrigger value="appearance">Aparência</TabsTrigger>
+                <TabsTrigger value="departments">Departamentos</TabsTrigger>
+                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+                <TabsTrigger value="financial">Financeiro</TabsTrigger>
+                <TabsTrigger value="services">Serviços</TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="profile">
@@ -368,25 +372,29 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="appearance">
-            <AppearanceTab />
-          </TabsContent>
+          {userRole === 'admin' && (
+            <>
+              <TabsContent value="appearance">
+                <AppearanceTab />
+              </TabsContent>
 
-          <TabsContent value="departments">
-            <DepartmentsTab />
-          </TabsContent>
+              <TabsContent value="departments">
+                <DepartmentsTab />
+              </TabsContent>
 
-          <TabsContent value="suppliers">
-            <SuppliersTab />
-          </TabsContent>
+              <TabsContent value="suppliers">
+                <SuppliersTab />
+              </TabsContent>
 
-          <TabsContent value="financial">
-            <FinancialSettingsTab />
-          </TabsContent>
+              <TabsContent value="financial">
+                <FinancialSettingsTab />
+              </TabsContent>
 
-          <TabsContent value="services">
-            <ServicesTab />
-          </TabsContent>
+              <TabsContent value="services">
+                <ServicesTab />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </div>
     </DashboardLayout>
