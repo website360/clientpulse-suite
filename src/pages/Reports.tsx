@@ -28,8 +28,8 @@ export default function Reports() {
     startDate: undefined,
     endDate: undefined,
     paymentMethods: [],
-    clientId: '',
-    supplierId: '',
+    clientId: 'all',
+    supplierId: 'all',
   });
 
   return (

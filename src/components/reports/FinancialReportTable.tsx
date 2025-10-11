@@ -54,12 +54,12 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       }
 
       // Aplicar filtro de cliente
-      if (filters.reportType === 'receivable' && filters.clientId) {
+      if (filters.reportType === 'receivable' && filters.clientId && filters.clientId !== 'all') {
         query = query.eq('client_id', filters.clientId);
       }
       
       // Aplicar filtro de fornecedor
-      if (filters.reportType === 'payable' && filters.supplierId) {
+      if (filters.reportType === 'payable' && filters.supplierId && filters.supplierId !== 'all') {
         query = query.eq('supplier_id', filters.supplierId);
       }
 

@@ -130,8 +130,8 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
       startDate: undefined,
       endDate: undefined,
       paymentMethods: [],
-      clientId: '',
-      supplierId: '',
+      clientId: 'all',
+      supplierId: 'all',
     });
   };
 
@@ -172,7 +172,7 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
                 <SelectValue placeholder="Todos os clientes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os clientes</SelectItem>
+                <SelectItem value="all">Todos os clientes</SelectItem>
                 {clients?.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.nickname || client.company_name || client.full_name}
@@ -192,7 +192,7 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
                 <SelectValue placeholder="Todos os fornecedores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os fornecedores</SelectItem>
+                <SelectItem value="all">Todos os fornecedores</SelectItem>
                 {suppliers?.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id}>
                     {supplier.name}
