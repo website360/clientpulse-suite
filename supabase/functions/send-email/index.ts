@@ -189,17 +189,26 @@ serve(async (req) => {
 
     // ENVIAR PARA ADMINS (quando cliente ou contato cria/responde)
     if (template.send_to_admin && !isCreatorAdmin) {
-      const { data: admins } = await supabase
+      // Buscar todos os admins (sem depender de FK para join)
+      const { data: adminRoleRows, error: adminRolesError } = await supabase
         .from("user_roles")
-        .select("user_id, profiles!inner(email)")
+        .select("user_id")
         .eq("role", "admin");
 
-      if (admins) {
-        admins.forEach((admin: any) => {
-          if (admin.profiles?.email) {
-            recipients.push(admin.profiles.email);
-          }
-        });
+      if (!adminRolesError && adminRoleRows && adminRoleRows.length > 0) {
+        const adminIds = adminRoleRows.map((r: any) => r.user_id).filter(Boolean);
+        const { data: adminProfiles } = await supabase
+          .from("profiles")
+          .select("email")
+          .in("id", adminIds);
+
+        if (adminProfiles) {
+          adminProfiles.forEach((p: any) => {
+            if (p?.email) {
+              recipients.push(p.email);
+            }
+          });
+        }
       }
     }
 
