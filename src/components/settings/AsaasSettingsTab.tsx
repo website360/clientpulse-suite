@@ -10,11 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, Key } from "lucide-react";
 
 export function AsaasSettingsTab() {
   const queryClient = useQueryClient();
-  const [apiKey, setApiKey] = useState("");
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [autoSync, setAutoSync] = useState(true);
   const [autoCreateOnReceivable, setAutoCreateOnReceivable] = useState(false);
@@ -45,10 +44,6 @@ export function AsaasSettingsTab() {
 
   const saveSettingsMutation = useMutation({
     mutationFn: async () => {
-      if (!apiKey && !settings) {
-        throw new Error("API Key é obrigatória");
-      }
-
       const settingsData = {
         environment,
         auto_sync_payments: autoSync,
@@ -56,14 +51,6 @@ export function AsaasSettingsTab() {
         default_billing_type: defaultBillingType,
         webhook_token: webhookToken || null,
       };
-
-      // Salvar a API key como secret
-      if (apiKey) {
-        const { error: secretError } = await supabase.functions.invoke("manage-asaas-secret", {
-          body: { apiKey, environment },
-        });
-        if (secretError) throw secretError;
-      }
 
       if (settings) {
         const { error } = await supabase
@@ -81,7 +68,6 @@ export function AsaasSettingsTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["asaas-settings"] });
       toast.success("Configurações salvas com sucesso!");
-      setApiKey("");
     },
     onError: (error: Error) => {
       toast.error("Erro ao salvar configurações: " + error.message);
@@ -124,6 +110,14 @@ export function AsaasSettingsTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert>
+            <Key className="h-4 w-4" />
+            <AlertDescription>
+              A API Key do Asaas precisa ser configurada como um secret do Supabase para garantir segurança. 
+              Use a seção abaixo para configurá-la.
+            </AlertDescription>
+          </Alert>
+
           <div className="space-y-2">
             <Label htmlFor="environment">Ambiente</Label>
             <Select value={environment} onValueChange={(value: "sandbox" | "production") => setEnvironment(value)}>
@@ -139,20 +133,6 @@ export function AsaasSettingsTab() {
               {environment === "sandbox" 
                 ? "Modo de teste - nenhuma cobrança real será criada" 
                 : "Modo produção - cobranças reais serão criadas"}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="apiKey">API Key {settings ? "(deixe vazio para manter a atual)" : ""}</Label>
-            <Input
-              id="apiKey"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={settings ? "••••••••••••••••" : "Cole sua API Key do Asaas"}
-            />
-            <p className="text-xs text-muted-foreground">
-              Obtenha sua API Key em: Asaas → Integrações → API Key
             </p>
           </div>
 
@@ -210,33 +190,59 @@ export function AsaasSettingsTab() {
             </Select>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={() => saveSettingsMutation.mutate()}
-              disabled={saveSettingsMutation.isPending}
-            >
-              {saveSettingsMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Salvar Configurações
-            </Button>
-
-            {settings && (
+          <div className="space-y-4">
+            <div className="flex gap-2">
               <Button
-                variant="outline"
-                onClick={() => testConnectionMutation.mutate()}
-                disabled={testConnectionMutation.isPending}
+                onClick={() => saveSettingsMutation.mutate()}
+                disabled={saveSettingsMutation.isPending}
               >
-                {testConnectionMutation.isPending ? (
+                {saveSettingsMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
-                  <TestTube className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" />
                 )}
-                Testar Conexão
+                Salvar Configurações
               </Button>
-            )}
+
+              {settings && (
+                <Button
+                  variant="outline"
+                  onClick={() => testConnectionMutation.mutate()}
+                  disabled={testConnectionMutation.isPending}
+                >
+                  {testConnectionMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <TestTube className="h-4 w-4 mr-2" />
+                  )}
+                  Testar Conexão
+                </Button>
+              )}
+            </div>
+
+            <div className="p-4 border rounded-lg bg-muted/50">
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Configurar API Key do Asaas
+              </h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                A API Key precisa ser armazenada de forma segura no Supabase. Clique no botão abaixo para acessar a página de configuração e adicionar o secret.
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => window.open('https://supabase.com/dashboard/project/pjnbsuwkxzxcfaetywjs/settings/functions', '_blank')}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Configurar Secret no Supabase
+              </Button>
+              <div className="mt-3 p-3 bg-background rounded border">
+                <p className="text-xs font-medium mb-1">Nome do secret:</p>
+                <code className="text-xs bg-muted px-2 py-1 rounded">ASAAS_API_KEY</code>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Copie sua API Key do Asaas e cole como valor do secret.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
