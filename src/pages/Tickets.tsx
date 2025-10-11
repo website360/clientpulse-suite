@@ -7,6 +7,8 @@ import { TicketKanban } from '@/components/tickets/TicketKanban';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
 import { MetricCard } from '@/components/dashboard/MetricCard';
+import { TablePagination } from '@/components/ui/table-pagination';
+import { useClientPagination } from '@/hooks/useClientPagination';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +39,17 @@ export default function Tickets() {
   });
   const { toast } = useToast();
   const { userRole } = useAuth();
+
+  // Client-side pagination for filtered tickets
+  const {
+    paginatedItems: paginatedTickets,
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    handlePageChange,
+    handlePageSizeChange,
+  } = useClientPagination(filteredTickets, 100);
 
   useEffect(() => {
     fetchTickets();
@@ -378,12 +391,22 @@ export default function Tickets() {
             <p className="text-muted-foreground">Carregando tickets...</p>
           </div>
         ) : viewMode === 'table' ? (
-          <TicketTable
-            tickets={filteredTickets}
-            onStatusChange={handleStatusChange}
-            onPriorityChange={handlePriorityChange}
-            onDelete={handleDelete}
-          />
+          <>
+            <TicketTable
+              tickets={paginatedTickets}
+              onStatusChange={handleStatusChange}
+              onPriorityChange={handlePriorityChange}
+              onDelete={handleDelete}
+            />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
         ) : (
           <TicketKanban
             tickets={filteredTickets}

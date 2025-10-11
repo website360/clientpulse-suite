@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -37,9 +38,12 @@ interface ContractTableProps {
   contracts: Contract[];
   onEdit: (contract: Contract) => void;
   onRefresh: () => void;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: string) => void;
 }
 
-export function ContractTable({ contracts, onEdit, onRefresh }: ContractTableProps) {
+export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDirection, onSort }: ContractTableProps) {
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; contract: Contract | null }>({
     isOpen: false,
     contract: null,
@@ -154,12 +158,12 @@ export function ContractTable({ contracts, onEdit, onRefresh }: ContractTablePro
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
-              <TableHead>Serviço</TableHead>
-              <TableHead>Valor</TableHead>
+              <SortableTableHead column="service_id" label="Serviço" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Meio de Pagamento</TableHead>
-              <TableHead>Início</TableHead>
-              <TableHead>Vencimento</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableTableHead column="start_date" label="Início" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="end_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>

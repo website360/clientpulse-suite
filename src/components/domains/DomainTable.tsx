@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Globe, Calendar, User } from 'lucide-react';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { toast } from 'sonner';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -35,9 +36,14 @@ interface Domain {
 
 interface DomainTableProps {
   onEdit?: () => void;
+  currentPage: number;
+  pageSize: number;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: string) => void;
 }
 
-export function DomainTable({ onEdit }: DomainTableProps) {
+export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDirection, onSort }: DomainTableProps) {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingDomain, setEditingDomain] = useState<Domain | null>(null);
@@ -45,11 +51,11 @@ export function DomainTable({ onEdit }: DomainTableProps) {
 
   useEffect(() => {
     fetchDomains();
-  }, []);
+  }, [currentPage, pageSize, sortColumn, sortDirection]);
 
   const fetchDomains = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('domains')
         .select(`
           *,
@@ -59,8 +65,19 @@ export function DomainTable({ onEdit }: DomainTableProps) {
             responsible_name,
             nickname
           )
-        `)
-        .order('expires_at', { ascending: true });
+        `);
+
+      // Apply sorting
+      if (sortColumn) {
+        query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setDomains((data as any) || []);
@@ -143,10 +160,10 @@ export function DomainTable({ onEdit }: DomainTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Domínio</TableHead>
-              <TableHead>Vencimento</TableHead>
-              <TableHead>Proprietário</TableHead>
+              <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="domain" label="Domínio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="expires_at" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="owner" label="Proprietário" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>

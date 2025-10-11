@@ -583,6 +583,9 @@ export default function ClientDetail() {
                 contracts={contracts}
                 onEdit={handleEditContract}
                 onRefresh={fetchClientContracts}
+                sortColumn={null}
+                sortDirection="asc"
+                onSort={() => {}}
               />
             )}
           </TabsContent>

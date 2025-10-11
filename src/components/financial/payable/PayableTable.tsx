@@ -15,9 +15,15 @@ import { ptBR } from 'date-fns/locale';
 
 interface PayableTableProps {
   filters: any;
+  currentPage: number;
+  pageSize: number;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: string) => void;
+  onTotalCountChange: (count: number) => void;
 }
 
-export function PayableTable({ filters }: PayableTableProps) {
+export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortDirection, onSort, onTotalCountChange }: PayableTableProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAccount, setEditingAccount] = useState<any>(null);
@@ -38,18 +44,42 @@ export function PayableTable({ filters }: PayableTableProps) {
 
   useEffect(() => {
     fetchAccounts();
-  }, [filters]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection]);
 
   const fetchAccounts = async () => {
     setLoading(true);
     try {
+      // Count total
+      let countQuery = supabase
+        .from('accounts_payable')
+        .select('*', { count: 'exact', head: true });
+      
+      if (filters.status !== 'all') {
+        countQuery = countQuery.eq('status', filters.status);
+      }
+      if (filters.category !== 'all') {
+        countQuery = countQuery.eq('category', filters.category);
+      }
+      if (filters.dateFrom) {
+        countQuery = countQuery.gte('due_date', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        countQuery = countQuery.lte('due_date', filters.dateTo);
+      }
+      if (filters.search) {
+        countQuery = countQuery.ilike('description', `%${filters.search}%`);
+      }
+
+      const { count } = await countQuery;
+      onTotalCountChange(count || 0);
+
+      // Fetch paginated data
       let query = supabase
         .from('accounts_payable')
         .select(`
           *,
           supplier:suppliers(name)
-        `)
-        .order('due_date', { ascending: true });
+        `);
 
       if (filters.status !== 'all') {
         query = query.eq('status', filters.status);
@@ -66,6 +96,18 @@ export function PayableTable({ filters }: PayableTableProps) {
       if (filters.search) {
         query = query.ilike('description', `%${filters.search}%`);
       }
+
+      // Apply sorting
+      if (sortColumn) {
+        query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+      } else {
+        query = query.order('due_date', { ascending: true });
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
 
       const { data, error } = await query;
 

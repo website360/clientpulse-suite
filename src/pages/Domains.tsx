@@ -1,17 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
 import { DomainTable } from '@/components/domains/DomainTable';
 import { DomainFormModal } from '@/components/domains/DomainFormModal';
+import { TablePagination } from '@/components/ui/table-pagination';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Domains() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState<string | null>('expires_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  useEffect(() => {
+    fetchCount();
+  }, []);
+
+  const fetchCount = async () => {
+    const { count } = await supabase
+      .from('domains')
+      .select('*', { count: 'exact', head: true });
+    setTotalCount(count || 0);
+  };
 
   const handleSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
     setIsModalOpen(false);
+    fetchCount();
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -30,7 +61,37 @@ export default function Domains() {
           </Button>
         </div>
 
-        <DomainTable key={refreshTrigger} onEdit={() => setRefreshTrigger(prev => prev + 1)} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Domínios</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DomainTable 
+              key={refreshTrigger} 
+              onEdit={() => {
+                setRefreshTrigger(prev => prev + 1);
+                fetchCount();
+              }}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(totalCount / pageSize)}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+                setRefreshTrigger(prev => prev + 1);
+              }}
+            />
+          </CardContent>
+        </Card>
 
         <DomainFormModal
           isOpen={isModalOpen}

@@ -5,6 +5,7 @@ import { ReceivableStats } from '@/components/financial/receivable/ReceivableSta
 import { ReceivableFilters } from '@/components/financial/receivable/ReceivableFilters';
 import { ReceivableTable } from '@/components/financial/receivable/ReceivableTable';
 import { ReceivableFormModal } from '@/components/financial/receivable/ReceivableFormModal';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +32,24 @@ const AccountsReceivable = () => {
     dateTo: formatDate(lastDay),
     search: ''
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState<string | null>('due_date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
   const navigate = useNavigate();
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
 
   return (
     <DashboardLayout>
@@ -62,7 +80,28 @@ const AccountsReceivable = () => {
               </Button>
             </div>
 
-            <ReceivableTable filters={filters} />
+            <div className="border rounded-lg">
+              <ReceivableTable 
+                filters={filters}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                onTotalCountChange={setTotalCount}
+              />
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(totalCount / pageSize)}
+                pageSize={pageSize}
+                totalItems={totalCount}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
           </TabsContent>
         </Tabs>
 

@@ -5,19 +5,42 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ContractTable } from '@/components/contracts/ContractTable';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Contracts() {
   const [contracts, setContracts] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState<string | null>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     fetchContracts();
-  }, []);
+  }, [currentPage, pageSize, sortColumn, sortDirection]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
 
   const fetchContracts = async () => {
-    const { data, error } = await supabase
+    // Count total
+    const { count } = await supabase
+      .from('contracts')
+      .select('*', { count: 'exact', head: true });
+    setTotalCount(count || 0);
+
+    // Fetch paginated data
+    let query = supabase
       .from('contracts')
       .select(`
         *,
@@ -32,8 +55,19 @@ export default function Contracts() {
         payment_methods (
           name
         )
-      `)
-      .order('created_at', { ascending: false });
+      `);
+
+    // Apply sorting
+    if (sortColumn) {
+      query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+    }
+
+    // Apply pagination
+    const from = (currentPage - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setContracts(data);
@@ -70,11 +104,25 @@ export default function Contracts() {
           <CardHeader>
             <CardTitle>Lista de Contratos</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <ContractTable
               contracts={contracts}
               onEdit={handleEdit}
               onRefresh={fetchContracts}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(totalCount / pageSize)}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
             />
           </CardContent>
         </Card>
