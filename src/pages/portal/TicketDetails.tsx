@@ -177,7 +177,17 @@ export default function ClientTicketDetails() {
 
       if (profilesError) throw profilesError;
 
-      // (Removido) Buscar roles dos usuários - usaremos comparação com o usuário logado para diferenciar
+      // Buscar roles de todos os usuários
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      // Buscar contatos
+      const { data: contactsData } = await supabase
+        .from('client_contacts')
+        .select('user_id, name')
+        .in('user_id', userIds);
 
       // Buscar cliente para pegar apelido
       const { data: clientData } = await supabase
@@ -186,34 +196,44 @@ export default function ClientTicketDetails() {
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      // Buscar anexos das mensagens com nomes dos arquivos
+      // Buscar anexos das mensagens
       const messageIds = messagesData.map(m => m.id);
       const { data: attachmentsData } = await supabase
         .from('ticket_attachments')
         .select('message_id, id, file_name')
         .in('message_id', messageIds);
+
       const currentProfile = profilesData?.find(p => p.id === user?.id);
 
       const messagesWithProfiles = messagesData.map(message => {
         const profile = profilesData?.find(p => p.id === message.user_id);
         const isCurrentUser = message.user_id === user?.id;
-        const isAdmin = !isCurrentUser; // no portal do cliente, quem não é o próprio usuário é do suporte
+        const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
+        const isContact = contactsData?.some(c => c.user_id === message.user_id);
+        const isAdmin = userRole === 'admin';
         const messageAttachments = attachmentsData?.filter(a => a.message_id === message.id) || [];
         
         let displayName = 'Usuário';
+        let messageType: 'admin' | 'client' | 'contact' = 'client';
         
         if (isAdmin) {
-          // Mensagens de outros (administradores/suporte)
           displayName = profile?.full_name || 'Suporte';
+          messageType = 'admin';
+        } else if (isContact) {
+          const contact = contactsData?.find(c => c.user_id === message.user_id);
+          displayName = contact?.name || profile?.full_name || 'Contato';
+          messageType = 'contact';
         } else {
-          // Mensagens do próprio usuário logado - usar apelido do cliente ou nome do perfil
-          displayName = clientData?.nickname || clientData?.full_name || currentProfile?.full_name || 'Você';
+          displayName = clientData?.nickname || clientData?.full_name || currentProfile?.full_name || 'Cliente';
+          messageType = 'client';
         }
         
         return {
           ...message,
           profiles: profile || null,
           isAdmin,
+          isContact,
+          messageType,
           displayName,
           attachmentNames: messageAttachments.map(a => a.file_name).join(', ') || ''
         };
@@ -554,30 +574,50 @@ export default function ClientTicketDetails() {
                   </p>
                 ) : (
                   <div className="space-y-4">
-                     {messages.map((message) => (
-                       <Card 
-                         key={message.id} 
-                         className={
-                           message.isAdmin
-                             ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900'
-                             : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
-                         }
-                       >
-                         <CardContent className="p-4">
-                           <div className="flex items-start gap-3">
-                             <div className="flex-1">
-                               <div className="flex items-center gap-2 mb-2">
-                                 <span className={`font-semibold text-sm ${message.isAdmin ? 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
-                                   {message.displayName}
-                                   {message.isAdmin && (
-                                     <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
-                                       Suporte
-                                     </span>
-                                   )}
-                                 </span>
-                                 <span className="text-xs text-muted-foreground">
-                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                 </span>
+                     {messages.map((message) => {
+                       const colorClasses = 
+                         message.messageType === 'admin' 
+                           ? 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-900'
+                           : message.messageType === 'contact'
+                           ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
+                           : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900';
+                       
+                       const textColor = 
+                         message.messageType === 'admin'
+                           ? 'text-gray-700 dark:text-gray-400'
+                           : message.messageType === 'contact'
+                           ? 'text-green-700 dark:text-green-400'
+                           : 'text-blue-700 dark:text-blue-400';
+                       
+                       const badgeClasses =
+                         message.messageType === 'admin'
+                           ? 'bg-gray-600 text-white'
+                           : message.messageType === 'contact'
+                           ? 'bg-green-600 text-white'
+                           : 'bg-blue-600 text-white';
+                       
+                       return (
+                         <Card key={message.id} className={colorClasses}>
+                           <CardContent className="p-4">
+                             <div className="flex items-start gap-3">
+                               <div className="flex-1">
+                                 <div className="flex items-center gap-2 mb-2">
+                                   <span className={`font-semibold text-sm ${textColor}`}>
+                                     {message.displayName}
+                                     {message.isAdmin && (
+                                       <span className={`ml-2 text-xs px-2 py-0.5 rounded ${badgeClasses}`}>
+                                         Suporte
+                                       </span>
+                                     )}
+                                     {message.isContact && !message.isAdmin && (
+                                       <span className={`ml-2 text-xs px-2 py-0.5 rounded ${badgeClasses}`}>
+                                         Contato
+                                       </span>
+                                     )}
+                                   </span>
+                                   <span className="text-xs text-muted-foreground">
+                                     {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                   </span>
                                  {message.attachmentNames && (
                                    <TooltipProvider>
                                      <Tooltip>
@@ -602,16 +642,17 @@ export default function ClientTicketDetails() {
                                  </Button>
                                </div>
                                <div
-                                 className="text-sm"
-                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
-                               />
-                             </div>
-                           </div>
-                         </CardContent>
-                       </Card>
-                     ))}
-                  </div>
-                )}
+                                  className="text-sm"
+                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                       );
+                     })}
+                   </div>
+                 )}
 
                 {/* New Message */}
                 {canResolve && (
