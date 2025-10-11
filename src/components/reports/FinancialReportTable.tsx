@@ -75,6 +75,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
     const labels: Record<string, string> = {
       pending: 'Pendente',
       paid: 'Pago',
+      received: 'Recebido',
       overdue: 'Vencido',
       canceled: 'Cancelado',
     };
@@ -85,6 +86,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'secondary',
       paid: 'default',
+      received: 'default',
       overdue: 'destructive',
       canceled: 'outline',
     };

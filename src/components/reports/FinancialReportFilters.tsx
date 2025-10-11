@@ -70,13 +70,19 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
     },
   });
 
-  const statusOptions = [
-    { value: 'pending', label: 'Pendente' },
-    { value: 'paid', label: 'Pago' },
-    { value: 'overdue', label: 'Vencido' },
-    { value: 'canceled', label: 'Cancelado' },
-  ];
-
+  const statusOptions = filters.reportType === 'receivable'
+    ? [
+      { value: 'pending', label: 'Pendente' },
+      { value: 'received', label: 'Recebido' },
+      { value: 'overdue', label: 'Vencido' },
+      { value: 'canceled', label: 'Cancelado' },
+    ]
+    : [
+      { value: 'pending', label: 'Pendente' },
+      { value: 'paid', label: 'Pago' },
+      { value: 'overdue', label: 'Vencido' },
+      { value: 'canceled', label: 'Cancelado' },
+    ];
   const handleStatusToggle = (status: string) => {
     const currentStatus = filters.status.includes(status as any);
     if (currentStatus) {
@@ -280,9 +286,9 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
             .map((category) => (
               <Badge
                 key={category.id}
-                variant={filters.categories.includes(category.id) ? 'default' : 'outline'}
+                variant={filters.categories.includes(category.name) ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => handleCategoryToggle(category.id)}
+                onClick={() => handleCategoryToggle(category.name)}
               >
                 {category.name}
               </Badge>
@@ -297,9 +303,9 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
           {paymentMethods?.map((method) => (
             <Badge
               key={method.id}
-              variant={filters.paymentMethods.includes(method.id) ? 'default' : 'outline'}
+              variant={filters.paymentMethods.includes(method.name) ? 'default' : 'outline'}
               className="cursor-pointer"
-              onClick={() => handlePaymentMethodToggle(method.id)}
+              onClick={() => handlePaymentMethodToggle(method.name)}
             >
               {method.name}
             </Badge>
