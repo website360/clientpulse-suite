@@ -14,6 +14,7 @@ import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCir
 
 export function AsaasSettingsTab() {
   const queryClient = useQueryClient();
+  const [isActive, setIsActive] = useState(false);
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [autoSync, setAutoSync] = useState(true);
   const [autoCreateOnReceivable, setAutoCreateOnReceivable] = useState(false);
@@ -31,6 +32,7 @@ export function AsaasSettingsTab() {
       if (error && error.code !== "PGRST116") throw error;
       
       if (data) {
+        setIsActive((data as any).is_active ?? false);
         setEnvironment(data.environment as "sandbox" | "production");
         setAutoSync(data.auto_sync_payments);
         setAutoCreateOnReceivable(data.auto_create_on_receivable);
@@ -45,6 +47,7 @@ export function AsaasSettingsTab() {
   const saveSettingsMutation = useMutation({
     mutationFn: async () => {
       const settingsData = {
+        is_active: isActive,
         environment,
         auto_sync_payments: autoSync,
         auto_create_on_receivable: autoCreateOnReceivable,
@@ -104,91 +107,109 @@ export function AsaasSettingsTab() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Configurações da API Asaas</CardTitle>
+          <CardTitle>Integração com Asaas</CardTitle>
           <CardDescription>
-            Configure sua integração com o Asaas. Use o ambiente sandbox para testes e production para cobranças reais.
+            Ative ou desative a integração com o Asaas. Quando desativada, o sistema funciona normalmente sem sincronização.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert>
-            <Key className="h-4 w-4" />
-            <AlertDescription>
-              A API Key do Asaas precisa ser configurada como um secret do Supabase para garantir segurança. 
-              Use a seção abaixo para configurá-la.
-            </AlertDescription>
-          </Alert>
-
-          <div className="space-y-2">
-            <Label htmlFor="environment">Ambiente</Label>
-            <Select value={environment} onValueChange={(value: "sandbox" | "production") => setEnvironment(value)}>
-              <SelectTrigger id="environment">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
-                <SelectItem value="production">Production (Produção)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {environment === "sandbox" 
-                ? "Modo de teste - nenhuma cobrança real será criada" 
-                : "Modo produção - cobranças reais serão criadas"}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="webhookToken">Webhook Token (opcional)</Label>
-            <Input
-              id="webhookToken"
-              type="text"
-              value={webhookToken}
-              onChange={(e) => setWebhookToken(e.target.value)}
-              placeholder="Token para validar webhooks"
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
             <div className="space-y-0.5">
-              <Label htmlFor="autoSync">Sincronização Automática</Label>
-              <p className="text-xs text-muted-foreground">
-                Sincronizar automaticamente status de pagamentos via webhook
+              <Label htmlFor="isActive" className="text-base font-medium">Ativar Integração com Asaas</Label>
+              <p className="text-sm text-muted-foreground">
+                Desative para usar o sistema financeiro sem sincronização com Asaas
               </p>
             </div>
             <Switch
-              id="autoSync"
-              checked={autoSync}
-              onCheckedChange={setAutoSync}
+              id="isActive"
+              checked={isActive}
+              onCheckedChange={setIsActive}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="autoCreate">Criar no Asaas Automaticamente</Label>
-              <p className="text-xs text-muted-foreground">
-                Criar cobranças no Asaas ao criar contas a receber
-              </p>
-            </div>
-            <Switch
-              id="autoCreate"
-              checked={autoCreateOnReceivable}
-              onCheckedChange={setAutoCreateOnReceivable}
-            />
-          </div>
+          {isActive && (
+            <>
+              <Alert>
+                <Key className="h-4 w-4" />
+                <AlertDescription>
+                  A API Key do Asaas precisa ser configurada como um secret do Supabase para garantir segurança. 
+                  Use a seção abaixo para configurá-la.
+                </AlertDescription>
+              </Alert>
 
-          <div className="space-y-2">
-            <Label htmlFor="billingType">Tipo de Cobrança Padrão</Label>
-            <Select value={defaultBillingType} onValueChange={setDefaultBillingType}>
-              <SelectTrigger id="billingType">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UNDEFINED">Não Definido</SelectItem>
-                <SelectItem value="BOLETO">Boleto</SelectItem>
-                <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
-                <SelectItem value="PIX">PIX</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="environment">Ambiente</Label>
+                <Select value={environment} onValueChange={(value: "sandbox" | "production") => setEnvironment(value)}>
+                  <SelectTrigger id="environment">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
+                    <SelectItem value="production">Production (Produção)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {environment === "sandbox" 
+                    ? "Modo de teste - nenhuma cobrança real será criada" 
+                    : "Modo produção - cobranças reais serão criadas"}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="webhookToken">Webhook Token (opcional)</Label>
+                <Input
+                  id="webhookToken"
+                  type="text"
+                  value={webhookToken}
+                  onChange={(e) => setWebhookToken(e.target.value)}
+                  placeholder="Token para validar webhooks"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="autoSync">Sincronização Automática</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Sincronizar automaticamente status de pagamentos via webhook
+                  </p>
+                </div>
+                <Switch
+                  id="autoSync"
+                  checked={autoSync}
+                  onCheckedChange={setAutoSync}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="autoCreate">Criar no Asaas Automaticamente</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Criar cobranças no Asaas ao criar contas a receber
+                  </p>
+                </div>
+                <Switch
+                  id="autoCreate"
+                  checked={autoCreateOnReceivable}
+                  onCheckedChange={setAutoCreateOnReceivable}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="billingType">Tipo de Cobrança Padrão</Label>
+                <Select value={defaultBillingType} onValueChange={setDefaultBillingType}>
+                  <SelectTrigger id="billingType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UNDEFINED">Não Definido</SelectItem>
+                    <SelectItem value="BOLETO">Boleto</SelectItem>
+                    <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                    <SelectItem value="PIX">PIX</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           <div className="space-y-4">
             <div className="flex gap-2">
@@ -204,7 +225,7 @@ export function AsaasSettingsTab() {
                 Salvar Configurações
               </Button>
 
-              {settings && (
+              {settings && isActive && (
                 <Button
                   variant="outline"
                   onClick={() => testConnectionMutation.mutate()}
@@ -220,44 +241,46 @@ export function AsaasSettingsTab() {
               )}
             </div>
 
-            <div className="p-4 border rounded-lg bg-muted/50">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Key className="h-4 w-4" />
-                Configurar API Key do Asaas
-              </h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                A API Key precisa ser armazenada de forma segura no Supabase. Clique no botão abaixo para acessar a página de configuração e adicionar o secret.
-              </p>
-              <Button
-                variant="secondary"
-                onClick={() => window.open('https://supabase.com/dashboard/project/pjnbsuwkxzxcfaetywjs/settings/functions', '_blank')}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Configurar Secret no Supabase
-              </Button>
-              <div className="mt-3 p-3 bg-background rounded border">
-                <p className="text-xs font-medium mb-1">Nome do secret:</p>
-                <code className="text-xs bg-muted px-2 py-1 rounded">ASAAS_API_KEY</code>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Copie sua API Key do Asaas e cole como valor do secret.
+            {isActive && (
+              <div className="p-4 border rounded-lg bg-muted/50">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Configurar API Key do Asaas
+                </h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  A API Key precisa ser armazenada de forma segura no Supabase. Clique no botão abaixo para acessar a página de configuração e adicionar o secret.
                 </p>
+                <Button
+                  variant="secondary"
+                  onClick={() => window.open('https://supabase.com/dashboard/project/pjnbsuwkxzxcfaetywjs/settings/functions', '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Configurar Secret no Supabase
+                </Button>
+                <div className="mt-3 p-3 bg-background rounded border">
+                  <p className="text-xs font-medium mb-1">Nome do secret:</p>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">ASAAS_API_KEY</code>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Copie sua API Key do Asaas e cole como valor do secret.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Documentação */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            <CardTitle>Guia de Configuração</CardTitle>
-          </div>
-          <CardDescription>
-            Siga este guia passo a passo para configurar e usar a integração com Asaas
-          </CardDescription>
-        </CardHeader>
+      {isActive && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              <CardTitle>Guia de Configuração</CardTitle>
+            </div>
+            <CardDescription>
+              Siga este guia passo a passo para configurar e usar a integração com Asaas
+            </CardDescription>
+          </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="step1">
@@ -447,6 +470,7 @@ export function AsaasSettingsTab() {
           </Accordion>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

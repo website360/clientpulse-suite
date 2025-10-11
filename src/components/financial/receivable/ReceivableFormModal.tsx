@@ -109,6 +109,20 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
     },
   });
 
+  // Fetch Asaas settings to check if integration is active
+  const { data: asaasSettings } = useQuery({
+    queryKey: ["asaas-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("asaas_settings")
+        .select("*")
+        .single();
+      
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -804,7 +818,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               )}
             />
 
-            {!account && (
+            {!account && asaasSettings && (asaasSettings as any).is_active && (
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-0.5">
                   <FormLabel>Criar automaticamente no Asaas</FormLabel>
