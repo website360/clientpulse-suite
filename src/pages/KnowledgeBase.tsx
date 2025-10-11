@@ -14,7 +14,14 @@ import {
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Filter } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { PostFormModal } from '@/components/knowledge/PostFormModal';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,21 +44,49 @@ interface Post {
   } | null;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export default function KnowledgeBase() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchCategories();
     fetchPosts();
   }, []);
 
-  const fetchPosts = async () => {
+  useEffect(() => {
+    fetchPosts();
+  }, [selectedCategory]);
+
+  const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
+        .from('knowledge_base_categories')
+        .select('id, name, color')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      let query = supabase
         .from('knowledge_base_posts')
         .select(`
           *,
@@ -61,6 +96,12 @@ export default function KnowledgeBase() {
           )
         `)
         .order('created_at', { ascending: false });
+
+      if (selectedCategory) {
+        query = query.eq('category_id', selectedCategory);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setPosts(data || []);
@@ -131,15 +172,37 @@ export default function KnowledgeBase() {
             <CardDescription>Lista de todos os artigos da base de conhecimento</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="mb-4 space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar posts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full md:w-[250px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

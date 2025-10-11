@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ArrowLeft, Eye, Calendar } from 'lucide-react';
+import { Search, ArrowLeft, Eye, Calendar, Copy } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -148,6 +149,15 @@ export default function KnowledgeBasePublic() {
     setSelectedPost(null);
   };
 
+  const handleCopyPostLink = () => {
+    const link = `${window.location.origin}/base-conhecimento/${selectedPost?.slug}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: 'Link copiado!',
+      description: 'O link do artigo foi copiado para a área de transferência.',
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -160,10 +170,16 @@ export default function KnowledgeBasePublic() {
     return (
       <div className="min-h-screen bg-background">
         <div className="container max-w-4xl py-8">
-          <Button variant="ghost" onClick={handleBackToList} className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" onClick={handleBackToList}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCopyPostLink}>
+              <Copy className="mr-2 h-3 w-3" />
+              Copiar Link
+            </Button>
+          </div>
 
           <article className="space-y-6">
             {selectedPost.featured_image_url && (
