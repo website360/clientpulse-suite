@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { Loader2, Save, TestTube } from "lucide-react";
+import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
 
 export function AsaasSettingsTab() {
   const queryClient = useQueryClient();
@@ -236,6 +238,207 @@ export function AsaasSettingsTab() {
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Documentação */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            <CardTitle>Guia de Configuração</CardTitle>
+          </div>
+          <CardDescription>
+            Siga este guia passo a passo para configurar e usar a integração com Asaas
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="step1">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>1. Criar conta no Asaas</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Se você ainda não tem uma conta no Asaas, crie uma gratuitamente:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-sm">
+                  <li>Acesse <a href="https://www.asaas.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">www.asaas.com <ExternalLink className="h-3 w-3" /></a></li>
+                  <li>Clique em "Criar conta grátis"</li>
+                  <li>Preencha seus dados e confirme seu email</li>
+                  <li>Complete o cadastro da sua empresa</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="step2">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>2. Obter API Key</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  A API Key é necessária para conectar o sistema ao Asaas:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                  <li>Faça login no <a href="https://www.asaas.com/login" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">painel Asaas <ExternalLink className="h-3 w-3" /></a></li>
+                  <li>No menu lateral, vá em <strong>Integrações</strong> → <strong>API Key</strong></li>
+                  <li>Clique em <strong>Gerar nova chave</strong></li>
+                  <li>Escolha o ambiente:
+                    <ul className="ml-6 mt-1 space-y-1">
+                      <li><strong>Sandbox:</strong> Para testes (recomendado inicialmente)</li>
+                      <li><strong>Production:</strong> Para cobranças reais</li>
+                    </ul>
+                  </li>
+                  <li>Copie a API Key gerada (ela só será exibida uma vez)</li>
+                  <li>Cole a API Key no campo acima e salve</li>
+                </ol>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Importante</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    Guarde sua API Key em um local seguro. Ela não poderá ser visualizada novamente no painel do Asaas.
+                  </AlertDescription>
+                </Alert>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="step3">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>3. Configurar Webhook (Opcional)</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Configure o webhook para sincronizar automaticamente o status dos pagamentos:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                  <li>No painel Asaas, vá em <strong>Integrações</strong> → <strong>Webhooks</strong></li>
+                  <li>Clique em <strong>Adicionar webhook</strong></li>
+                  <li>Configure os seguintes dados:</li>
+                </ol>
+                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                  <div>
+                    <strong>URL do Webhook:</strong>
+                    <code className="block mt-1 p-2 bg-background rounded text-xs break-all">
+                      https://pjnbsuwkxzxcfaetywjs.supabase.co/functions/v1/asaas-webhook
+                    </code>
+                  </div>
+                  <div>
+                    <strong>Eventos para notificar:</strong>
+                    <ul className="ml-4 mt-1 space-y-1">
+                      <li>✓ Cobrança recebida (PAYMENT_RECEIVED)</li>
+                      <li>✓ Cobrança confirmada (PAYMENT_CONFIRMED)</li>
+                      <li>✓ Cobrança vencida (PAYMENT_OVERDUE)</li>
+                      <li>✓ Cobrança excluída (PAYMENT_DELETED)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <strong>Token de Acesso (opcional):</strong>
+                    <p className="text-muted-foreground mt-1">
+                      Crie um token personalizado (ex: meu-token-secreto-123) e configure o mesmo no campo "Webhook Token" acima para maior segurança.
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="step4">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>4. Testar a Integração</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Após configurar, teste se tudo está funcionando:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                  <li>Clique no botão <strong>"Testar Conexão"</strong> acima</li>
+                  <li>Se aparecer uma mensagem de sucesso, sua API Key está válida</li>
+                  <li>Vá em <strong>Contas a Receber</strong> e crie uma nova conta</li>
+                  <li>Marque a opção <strong>"Criar automaticamente no Asaas"</strong></li>
+                  <li>Após salvar, verifique se a cobrança aparece no painel do Asaas</li>
+                </ol>
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    <strong>Modo Sandbox:</strong> No ambiente de testes, você pode simular pagamentos sem cobranças reais. Perfeito para validar a integração antes de usar em produção.
+                  </AlertDescription>
+                </Alert>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="step5">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>5. Como Usar no Dia a Dia</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <p className="text-sm font-medium">Criando cobranças:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Ao criar uma conta a receber, marque "Criar automaticamente no Asaas"</li>
+                  <li>O cliente será criado automaticamente no Asaas se ainda não existir</li>
+                  <li>A cobrança será gerada com link de pagamento</li>
+                </ul>
+
+                <p className="text-sm font-medium mt-4">Gerenciando cobranças existentes:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li><strong>Criar no Asaas:</strong> Para contas que ainda não foram sincronizadas</li>
+                  <li><strong>Sincronizar Status:</strong> Atualiza o status da cobrança do Asaas</li>
+                  <li><strong>Ver Fatura:</strong> Abre o link da fatura no Asaas</li>
+                  <li><strong>Detalhes Asaas:</strong> Mostra informações completas da cobrança</li>
+                </ul>
+
+                <p className="text-sm font-medium mt-4">Acompanhamento automático:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Com webhook configurado, o status é atualizado automaticamente</li>
+                  <li>Quando um pagamento for confirmado no Asaas, a conta aqui será marcada como "Recebido"</li>
+                  <li>Cobranças vencidas são atualizadas automaticamente para "Vencido"</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="step6">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-warning" />
+                  <span>6. Migrando para Produção</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Atenção</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    No ambiente de produção, todas as cobranças serão REAIS. Certifique-se de testar tudo no sandbox antes.
+                  </AlertDescription>
+                </Alert>
+
+                <p className="text-sm text-muted-foreground mt-4">
+                  Quando estiver pronto para usar em produção:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                  <li>Gere uma nova API Key no ambiente <strong>Production</strong> do Asaas</li>
+                  <li>Altere o ambiente acima para <strong>"Production (Produção)"</strong></li>
+                  <li>Cole a nova API Key de produção</li>
+                  <li>Atualize a URL do webhook no painel Asaas (mesma URL, mas com a API Key de produção)</li>
+                  <li>Teste criando uma cobrança de teste pequena</li>
+                  <li>Verifique se tudo está funcionando corretamente</li>
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
       </Card>
     </div>
