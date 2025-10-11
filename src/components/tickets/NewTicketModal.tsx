@@ -143,6 +143,17 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
 
       form.reset();
       setAttachments([]);
+      
+      // Send email notification
+      if (ticketData) {
+        supabase.functions.invoke('send-email', {
+          body: {
+            template_key: 'ticket_created',
+            ticket_id: ticketData.id,
+          },
+        }).catch(err => console.error('Error sending email:', err));
+      }
+      
       onSuccess?.();
     } catch (error) {
       console.error('Error creating ticket:', error);

@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.create-contact-user]
 verify_jwt = true
+
+[functions.send-email]
+verify_jwt = true

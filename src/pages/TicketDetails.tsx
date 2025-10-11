@@ -209,6 +209,14 @@ export default function TicketDetails() {
       fetchMessages();
       fetchAttachments();
       
+      // Send email notification
+      supabase.functions.invoke('send-email', {
+        body: {
+          template_key: 'ticket_message_added',
+          ticket_id: id,
+        },
+      }).catch(err => console.error('Error sending email:', err));
+      
       toast({
         title: 'Mensagem enviada',
         description: 'Sua mensagem foi adicionada ao ticket.',
@@ -293,6 +301,15 @@ export default function TicketDetails() {
       if (error) throw error;
 
       fetchTicketDetails();
+      
+      // Send email notification
+      supabase.functions.invoke('send-email', {
+        body: {
+          template_key: 'ticket_status_changed',
+          ticket_id: id,
+        },
+      }).catch(err => console.error('Error sending email:', err));
+      
       toast({
         title: 'Status atualizado',
         description: 'O status do ticket foi alterado com sucesso.',
