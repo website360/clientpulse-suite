@@ -105,8 +105,9 @@ serve(async (req) => {
       ? 'https://api.asaas.com/v3'
       : 'https://sandbox.asaas.com/api/v3';
 
-    // Prepare payment data
-    const paymentData: any = {
+    // Determine endpoint and prepare data based on occurrence type
+    let endpoint = `${baseUrl}/payments`;
+    let paymentData: any = {
       customer: asaasCustomerId,
       billingType: defaultBillingType,
       value: parseFloat(receivable.amount),
@@ -119,10 +120,48 @@ serve(async (req) => {
       paymentData.invoiceNumber = receivable.invoice_number;
     }
 
-    console.log('Creating Asaas payment:', paymentData);
+    // Handle recurring subscriptions (mensal, trimestral, semestral, anual, bianual)
+    if (['mensal', 'trimestral', 'semestral', 'anual', 'bianual'].includes(receivable.occurrence_type)) {
+      endpoint = `${baseUrl}/subscriptions`;
+      
+      // Map occurrence type to Asaas cycle
+      const cycleMap: Record<string, string> = {
+        'mensal': 'MONTHLY',
+        'trimestral': 'QUARTERLY',
+        'semestral': 'SEMIANNUALLY',
+        'anual': 'YEARLY',
+        'bianual': 'YEARLY' // Asaas doesn't have biannual, will use yearly
+      };
 
-    // Create payment in Asaas
-    const response = await fetch(`${baseUrl}/payments`, {
+      paymentData = {
+        customer: asaasCustomerId,
+        billingType: defaultBillingType,
+        value: parseFloat(receivable.amount),
+        nextDueDate: receivable.due_date,
+        description: receivable.description,
+        cycle: cycleMap[receivable.occurrence_type],
+        externalReference: receivableId,
+      };
+
+      if (receivable.invoice_number) {
+        paymentData.invoiceNumber = receivable.invoice_number;
+      }
+
+      console.log('Creating Asaas subscription:', paymentData);
+    }
+    // Handle installments (parcelada)
+    else if (receivable.occurrence_type === 'parcelada' && receivable.total_installments) {
+      paymentData.installmentCount = receivable.total_installments;
+      paymentData.installmentValue = parseFloat(receivable.amount);
+      
+      console.log('Creating Asaas installment payment:', paymentData);
+    }
+    else {
+      console.log('Creating Asaas single payment:', paymentData);
+    }
+
+    // Create payment/subscription in Asaas
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'access_token': asaasApiKey,
