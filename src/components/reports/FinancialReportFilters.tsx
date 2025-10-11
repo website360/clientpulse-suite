@@ -130,7 +130,7 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
 
   const clearFilters = () => {
     setFilters({
-      reportType: 'payable',
+      reportType: '',
       status: [],
       categories: [],
       startDate: undefined,
@@ -160,7 +160,7 @@ export default function FinancialReportFilters({ filters, setFilters }: Financia
             onValueChange={(value) => setFilters({ ...filters, reportType: value as any })}
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione o tipo de conta" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="payable">Contas a Pagar</SelectItem>

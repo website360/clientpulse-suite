@@ -20,6 +20,11 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
   const { data: records, isLoading } = useQuery({
     queryKey: ['financial-report', filters],
     queryFn: async () => {
+      // Não buscar se não tiver tipo de conta selecionado
+      if (!filters.reportType) {
+        return [];
+      }
+      
       const table = filters.reportType === 'payable' ? 'accounts_payable' : 'accounts_receivable';
       
       // Build query dynamically
@@ -172,6 +177,19 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Mensagem quando não há tipo selecionado
+  if (!filters.reportType) {
+    return (
+      <div className="border rounded-lg p-12 text-center">
+        <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Selecione o tipo de conta</h3>
+        <p className="text-muted-foreground">
+          Escolha entre Contas a Pagar ou Contas a Receber para visualizar os dados
+        </p>
       </div>
     );
   }

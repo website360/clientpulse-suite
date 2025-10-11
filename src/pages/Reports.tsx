@@ -6,7 +6,7 @@ import FinancialReportFilters from '@/components/reports/FinancialReportFilters'
 import FinancialReportTable from '@/components/reports/FinancialReportTable';
 import { FileText } from 'lucide-react';
 
-export type ReportType = 'payable' | 'receivable';
+export type ReportType = 'payable' | 'receivable' | '';
 export type ReportStatus = 'pending' | 'paid' | 'overdue' | 'canceled';
 
 export interface FinancialReportFilters {
@@ -22,7 +22,7 @@ export interface FinancialReportFilters {
 
 export default function Reports() {
   const [filters, setFilters] = useState<FinancialReportFilters>({
-    reportType: 'payable',
+    reportType: '',
     status: [],
     categories: [],
     startDate: undefined,
