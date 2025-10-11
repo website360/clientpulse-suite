@@ -181,58 +181,87 @@ serve(async (req) => {
     // Determine recipients based on template and ticket creator
     const recipients: string[] = [];
 
-    // Lógica de envio de emails:
-    // 1. Se cliente/contato criou ticket → enviar para admins
-    // 2. Se admin criou/respondeu → enviar para cliente
-    // 3. Se cliente/contato respondeu → enviar para admins
-    // 4. Nunca enviar para quem criou/respondeu (evitar auto-notificação)
+    /**
+     * LÓGICA DE ENVIO DE EMAILS PARA TICKETS:
+     * 
+     * 1. Cliente cria/responde ticket → enviar para TODOS os admins
+     * 2. Contato cria/responde ticket → enviar para TODOS os admins E para o cliente responsável
+     * 3. Admin responde/altera status:
+     *    - Se ticket foi criado por cliente → enviar para cliente
+     *    - Se ticket foi criado por contato → enviar para contato E para cliente
+     */
 
-    // ENVIAR PARA ADMINS (quando cliente ou contato cria/responde)
-    if (template.send_to_admin && !isCreatorAdmin) {
-      // Buscar todos os admins (sem depender de FK para join)
-      const { data: adminRoleRows, error: adminRolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
+    // Buscar todos os admins
+    const { data: adminRoleRows } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
 
-      if (!adminRolesError && adminRoleRows && adminRoleRows.length > 0) {
-        const adminIds = adminRoleRows.map((r: any) => r.user_id).filter(Boolean);
-        const { data: adminProfiles } = await supabase
-          .from("profiles")
-          .select("email")
-          .in("id", adminIds);
-
-        if (adminProfiles) {
-          adminProfiles.forEach((p: any) => {
-            if (p?.email) {
-              recipients.push(p.email);
-            }
-          });
-        }
-      }
+    const adminIds = adminRoleRows?.map((r: any) => r.user_id).filter(Boolean) || [];
+    
+    let adminEmails: string[] = [];
+    if (adminIds.length > 0) {
+      const { data: adminProfiles } = await supabase
+        .from("profiles")
+        .select("email")
+        .in("id", adminIds);
+      
+      adminEmails = adminProfiles?.map((p: any) => p.email).filter(Boolean) || [];
     }
 
-    // ENVIAR PARA CLIENTE (quando admin responde ou muda status)
-    if (template.send_to_client && isCreatorAdmin) {
+    // Caso 1: Cliente criou/respondeu → enviar para admins
+    if (!isCreatorAdmin && !isCreatorContact && template.send_to_admin) {
+      console.log("Caso 1: Cliente criou/respondeu - enviando para admins");
+      recipients.push(...adminEmails);
+    }
+
+    // Caso 2: Contato criou/respondeu → enviar para admins E cliente responsável
+    if (isCreatorContact && !isCreatorAdmin && template.send_to_admin) {
+      console.log("Caso 2: Contato criou/respondeu - enviando para admins e cliente");
+      recipients.push(...adminEmails);
+      
+      // Adicionar email do cliente responsável
       if (clientRow?.email) {
         recipients.push(clientRow.email);
       }
     }
 
-    // ENVIAR PARA CONTATO (quando admin responde ticket de contato)
-    if (template.send_to_contact && isCreatorAdmin && isCreatorContact) {
-      if (creatorContact?.email) {
-        recipients.push(creatorContact.email);
+    // Caso 3: Admin respondeu/alterou status
+    if (isCreatorAdmin) {
+      // Verificar se ticket foi criado por contato
+      const { data: ticketCreatorContact } = await supabase
+        .from("client_contacts")
+        .select("id, email, name")
+        .eq("user_id", ticket.created_by)
+        .maybeSingle();
+
+      if (ticketCreatorContact) {
+        // Ticket criado por contato → enviar para contato E cliente
+        console.log("Caso 3a: Admin respondeu ticket de contato - enviando para contato e cliente");
+        
+        if (template.send_to_contact && ticketCreatorContact.email) {
+          recipients.push(ticketCreatorContact.email);
+        }
+        
+        if (template.send_to_client && clientRow?.email) {
+          recipients.push(clientRow.email);
+        }
+      } else {
+        // Ticket criado por cliente → enviar apenas para cliente
+        console.log("Caso 3b: Admin respondeu ticket de cliente - enviando para cliente");
+        
+        if (template.send_to_client && clientRow?.email) {
+          recipients.push(clientRow.email);
+        }
       }
     }
 
-    // Remove duplicates and the creator's email (no self-notification)
-    const uniqueRecipients = [...new Set(recipients)].filter(
-      email => email !== creatorProfile?.email
-    );
+    // Remove duplicates
+    const uniqueRecipients = [...new Set(recipients)];
     
     console.log("Creator email:", creatorProfile?.email);
     console.log("Is creator admin:", isCreatorAdmin);
+    console.log("Is creator contact:", isCreatorContact);
     console.log("Template settings:", {
       send_to_admin: template.send_to_admin,
       send_to_client: template.send_to_client,
