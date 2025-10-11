@@ -148,6 +148,25 @@ export function KnowledgeBaseTab() {
     }
   };
 
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('knowledge_base_categories')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({ title: 'Status atualizado com sucesso!' });
+      fetchCategories();
+    } catch (error) {
+      console.error('Error toggling category status:', error);
+      toast({
+        title: 'Erro ao atualizar status',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -229,14 +248,6 @@ export function KnowledgeBaseTab() {
                   />
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-                <Label htmlFor="is_active">Ativa</Label>
-              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -285,9 +296,10 @@ export function KnowledgeBaseTab() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={category.is_active ? 'default' : 'secondary'}>
-                      {category.is_active ? 'Ativa' : 'Inativa'}
-                    </Badge>
+                    <Switch
+                      checked={category.is_active}
+                      onCheckedChange={() => handleToggleActive(category.id, category.is_active)}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
