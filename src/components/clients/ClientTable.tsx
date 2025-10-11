@@ -5,7 +5,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
@@ -59,139 +58,148 @@ export function ClientTable({
   }
 
   return (
-    <Card className="card-elevated">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <SortableTableHead
-              column="full_name"
-              label="Cliente"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <SortableTableHead
-              column="client_type"
-              label="Tipo"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <SortableTableHead
-              column="email"
-              label="Email"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <SortableTableHead
-              column="phone"
-              label="Telefone"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <SortableTableHead
-              column="cpf_cnpj"
-              label="CPF/CNPJ"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <SortableTableHead
-              column="is_active"
-              label="Status"
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={onSort}
-            />
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {clients.map((client) => (
-            <TableRow key={client.id} className="hover:bg-accent/50">
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    {client.client_type === 'company' ? (
-                      <Building2 className="h-5 w-5 text-primary" />
-                    ) : (
-                      <User className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {client.responsible_name || client.full_name || client.company_name}
-                    </p>
-                    {client.client_type === 'person' && client.full_name && (
-                      <p className="text-xs text-muted-foreground">
-                        {client.full_name}
-                      </p>
-                    )}
-                    {client.client_type === 'company' && client.company_name && (
-                      <p className="text-xs text-muted-foreground">
-                        {client.company_name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-sm">{client.email}</TableCell>
-              <TableCell className="text-sm">{formatPhone(client.phone)}</TableCell>
-              <TableCell className="text-sm">
-                {formatCpfCnpj(client.cpf_cnpj)}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant={client.is_active ? 'default' : 'secondary'}
-                  className={client.is_active ? 'bg-success/10 text-success border-success/20' : ''}
-                >
-                  {client.is_active ? 'Ativo' : 'Inativo'}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onView(client)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(client)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(client.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-error" />
-                  </Button>
-                </div>
-              </TableCell>
+    <div className="space-y-0">
+      <Card className="card-elevated">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <SortableTableHead
+                column="full_name"
+                label="Cliente"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="client_type"
+                label="Tipo"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="email"
+                label="Email"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="phone"
+                label="Telefone"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="cpf_cnpj"
+                label="CPF/CNPJ"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="is_active"
+                label="Status"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="created_at"
+                label="Ações"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                className="text-right"
+              />
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={totalCount}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
-    </Card>
+          </TableHeader>
+          <TableBody>
+            {clients.map((client) => (
+              <TableRow key={client.id} className="hover:bg-accent/50">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      {client.client_type === 'company' ? (
+                        <Building2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <User className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {client.responsible_name || client.full_name || client.company_name}
+                      </p>
+                      {client.client_type === 'person' && client.full_name && (
+                        <p className="text-xs text-muted-foreground">
+                          {client.full_name}
+                        </p>
+                      )}
+                      {client.client_type === 'company' && client.company_name && (
+                        <p className="text-xs text-muted-foreground">
+                          {client.company_name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">
+                    {client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-sm">{client.email}</TableCell>
+                <TableCell className="text-sm">{formatPhone(client.phone)}</TableCell>
+                <TableCell className="text-sm">
+                  {formatCpfCnpj(client.cpf_cnpj)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={client.is_active ? 'default' : 'secondary'}
+                    className={client.is_active ? 'bg-success/10 text-success border-success/20' : ''}
+                  >
+                    {client.is_active ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onView(client)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(client)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(client.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-error" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalCount}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      </Card>
+    </div>
   );
 }
