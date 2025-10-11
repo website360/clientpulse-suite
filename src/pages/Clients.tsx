@@ -35,11 +35,16 @@ export default function Clients() {
     type: 'all',
     status: 'active',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState<string | null>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
 
   useEffect(() => {
     fetchClients();
-  }, [filters.status]);
+  }, [filters.status, currentPage, pageSize, sortColumn, sortDirection]);
 
   useEffect(() => {
     applyFilters();
@@ -49,19 +54,41 @@ export default function Clients() {
     try {
       setLoading(true);
       
+      // Count total matching records
+      let countQuery = supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true });
+      
+      if (filters.status === 'active') {
+        countQuery = countQuery.eq('is_active', true);
+      } else if (filters.status === 'inactive') {
+        countQuery = countQuery.eq('is_active', false);
+      }
+
+      const { count } = await countQuery;
+      setTotalCount(count || 0);
+
+      // Fetch paginated data
       let query = supabase
         .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
       
-      // Filter by active status by default
-      if (filters.status === 'active' || filters.status === 'all') {
-        if (filters.status === 'active') {
-          query = query.eq('is_active', true);
-        }
-      } else {
+      // Filter by active status
+      if (filters.status === 'active') {
+        query = query.eq('is_active', true);
+      } else if (filters.status === 'inactive') {
         query = query.eq('is_active', false);
       }
+
+      // Apply sorting
+      if (sortColumn) {
+        query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
 
       const { data, error } = await query;
 
@@ -169,6 +196,27 @@ export default function Clients() {
     a.click();
   };
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -226,6 +274,15 @@ export default function Clients() {
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleDelete}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         ) : (
           <ClientCards

@@ -11,15 +11,40 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { formatPhone, formatCpfCnpj } from '@/lib/masks';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface ClientTableProps {
   clients: any[];
   onEdit: (client: any) => void;
   onView: (client: any) => void;
   onDelete: (clientId: string) => void;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: string) => void;
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
-export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTableProps) {
+export function ClientTable({ 
+  clients, 
+  onEdit, 
+  onView, 
+  onDelete,
+  sortColumn,
+  sortDirection,
+  onSort,
+  currentPage,
+  pageSize,
+  totalCount,
+  totalPages,
+  onPageChange,
+  onPageSizeChange,
+}: ClientTableProps) {
 
   if (clients.length === 0) {
     return (
@@ -38,12 +63,48 @@ export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTablePr
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Telefone</TableHead>
-            <TableHead>CPF/CNPJ</TableHead>
-            <TableHead>Status</TableHead>
+            <SortableTableHead
+              column="full_name"
+              label="Cliente"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
+            <SortableTableHead
+              column="client_type"
+              label="Tipo"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
+            <SortableTableHead
+              column="email"
+              label="Email"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
+            <SortableTableHead
+              column="phone"
+              label="Telefone"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
+            <SortableTableHead
+              column="cpf_cnpj"
+              label="CPF/CNPJ"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
+            <SortableTableHead
+              column="is_active"
+              label="Status"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -123,6 +184,14 @@ export function ClientTable({ clients, onEdit, onView, onDelete }: ClientTablePr
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalCount}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </Card>
   );
 }
