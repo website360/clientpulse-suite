@@ -146,12 +146,22 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
       
       // Send email notification
       if (ticketData) {
-        supabase.functions.invoke('send-email', {
-          body: {
-            template_key: 'ticket_created',
-            ticket_id: ticketData.id,
-          },
-        }).catch(err => console.error('Error sending email:', err));
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email', {
+            body: {
+              template_key: 'ticket_created',
+              ticket_id: ticketData.id,
+            },
+          });
+          
+          if (emailError) {
+            console.error('Error sending email:', emailError);
+          } else {
+            console.log('Email sent successfully:', emailResult);
+          }
+        } catch (err) {
+          console.error('Error invoking send-email function:', err);
+        }
       }
       
       onSuccess?.();
