@@ -73,10 +73,16 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
 
   const checkIfContact = async () => {
     // Check if user is a contact
-    if (userRole === 'contato') {
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user?.id)
+      .maybeSingle();
+
+    if (roleData?.role === 'contato') {
       const { data: contactData } = await supabase
         .from('client_contacts')
-        .select('client_id, clients(id, full_name, company_name, email)')
+        .select('client_id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -84,9 +90,16 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         setIsContact(true);
         setContactClientId(contactData.client_id);
         form.setValue('client_id', contactData.client_id);
-        // Set the client in the clients array so it shows in the select
-        if (contactData.clients) {
-          setClients([contactData.clients]);
+        
+        // Fetch the client data to show in select
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('id, full_name, company_name, email')
+          .eq('id', contactData.client_id)
+          .single();
+        
+        if (clientData) {
+          setClients([clientData]);
         }
       }
     } else {

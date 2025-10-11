@@ -52,20 +52,8 @@ export default function ClientTickets() {
 
   const fetchData = async () => {
     try {
-      // Get client data
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      // Get contact data (if user is a contact)
-      const { data: contactData } = await supabase
-        .from('client_contacts')
-        .select('id, client_id')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
+      setLoading(true);
+      
       // Get user role
       const { data: roleData } = await supabase
         .from('user_roles')
@@ -74,14 +62,37 @@ export default function ClientTickets() {
         .maybeSingle();
 
       const isContact = roleData?.role === 'contato';
-      const clientId = clientData?.id || contactData?.client_id;
+      
+      let clientId: string | null = null;
+
+      if (isContact) {
+        // Get contact data
+        const { data: contactData } = await supabase
+          .from('client_contacts')
+          .select('client_id')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        
+        clientId = contactData?.client_id || null;
+      } else {
+        // Get client data
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        
+        clientId = clientData?.id || null;
+      }
 
       if (!clientId) {
+        setLoading(false);
         toast({
-          title: 'Erro',
-          description: 'Cliente não encontrado',
+          title: 'Acesso negado',
+          description: 'Você não está associado a nenhum cliente.',
           variant: 'destructive',
         });
+        setTickets([]);
         return;
       }
 
