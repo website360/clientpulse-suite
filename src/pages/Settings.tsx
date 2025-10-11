@@ -15,6 +15,7 @@ import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
 import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
 import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
+import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -228,6 +229,7 @@ export default function Settings() {
                 <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                 <TabsTrigger value="financial">Financeiro</TabsTrigger>
                 <TabsTrigger value="services">Serviços</TabsTrigger>
+                <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
                 <TabsTrigger value="emails">Emails</TabsTrigger>
                 <TabsTrigger value="asaas">Asaas</TabsTrigger>
               </>
@@ -396,6 +398,10 @@ export default function Settings() {
 
                   <TabsContent value="services">
                     <ServicesTab />
+                  </TabsContent>
+
+                  <TabsContent value="knowledge-base">
+                    <KnowledgeBaseTab />
                   </TabsContent>
 
                   <TabsContent value="emails">

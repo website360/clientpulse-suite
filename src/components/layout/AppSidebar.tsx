@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -128,6 +128,7 @@ export function AppSidebar() {
     { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
     { title: 'Contratos', url: '/contracts', icon: FileText },
     { title: 'Relatórios', url: '/reports', icon: BarChart3 },
+    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];
 

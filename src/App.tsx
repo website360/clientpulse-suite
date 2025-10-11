@@ -21,6 +21,8 @@ import ClientContracts from './pages/portal/Contracts';
 import ClientTicketDetails from './pages/portal/TicketDetails';
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import KnowledgeBase from "./pages/KnowledgeBase";
+import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
+            <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
           <Route path="/portal" element={<ClientDashboard />} />
           <Route path="/portal/tickets" element={<ClientTickets />} />
           <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
@@ -47,6 +51,7 @@ const App = () => (
             <Route path="/financeiro/receber" element={<AccountsReceivable />} />
             <Route path="/contracts" element={<Contracts />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />
