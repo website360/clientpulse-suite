@@ -54,28 +54,21 @@ export default function ClientTickets() {
     try {
       setLoading(true);
       
-      // Get user role
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
+      // Detect contact by presence in client_contacts
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('client_id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      const isContact = roleData?.role === 'contato';
+      const isContact = !!contactData?.client_id;
       
       let clientId: string | null = null;
 
       if (isContact) {
-        // Get contact data
-        const { data: contactData } = await supabase
-          .from('client_contacts')
-          .select('client_id')
-          .eq('user_id', user?.id)
-          .maybeSingle();
-        
-        clientId = contactData?.client_id || null;
+        clientId = contactData!.client_id;
       } else {
-        // Get client data
+        // Get client data (owner)
         const { data: clientData } = await supabase
           .from('clients')
           .select('id')

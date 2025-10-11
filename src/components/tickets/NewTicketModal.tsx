@@ -55,6 +55,8 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
+      client_id: '',
+      department_id: '',
       priority: 'medium',
       subject: '',
       description: '',
@@ -72,14 +74,8 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
   }, [open, preSelectedClientId]);
 
   const checkIfContact = async () => {
-    // Check if user is a contact
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user?.id)
-      .maybeSingle();
-
-    if (roleData?.role === 'contato') {
+    try {
+      // Detect contact by presence in client_contacts (do not rely on role label)
       const { data: contactData } = await supabase
         .from('client_contacts')
         .select('client_id')
@@ -90,19 +86,20 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         setIsContact(true);
         setContactClientId(contactData.client_id);
         form.setValue('client_id', contactData.client_id);
-        
-        // Fetch the client data to show in select
+
+        // Fetch the client's info so it shows in the select (disabled)
         const { data: clientData } = await supabase
           .from('clients')
           .select('id, full_name, company_name, email')
           .eq('id', contactData.client_id)
-          .single();
-        
-        if (clientData) {
-          setClients([clientData]);
-        }
+          .maybeSingle();
+
+        if (clientData) setClients([clientData]);
+      } else {
+        setIsContact(false);
+        fetchClients();
       }
-    } else {
+    } catch (e) {
       setIsContact(false);
       fetchClients();
     }
