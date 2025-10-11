@@ -82,24 +82,39 @@ export default function ClientTicketDetails() {
 
   const fetchTicketDetails = async () => {
     try {
-      // Primeiro, pegar o client_id do usuário
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('id')
+      // Resolver client_id: se for contato, pegar do vínculo; senão, do cliente dono
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('client_id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      if (!clientData) {
+      let resolvedClientId: string | null = null;
+      let isContact = false;
+
+      if (contactData?.client_id) {
+        isContact = true;
+        resolvedClientId = contactData.client_id;
+      } else {
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        resolvedClientId = clientData?.id || null;
+      }
+
+      if (!resolvedClientId) {
         toast({
-          title: 'Erro',
-          description: 'Cliente não encontrado',
+          title: 'Acesso negado',
+          description: 'Você não está associado a nenhum cliente.',
           variant: 'destructive',
         });
         navigate('/portal/tickets');
         return;
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('tickets')
         .select(`
           *,
@@ -110,9 +125,13 @@ export default function ClientTicketDetails() {
           )
         `)
         .eq('id', id)
-        .eq('client_id', clientData.id)
-        .single();
+        .eq('client_id', resolvedClientId);
 
+      if (isContact) {
+        query = query.eq('created_by', user?.id);
+      }
+
+      const { data, error } = await query.single();
       if (error) throw error;
       setTicket(data);
     } catch (error: any) {

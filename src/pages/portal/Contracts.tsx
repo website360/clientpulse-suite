@@ -28,11 +28,24 @@ export default function ClientContracts() {
 
   useEffect(() => {
     if (user) {
-      fetchContracts();
+      (async () => {
+        // Block access for contacts
+        const { data: contact } = await supabase
+          .from('client_contacts')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (contact) {
+          toast({ title: 'Acesso negado', description: 'Página indisponível para contatos.', variant: 'destructive' });
+          window.location.href = '/portal';
+          return;
+        }
+        fetchContracts();
+      })();
     }
   }, [user]);
 
-  const fetchContracts = async () => {
+  async function fetchContracts() {
     try {
       const { data: client } = await supabase
         .from('clients')
@@ -67,7 +80,7 @@ export default function ClientContracts() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const getStatusBadge = (contract: any) => {
     const { status, end_date } = contract;
