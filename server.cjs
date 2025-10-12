@@ -11,8 +11,8 @@ app.use(express.static(distPath, { maxAge: '1h', etag: true }));
 // Simple health check for readiness probes
 app.get('/health', (_req, res) => res.status(200).send('OK'));
 
-// SPA fallback
-app.get('*', (_req, res) => {
+// SPA fallback - Express 5 compatible catch-all
+app.use((_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
