@@ -24,8 +24,8 @@ export default function Auth() {
     setIsDark(isDarkMode);
 
     // Carregar logos customizados do localStorage
-    const customAuthLogoLight = localStorage.getItem('app-logo-light');
-    const customAuthLogoDark = localStorage.getItem('app-logo-dark');
+    const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
+    const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
     
     setAuthLogo({
       light: customAuthLogoLight || logoLight,
