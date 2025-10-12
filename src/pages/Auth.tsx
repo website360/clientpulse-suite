@@ -81,20 +81,18 @@ export default function Auth() {
       <div className="absolute top-1/4 -right-48 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-32 -left-48 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
       
+      {/* Logo no fundo */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+        <img 
+          src={isDark ? authLogo.dark : authLogo.light} 
+          alt="Logo" 
+          className="h-64 w-auto"
+        />
+      </div>
+      
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
-        <div className="mb-10 text-center">
-          <div className="inline-block p-2 rounded-2xl bg-card/50 backdrop-blur-sm shadow-lg">
-            <img 
-              src={isDark ? authLogo.dark : authLogo.light} 
-              alt="Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-        </div>
-
         {/* Sign In Form */}
-        <Card className="border-0 shadow-2xl shadow-primary/5 backdrop-blur-sm bg-card/95">
+        <Card className="border-0 shadow-2xl backdrop-blur-md bg-card">
           <CardHeader className="space-y-2 text-center pb-4">
             <CardTitle className="text-2xl font-semibold">Bem-vindo</CardTitle>
             <CardDescription className="text-sm">
