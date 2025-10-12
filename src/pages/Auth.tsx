@@ -75,50 +75,59 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+      <div className="absolute top-1/4 -right-48 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-32 -left-48 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
       
-      <div className="w-full max-w-sm relative z-10">
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <img 
-            src={isDark ? authLogo.dark : authLogo.light} 
-            alt="Logo" 
-            className="h-12 w-auto mx-auto"
-          />
+        <div className="mb-10 text-center">
+          <div className="inline-block p-2 rounded-2xl bg-card/50 backdrop-blur-sm shadow-lg">
+            <img 
+              src={isDark ? authLogo.dark : authLogo.light} 
+              alt="Logo" 
+              className="h-10 w-auto"
+            />
+          </div>
         </div>
 
         {/* Sign In Form */}
-        <Card className="border shadow-sm">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl">Entrar</CardTitle>
-            <CardDescription>
-              Digite suas credenciais para acessar
+        <Card className="border-0 shadow-2xl shadow-primary/5 backdrop-blur-sm bg-card/95">
+          <CardHeader className="space-y-2 text-center pb-4">
+            <CardTitle className="text-2xl font-semibold">Bem-vindo</CardTitle>
+            <CardDescription className="text-sm">
+              Entre com suas credenciais para continuar
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email" className="text-sm font-medium">
+                  E-mail
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary transition-all"
                   required
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password" className="text-sm font-medium">
+                    Senha
+                  </Label>
                   <button
                     type="button"
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
                     onClick={() => toast.info('Entre em contato com o administrador')}
                   >
-                    Esqueceu a senha?
+                    Esqueceu?
                   </button>
                 </div>
                 <Input
@@ -127,12 +136,13 @@ export default function Auth() {
                   placeholder="••••••••"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
+                  className="h-11 bg-background/50 border-border/50 focus:border-primary transition-all"
                   required
                 />
               </div>
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full h-11 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
                 disabled={loading}
               >
                 {loading ? (
@@ -150,6 +160,11 @@ export default function Auth() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Seus dados estão protegidos e seguros
+        </p>
       </div>
     </div>
   );
