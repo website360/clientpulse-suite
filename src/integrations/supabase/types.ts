@@ -720,6 +720,45 @@ export type Database = {
         }
         Relationships: []
       }
+      google_calendar_tokens: {
+        Row: {
+          access_token: string
+          calendar_id: string | null
+          created_at: string | null
+          id: string
+          refresh_token: string
+          sync_enabled: boolean | null
+          sync_tickets: boolean | null
+          token_expiry: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          refresh_token: string
+          sync_enabled?: boolean | null
+          sync_tickets?: boolean | null
+          token_expiry: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          refresh_token?: string
+          sync_enabled?: boolean | null
+          sync_tickets?: boolean | null
+          token_expiry?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       knowledge_base_categories: {
         Row: {
           color: string | null
@@ -991,6 +1030,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          client_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          end_time: string | null
+          google_event_id: string | null
+          id: string
+          priority: string | null
+          start_time: string | null
+          status: string
+          ticket_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          end_time?: string | null
+          google_event_id?: string | null
+          id?: string
+          priority?: string | null
+          start_time?: string | null
+          status?: string
+          ticket_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          end_time?: string | null
+          google_event_id?: string | null
+          id?: string
+          priority?: string | null
+          start_time?: string | null
+          status?: string
+          ticket_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_attachments: {
         Row: {
