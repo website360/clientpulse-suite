@@ -26,7 +26,7 @@ const Tasks = () => {
   const [editingTask, setEditingTask] = useState<any>(null);
   const [filters, setFilters] = useState<TaskFilters>({
     search: "",
-    status: "all",
+    status: "active",
     priority: "all",
     assignedTo: "all",
     clientId: "all",
@@ -49,7 +49,9 @@ const Tasks = () => {
       if (filters.search) {
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
-      if (filters.status !== "all") {
+      if (filters.status === "active") {
+        query = query.neq("status", "done");
+      } else if (filters.status !== "all") {
         query = query.eq("status", filters.status);
       }
       if (filters.priority !== "all") {
@@ -86,6 +88,25 @@ const Tasks = () => {
     }
 
     toast.success("Status atualizado com sucesso");
+    refetch();
+  };
+
+  const handleDateChange = async (taskId: string, newDate: Date) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ 
+        due_date: newDate.toISOString(),
+        start_time: newDate.toISOString(),
+        end_time: new Date(newDate.getTime() + 60 * 60 * 1000).toISOString()
+      })
+      .eq("id", taskId);
+
+    if (error) {
+      toast.error("Erro ao atualizar data da tarefa");
+      return;
+    }
+
+    toast.success("Data atualizada com sucesso");
     refetch();
   };
 
@@ -145,6 +166,7 @@ const Tasks = () => {
               tasks={tasks}
               onEditTask={handleEditTask}
               onRefetch={refetch}
+              onDateChange={handleDateChange}
             />
           </TabsContent>
         </Tabs>

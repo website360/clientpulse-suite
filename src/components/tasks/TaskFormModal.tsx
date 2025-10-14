@@ -51,12 +51,25 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["admin-users"],
     queryFn: async () => {
+      const { data: adminRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      
+      if (rolesError) throw rolesError;
+      
+      const adminIds = adminRoles?.map(r => r.user_id) || [];
+      
+      if (adminIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name")
+        .in("id", adminIds)
         .order("full_name");
+      
       if (error) throw error;
       return data;
     },

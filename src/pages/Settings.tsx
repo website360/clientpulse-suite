@@ -16,6 +16,7 @@ import { ServicesTab } from '@/components/settings/ServicesTab';
 import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
 import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
+import { GoogleCalendarTab } from '@/components/settings/GoogleCalendarTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -232,6 +233,7 @@ export default function Settings() {
                 <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
                 <TabsTrigger value="emails">Emails</TabsTrigger>
                 <TabsTrigger value="asaas">Asaas</TabsTrigger>
+                <TabsTrigger value="google-calendar">Google Calendar</TabsTrigger>
               </>
             )}
           </TabsList>
@@ -410,6 +412,10 @@ export default function Settings() {
 
                   <TabsContent value="asaas">
                     <AsaasSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="google-calendar">
+                    <GoogleCalendarTab />
                   </TabsContent>
                 </>
               )}

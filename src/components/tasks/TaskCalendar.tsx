@@ -14,9 +14,10 @@ interface TaskCalendarProps {
   tasks: any[];
   onEditTask: (task: any) => void;
   onRefetch: () => void;
+  onDateChange: (taskId: string, newDate: Date) => void;
 }
 
-const TaskCalendar = ({ tasks, onEditTask, onRefetch }: TaskCalendarProps) => {
+const TaskCalendar = ({ tasks, onEditTask, onRefetch, onDateChange }: TaskCalendarProps) => {
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState(new Date());
 
@@ -124,6 +125,12 @@ const TaskCalendar = ({ tasks, onEditTask, onRefetch }: TaskCalendarProps) => {
     onEditTask(newTask);
   };
 
+  const handleEventDrop = ({ event, start }: { event: any; start: Date; end: Date }) => {
+    if (event.resource?.type === "task") {
+      onDateChange(event.resource.data.id, start);
+    }
+  };
+
   return (
     <div className="h-[600px] bg-card rounded-lg border p-4">
       <Calendar
@@ -137,7 +144,10 @@ const TaskCalendar = ({ tasks, onEditTask, onRefetch }: TaskCalendarProps) => {
         onNavigate={setDate}
         onSelectEvent={handleSelectEvent}
         onSelectSlot={handleSelectSlot}
+        onEventDrop={handleEventDrop}
         selectable
+        draggableAccessor={() => true}
+        resizable={false}
         eventPropGetter={eventStyleGetter}
         messages={{
           next: "Próximo",

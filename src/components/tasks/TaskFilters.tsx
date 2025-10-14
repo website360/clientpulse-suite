@@ -56,6 +56,7 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="active">Ativos (não concluídos)</SelectItem>
           <SelectItem value="all">Todos</SelectItem>
           <SelectItem value="todo">A Fazer</SelectItem>
           <SelectItem value="in_progress">Em Andamento</SelectItem>

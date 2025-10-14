@@ -84,7 +84,14 @@ const TaskCard = ({ task, onClick, isDragging = false }: TaskCardProps) => {
           </Badge>
         )}
         {task.ticket && (
-          <Badge variant="outline" className="text-xs gap-1">
+          <Badge 
+            variant="outline" 
+            className="text-xs gap-1 cursor-pointer hover:bg-accent"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.location.href = `/tickets/${task.ticket.id}`;
+            }}
+          >
             <Link2 className="h-3 w-3" />
             #{task.ticket.ticket_number}
           </Badge>

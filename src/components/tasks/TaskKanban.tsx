@@ -36,10 +36,14 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
     }
 
     const taskId = active.id as string;
-    const newStatus = over.id as string;
-
-    if (["todo", "in_progress", "done"].includes(newStatus)) {
-      onStatusChange(taskId, newStatus);
+    const overId = over.id as string;
+    
+    // Check if dropped over a column
+    if (["todo", "in_progress", "done"].includes(overId)) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task && task.status !== overId) {
+        onStatusChange(taskId, overId);
+      }
     }
 
     setActiveId(null);
@@ -56,7 +60,6 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
           return (
             <div
               key={column.id}
-              id={column.id}
               className="flex flex-col gap-3 p-4 rounded-lg bg-muted/30"
             >
               <div className="flex items-center justify-between">
@@ -67,8 +70,12 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
               <SortableContext
                 items={columnTasks.map((t) => t.id)}
                 strategy={verticalListSortingStrategy}
+                id={column.id}
               >
-                <div className="space-y-3 min-h-[200px]">
+                <div 
+                  id={column.id}
+                  className="space-y-3 min-h-[200px]"
+                >
                   {columnTasks.map((task) => (
                     <TaskCard
                       key={task.id}
