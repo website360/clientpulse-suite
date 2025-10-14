@@ -218,7 +218,6 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.full_name}
@@ -238,7 +237,6 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.nickname || client.company_name || client.full_name}
@@ -259,7 +257,6 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
                 {tickets.map((ticket) => (
                   <SelectItem key={ticket.id} value={ticket.id}>
                     #{ticket.ticket_number} - {ticket.subject}
