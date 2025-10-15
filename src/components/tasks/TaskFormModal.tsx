@@ -300,6 +300,30 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
+            {task?.id && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={async () => {
+                  if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                    const { error } = await supabase
+                      .from("tasks")
+                      .delete()
+                      .eq("id", task.id);
+
+                    if (error) {
+                      toast.error("Erro ao excluir tarefa");
+                      return;
+                    }
+                    toast.success("Tarefa excluída com sucesso");
+                    onSuccess();
+                    onClose();
+                  }
+                }}
+              >
+                Excluir
+              </Button>
+            )}
             <Button type="submit">{task?.id ? "Atualizar" : "Criar"}</Button>
           </div>
         </form>

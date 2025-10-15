@@ -297,6 +297,17 @@ export default function Tickets() {
     if (!ticketToDelete) return;
 
     try {
+      // Primeiro, remover a referência ticket_id das tarefas vinculadas
+      const { error: taskUpdateError } = await supabase
+        .from('tasks')
+        .update({ ticket_id: null })
+        .eq('ticket_id', ticketToDelete);
+
+      if (taskUpdateError) {
+        console.error('Error updating tasks:', taskUpdateError);
+      }
+
+      // Depois, excluir o ticket
       const { error } = await supabase
         .from('tickets')
         .delete()
