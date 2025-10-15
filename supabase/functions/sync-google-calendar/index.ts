@@ -173,7 +173,7 @@ serve(async (req) => {
     }
 
     throw new Error('Invalid action or missing parameters');
-  } catch (error) {
+  } catch (error: any) {
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }

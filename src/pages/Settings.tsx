@@ -17,6 +17,7 @@ import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
 import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { GoogleCalendarTab } from '@/components/settings/GoogleCalendarTab';
+import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -234,6 +235,7 @@ export default function Settings() {
                 <TabsTrigger value="emails">Emails</TabsTrigger>
                 <TabsTrigger value="asaas">Asaas</TabsTrigger>
                 <TabsTrigger value="google-calendar">Google Calendar</TabsTrigger>
+                <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
               </>
             )}
           </TabsList>
@@ -416,6 +418,10 @@ export default function Settings() {
 
                   <TabsContent value="google-calendar">
                     <GoogleCalendarTab />
+                  </TabsContent>
+
+                  <TabsContent value="whatsapp">
+                    <WhatsAppSettingsTab />
                   </TabsContent>
                 </>
               )}
