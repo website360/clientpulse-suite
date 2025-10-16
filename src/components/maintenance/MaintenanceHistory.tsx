@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,9 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MaintenanceExecutionViewModal } from "@/components/clients/MaintenanceExecutionViewModal";
 
 export function MaintenanceHistory() {
-    const { data: executions, isLoading } = useQuery({
+  const [selectedExecution, setSelectedExecution] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+
+  const { data: executions, isLoading } = useQuery({
     queryKey: ["maintenance-history"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,6 +30,12 @@ export function MaintenanceHistory() {
           plan:client_maintenance_plans(
             client:clients(full_name, nickname, company_name),
             domain:domains(domain)
+          ),
+          checklist_items:maintenance_execution_items(
+            id,
+            status,
+            notes,
+            checklist_item:maintenance_checklist_items(id, name)
           )
         `)
         .order("executed_at", { ascending: false })
@@ -46,6 +57,11 @@ export function MaintenanceHistory() {
       }));
     },
   });
+
+  const handleView = (execution: any) => {
+    setSelectedExecution(execution);
+    setViewModalOpen(true);
+  };
 
   if (isLoading) {
     return <div>Carregando...</div>;
@@ -90,7 +106,7 @@ export function MaintenanceHistory() {
                     : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleView(execution)}>
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -105,6 +121,12 @@ export function MaintenanceHistory() {
           Nenhuma manutenção registrada ainda
         </div>
       )}
+
+      <MaintenanceExecutionViewModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        execution={selectedExecution}
+      />
     </div>
   );
 }

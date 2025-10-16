@@ -91,12 +91,21 @@ serve(async (req) => {
       throw new Error("Cliente não possui telefone cadastrado");
     }
 
+    // Normalizar telefone: remover não-dígitos, remover zeros à esquerda, adicionar DDI 55 se necessário
+    let normalizedPhone = clientPhone.replace(/\D/g, '');
+    normalizedPhone = normalizedPhone.replace(/^0+/, '');
+    if (!normalizedPhone.startsWith('55')) {
+      normalizedPhone = '55' + normalizedPhone;
+    }
+
+    console.log(`Enviando WhatsApp para: ${normalizedPhone}`);
+
     const { error: whatsappError } = await supabase.functions.invoke(
       "send-whatsapp",
       {
         body: {
           action: "send_message",
-          phone: clientPhone,
+          phone: normalizedPhone,
           message: message,
         },
       }

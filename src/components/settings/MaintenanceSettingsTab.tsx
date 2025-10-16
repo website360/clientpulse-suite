@@ -210,43 +210,6 @@ export function MaintenanceSettingsTab() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações Gerais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Dia padrão do mês</Label>
-              <Input
-                type="number"
-                min="1"
-                max="31"
-                value={settings?.default_monthly_day || 1}
-                onChange={(e) =>
-                  updateSettingsMutation.mutate({
-                    default_monthly_day: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Dias de antecedência para notificação</Label>
-              <Input
-                type="number"
-                min="1"
-                max="30"
-                value={settings?.notification_days_advance || 3}
-                onChange={(e) =>
-                  updateSettingsMutation.mutate({
-                    notification_days_advance: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
