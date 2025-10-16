@@ -350,18 +350,21 @@ export default function TicketDetails() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed') => {
     try {
       console.log('Updating status to:', newStatus);
       const { error } = await supabase
         .from('tickets')
-        .update({ status: newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' })
+        .update({ status: newStatus })
         .eq('id', id);
 
       if (error) {
         console.error('Error updating status:', error);
         throw error;
       }
+
+      // Optimistic UI update
+      setTicket((prev: any) => prev ? { ...prev, status: newStatus } : prev);
 
       console.log('Status updated successfully, fetching details...');
       fetchTicketDetails();
@@ -458,6 +461,28 @@ export default function TicketDetails() {
     }
   };
 
+  const normalizeStatus = (status: string) => {
+    const map: Record<string, string> = {
+      'Aberto': 'open',
+      'Em Andamento': 'in_progress',
+      'Aguardando': 'waiting',
+      'Resolvido': 'resolved',
+      'Fechado': 'closed',
+    };
+    return map[status] || status;
+  };
+
+  const toPortugueseStatus = (status: string) => {
+    const map: Record<string, string> = {
+      open: 'Aberto',
+      in_progress: 'Em Andamento',
+      waiting: 'Aguardando',
+      resolved: 'Resolvido',
+      closed: 'Fechado',
+    };
+    return map[status] || status;
+  };
+
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       open: 'Aberto',
@@ -468,7 +493,6 @@ export default function TicketDetails() {
     };
     return labels[status] || status;
   };
-
   const getPriorityLabel = (priority: string) => {
     const labels: Record<string, string> = {
       low: 'Baixa',
@@ -659,10 +683,10 @@ export default function TicketDetails() {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">Status</p>
-                  <Select value={ticket.status} onValueChange={handleStatusChange}>
+                  <Select value={normalizeStatus(ticket.status)} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue>
-                        {getStatusLabel(ticket.status)}
+                        {getStatusLabel(normalizeStatus(ticket.status))}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
