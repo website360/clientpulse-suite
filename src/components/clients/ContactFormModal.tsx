@@ -34,6 +34,7 @@ export function ContactFormModal({
     name: '',
     department: '',
     email: '',
+    phone: '',
   });
 
   useEffect(() => {
@@ -42,12 +43,14 @@ export function ContactFormModal({
         name: contact.name || '',
         department: contact.department || '',
         email: contact.email || '',
+        phone: contact.phone || '',
       });
     } else {
       setFormData({
         name: '',
         department: '',
         email: '',
+        phone: '',
       });
     }
   }, [contact, open]);
@@ -142,6 +145,18 @@ export function ContactFormModal({
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
               maxLength={255}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Telefone (WhatsApp)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="(11) 99999-9999"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              maxLength={20}
             />
           </div>
 

@@ -214,7 +214,7 @@ serve(async (req) => {
           );
       }
 
-      // Get ticket details with client info
+      // Get ticket details with client info and contact info
       const { data: ticket, error: ticketError } = await supabase
         .from('tickets')
         .select(`
@@ -246,18 +246,17 @@ serve(async (req) => {
       // Check if ticket was created by a contact
       const { data: contactData } = await supabase
         .from('client_contacts')
-        .select('user_id, name')
+        .select('user_id, name, phone')
         .eq('user_id', ticket.created_by)
         .maybeSingle();
 
       const isContactCreated = !!contactData;
+      const results = [];
 
-      // For ticket_created event when created by contact, send to both admin AND client
+      // CASO 1: Ticket criado por contato
       if (event_type === 'ticket_created' && isContactCreated) {
-        const results = [];
-        
-        // 1. Send to admin
-        const { data: adminUsers, error: adminError } = await supabase
+        // Enviar para admin
+        const { data: adminUsers } = await supabase
           .from('user_roles')
           .select('user_id')
           .eq('role', 'admin')
@@ -281,9 +280,7 @@ serve(async (req) => {
               `Prioridade: ${ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Média' : '🟢 Baixa'}`;
 
             let cleanAdminPhone = adminProfile.phone.replace(/\D/g, '');
-            if (!cleanAdminPhone.startsWith('55')) {
-              cleanAdminPhone = '55' + cleanAdminPhone;
-            }
+            if (!cleanAdminPhone.startsWith('55')) cleanAdminPhone = '55' + cleanAdminPhone;
 
             try {
               const adminResult = await sendTextMessage(settings, cleanAdminPhone, adminMessageText);
@@ -295,19 +292,16 @@ serve(async (req) => {
           }
         }
 
-        // 2. Send to client
+        // Enviar para cliente
         if (client.phone) {
           const clientMessageText = `🎫 *Novo Ticket Aberto*\n\n` +
             `Número: #${ticket.ticket_number}\n` +
             `Aberto por: ${contactData.name}\n` +
-            `Assunto: ${ticket.subject}\n` +
-            `Status: Aberto\n\n` +
+            `Assunto: ${ticket.subject}\n\n` +
             `Nosso time já foi notificado e entrará em contato em breve.`;
 
           let cleanClientPhone = client.phone.replace(/\D/g, '');
-          if (!cleanClientPhone.startsWith('55')) {
-            cleanClientPhone = '55' + cleanClientPhone;
-          }
+          if (!cleanClientPhone.startsWith('55')) cleanClientPhone = '55' + cleanClientPhone;
 
           try {
             const clientResult = await sendTextMessage(settings, cleanClientPhone, clientMessageText);
@@ -319,51 +313,159 @@ serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify({ 
-            success: true, 
-            message: 'Notifications sent',
-            results 
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
+          JSON.stringify({ success: true, message: 'Notifications sent', results }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // For other events (non-contact created or other event types)
-      let recipientPhone = '';
-      let messageText = '';
+      // CASO 2: Admin interage em ticket criado por contato
+      if (isContactCreated && ['admin_response', 'status_changed', 'ticket_deleted'].includes(event_type)) {
+        const statusLabels: Record<string, string> = {
+          open: 'Aberto',
+          in_progress: 'Em Andamento',
+          waiting: 'Aguardando',
+          resolved: 'Resolvido',
+          closed: 'Fechado',
+        };
 
-      // For client-initiated events (ticket_created, ticket_message), send to admin
-      // For admin actions (admin_response, status_changed, ticket_deleted), send to client
-      if (event_type === 'ticket_created' || event_type === 'ticket_message') {
-        // Send to admin
-        const { data: adminUsers, error: adminError } = await supabase
+        // Enviar para contato
+        if (contactData.phone) {
+          let contactMessageText = '';
+          
+          if (event_type === 'admin_response') {
+            contactMessageText = `💬 *Nova Resposta no Ticket #${ticket.ticket_number}*\n\n` +
+              `Assunto: ${ticket.subject}\n` +
+              `O suporte respondeu ao seu ticket. Acesse o portal para ver a mensagem.`;
+          } else if (event_type === 'status_changed') {
+            contactMessageText = `🔄 *Status do Ticket #${ticket.ticket_number} Atualizado*\n\n` +
+              `Assunto: ${ticket.subject}\n` +
+              `Novo Status: ${statusLabels[ticket.status] || ticket.status}`;
+          } else if (event_type === 'ticket_deleted') {
+            contactMessageText = `🗑️ *Ticket #${ticket.ticket_number} Excluído*\n\n` +
+              `Assunto: ${ticket.subject}\n` +
+              `Este ticket foi excluído pelo administrador.`;
+          }
+
+          let cleanContactPhone = contactData.phone.replace(/\D/g, '');
+          if (!cleanContactPhone.startsWith('55')) cleanContactPhone = '55' + cleanContactPhone;
+
+          try {
+            const contactResult = await sendTextMessage(settings, cleanContactPhone, contactMessageText);
+            results.push({ recipient: 'contact', success: true, data: contactResult });
+          } catch (error: any) {
+            console.error('Error sending to contact:', error);
+            results.push({ recipient: 'contact', success: false, error: error.message });
+          }
+        }
+
+        // Enviar para cliente
+        if (client.phone) {
+          let clientMessageText = '';
+          
+          if (event_type === 'admin_response') {
+            clientMessageText = `💬 *Atualização no Ticket #${ticket.ticket_number}*\n\n` +
+              `Aberto por: ${contactData.name}\n` +
+              `Assunto: ${ticket.subject}\n` +
+              `O suporte respondeu ao ticket.`;
+          } else if (event_type === 'status_changed') {
+            clientMessageText = `🔄 *Ticket #${ticket.ticket_number} - Status Atualizado*\n\n` +
+              `Aberto por: ${contactData.name}\n` +
+              `Novo Status: ${statusLabels[ticket.status] || ticket.status}`;
+          } else if (event_type === 'ticket_deleted') {
+            clientMessageText = `🗑️ *Ticket #${ticket.ticket_number} Excluído*\n\n` +
+              `Aberto por: ${contactData.name}\n` +
+              `O ticket foi excluído pelo administrador.`;
+          }
+
+          let cleanClientPhone = client.phone.replace(/\D/g, '');
+          if (!cleanClientPhone.startsWith('55')) cleanClientPhone = '55' + cleanClientPhone;
+
+          try {
+            const clientResult = await sendTextMessage(settings, cleanClientPhone, clientMessageText);
+            results.push({ recipient: 'client', success: true, data: clientResult });
+          } catch (error: any) {
+            console.error('Error sending to client:', error);
+            results.push({ recipient: 'client', success: false, error: error.message });
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Notifications sent', results }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // CASO 3: Usuário/contato envia mensagem em ticket criado por contato
+      if (event_type === 'ticket_message' && isContactCreated) {
+        // Enviar para admin
+        const { data: adminUsers } = await supabase
           .from('user_roles')
           .select('user_id')
           .eq('role', 'admin')
           .limit(1)
           .single();
 
-        if (adminError || !adminUsers) {
-          console.log('No admin user found');
+        if (adminUsers) {
+          const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('phone')
+            .eq('id', adminUsers.user_id)
+            .single();
+
+          if (adminProfile?.phone) {
+            const adminMessageText = `💬 *Nova Mensagem no Ticket #${ticket.ticket_number}*\n\n` +
+              `Contato: ${contactData.name}\n` +
+              `Cliente: ${clientName}\n` +
+              `Assunto: ${ticket.subject}`;
+
+            let cleanAdminPhone = adminProfile.phone.replace(/\D/g, '');
+            if (!cleanAdminPhone.startsWith('55')) cleanAdminPhone = '55' + cleanAdminPhone;
+
+            try {
+              const adminResult = await sendTextMessage(settings, cleanAdminPhone, adminMessageText);
+              results.push({ recipient: 'admin', success: true, data: adminResult });
+            } catch (error: any) {
+              console.error('Error sending to admin:', error);
+              results.push({ recipient: 'admin', success: false, error: error.message });
+            }
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Notifications sent', results }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // CASO 4: Fluxo padrão (ticket NÃO criado por contato)
+      let recipientPhone = '';
+      let messageText = '';
+
+      if (event_type === 'ticket_created' || event_type === 'ticket_message') {
+        // Send to admin
+        const { data: adminUsers } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin')
+          .limit(1)
+          .single();
+
+        if (!adminUsers) {
           return new Response(
             JSON.stringify({ success: true, message: 'No admin user found' }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        const { data: adminProfile, error: profileError } = await supabase
+        const { data: adminProfile } = await supabase
           .from('profiles')
           .select('phone')
           .eq('id', adminUsers.user_id)
           .single();
 
-        if (profileError || !adminProfile?.phone) {
-          console.log('Admin phone not configured in profile');
+        if (!adminProfile?.phone) {
           return new Response(
-            JSON.stringify({ success: true, message: 'Admin phone not configured in profile' }),
+            JSON.stringify({ success: true, message: 'Admin phone not configured' }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -380,13 +482,11 @@ serve(async (req) => {
         } else if (event_type === 'ticket_message') {
           messageText = `💬 *Nova Mensagem no Ticket #${ticket.ticket_number}*\n\n` +
             `Cliente: ${clientName}\n` +
-            `Assunto: ${ticket.subject}\n` +
-            `Status: ${ticket.status}`;
+            `Assunto: ${ticket.subject}`;
         }
       } else {
         // Send to client for admin actions
         if (!client.phone) {
-          console.log('Client phone not configured');
           return new Response(
             JSON.stringify({ success: true, message: 'Client phone not configured' }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -404,9 +504,9 @@ serve(async (req) => {
         };
 
         if (event_type === 'admin_response') {
-          messageText = `💬 *Nova Resposta no seu Ticket #${ticket.ticket_number}*\n\n` +
+          messageText = `💬 *Nova Resposta no Ticket #${ticket.ticket_number}*\n\n` +
             `Assunto: ${ticket.subject}\n` +
-            `O suporte respondeu ao seu ticket. Acesse o portal para ver a mensagem.`;
+            `O suporte respondeu ao seu ticket.`;
         } else if (event_type === 'status_changed') {
           messageText = `🔄 *Status do Ticket #${ticket.ticket_number} Atualizado*\n\n` +
             `Assunto: ${ticket.subject}\n` +
@@ -414,27 +514,18 @@ serve(async (req) => {
         } else if (event_type === 'ticket_deleted') {
           messageText = `🗑️ *Ticket #${ticket.ticket_number} Excluído*\n\n` +
             `Assunto: ${ticket.subject}\n` +
-            `Este ticket foi excluído pelo administrador.`;
+            `Este ticket foi excluído.`;
         }
       }
 
-      // Ensure phone has country code (55 for Brazil)
       let cleanPhone = recipientPhone.replace(/\D/g, '');
-      if (!cleanPhone.startsWith('55')) {
-        cleanPhone = '55' + cleanPhone;
-      }
+      if (!cleanPhone.startsWith('55')) cleanPhone = '55' + cleanPhone;
 
       const result = await sendTextMessage(settings, cleanPhone, messageText);
       
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          data: result 
-        }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: true, data: result }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
