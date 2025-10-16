@@ -33,28 +33,11 @@ type ItemStatus = "done" | "not_needed" | "skipped";
 export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSelectedPlan }: MaintenanceFormModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<string>(propSelectedPlan?.id || "");
   const [notes, setNotes] = useState("");
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [itemsStatus, setItemsStatus] = useState<Record<string, ItemStatus>>({});
   const [itemsNotes, setItemsNotes] = useState<Record<string, string>>({});
 
-  const { data: plans } = useQuery({
-    queryKey: ["maintenance-plans-select"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("client_maintenance_plans")
-        .select(`
-          *,
-          client:clients(id, full_name, nickname, company_name),
-          domain:domains(id, domain)
-        `)
-        .eq("is_active", true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: checklistItems } = useQuery({
     queryKey: ["checklist-items"],
@@ -75,17 +58,19 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      const selectedPlanData = plans?.find(p => p.id === selectedPlan);
-      if (!selectedPlanData) throw new Error("Plano não encontrado");
+      if (!propSelectedPlan?.id) throw new Error("Plano não encontrado");
 
-      const nextScheduledDate = addMonths(new Date(), 1);
-      nextScheduledDate.setDate(selectedPlanData.monthly_day);
+      // Calcular a próxima data de manutenção baseada no dia do mês configurado
+      const today = new Date();
+      const nextMonth = addMonths(today, 1);
+      // Garantir que usamos o dia correto do plano
+      const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
       // Criar execução
       const { data: execution, error: execError } = await supabase
         .from("maintenance_executions")
         .insert({
-          maintenance_plan_id: selectedPlan,
+          maintenance_plan_id: propSelectedPlan.id,
           executed_by: user.id,
           next_scheduled_date: nextScheduledDate.toISOString().split('T')[0],
           notes,
@@ -155,21 +140,11 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
   });
 
   const resetForm = () => {
-    if (!propSelectedPlan) {
-      setSelectedPlan("");
-    }
     setNotes("");
     setSendWhatsApp(true);
     setItemsStatus({});
     setItemsNotes({});
   };
-
-  // Update selectedPlan when propSelectedPlan changes
-  useState(() => {
-    if (propSelectedPlan?.id) {
-      setSelectedPlan(propSelectedPlan.id);
-    }
-  });
 
   const handleItemStatusChange = (itemId: string, status: ItemStatus) => {
     setItemsStatus(prev => ({ ...prev, [itemId]: status }));
@@ -189,26 +164,20 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>Cliente / Plano</Label>
-            <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um plano" />
-              </SelectTrigger>
-              <SelectContent>
-                {plans?.map((plan) => {
-                  const clientName = plan.client?.nickname || plan.client?.company_name || plan.client?.full_name;
-                  return (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {clientName} {plan.domain && `- ${plan.domain.domain}`}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+          {propSelectedPlan && (
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="text-sm font-medium">
+                {propSelectedPlan.clients?.nickname || propSelectedPlan.clients?.company_name || propSelectedPlan.clients?.full_name}
+              </div>
+              {propSelectedPlan.domains?.domain && (
+                <div className="text-sm text-muted-foreground">
+                  {propSelectedPlan.domains.domain}
+                </div>
+              )}
+            </div>
+          )}
 
-          {selectedPlan && (
+          {propSelectedPlan && (
             <>
               <div className="space-y-4">
                 <Label>Checklist de Manutenção</Label>

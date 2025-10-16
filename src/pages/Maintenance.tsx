@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Maintenance() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [filters, setFilters] = useState({
     search: '',
     status: 'all',

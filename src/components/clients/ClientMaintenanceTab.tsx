@@ -9,6 +9,8 @@ import { Plus, Calendar, Globe, Edit, Trash2, PowerOff, Power } from 'lucide-rea
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MaintenancePlanFormModal } from '@/components/maintenance/MaintenancePlanFormModal';
+import { ClientMaintenanceHistory } from './ClientMaintenanceHistory';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -146,16 +148,20 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <Tabs defaultValue="plans" className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Planos de Manutenção</h3>
+        <TabsList>
+          <TabsTrigger value="plans">Planos Ativos</TabsTrigger>
+          <TabsTrigger value="history">Histórico</TabsTrigger>
+        </TabsList>
         <Button onClick={handleNew}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Plano
         </Button>
       </div>
 
-      {!plans || plans.length === 0 ? (
+      <TabsContent value="plans" className="space-y-4">
+        {!plans || plans.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             Nenhum plano de manutenção cadastrado.
@@ -239,6 +245,11 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
           })}
         </div>
       )}
+      </TabsContent>
+
+      <TabsContent value="history">
+        <ClientMaintenanceHistory clientId={clientId} />
+      </TabsContent>
 
       <MaintenancePlanFormModal
         open={isFormOpen}
@@ -261,6 +272,6 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Tabs>
   );
 }
