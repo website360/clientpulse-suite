@@ -224,6 +224,16 @@ export default function Dashboard() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'todo': 'A fazer',
+      'in_progress': 'Em progresso',
+      'done': 'Concluída',
+      'cancelled': 'Cancelada'
+    };
+    return statusMap[status] || status;
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -417,7 +427,7 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <Badge variant={task.status === "done" ? "default" : "secondary"}>
-                          {task.status}
+                          {getStatusLabel(task.status)}
                         </Badge>
                       </div>
                     ))}
@@ -426,7 +436,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-destructive">
+            <Card className="border-rose-200 dark:border-rose-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
