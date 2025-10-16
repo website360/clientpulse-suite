@@ -211,7 +211,7 @@ export default function Dashboard() {
         const { data: overdueData } = await supabase
           .from('tasks')
           .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
-          .eq('priority', 'urgent')
+          .eq('priority', 'high')
           .lt('due_date', now)
           .neq('status', 'done')
           .order('due_date', { ascending: true });
@@ -426,7 +426,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-destructive">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
