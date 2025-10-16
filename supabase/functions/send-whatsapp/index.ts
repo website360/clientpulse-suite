@@ -244,7 +244,11 @@ serve(async (req) => {
         );
       }
 
-      const adminPhone = adminProfile.phone;
+      // Ensure phone has country code (55 for Brazil)
+      let adminPhone = adminProfile.phone.replace(/\D/g, '');
+      if (!adminPhone.startsWith('55')) {
+        adminPhone = '55' + adminPhone;
+      }
 
       // Get ticket details
         const { data: ticket, error: ticketError } = await supabase
