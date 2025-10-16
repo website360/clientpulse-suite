@@ -4,9 +4,12 @@ import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, A
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardStats {
   openTickets: number;
@@ -24,6 +27,18 @@ interface DashboardStats {
   totalPaid: number;
   payableDueSoon: number;
   overduePayable: number;
+}
+
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  created_at: string;
+  assigned_to_profile?: {
+    full_name: string;
+  };
 }
 
 export default function Dashboard() {
@@ -45,6 +60,8 @@ export default function Dashboard() {
     payableDueSoon: 0,
     overduePayable: 0,
   });
+  const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+  const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -181,6 +198,26 @@ export default function Dashboard() {
           payableDueSoon,
           overduePayable,
         }));
+
+        // Buscar últimas 5 tarefas
+        const { data: tasksData } = await supabase
+          .from('tasks')
+          .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Buscar tarefas urgentes em atraso
+        const now = new Date().toISOString();
+        const { data: overdueData } = await supabase
+          .from('tasks')
+          .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
+          .eq('priority', 'urgent')
+          .lt('due_date', now)
+          .neq('status', 'done')
+          .order('due_date', { ascending: true });
+
+        setRecentTasks(tasksData || []);
+        setOverdueTasks(overdueData || []);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -209,12 +246,14 @@ export default function Dashboard() {
                   value={stats.totalClients}
                   icon={Users}
                   variant="default"
+                  className="border-primary/20"
                 />
                 <MetricCard
                   title="Total de Contatos"
                   value={stats.totalContacts}
                   icon={Users}
                   variant="default"
+                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -231,6 +270,7 @@ export default function Dashboard() {
                   }).format(stats.totalReceivable)}
                   icon={TrendingUp}
                   variant="default"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -241,6 +281,7 @@ export default function Dashboard() {
                   }).format(stats.totalReceived)}
                   icon={CheckCircle}
                   variant="success"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -251,6 +292,7 @@ export default function Dashboard() {
                   }).format(stats.receivableDueSoon)}
                   icon={Clock}
                   variant="default"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -261,6 +303,7 @@ export default function Dashboard() {
                   }).format(stats.overdueReceivable)}
                   icon={AlertCircle}
                   variant="destructive"
+                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -277,6 +320,7 @@ export default function Dashboard() {
                   }).format(stats.totalPayable)}
                   icon={TrendingDown}
                   variant="default"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -287,6 +331,7 @@ export default function Dashboard() {
                   }).format(stats.totalPaid)}
                   icon={CheckCircle}
                   variant="success"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -297,6 +342,7 @@ export default function Dashboard() {
                   }).format(stats.payableDueSoon)}
                   icon={Clock}
                   variant="default"
+                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -307,6 +353,7 @@ export default function Dashboard() {
                   }).format(stats.overduePayable)}
                   icon={AlertCircle}
                   variant="destructive"
+                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -355,6 +402,74 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {/* Task Indicators */}
+        {userRole === 'admin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Últimas Tarefas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recentTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhuma tarefa recente</p>
+                ) : (
+                  <div className="space-y-3">
+                    {recentTasks.map((task) => (
+                      <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{task.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {task.assigned_to_profile?.full_name || "Não atribuído"}
+                          </p>
+                        </div>
+                        <Badge variant={task.status === "done" ? "default" : "secondary"}>
+                          {task.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-destructive/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  Tarefas Urgentes em Atraso
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {overdueTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhuma tarefa urgente em atraso</p>
+                ) : (
+                  <div className="space-y-3">
+                    {overdueTasks.map((task) => (
+                      <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{task.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {task.assigned_to_profile?.full_name || "Não atribuído"}
+                          </p>
+                          {task.due_date && (
+                            <p className="text-xs text-destructive">
+                              Venceu em: {format(new Date(task.due_date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="destructive">Atrasada</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Charts */}
         {userRole === 'admin' && (
