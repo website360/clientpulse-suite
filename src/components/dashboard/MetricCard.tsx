@@ -26,14 +26,8 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
     return 'from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 group-hover:from-blue-100 group-hover:to-blue-50 dark:group-hover:from-blue-900/60 dark:group-hover:to-blue-800/40';
   };
 
-  const getCardBorder = () => {
-    if (variant === 'success') return 'border-emerald-200/50 dark:border-emerald-800/50 hover:border-emerald-300 dark:hover:border-emerald-700';
-    if (variant === 'destructive') return 'border-rose-200/50 dark:border-rose-800/50 hover:border-rose-300 dark:hover:border-rose-700';
-    return 'border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700';
-  };
-
   return (
-    <Card className={`group overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${getCardBorder()} ${className || ''}`}>
+    <Card className={`group overflow-hidden border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${className || ''}`}>
       <CardContent className="p-5">
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>

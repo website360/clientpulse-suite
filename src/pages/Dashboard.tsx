@@ -246,14 +246,12 @@ export default function Dashboard() {
                   value={stats.totalClients}
                   icon={Users}
                   variant="default"
-                  className="border-primary/20"
                 />
                 <MetricCard
                   title="Total de Contatos"
                   value={stats.totalContacts}
                   icon={Users}
                   variant="default"
-                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -270,7 +268,6 @@ export default function Dashboard() {
                   }).format(stats.totalReceivable)}
                   icon={TrendingUp}
                   variant="default"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -281,7 +278,6 @@ export default function Dashboard() {
                   }).format(stats.totalReceived)}
                   icon={CheckCircle}
                   variant="success"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -292,7 +288,6 @@ export default function Dashboard() {
                   }).format(stats.receivableDueSoon)}
                   icon={Clock}
                   variant="default"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -303,7 +298,6 @@ export default function Dashboard() {
                   }).format(stats.overdueReceivable)}
                   icon={AlertCircle}
                   variant="destructive"
-                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -320,7 +314,6 @@ export default function Dashboard() {
                   }).format(stats.totalPayable)}
                   icon={TrendingDown}
                   variant="default"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -331,7 +324,6 @@ export default function Dashboard() {
                   }).format(stats.totalPaid)}
                   icon={CheckCircle}
                   variant="success"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -342,7 +334,6 @@ export default function Dashboard() {
                   }).format(stats.payableDueSoon)}
                   icon={Clock}
                   variant="default"
-                  className="border-primary/20"
                 />
 
                 <MetricCard
@@ -353,7 +344,6 @@ export default function Dashboard() {
                   }).format(stats.overduePayable)}
                   icon={AlertCircle}
                   variant="destructive"
-                  className="border-primary/20"
                 />
               </div>
             </div>
@@ -406,7 +396,7 @@ export default function Dashboard() {
         {/* Task Indicators */}
         {userRole === 'admin' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-primary/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
@@ -436,7 +426,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-destructive/20">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
