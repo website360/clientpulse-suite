@@ -107,13 +107,28 @@ export default function ClientTicketDetails() {
       }
 
       if (!resolvedClientId) {
-        toast({
-          title: 'Acesso negado',
-          description: 'Você não está associado a nenhum cliente.',
-          variant: 'destructive',
-        });
-        navigate('/portal/tickets');
-        return;
+        // Tentar associar automaticamente o usuário ao cliente pelo e-mail
+        try {
+          await supabase.functions.invoke('link-client-user');
+          const { data: clientAfterLink } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('user_id', user?.id)
+            .maybeSingle();
+          resolvedClientId = clientAfterLink?.id || null;
+        } catch (e) {
+          console.error('Auto-link client failed', e);
+        }
+
+        if (!resolvedClientId) {
+          toast({
+            title: 'Acesso negado',
+            description: 'Você não está associado a nenhum cliente.',
+            variant: 'destructive',
+          });
+          navigate('/portal/tickets');
+          return;
+        }
       }
 
       let query = supabase

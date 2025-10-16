@@ -79,14 +79,29 @@ export default function ClientTickets() {
       }
 
       if (!clientId) {
-        setLoading(false);
-        toast({
-          title: 'Acesso negado',
-          description: 'Você não está associado a nenhum cliente.',
-          variant: 'destructive',
-        });
-        setTickets([]);
-        return;
+        // Tentar associar automaticamente o usuário ao cliente pelo e-mail
+        try {
+          await supabase.functions.invoke('link-client-user');
+          const { data: clientAfterLink } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('user_id', user?.id)
+            .maybeSingle();
+          clientId = clientAfterLink?.id || null;
+        } catch (e) {
+          console.error('Auto-link client failed', e);
+        }
+
+        if (!clientId) {
+          setLoading(false);
+          toast({
+            title: 'Acesso negado',
+            description: 'Você não está associado a nenhum cliente.',
+            variant: 'destructive',
+          });
+          setTickets([]);
+          return;
+        }
       }
 
       setClientId(clientId);

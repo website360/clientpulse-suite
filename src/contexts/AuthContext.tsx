@@ -92,6 +92,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
+      // Para clientes, garantir associação automática antes de navegar
+      if (role === 'client') {
+        const { data: linkedClient } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!linkedClient) {
+          try {
+            await supabase.functions.invoke('link-client-user');
+          } catch (e) {
+            console.error('link-client-user failed', e);
+          }
+        }
+      }
+
       if ((role === 'client' || role === 'contato') && !currentPath.startsWith('/portal') && currentPath !== '/auth') {
         navigate('/portal');
       } else if (role === 'admin' && currentPath.startsWith('/portal')) {
