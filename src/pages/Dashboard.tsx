@@ -63,12 +63,26 @@ export default function Dashboard() {
   });
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
-  const [showReceivableValues, setShowReceivableValues] = useState(true);
-  const [showPayableValues, setShowPayableValues] = useState(true);
+  const [showReceivableValues, setShowReceivableValues] = useState(() => {
+    const saved = localStorage.getItem('showReceivableValues');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [showPayableValues, setShowPayableValues] = useState(() => {
+    const saved = localStorage.getItem('showPayableValues');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('showReceivableValues', JSON.stringify(showReceivableValues));
+  }, [showReceivableValues]);
+
+  useEffect(() => {
+    localStorage.setItem('showPayableValues', JSON.stringify(showPayableValues));
+  }, [showPayableValues]);
 
   const fetchDashboardData = async () => {
     try {
