@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 type FilterType = 'pagas_recebidas' | 'pagar_receber' | 'atrasadas_vencidas' | 'caixa';
 
@@ -55,14 +55,14 @@ export function FinancialAnalytics() {
             .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
             
         } else if (filterType === 'pagar_receber') {
-          // Contas a receber no mês
+          // Contas a receber PENDENTES no mês
           result.receber = allReceivableData
-            ?.filter(r => r.due_date.startsWith(monthStart))
+            ?.filter(r => r.status === 'pending' && r.due_date.startsWith(monthStart))
             .reduce((sum, r) => sum + Number(r.amount), 0) || 0;
           
-          // Contas a pagar no mês
+          // Contas a pagar PENDENTES no mês
           result.pagar = allPayableData
-            ?.filter(p => p.due_date.startsWith(monthStart))
+            ?.filter(p => p.status === 'pending' && p.due_date.startsWith(monthStart))
             .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
             
         } else if (filterType === 'atrasadas_vencidas') {
@@ -120,7 +120,7 @@ export function FinancialAnalytics() {
         return (
           <>
             <Bar dataKey="receber" fill="hsl(142, 76%, 36%)" name="A Receber" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="pagar" fill="hsl(48, 96%, 53%)" name="A Pagar" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="pagar" fill="hsl(0, 84%, 60%)" name="A Pagar" radius={[4, 4, 0, 0]} />
           </>
         );
       case 'atrasadas_vencidas':
@@ -132,7 +132,19 @@ export function FinancialAnalytics() {
         );
       case 'caixa':
         return (
-          <Bar dataKey="caixa" fill="hsl(var(--primary))" name="Caixa" radius={[4, 4, 0, 0]} />
+          <Bar 
+            dataKey="caixa" 
+            name="Caixa" 
+            radius={[4, 4, 0, 0]}
+            fill="hsl(142, 76%, 50%)"
+          >
+            {analyticsData?.map((entry: any, index: number) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.caixa >= 0 ? 'hsl(142, 76%, 50%)' : 'hsl(0, 84%, 60%)'} 
+              />
+            ))}
+          </Bar>
         );
     }
   };
