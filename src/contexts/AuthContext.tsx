@@ -76,26 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect based on role
       const currentPath = window.location.pathname;
       
-      // Se for cliente, verificar se está associado a um registro na tabela clients
-      if (role === 'client') {
-        const { data: clientData } = await supabase
-          .from('clients')
+      // Se for contato, verificar se está associado a um client_contact
+      if (role === 'contato') {
+        const { data: contactData } = await supabase
+          .from('client_contacts')
           .select('id')
           .eq('user_id', userId)
           .maybeSingle();
         
-        // Se não houver client associado e não for contato, redirecionar para auth
-        if (!clientData) {
-          const { data: contactData } = await supabase
-            .from('client_contacts')
-            .select('id')
-            .eq('user_id', userId)
-            .maybeSingle();
-          
-          if (!contactData && currentPath !== '/auth') {
-            console.error('User has client role but is not associated with any client or contact');
-            navigate('/portal');
-          }
+        if (!contactData && currentPath !== '/auth') {
+          console.error('User has contato role but is not associated with any client contact');
+          await supabase.auth.signOut();
+          navigate('/auth');
+          return;
         }
       }
       
