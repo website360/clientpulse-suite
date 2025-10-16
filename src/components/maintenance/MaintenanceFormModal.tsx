@@ -212,14 +212,6 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
                         </Button>
                       </div>
                     </div>
-                    {itemsStatus[item.id] && itemsStatus[item.id] !== "skipped" && (
-                      <Textarea
-                        placeholder="Observações (opcional)"
-                        value={itemsNotes[item.id] || ""}
-                        onChange={(e) => setItemsNotes(prev => ({ ...prev, [item.id]: e.target.value }))}
-                        rows={2}
-                      />
-                    )}
                   </div>
                 ))}
               </div>

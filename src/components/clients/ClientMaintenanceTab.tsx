@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Calendar, Globe, Edit, Trash2, PowerOff, Power } from 'lucide-react';
+import { Plus, Calendar, Globe, Edit, Trash2, PowerOff, Power, CheckCircle2, AlertCircle } from 'lucide-react';
+import { parseISO } from 'date-fns';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MaintenancePlanFormModal } from '@/components/maintenance/MaintenancePlanFormModal';
@@ -183,7 +184,125 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
             </CardContent>
           </Card>
         ) : (
-          <MaintenanceCards plans={plans} onExecute={handleExecute} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const getStatusInfo = (plan: any) => {
+                const lastExecution = plan.maintenance_executions?.[0];
+                const today = new Date();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+                const targetDay = plan.monthly_day;
+
+                if (!lastExecution) {
+                  const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+                  if (today > scheduledDate) {
+                    return { 
+                      variant: 'destructive' as const, 
+                      label: 'Atrasada',
+                      className: 'bg-error/10 text-error border-error/20'
+                    };
+                  }
+                  return { 
+                    variant: 'secondary' as const, 
+                    label: 'Aguardando Manutenção',
+                    className: 'bg-warning/10 text-warning border-warning/20'
+                  };
+                }
+
+                const lastDate = new Date(lastExecution.executed_at);
+                const lastMonth = lastDate.getMonth();
+                const lastYear = lastDate.getFullYear();
+
+                if (lastMonth === currentMonth && lastYear === currentYear) {
+                  return { 
+                    variant: 'default' as const, 
+                    label: 'Realizada',
+                    className: 'bg-success/10 text-success border-success/20'
+                  };
+                }
+
+                const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+                if (today > scheduledDate) {
+                  return { 
+                    variant: 'destructive' as const, 
+                    label: 'Atrasada',
+                    className: 'bg-error/10 text-error border-error/20'
+                  };
+                }
+
+                return { 
+                  variant: 'secondary' as const, 
+                  label: 'Aguardando Manutenção',
+                  className: 'bg-warning/10 text-warning border-warning/20'
+                };
+              };
+
+              const getNextScheduledDate = (plan: any) => {
+                const lastExecution = plan.maintenance_executions?.[0];
+                if (lastExecution?.next_scheduled_date) {
+                  return parseISO(lastExecution.next_scheduled_date);
+                }
+                const today = new Date();
+                return new Date(today.getFullYear(), today.getMonth(), plan.monthly_day);
+              };
+
+              const statusInfo = getStatusInfo(plan);
+              const nextDate = getNextScheduledDate(plan);
+              const lastExecution = plan.maintenance_executions?.[0];
+
+              return (
+                <Card key={plan.id} className="card-elevated hover-lift group">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
+                          <Globe className="h-6 w-6 text-primary" />
+                        </div>
+                        <Badge variant={statusInfo.variant} className={statusInfo.className}>
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <h3 className="font-semibold text-lg mb-3">
+                      {plan.domains?.domain || 'Sem domínio específico'}
+                    </h3>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span>Executado todo dia {plan.monthly_day}</span>
+                      </div>
+
+                      {lastExecution && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                          <span className="text-muted-foreground">
+                            Última: {format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <AlertCircle className="h-4 w-4 text-warning" />
+                        <span className="text-muted-foreground">
+                          Próxima: {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {!plan.is_active && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <Badge variant="secondary" className="text-xs">
+                          Plano Inativo
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         )}
       </TabsContent>
 

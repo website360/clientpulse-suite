@@ -20,38 +20,77 @@ interface MaintenanceTableProps {
 export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
   const getStatusBadge = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const targetDay = plan.monthly_day;
+
+    // Se nunca foi executada
     if (!lastExecution) {
-      return <Badge variant="destructive">Nunca executada</Badge>;
+      // Verificar se já passou do dia de execução neste mês
+      const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+      if (today > scheduledDate) {
+        return <Badge variant="destructive">Atrasada</Badge>;
+      }
+      return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Manutenção</Badge>;
     }
 
     const lastDate = new Date(lastExecution.executed_at);
-    const today = new Date();
-    const daysSince = differenceInDays(today, lastDate);
+    const lastMonth = lastDate.getMonth();
+    const lastYear = lastDate.getFullYear();
 
-    if (daysSince < 25) {
-      return <Badge className="bg-success/10 text-success border-success/20">Em dia</Badge>;
+    // Se foi executada no mês/ano atual
+    if (lastMonth === currentMonth && lastYear === currentYear) {
+      return <Badge className="bg-success/10 text-success border-success/20">Realizada</Badge>;
     }
-    if (daysSince < 35) {
-      return <Badge className="bg-warning/10 text-warning border-warning/20">Atenção</Badge>;
+
+    // Verificar se já passou do dia de execução neste mês
+    const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+    if (today > scheduledDate) {
+      return <Badge variant="destructive">Atrasada</Badge>;
     }
-    return <Badge variant="destructive">Urgente</Badge>;
+
+    return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Manutenção</Badge>;
   };
 
   const getNextScheduledDate = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
+    
+    // Se já foi executada, usar next_scheduled_date
     if (lastExecution?.next_scheduled_date) {
       return parseISO(lastExecution.next_scheduled_date);
     }
 
+    // Se nunca foi executada, próxima é neste mês no dia configurado
     const today = new Date();
     const targetDay = plan.monthly_day;
-    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Sempre retornar o dia do mês atual se nunca foi executada
+    return new Date(currentYear, currentMonth, targetDay);
+  };
 
-    if (currentDay <= targetDay) {
-      return new Date(today.getFullYear(), today.getMonth(), targetDay);
-    } else {
-      return new Date(today.getFullYear(), today.getMonth() + 1, targetDay);
+  const shouldShowExecuteButton = (plan: any) => {
+    const lastExecution = plan.maintenance_executions?.[0];
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Se já foi executada
+    if (lastExecution) {
+      const lastDate = new Date(lastExecution.executed_at);
+      const lastMonth = lastDate.getMonth();
+      const lastYear = lastDate.getFullYear();
+      
+      // Se foi executada no mês/ano atual, não mostrar botão
+      if (lastMonth === currentMonth && lastYear === currentYear) {
+        return false;
+      }
     }
+
+    // Mostrar botão se estamos no mês vigente
+    return true;
   };
 
   if (plans.length === 0) {
@@ -105,16 +144,18 @@ export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
                   {getStatusBadge(plan)}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onExecute(plan)}
-                    disabled={!plan.is_active}
-                    className="gap-2"
-                  >
-                    <Play className="h-3 w-3" />
-                    Executar
-                  </Button>
+                  {shouldShowExecuteButton(plan) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onExecute(plan)}
+                      disabled={!plan.is_active}
+                      className="gap-2"
+                    >
+                      <Play className="h-3 w-3" />
+                      Executar
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             );

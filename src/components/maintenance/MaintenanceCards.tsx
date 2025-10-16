@@ -13,54 +13,97 @@ interface MaintenanceCardsProps {
 export function MaintenanceCards({ plans, onExecute }: MaintenanceCardsProps) {
   const getStatusInfo = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const targetDay = plan.monthly_day;
+
+    // Se nunca foi executada
     if (!lastExecution) {
+      // Verificar se já passou do dia de execução neste mês
+      const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+      if (today > scheduledDate) {
+        return { 
+          variant: 'destructive' as const, 
+          label: 'Atrasada',
+          className: 'bg-error/10 text-error border-error/20'
+        };
+      }
       return { 
-        variant: 'destructive' as const, 
-        label: 'Nunca executada',
-        className: 'bg-error/10 text-error border-error/20'
+        variant: 'secondary' as const, 
+        label: 'Aguardando Manutenção',
+        className: 'bg-warning/10 text-warning border-warning/20'
       };
     }
 
     const lastDate = new Date(lastExecution.executed_at);
-    const today = new Date();
-    const daysSince = differenceInDays(today, lastDate);
+    const lastMonth = lastDate.getMonth();
+    const lastYear = lastDate.getFullYear();
 
-    if (daysSince < 25) {
+    // Se foi executada no mês/ano atual
+    if (lastMonth === currentMonth && lastYear === currentYear) {
       return { 
         variant: 'default' as const, 
-        label: 'Em dia',
+        label: 'Realizada',
         className: 'bg-success/10 text-success border-success/20'
       };
     }
-    if (daysSince < 35) {
+
+    // Verificar se já passou do dia de execução neste mês
+    const scheduledDate = new Date(currentYear, currentMonth, targetDay);
+    if (today > scheduledDate) {
       return { 
-        variant: 'secondary' as const, 
-        label: 'Atenção',
-        className: 'bg-warning/10 text-warning border-warning/20'
+        variant: 'destructive' as const, 
+        label: 'Atrasada',
+        className: 'bg-error/10 text-error border-error/20'
       };
     }
+
     return { 
-      variant: 'destructive' as const, 
-      label: 'Urgente',
-      className: 'bg-error/10 text-error border-error/20'
+      variant: 'secondary' as const, 
+      label: 'Aguardando Manutenção',
+      className: 'bg-warning/10 text-warning border-warning/20'
     };
   };
 
   const getNextScheduledDate = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
+    
+    // Se já foi executada, usar next_scheduled_date
     if (lastExecution?.next_scheduled_date) {
       return parseISO(lastExecution.next_scheduled_date);
     }
 
+    // Se nunca foi executada, próxima é neste mês no dia configurado
     const today = new Date();
     const targetDay = plan.monthly_day;
-    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Sempre retornar o dia do mês atual se nunca foi executada
+    return new Date(currentYear, currentMonth, targetDay);
+  };
 
-    if (currentDay <= targetDay) {
-      return new Date(today.getFullYear(), today.getMonth(), targetDay);
-    } else {
-      return new Date(today.getFullYear(), today.getMonth() + 1, targetDay);
+  const shouldShowExecuteButton = (plan: any) => {
+    const lastExecution = plan.maintenance_executions?.[0];
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Se já foi executada
+    if (lastExecution) {
+      const lastDate = new Date(lastExecution.executed_at);
+      const lastMonth = lastDate.getMonth();
+      const lastYear = lastDate.getFullYear();
+      
+      // Se foi executada no mês/ano atual, não mostrar botão
+      if (lastMonth === currentMonth && lastYear === currentYear) {
+        return false;
+      }
     }
+
+    // Mostrar botão se estamos no mês vigente
+    return true;
   };
 
   if (plans.length === 0) {
@@ -137,14 +180,16 @@ export function MaintenanceCards({ plans, onExecute }: MaintenanceCardsProps) {
             </CardContent>
 
             <CardFooter className="p-4 pt-0">
-              <Button
-                className="w-full gap-2"
-                onClick={() => onExecute(plan)}
-                disabled={!plan.is_active}
-              >
-                <Play className="h-4 w-4" />
-                Executar Manutenção
-              </Button>
+              {shouldShowExecuteButton(plan) && (
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => onExecute(plan)}
+                  disabled={!plan.is_active}
+                >
+                  <Play className="h-4 w-4" />
+                  Executar Manutenção
+                </Button>
+              )}
             </CardFooter>
           </Card>
         );
