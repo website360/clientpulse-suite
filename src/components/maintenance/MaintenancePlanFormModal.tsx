@@ -16,7 +16,7 @@ interface MaintenancePlanFormModalProps {
 }
 
 export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }: MaintenancePlanFormModalProps) {
-  const [domainId, setDomainId] = useState<string>('');
+  const [domainId, setDomainId] = useState<string>('none');
   const [monthlyDay, setMonthlyDay] = useState<number>(1);
   const [isActive, setIsActive] = useState(true);
   const queryClient = useQueryClient();
@@ -50,11 +50,11 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
 
   useEffect(() => {
     if (plan) {
-      setDomainId(plan.domain_id || '');
+      setDomainId(plan.domain_id || 'none');
       setMonthlyDay(plan.monthly_day);
       setIsActive(plan.is_active);
     } else if (settings) {
-      setDomainId('');
+      setDomainId('none');
       setMonthlyDay(settings.default_monthly_day);
       setIsActive(true);
     }
@@ -64,7 +64,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
     mutationFn: async () => {
       const planData = {
         client_id: clientId,
-        domain_id: domainId || null,
+        domain_id: domainId === 'none' ? null : domainId,
         monthly_day: monthlyDay,
         is_active: isActive,
         created_by: (await supabase.auth.getUser()).data.user?.id,
@@ -82,7 +82,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
           .from('client_maintenance_plans')
           .select('id')
           .eq('client_id', clientId)
-          .eq('domain_id', domainId || null)
+          .eq('domain_id', domainId === 'none' ? null : domainId)
           .single();
 
         if (existing) {
@@ -126,7 +126,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
                 <SelectValue placeholder="Sem domínio específico" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sem domínio específico</SelectItem>
+                <SelectItem value="none">Sem domínio específico</SelectItem>
                 {domains?.map((domain) => (
                   <SelectItem key={domain.id} value={domain.id}>
                     {domain.domain}
