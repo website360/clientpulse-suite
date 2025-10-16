@@ -352,16 +352,22 @@ export default function TicketDetails() {
 
   const handleStatusChange = async (newStatus: string) => {
     try {
+      console.log('Updating status to:', newStatus);
       const { error } = await supabase
         .from('tickets')
         .update({ status: newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating status:', error);
+        throw error;
+      }
 
+      console.log('Status updated successfully, fetching details...');
       fetchTicketDetails();
       
       // Send email notification
+      console.log('Sending email notification...');
       supabase.functions.invoke('send-email', {
         body: {
           template_key: 'ticket_status_changed',
@@ -370,19 +376,25 @@ export default function TicketDetails() {
       }).catch(err => console.error('Error sending email:', err));
       
       // Send WhatsApp notification to client
+      console.log('Sending WhatsApp notification...');
       supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'send_ticket_notification',
           ticket_id: id,
           event_type: 'status_changed',
         },
-      }).catch(err => console.error('Error sending WhatsApp:', err));
+      }).then(result => {
+        console.log('WhatsApp result:', result);
+      }).catch(err => {
+        console.error('Error sending WhatsApp:', err);
+      });
       
       toast({
         title: 'Status atualizado',
         description: 'O status do ticket foi alterado com sucesso.',
       });
     } catch (error: any) {
+      console.error('Status change error:', error);
       toast({
         title: 'Erro ao atualizar status',
         description: error.message,
