@@ -42,5 +42,11 @@ verify_jwt = false
 [functions.send-whatsapp]
 verify_jwt = true
 
+[functions.send-maintenance-whatsapp]
+verify_jwt = true
+
+[functions.check-pending-maintenances]
+verify_jwt = false
+
 [functions.google-calendar-oauth]
 verify_jwt = false

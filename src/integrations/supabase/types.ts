@@ -375,6 +375,54 @@ export type Database = {
           },
         ]
       }
+      client_maintenance_plans: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string
+          domain_id: string | null
+          id: string
+          is_active: boolean
+          monthly_day: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by: string
+          domain_id?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_day?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          domain_id?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_day?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_maintenance_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_maintenance_plans_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address_cep: string | null
@@ -874,6 +922,155 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      maintenance_checklist_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_execution_items: {
+        Row: {
+          checklist_item_id: string
+          created_at: string
+          id: string
+          maintenance_execution_id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["maintenance_item_status"]
+          updated_at: string
+        }
+        Insert: {
+          checklist_item_id: string
+          created_at?: string
+          id?: string
+          maintenance_execution_id: string
+          notes?: string | null
+          status: Database["public"]["Enums"]["maintenance_item_status"]
+          updated_at?: string
+        }
+        Update: {
+          checklist_item_id?: string
+          created_at?: string
+          id?: string
+          maintenance_execution_id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["maintenance_item_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_execution_items_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_execution_items_maintenance_execution_id_fkey"
+            columns: ["maintenance_execution_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_executions: {
+        Row: {
+          created_at: string
+          executed_at: string
+          executed_by: string
+          id: string
+          maintenance_plan_id: string
+          next_scheduled_date: string | null
+          notes: string | null
+          updated_at: string
+          whatsapp_sent: boolean
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          executed_at?: string
+          executed_by: string
+          id?: string
+          maintenance_plan_id: string
+          next_scheduled_date?: string | null
+          notes?: string | null
+          updated_at?: string
+          whatsapp_sent?: boolean
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          executed_at?: string
+          executed_by?: string
+          id?: string
+          maintenance_plan_id?: string
+          next_scheduled_date?: string | null
+          notes?: string | null
+          updated_at?: string
+          whatsapp_sent?: boolean
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_executions_maintenance_plan_id_fkey"
+            columns: ["maintenance_plan_id"]
+            isOneToOne: false
+            referencedRelation: "client_maintenance_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_settings: {
+        Row: {
+          created_at: string
+          default_monthly_day: number
+          id: string
+          message_signature: string
+          notification_days_advance: number
+          updated_at: string
+          whatsapp_template: string
+        }
+        Insert: {
+          created_at?: string
+          default_monthly_day?: number
+          id?: string
+          message_signature?: string
+          notification_days_advance?: number
+          updated_at?: string
+          whatsapp_template?: string
+        }
+        Update: {
+          created_at?: string
+          default_monthly_day?: number
+          id?: string
+          message_signature?: string
+          notification_days_advance?: number
+          updated_at?: string
+          whatsapp_template?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -1376,6 +1573,7 @@ export type Database = {
       client_type: "person" | "company"
       domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      maintenance_item_status: "done" | "not_needed" | "skipped"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "waiting" | "resolved" | "closed"
@@ -1510,6 +1708,7 @@ export const Constants = {
       client_type: ["person", "company"],
       domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      maintenance_item_status: ["done", "not_needed", "skipped"],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "waiting", "resolved", "closed"],

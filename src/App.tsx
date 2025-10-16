@@ -16,6 +16,7 @@ import AccountsReceivable from "./pages/AccountsReceivable";
 import Contracts from "./pages/Contracts";
 import Reports from "./pages/Reports";
 import Tasks from "./pages/Tasks";
+import Maintenance from "./pages/Maintenance";
 import ClientDashboard from './pages/portal/Dashboard';
 import ClientTickets from './pages/portal/Tickets';
 import ClientContracts from './pages/portal/Contracts';
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/contracts" element={<Contracts />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/tasks" element={<Tasks />} />
+            <Route path="/manutencao" element={<Maintenance />} />
             <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
