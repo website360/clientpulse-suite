@@ -112,7 +112,8 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
                 </TableCell>
                 <TableCell>
                   {execution.next_scheduled_date
-                    ? format(parseISO(execution.next_scheduled_date), "dd/MM/yyyy", { locale: ptBR })
+                    ? format(parseISO(execution.next_scheduled_date), "MMMM/yyyy", { locale: ptBR })
+                        .replace(/^\w/, (c) => c.toUpperCase())
                     : "-"}
                 </TableCell>
                 <TableCell className="text-right">
