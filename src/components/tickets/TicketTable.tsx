@@ -124,8 +124,8 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <p className="font-medium line-clamp-1">{ticket.subject}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">
+                    <p className="font-medium line-clamp-1" title={ticket.subject}>{ticket.subject}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1" title={ticket.description}>
                       {ticket.description}
                     </p>
                   </div>

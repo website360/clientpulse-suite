@@ -214,69 +214,74 @@ serve(async (req) => {
           );
       }
 
-      // Get admin phone from profiles
-      const { data: adminUsers, error: adminError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'admin')
-        .limit(1)
+      // Get ticket details with client info
+      const { data: ticket, error: ticketError } = await supabase
+        .from('tickets')
+        .select(`
+          ticket_number,
+          subject,
+          status,
+          priority,
+          client_id,
+          clients!inner (
+            full_name,
+            company_name,
+            phone,
+            user_id
+          ),
+          departments!inner (
+            name
+          )
+        `)
+        .eq('id', ticket_id)
         .single();
 
-      if (adminError || !adminUsers) {
-        console.log('No admin user found');
-        return new Response(
-          JSON.stringify({ success: true, message: 'No admin user found' }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      if (ticketError) throw ticketError;
 
-      const { data: adminProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('phone')
-        .eq('id', adminUsers.user_id)
-        .single();
+      const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
+      const department = Array.isArray(ticket.departments) ? ticket.departments[0] : ticket.departments;
+      const clientName = client.company_name || client.full_name;
 
-      if (profileError || !adminProfile?.phone) {
-        console.log('Admin phone not configured in profile');
-        return new Response(
-          JSON.stringify({ success: true, message: 'Admin phone not configured in profile' }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      // Determine who should receive the notification
+      let recipientPhone = '';
+      let messageText = '';
 
-      // Ensure phone has country code (55 for Brazil)
-      let adminPhone = adminProfile.phone.replace(/\D/g, '');
-      if (!adminPhone.startsWith('55')) {
-        adminPhone = '55' + adminPhone;
-      }
-
-      // Get ticket details
-        const { data: ticket, error: ticketError } = await supabase
-          .from('tickets')
-          .select(`
-            ticket_number,
-            subject,
-            status,
-            priority,
-            clients!inner (
-              full_name,
-              company_name
-            ),
-            departments!inner (
-              name
-            )
-          `)
-          .eq('id', ticket_id)
+      // For client-initiated events (ticket_created, ticket_message), send to admin
+      // For admin actions (admin_response, status_changed, ticket_deleted), send to client
+      if (event_type === 'ticket_created' || event_type === 'ticket_message') {
+        // Send to admin
+        const { data: adminUsers, error: adminError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin')
+          .limit(1)
           .single();
 
-        if (ticketError) throw ticketError;
+        if (adminError || !adminUsers) {
+          console.log('No admin user found');
+          return new Response(
+            JSON.stringify({ success: true, message: 'No admin user found' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
-        let messageText = '';
+        const { data: adminProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('phone')
+          .eq('id', adminUsers.user_id)
+          .single();
+
+        if (profileError || !adminProfile?.phone) {
+          console.log('Admin phone not configured in profile');
+          return new Response(
+            JSON.stringify({ success: true, message: 'Admin phone not configured in profile' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        recipientPhone = adminProfile.phone;
         
         if (event_type === 'ticket_created') {
-          const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
-          const department = Array.isArray(ticket.departments) ? ticket.departments[0] : ticket.departments;
-          const clientName = client.company_name || client.full_name;
           messageText = `🎫 *Novo Ticket Aberto*\n\n` +
             `Número: #${ticket.ticket_number}\n` +
             `Cliente: ${clientName}\n` +
@@ -284,27 +289,65 @@ serve(async (req) => {
             `Assunto: ${ticket.subject}\n` +
             `Prioridade: ${ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Média' : '🟢 Baixa'}`;
         } else if (event_type === 'ticket_message') {
-          const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
-          const clientName = client.company_name || client.full_name;
           messageText = `💬 *Nova Mensagem no Ticket #${ticket.ticket_number}*\n\n` +
             `Cliente: ${clientName}\n` +
             `Assunto: ${ticket.subject}\n` +
             `Status: ${ticket.status}`;
         }
+      } else {
+        // Send to client for admin actions
+        if (!client.phone) {
+          console.log('Client phone not configured');
+          return new Response(
+            JSON.stringify({ success: true, message: 'Client phone not configured' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
-        const result = await sendTextMessage(settings, adminPhone, messageText);
-        
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            data: result 
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        recipientPhone = client.phone;
+
+        const statusLabels: Record<string, string> = {
+          open: 'Aberto',
+          in_progress: 'Em Andamento',
+          waiting: 'Aguardando',
+          resolved: 'Resolvido',
+          closed: 'Fechado',
+        };
+
+        if (event_type === 'admin_response') {
+          messageText = `💬 *Nova Resposta no seu Ticket #${ticket.ticket_number}*\n\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `O suporte respondeu ao seu ticket. Acesse o portal para ver a mensagem.`;
+        } else if (event_type === 'status_changed') {
+          messageText = `🔄 *Status do Ticket #${ticket.ticket_number} Atualizado*\n\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `Novo Status: ${statusLabels[ticket.status] || ticket.status}`;
+        } else if (event_type === 'ticket_deleted') {
+          messageText = `🗑️ *Ticket #${ticket.ticket_number} Excluído*\n\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `Este ticket foi excluído pelo administrador.`;
+        }
       }
+
+      // Ensure phone has country code (55 for Brazil)
+      let cleanPhone = recipientPhone.replace(/\D/g, '');
+      if (!cleanPhone.startsWith('55')) {
+        cleanPhone = '55' + cleanPhone;
+      }
+
+      const result = await sendTextMessage(settings, cleanPhone, messageText);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: result 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
       default:
         return new Response(

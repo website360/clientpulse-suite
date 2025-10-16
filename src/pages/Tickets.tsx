@@ -222,6 +222,15 @@ export default function Tickets() {
 
       if (error) throw error;
 
+      // Send WhatsApp notification to client
+      supabase.functions.invoke('send-whatsapp', {
+        body: {
+          action: 'send_ticket_notification',
+          ticket_id: ticketId,
+          event_type: 'status_changed',
+        },
+      }).catch(err => console.error('Error sending WhatsApp:', err));
+
       toast({
         title: 'Status atualizado',
         description: 'Status do ticket atualizado com sucesso.',
@@ -306,6 +315,15 @@ export default function Tickets() {
       if (taskUpdateError) {
         console.error('Error updating tasks:', taskUpdateError);
       }
+
+      // Send WhatsApp notification to client before deleting
+      supabase.functions.invoke('send-whatsapp', {
+        body: {
+          action: 'send_ticket_notification',
+          ticket_id: ticketToDelete,
+          event_type: 'ticket_deleted',
+        },
+      }).catch(err => console.error('Error sending WhatsApp:', err));
 
       // Depois, excluir o ticket
       const { error } = await supabase

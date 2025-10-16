@@ -224,6 +224,15 @@ export default function TicketDetails() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Check if user is admin
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      const isAdmin = rolesData?.role === 'admin';
+
       const { data: messageData, error } = await supabase
         .from('ticket_messages')
         .insert({
@@ -254,6 +263,18 @@ export default function TicketDetails() {
           ticket_id: id,
         },
       }).catch(err => console.error('Error sending email:', err));
+      
+      // Send WhatsApp notification to client if admin responded
+      if (isAdmin) {
+        supabase.functions.invoke('send-whatsapp', {
+          body: {
+            action: 'send_ticket_notification',
+            ticket_id: id,
+            message_id: messageData.id,
+            event_type: 'admin_response',
+          },
+        }).catch(err => console.error('Error sending WhatsApp:', err));
+      }
       
       toast({
         title: 'Mensagem enviada',
@@ -347,6 +368,15 @@ export default function TicketDetails() {
           ticket_id: id,
         },
       }).catch(err => console.error('Error sending email:', err));
+      
+      // Send WhatsApp notification to client
+      supabase.functions.invoke('send-whatsapp', {
+        body: {
+          action: 'send_ticket_notification',
+          ticket_id: id,
+          event_type: 'status_changed',
+        },
+      }).catch(err => console.error('Error sending WhatsApp:', err));
       
       toast({
         title: 'Status atualizado',
