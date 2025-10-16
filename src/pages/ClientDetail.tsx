@@ -18,6 +18,7 @@ import { ContactsList } from '@/components/clients/ContactsList';
 import { ClientDomains } from '@/components/clients/ClientDomains';
 import { ContractTable } from '@/components/contracts/ContractTable';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
+import { ClientMaintenanceTab } from '@/components/clients/ClientMaintenanceTab';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -388,6 +389,7 @@ export default function ClientDetail() {
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
             <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="dominios">Domínios</TabsTrigger>
+            <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
             <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
 
@@ -592,6 +594,10 @@ export default function ClientDetail() {
 
           <TabsContent value="dominios" className="space-y-4">
             <ClientDomains clientId={id!} />
+          </TabsContent>
+
+          <TabsContent value="manutencao" className="space-y-4">
+            <ClientMaintenanceTab clientId={id!} />
           </TabsContent>
 
           <TabsContent value="contatos" className="space-y-4">
