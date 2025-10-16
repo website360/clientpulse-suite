@@ -17,6 +17,7 @@ export function WhatsAppSettingsTab() {
   const [apiUrl, setApiUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [instanceName, setInstanceName] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
 
@@ -26,7 +27,7 @@ export function WhatsAppSettingsTab() {
       const { data, error } = await supabase
         .from("integration_settings")
         .select("*")
-        .in("key", ["whatsapp_enabled", "whatsapp_api_url", "whatsapp_api_key", "whatsapp_instance_name"]);
+        .in("key", ["whatsapp_enabled", "whatsapp_api_url", "whatsapp_api_key", "whatsapp_instance_name", "whatsapp_admin_phone"]);
       
       if (error) throw error;
       
@@ -40,6 +41,7 @@ export function WhatsAppSettingsTab() {
         setApiUrl(settingsMap.whatsapp_api_url?.value || "");
         setApiKey(settingsMap.whatsapp_api_key?.value || "");
         setInstanceName(settingsMap.whatsapp_instance_name?.value || "");
+        setAdminPhone(settingsMap.whatsapp_admin_phone?.value || "");
       }
       
       return settingsMap;
@@ -53,6 +55,7 @@ export function WhatsAppSettingsTab() {
         { key: "whatsapp_api_url", value: apiUrl, is_active: true },
         { key: "whatsapp_api_key", value: apiKey, is_active: true },
         { key: "whatsapp_instance_name", value: instanceName, is_active: true },
+        { key: "whatsapp_admin_phone", value: adminPhone, is_active: true },
       ];
 
       for (const setting of settingsToSave) {
@@ -207,6 +210,20 @@ export function WhatsAppSettingsTab() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Nome da instância WhatsApp conectada no Evolution API
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="adminPhone">Telefone do Administrador</Label>
+                <Input
+                  id="adminPhone"
+                  type="tel"
+                  value={adminPhone}
+                  onChange={(e) => setAdminPhone(e.target.value)}
+                  placeholder="5511999999999"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Número para receber notificações de novos tickets (formato: código do país + DDD + número)
                 </p>
               </div>
             </>

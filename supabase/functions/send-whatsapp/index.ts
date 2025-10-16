@@ -122,7 +122,7 @@ serve(async (req) => {
 
     // Get request body
     const body = await req.json();
-    const { action, phone, message } = body;
+    const { action, phone, message, ticket_id, message_id, event_type } = body;
 
     console.log(`WhatsApp function called with action: ${action}`);
 
@@ -188,6 +188,93 @@ serve(async (req) => {
         }
 
         const result = await sendTextMessage(settings, phone, message);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            data: result 
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      case 'send_ticket_notification': {
+        if (!ticket_id || !event_type) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: "Ticket ID and event type are required" 
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        // Get admin phone number from integration settings
+        const { data: adminSettings, error: adminError } = await supabase
+          .from('integration_settings')
+          .select('value')
+          .eq('key', 'whatsapp_admin_phone')
+          .maybeSingle();
+
+        if (adminError || !adminSettings?.value) {
+          console.log('Admin phone not configured');
+          return new Response(
+            JSON.stringify({ success: true, message: 'Admin phone not configured' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const adminPhone = adminSettings.value;
+
+        // Get ticket details
+        const { data: ticket, error: ticketError } = await supabase
+          .from('tickets')
+          .select(`
+            ticket_number,
+            subject,
+            status,
+            priority,
+            clients!inner (
+              full_name,
+              company_name
+            ),
+            departments!inner (
+              name
+            )
+          `)
+          .eq('id', ticket_id)
+          .single();
+
+        if (ticketError) throw ticketError;
+
+        let messageText = '';
+        
+        if (event_type === 'ticket_created') {
+          const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
+          const department = Array.isArray(ticket.departments) ? ticket.departments[0] : ticket.departments;
+          const clientName = client.company_name || client.full_name;
+          messageText = `🎫 *Novo Ticket Aberto*\n\n` +
+            `Número: #${ticket.ticket_number}\n` +
+            `Cliente: ${clientName}\n` +
+            `Departamento: ${department.name}\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `Prioridade: ${ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Média' : '🟢 Baixa'}`;
+        } else if (event_type === 'ticket_message') {
+          const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
+          const clientName = client.company_name || client.full_name;
+          messageText = `💬 *Nova Mensagem no Ticket #${ticket.ticket_number}*\n\n` +
+            `Cliente: ${clientName}\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `Status: ${ticket.status}`;
+        }
+
+        const result = await sendTextMessage(settings, adminPhone, messageText);
+        
         return new Response(
           JSON.stringify({ 
             success: true, 

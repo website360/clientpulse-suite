@@ -176,6 +176,21 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         } catch (err) {
           console.error('Error invoking send-email function:', err);
         }
+
+        // Send WhatsApp notification to admin if client opened the ticket
+        if (isContact || userRole === 'client') {
+          try {
+            await supabase.functions.invoke('send-whatsapp', {
+              body: {
+                action: 'send_ticket_notification',
+                ticket_id: ticketData.id,
+                event_type: 'ticket_created',
+              },
+            });
+          } catch (err) {
+            console.error('Error sending WhatsApp notification:', err);
+          }
+        }
       }
       
       onSuccess?.();

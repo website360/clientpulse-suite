@@ -301,6 +301,20 @@ export default function ClientTicketDetails() {
       fetchMessages();
       fetchAttachments();
       
+      // Send WhatsApp notification to admin
+      try {
+        await supabase.functions.invoke('send-whatsapp', {
+          body: {
+            action: 'send_ticket_notification',
+            ticket_id: id,
+            message_id: messageData.id,
+            event_type: 'ticket_message',
+          },
+        });
+      } catch (err) {
+        console.error('Error sending WhatsApp notification:', err);
+      }
+      
       toast({
         title: 'Mensagem enviada',
         description: 'Sua mensagem foi adicionada ao ticket.',
