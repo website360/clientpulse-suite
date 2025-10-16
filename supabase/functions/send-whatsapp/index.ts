@@ -223,6 +223,7 @@ serve(async (req) => {
           status,
           priority,
           client_id,
+          created_by,
           clients!inner (
             full_name,
             company_name,
@@ -242,7 +243,95 @@ serve(async (req) => {
       const department = Array.isArray(ticket.departments) ? ticket.departments[0] : ticket.departments;
       const clientName = client.company_name || client.full_name;
 
-      // Determine who should receive the notification
+      // Check if ticket was created by a contact
+      const { data: contactData } = await supabase
+        .from('client_contacts')
+        .select('user_id, name')
+        .eq('user_id', ticket.created_by)
+        .maybeSingle();
+
+      const isContactCreated = !!contactData;
+
+      // For ticket_created event when created by contact, send to both admin AND client
+      if (event_type === 'ticket_created' && isContactCreated) {
+        const results = [];
+        
+        // 1. Send to admin
+        const { data: adminUsers, error: adminError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin')
+          .limit(1)
+          .single();
+
+        if (adminUsers) {
+          const { data: adminProfile } = await supabase
+            .from('profiles')
+            .select('phone')
+            .eq('id', adminUsers.user_id)
+            .single();
+
+          if (adminProfile?.phone) {
+            const adminMessageText = `🎫 *Novo Ticket Aberto por Contato*\n\n` +
+              `Número: #${ticket.ticket_number}\n` +
+              `Contato: ${contactData.name}\n` +
+              `Cliente: ${clientName}\n` +
+              `Departamento: ${department.name}\n` +
+              `Assunto: ${ticket.subject}\n` +
+              `Prioridade: ${ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Média' : '🟢 Baixa'}`;
+
+            let cleanAdminPhone = adminProfile.phone.replace(/\D/g, '');
+            if (!cleanAdminPhone.startsWith('55')) {
+              cleanAdminPhone = '55' + cleanAdminPhone;
+            }
+
+            try {
+              const adminResult = await sendTextMessage(settings, cleanAdminPhone, adminMessageText);
+              results.push({ recipient: 'admin', success: true, data: adminResult });
+            } catch (error: any) {
+              console.error('Error sending to admin:', error);
+              results.push({ recipient: 'admin', success: false, error: error.message });
+            }
+          }
+        }
+
+        // 2. Send to client
+        if (client.phone) {
+          const clientMessageText = `🎫 *Novo Ticket Aberto*\n\n` +
+            `Número: #${ticket.ticket_number}\n` +
+            `Aberto por: ${contactData.name}\n` +
+            `Assunto: ${ticket.subject}\n` +
+            `Status: Aberto\n\n` +
+            `Nosso time já foi notificado e entrará em contato em breve.`;
+
+          let cleanClientPhone = client.phone.replace(/\D/g, '');
+          if (!cleanClientPhone.startsWith('55')) {
+            cleanClientPhone = '55' + cleanClientPhone;
+          }
+
+          try {
+            const clientResult = await sendTextMessage(settings, cleanClientPhone, clientMessageText);
+            results.push({ recipient: 'client', success: true, data: clientResult });
+          } catch (error: any) {
+            console.error('Error sending to client:', error);
+            results.push({ recipient: 'client', success: false, error: error.message });
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'Notifications sent',
+            results 
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      // For other events (non-contact created or other event types)
       let recipientPhone = '';
       let messageText = '';
 
