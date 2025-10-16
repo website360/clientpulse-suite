@@ -25,14 +25,15 @@ import { addMonths } from "date-fns";
 interface MaintenanceFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedPlan?: any;
 }
 
 type ItemStatus = "done" | "not_needed" | "skipped";
 
-export function MaintenanceFormModal({ open, onOpenChange }: MaintenanceFormModalProps) {
+export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSelectedPlan }: MaintenanceFormModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [selectedPlan, setSelectedPlan] = useState<string>(propSelectedPlan?.id || "");
   const [notes, setNotes] = useState("");
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [itemsStatus, setItemsStatus] = useState<Record<string, ItemStatus>>({});
@@ -154,12 +155,21 @@ export function MaintenanceFormModal({ open, onOpenChange }: MaintenanceFormModa
   });
 
   const resetForm = () => {
-    setSelectedPlan("");
+    if (!propSelectedPlan) {
+      setSelectedPlan("");
+    }
     setNotes("");
     setSendWhatsApp(true);
     setItemsStatus({});
     setItemsNotes({});
   };
+
+  // Update selectedPlan when propSelectedPlan changes
+  useState(() => {
+    if (propSelectedPlan?.id) {
+      setSelectedPlan(propSelectedPlan.id);
+    }
+  });
 
   const handleItemStatusChange = (itemId: string, status: ItemStatus) => {
     setItemsStatus(prev => ({ ...prev, [itemId]: status }));
