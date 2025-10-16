@@ -102,9 +102,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!linkedClient) {
           try {
-            await supabase.functions.invoke('link-client-user');
+            console.log('Cliente não vinculado, tentando auto-vinculação...');
+            const { data: linkResult, error: linkError } = await supabase.functions.invoke('link-client-user');
+            
+            if (linkError) {
+              console.error('Erro ao invocar link-client-user:', linkError);
+            } else if (linkResult?.success) {
+              console.log('Cliente vinculado com sucesso:', linkResult.clientId);
+            } else {
+              console.warn('Auto-vinculação retornou sem sucesso:', linkResult);
+            }
           } catch (e) {
-            console.error('link-client-user failed', e);
+            console.error('Exceção ao tentar link-client-user:', e);
           }
         }
       }

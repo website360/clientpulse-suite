@@ -47,12 +47,13 @@ serve(async (req) => {
       );
     }
 
-    // Find client with matching email
+    // Find client with matching email (case-insensitive)
     const { data: clients, error: clientErr } = await supabase
       .from('clients')
-      .select('id, user_id, email')
-      .eq('email', email)
-      .limit(2);
+      .select('id, user_id, email, created_at')
+      .ilike('email', email)
+      .order('user_id', { ascending: true, nullsFirst: true })
+      .order('created_at', { ascending: false });
 
     if (clientErr) {
       throw clientErr;
@@ -65,13 +66,7 @@ serve(async (req) => {
       );
     }
 
-    if (clients.length > 1) {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Multiple clients found for this email' } satisfies LinkResponse),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // Prioritize: 1) user_id IS NULL, 2) most recent
     const client = clients[0];
 
     if (client.user_id === user.id) {

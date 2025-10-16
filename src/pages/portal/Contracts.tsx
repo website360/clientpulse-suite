@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Download, Eye, Calendar } from 'lucide-react';
+import { Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast as sonnerToast } from 'sonner';
+import { useEnsureClientLinked } from '@/hooks/useEnsureClientLinked';
 
 interface Contract {
   id: string;
@@ -21,51 +22,45 @@ interface Contract {
 }
 
 export default function ClientContracts() {
-  const { user } = useAuth();
+  const { userRole } = useAuth();
   const { toast } = useToast();
+  const { clientId, isLoading: clientLoading, error: clientError, isContact } = useEnsureClientLinked();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      (async () => {
-        // Block access for contacts
-        const { data: contact } = await supabase
-          .from('client_contacts')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        if (contact) {
-          toast({ title: 'Acesso negado', description: 'Página indisponível para contatos.', variant: 'destructive' });
-          window.location.href = '/portal';
-          return;
-        }
-        fetchContracts();
-      })();
+    // Bloquear acesso para contatos
+    if (isContact) {
+      toast({ 
+        title: 'Acesso negado', 
+        description: 'Página indisponível para contatos.', 
+        variant: 'destructive' 
+      });
+      window.location.href = '/portal';
+      return;
     }
-  }, [user]);
+
+    // Aguardar o clientId estar disponível
+    if (!clientLoading && clientId) {
+      fetchContracts();
+    } else if (!clientLoading && clientError) {
+      toast({
+        title: 'Erro',
+        description: clientError,
+        variant: 'destructive',
+      });
+      setLoading(false);
+    }
+  }, [clientId, clientLoading, clientError, isContact]);
 
   async function fetchContracts() {
+    if (!clientId) return;
+
     try {
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      if (!client) {
-        toast({
-          title: 'Erro',
-          description: 'Cliente não encontrado',
-          variant: 'destructive',
-        });
-        return;
-      }
-
       const { data: contractsData, error: contractsError } = await supabase
         .from('contracts')
         .select('*, services(name), payment_methods(name), attachment_url')
-        .eq('client_id', client.id)
+        .eq('client_id', clientId)
         .order('start_date', { ascending: false });
 
       if (contractsError) throw contractsError;
