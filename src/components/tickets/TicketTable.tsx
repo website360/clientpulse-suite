@@ -108,7 +108,7 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
         <TableHeader>
           <TableRow>
             <SortableTableHead column="ticket_number" label="#" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[100px]" />
-            <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[250px]" />
             <TableHead>Cliente</TableHead>
             <TableHead>Departamento</TableHead>
             <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
