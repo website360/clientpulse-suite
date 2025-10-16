@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Calendar, Globe, Edit, Trash2, PowerOff, Power, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Globe, Edit, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { parseISO } from 'date-fns';
-import { format, addMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MaintenancePlanFormModal } from '@/components/maintenance/MaintenancePlanFormModal';
-import { MaintenanceFormModal } from '@/components/maintenance/MaintenanceFormModal';
-import { MaintenanceCards } from '@/components/maintenance/MaintenanceCards';
 import { ClientMaintenanceHistory } from './ClientMaintenanceHistory';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -30,8 +28,7 @@ interface ClientMaintenanceTabProps {
 }
 
 export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
-  const [isFormOpen, setIsFormOpen] = useState(false); // Plan form
-  const [isExecuteOpen, setIsExecuteOpen] = useState(false); // Execute maintenance modal
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; planId: string | null }>({ open: false, planId: null });
   const queryClient = useQueryClient();
@@ -85,23 +82,6 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
     },
   });
 
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ planId, isActive }: { planId: string; isActive: boolean }) => {
-      const { error } = await supabase
-        .from('client_maintenance_plans')
-        .update({ is_active: !isActive })
-        .eq('id', planId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Status do plano atualizado');
-      queryClient.invalidateQueries({ queryKey: ['client-maintenance-plans', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['maintenance-plans'] });
-    },
-    onError: (error: any) => {
-      toast.error('Erro ao atualizar plano: ' + error.message);
-    },
-  });
 
   const handleEdit = (plan: any) => {
     setSelectedPlan(plan);
@@ -111,11 +91,6 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
   const handleNew = () => {
     setSelectedPlan(null);
     setIsFormOpen(true);
-  };
-
-  const handleExecute = (plan: any) => {
-    setSelectedPlan(plan);
-    setIsExecuteOpen(true);
   };
 
   const handleDelete = (planId: string) => {
@@ -129,35 +104,6 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
     }
   };
 
-  const getNextScheduledDate = (plan: any) => {
-    const lastExecution = plan.maintenance_executions?.[0];
-    if (lastExecution?.next_scheduled_date) {
-      return new Date(lastExecution.next_scheduled_date);
-    }
-
-    const today = new Date();
-    const targetDay = plan.monthly_day;
-    const currentDay = today.getDate();
-
-    if (currentDay <= targetDay) {
-      return new Date(today.getFullYear(), today.getMonth(), targetDay);
-    } else {
-      return new Date(today.getFullYear(), today.getMonth() + 1, targetDay);
-    }
-  };
-
-  const getStatusColor = (plan: any) => {
-    const lastExecution = plan.maintenance_executions?.[0];
-    if (!lastExecution) return 'destructive';
-
-    const lastDate = new Date(lastExecution.executed_at);
-    const today = new Date();
-    const daysSince = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (daysSince < 25) return 'default';
-    if (daysSince < 35) return 'secondary';
-    return 'destructive';
-  };
 
   if (isLoading) {
     return <div className="p-6">Carregando planos...</div>;
@@ -268,10 +214,10 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
                       {plan.domains?.domain || 'Sem domínio específico'}
                     </h3>
 
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>Executado todo dia {plan.monthly_day}</span>
+                        <span>Executada mensalmente</span>
                       </div>
 
                       {lastExecution && (
@@ -286,9 +232,30 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
                       <div className="flex items-center gap-2 text-sm">
                         <AlertCircle className="h-4 w-4 text-warning" />
                         <span className="text-muted-foreground">
-                          Próxima: {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
+                          Próxima: {format(nextDate, "MMMM/yyyy", { locale: ptBR })}
                         </span>
                       </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-border flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(plan)}
+                        className="flex-1"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(plan.id)}
+                        className="flex-1 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </Button>
                     </div>
 
                     {!plan.is_active && (
@@ -315,12 +282,6 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
         onOpenChange={setIsFormOpen}
         clientId={clientId}
         plan={selectedPlan}
-      />
-
-      <MaintenanceFormModal
-        open={isExecuteOpen}
-        onOpenChange={setIsExecuteOpen}
-        selectedPlan={selectedPlan}
       />
 
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>

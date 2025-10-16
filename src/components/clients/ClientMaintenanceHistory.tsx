@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,14 +10,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MaintenanceExecutionViewModal } from "./MaintenanceExecutionViewModal";
 
 interface ClientMaintenanceHistoryProps {
   clientId: string;
 }
 
 export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryProps) {
+  const [selectedExecution, setSelectedExecution] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+
   const { data: executions, isLoading } = useQuery({
     queryKey: ["client-maintenance-history", clientId],
     queryFn: async () => {
@@ -28,6 +35,15 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
             id,
             client_id,
             domain:domains(domain)
+          ),
+          checklist_items:maintenance_execution_items(
+            id,
+            status,
+            notes,
+            checklist_item:maintenance_checklist_items(
+              id,
+              name
+            )
           )
         `)
         .eq("plan.client_id", clientId)
@@ -50,6 +66,11 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
     },
   });
 
+  const handleView = (execution: any) => {
+    setSelectedExecution(execution);
+    setViewModalOpen(true);
+  };
+
   if (isLoading) {
     return <div className="p-6">Carregando histórico...</div>;
   }
@@ -63,39 +84,58 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Site</TableHead>
-            <TableHead>Data Execução</TableHead>
-            <TableHead>Executado por</TableHead>
-            <TableHead>WhatsApp</TableHead>
-            <TableHead>Próxima</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {executions.map((execution) => (
-            <TableRow key={execution.id}>
-              <TableCell>{execution.plan?.domain?.domain || "-"}</TableCell>
-              <TableCell>
-                {format(parseISO(execution.executed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-              </TableCell>
-              <TableCell>{execution.executed_by_profile?.full_name}</TableCell>
-              <TableCell>
-                <Badge variant={execution.whatsapp_sent ? "default" : "secondary"}>
-                  {execution.whatsapp_sent ? "Enviado" : "Não enviado"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {execution.next_scheduled_date
-                  ? format(parseISO(execution.next_scheduled_date), "dd/MM/yyyy", { locale: ptBR })
-                  : "-"}
-              </TableCell>
+    <>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Site</TableHead>
+              <TableHead>Data Execução</TableHead>
+              <TableHead>Executado por</TableHead>
+              <TableHead>WhatsApp</TableHead>
+              <TableHead>Próxima</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {executions.map((execution) => (
+              <TableRow key={execution.id}>
+                <TableCell>{execution.plan?.domain?.domain || "-"}</TableCell>
+                <TableCell>
+                  {format(parseISO(execution.executed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                </TableCell>
+                <TableCell>{execution.executed_by_profile?.full_name}</TableCell>
+                <TableCell>
+                  <Badge variant={execution.whatsapp_sent ? "default" : "secondary"}>
+                    {execution.whatsapp_sent ? "Enviado" : "Não enviado"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {execution.next_scheduled_date
+                    ? format(parseISO(execution.next_scheduled_date), "dd/MM/yyyy", { locale: ptBR })
+                    : "-"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleView(execution)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Visualizar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <MaintenanceExecutionViewModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        execution={selectedExecution}
+      />
+    </>
   );
 }
