@@ -19,6 +19,7 @@ import { ClientDomains } from '@/components/clients/ClientDomains';
 import { ContractTable } from '@/components/contracts/ContractTable';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ClientMaintenanceTab } from '@/components/clients/ClientMaintenanceTab';
+import { ClientFinancialTab } from '@/components/clients/ClientFinancialTab';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -390,6 +391,7 @@ export default function ClientDetail() {
             <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="dominios">Domínios</TabsTrigger>
             <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
+            <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
             <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
 
@@ -598,6 +600,10 @@ export default function ClientDetail() {
 
           <TabsContent value="manutencao" className="space-y-4">
             <ClientMaintenanceTab clientId={id!} />
+          </TabsContent>
+
+          <TabsContent value="financeiro" className="space-y-4">
+            <ClientFinancialTab clientId={id!} />
           </TabsContent>
 
           <TabsContent value="contatos" className="space-y-4">
