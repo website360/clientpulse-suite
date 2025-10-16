@@ -108,27 +108,10 @@ export function ClientFinancialTab({ clientId }: ClientFinancialTabProps) {
   return (
     <div className="space-y-6">
       {sortedMonths.map(([monthYear, items]: [string, any[]]) => {
-        const totalMonth = items.reduce((sum: number, item: any) => sum + Number(item.amount), 0);
-        const paidMonth = items
-          .filter((item: any) => item.status === 'received' || item.status === 'paid')
-          .reduce((sum: number, item: any) => sum + Number(item.amount), 0);
-
         return (
           <Card key={monthYear}>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg capitalize">{monthYear}</CardTitle>
-                <div className="flex gap-4 text-sm">
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Total</p>
-                    <p className="font-semibold">{formatCurrency(totalMonth)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Recebido</p>
-                    <p className="font-semibold text-green-600">{formatCurrency(paidMonth)}</p>
-                  </div>
-                </div>
-              </div>
+              <CardTitle className="text-lg capitalize">{monthYear}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
