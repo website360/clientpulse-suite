@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ export function FinancialAnalytics() {
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [filterType, setFilterType] = useState<FilterType>('pagar_receber');
 
-  const { data: analyticsData, isLoading } = useQuery({
+  const { data: analyticsData, isLoading, refetch } = useQuery({
     queryKey: ['financial-analytics', selectedYear, filterType],
     queryFn: async () => {
       const startDate = `${selectedYear}-01-01`;
@@ -46,7 +46,7 @@ export function FinancialAnalytics() {
         if (filterType === 'pagas_recebidas') {
           // Contas recebidas no mês
           result.recebidas = allReceivableData
-            ?.filter(r => r.status === 'paid' && r.payment_date?.startsWith(monthStart))
+            ?.filter(r => (r.status === 'received' || r.status === 'paid') && r.payment_date?.startsWith(monthStart))
             .reduce((sum, r) => sum + Number(r.amount), 0) || 0;
           
           // Contas pagas no mês
@@ -68,7 +68,7 @@ export function FinancialAnalytics() {
         } else if (filterType === 'atrasadas_vencidas') {
           // Contas a receber vencidas
           result.vencidas = allReceivableData
-            ?.filter(r => r.due_date.startsWith(monthStart) && r.status !== 'paid' && r.due_date < today)
+            ?.filter(r => r.due_date.startsWith(monthStart) && (r.status !== 'received' && r.status !== 'paid') && r.due_date < today)
             .reduce((sum, r) => sum + Number(r.amount), 0) || 0;
           
           // Contas a pagar atrasadas
@@ -79,7 +79,7 @@ export function FinancialAnalytics() {
         } else if (filterType === 'caixa') {
           // Recebidas menos pagas = lucro
           const recebidas = allReceivableData
-            ?.filter(r => r.status === 'paid' && r.payment_date?.startsWith(monthStart))
+            ?.filter(r => (r.status === 'received' || r.status === 'paid') && r.payment_date?.startsWith(monthStart))
             .reduce((sum, r) => sum + Number(r.amount), 0) || 0;
           
           const pagas = allPayableData
@@ -95,6 +95,18 @@ export function FinancialAnalytics() {
       return monthlyData;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('financial-analytics')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts_receivable' }, () => refetch())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts_payable' }, () => refetch())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
