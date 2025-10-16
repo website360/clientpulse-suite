@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -10,6 +10,7 @@ import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface DashboardStats {
   openTickets: number;
@@ -62,6 +63,8 @@ export default function Dashboard() {
   });
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
+  const [showReceivableValues, setShowReceivableValues] = useState(true);
+  const [showPayableValues, setShowPayableValues] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
@@ -268,44 +271,57 @@ export default function Dashboard() {
 
             {/* Financial Indicators - Contas a Receber */}
             <div>
-              <h2 className="text-lg font-bold mb-4">Contas a Receber</h2>
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-lg font-bold">Contas a Receber</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReceivableValues(!showReceivableValues)}
+                >
+                  {showReceivableValues ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Receber"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.totalReceivable)}
+                  }).format(stats.totalReceivable) : '•••••'}
                   icon={TrendingUp}
                   variant="default"
                 />
 
                 <MetricCard
                   title="Total Recebido"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.totalReceived)}
+                  }).format(stats.totalReceived) : '•••••'}
                   icon={CheckCircle}
                   variant="success"
                 />
 
                 <MetricCard
                   title="Vencem em 3 dias"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.receivableDueSoon)}
+                  }).format(stats.receivableDueSoon) : '•••••'}
                   icon={Clock}
                   variant="default"
                 />
 
                 <MetricCard
                   title="Total Vencido"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.overdueReceivable)}
+                  }).format(stats.overdueReceivable) : '•••••'}
                   icon={AlertCircle}
                   variant="destructive"
                 />
@@ -314,44 +330,57 @@ export default function Dashboard() {
 
             {/* Financial Indicators - Contas a Pagar */}
             <div>
-              <h2 className="text-lg font-bold mb-4">Contas a Pagar</h2>
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-lg font-bold">Contas a Pagar</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPayableValues(!showPayableValues)}
+                >
+                  {showPayableValues ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total a Pagar"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.totalPayable)}
+                  }).format(stats.totalPayable) : '•••••'}
                   icon={TrendingDown}
                   variant="default"
                 />
 
                 <MetricCard
                   title="Total Pago"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.totalPaid)}
+                  }).format(stats.totalPaid) : '•••••'}
                   icon={CheckCircle}
                   variant="success"
                 />
 
                 <MetricCard
                   title="Vencem em 3 dias"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.payableDueSoon)}
+                  }).format(stats.payableDueSoon) : '•••••'}
                   icon={Clock}
                   variant="default"
                 />
 
                 <MetricCard
                   title="Total Vencido"
-                  value={new Intl.NumberFormat('pt-BR', {
+                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(stats.overduePayable)}
+                  }).format(stats.overduePayable) : '•••••'}
                   icon={AlertCircle}
                   variant="destructive"
                 />

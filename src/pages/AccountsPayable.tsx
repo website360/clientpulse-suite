@@ -9,6 +9,7 @@ import { TablePagination } from '@/components/ui/table-pagination';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
 
 const AccountsPayable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,6 +68,7 @@ const AccountsPayable = () => {
             <TabsTrigger value="receivable" onClick={() => navigate('/financeiro/receber')}>
               Contas a Receber
             </TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="payable" className="space-y-6">
@@ -102,6 +104,10 @@ const AccountsPayable = () => {
                 }}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <FinancialAnalytics />
           </TabsContent>
         </Tabs>
 
