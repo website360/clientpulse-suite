@@ -49,8 +49,30 @@ export const GoogleCalendarTab = () => {
   };
 
   const handleConnectCalendar = async () => {
-    toast.info("Funcionalidade de integração com Google Calendar em desenvolvimento");
-    // Aqui será implementado o fluxo OAuth do Google
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.authUrl) {
+        // Redirect to Google OAuth
+        window.location.href = data.authUrl;
+      }
+    } catch (error: any) {
+      console.error("Erro ao conectar:", error);
+      toast.error("Erro ao iniciar conexão com Google Calendar");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDisconnect = async () => {

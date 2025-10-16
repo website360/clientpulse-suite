@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-whatsapp]
 verify_jwt = true
+
+[functions.google-calendar-oauth]
+verify_jwt = false

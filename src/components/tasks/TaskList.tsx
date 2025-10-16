@@ -3,9 +3,21 @@ import { ptBR } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Link2, Cloud } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Link2, Cloud, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface TaskListProps {
   tasks: any[];
@@ -14,6 +26,7 @@ interface TaskListProps {
 }
 
 const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
+  const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const groupTasks = (tasks: any[]) => {
     const groups = {
       today: [] as any[],
@@ -85,6 +98,22 @@ const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
     }
   };
 
+  const handleDeleteTask = async (taskId: string) => {
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", taskId);
+
+    if (error) {
+      toast.error("Erro ao excluir tarefa");
+      return;
+    }
+
+    toast.success("Tarefa excluída com sucesso");
+    setDeleteTaskId(null);
+    onRefetch();
+  };
+
   const renderTaskGroup = (title: string, tasks: any[]) => {
     if (tasks.length === 0) return null;
 
@@ -95,15 +124,14 @@ const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="flex items-start gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-              onClick={() => onEditTask(task)}
+              className="flex items-start gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
             >
               <Checkbox
                 checked={task.status === "done"}
                 onCheckedChange={() => handleToggleComplete(task.id, task.status)}
                 onClick={(e) => e.stopPropagation()}
               />
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2 cursor-pointer" onClick={() => onEditTask(task)}>
                 <div className="flex items-center gap-2">
                   <h4 className={`font-medium ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                     {task.title}
@@ -154,6 +182,17 @@ const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
                   )}
                 </div>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteTaskId(task.id);
+                }}
+                className="shrink-0"
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
           ))}
         </div>
@@ -164,18 +203,40 @@ const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
   const grouped = groupTasks(tasks);
 
   return (
-    <div className="space-y-6">
-      {renderTaskGroup("Hoje", grouped.today)}
-      {renderTaskGroup("Amanhã", grouped.tomorrow)}
-      {renderTaskGroup("Esta Semana", grouped.thisWeek)}
-      {renderTaskGroup("Próximas", grouped.upcoming)}
-      {renderTaskGroup("Sem Data", grouped.noDate)}
-      {tasks.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          Nenhuma tarefa encontrada
-        </div>
-      )}
-    </div>
+    <>
+      <div className="space-y-6">
+        {renderTaskGroup("Hoje", grouped.today)}
+        {renderTaskGroup("Amanhã", grouped.tomorrow)}
+        {renderTaskGroup("Esta Semana", grouped.thisWeek)}
+        {renderTaskGroup("Próximas", grouped.upcoming)}
+        {renderTaskGroup("Sem Data", grouped.noDate)}
+        {tasks.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            Nenhuma tarefa encontrada
+          </div>
+        )}
+      </div>
+
+      <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTaskId && handleDeleteTask(deleteTaskId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

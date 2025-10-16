@@ -1,4 +1,4 @@
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
@@ -38,18 +38,50 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
     const taskId = active.id as string;
     const overId = over.id as string;
     
-    // Check if dropped over a column
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) {
+      setActiveId(null);
+      return;
+    }
+
+    // Check if dropped over a column or another task
+    let newStatus = task.status;
+    
+    // If dropped on a column directly
     if (["todo", "in_progress", "done"].includes(overId)) {
-      const task = tasks.find(t => t.id === taskId);
-      if (task && task.status !== overId) {
-        onStatusChange(taskId, overId);
+      newStatus = overId;
+    } else {
+      // If dropped on another task, get that task's status
+      const overTask = tasks.find(t => t.id === overId);
+      if (overTask) {
+        newStatus = overTask.status;
       }
+    }
+    
+    if (newStatus !== task.status) {
+      onStatusChange(taskId, newStatus);
     }
 
     setActiveId(null);
   };
 
   const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
+
+  // Componente para coluna com área de drop
+  const DroppableColumn = ({ column, children }: { column: any; children: React.ReactNode }) => {
+    const { setNodeRef } = useDroppable({
+      id: column.id,
+    });
+
+    return (
+      <div
+        ref={setNodeRef}
+        className="flex flex-col gap-3 p-4 rounded-lg bg-muted/30 min-h-[400px]"
+      >
+        {children}
+      </div>
+    );
+  };
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -58,10 +90,7 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
           const columnTasks = getTasksByStatus(column.status);
           
           return (
-            <div
-              key={column.id}
-              className="flex flex-col gap-3 p-4 rounded-lg bg-muted/30"
-            >
+            <DroppableColumn key={column.id} column={column}>
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">{column.label}</h3>
                 <Badge variant="secondary">{columnTasks.length}</Badge>
@@ -70,12 +99,8 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
               <SortableContext
                 items={columnTasks.map((t) => t.id)}
                 strategy={verticalListSortingStrategy}
-                id={column.id}
               >
-                <div 
-                  id={column.id}
-                  className="space-y-3 min-h-[200px]"
-                >
+                <div className="space-y-3 flex-1">
                   {columnTasks.map((task) => (
                     <TaskCard
                       key={task.id}
@@ -85,7 +110,7 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
                   ))}
                 </div>
               </SortableContext>
-            </div>
+            </DroppableColumn>
           );
         })}
       </div>
