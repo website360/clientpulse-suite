@@ -19,6 +19,7 @@ import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { GoogleCalendarTab } from '@/components/settings/GoogleCalendarTab';
 import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
+import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
@@ -237,6 +238,7 @@ export default function Settings() {
                 <TabsTrigger value="asaas">Asaas</TabsTrigger>
                 <TabsTrigger value="google-calendar">Google Calendar</TabsTrigger>
                 <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                <TabsTrigger value="ticket-whatsapp">Templates Tickets</TabsTrigger>
                 <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
               </>
             )}
@@ -424,6 +426,10 @@ export default function Settings() {
 
                   <TabsContent value="whatsapp">
                     <WhatsAppSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="ticket-whatsapp">
+                    <TicketWhatsAppSettingsTab />
                   </TabsContent>
 
                   <TabsContent value="maintenance">
