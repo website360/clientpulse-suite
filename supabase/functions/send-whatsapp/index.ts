@@ -212,26 +212,41 @@ serve(async (req) => {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
             }
           );
-        }
+      }
 
-        // Get admin phone number from integration settings
-        const { data: adminSettings, error: adminError } = await supabase
-          .from('integration_settings')
-          .select('value')
-          .eq('key', 'whatsapp_admin_phone')
-          .maybeSingle();
+      // Get admin phone from profiles
+      const { data: adminUsers, error: adminError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .limit(1)
+        .single();
 
-        if (adminError || !adminSettings?.value) {
-          console.log('Admin phone not configured');
-          return new Response(
-            JSON.stringify({ success: true, message: 'Admin phone not configured' }),
-            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+      if (adminError || !adminUsers) {
+        console.log('No admin user found');
+        return new Response(
+          JSON.stringify({ success: true, message: 'No admin user found' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-        const adminPhone = adminSettings.value;
+      const { data: adminProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', adminUsers.user_id)
+        .single();
 
-        // Get ticket details
+      if (profileError || !adminProfile?.phone) {
+        console.log('Admin phone not configured in profile');
+        return new Response(
+          JSON.stringify({ success: true, message: 'Admin phone not configured in profile' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const adminPhone = adminProfile.phone;
+
+      // Get ticket details
         const { data: ticket, error: ticketError } = await supabase
           .from('tickets')
           .select(`
