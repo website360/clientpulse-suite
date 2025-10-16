@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { maskPhone } from '@/lib/masks';
 import {
   Dialog,
   DialogContent,
@@ -155,9 +156,12 @@ export function ContactFormModal({
               type="tel"
               placeholder="(11) 99999-9999"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
               maxLength={20}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Necessário para receber notificações no WhatsApp
+            </p>
           </div>
 
           <DialogFooter>

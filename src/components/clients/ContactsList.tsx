@@ -28,11 +28,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Edit, Trash2, Mail, User2, UserPlus, Copy, Check } from 'lucide-react';
+import { Edit, Trash2, Mail, User2, UserPlus, Copy, Check, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatPhone } from '@/lib/masks';
 
 interface ContactsListProps {
   contacts: any[];
@@ -177,6 +178,7 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
               <TableHead>Nome</TableHead>
               <TableHead>Departamento</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Telefone</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -201,6 +203,16 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
                       {contact.email}
                     </a>
                   </div>
+                </TableCell>
+                <TableCell>
+                  {contact.phone ? (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{formatPhone(contact.phone)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {contact.user_id ? (
