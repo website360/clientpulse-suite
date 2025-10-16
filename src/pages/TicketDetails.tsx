@@ -350,12 +350,21 @@ export default function TicketDetails() {
     }
   };
 
-  const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed') => {
+  const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' | string) => {
     try {
       console.log('Updating status to:', newStatus);
+      const map: Record<string, 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = {
+        'Aberto': 'open',
+        'Em Andamento': 'in_progress',
+        'Aguardando': 'waiting',
+        'Resolvido': 'resolved',
+        'Fechado': 'closed',
+      };
+      const normalized = (map[newStatus] ?? (newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'));
+
       const { error } = await supabase
         .from('tickets')
-        .update({ status: newStatus })
+        .update({ status: normalized })
         .eq('id', id);
 
       if (error) {
@@ -364,7 +373,7 @@ export default function TicketDetails() {
       }
 
       // Optimistic UI update
-      setTicket((prev: any) => prev ? { ...prev, status: newStatus } : prev);
+      setTicket((prev: any) => prev ? { ...prev, status: normalized } : prev);
 
       console.log('Status updated successfully, fetching details...');
       fetchTicketDetails();
