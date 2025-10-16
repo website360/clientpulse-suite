@@ -9,6 +9,8 @@ import { Plus, Calendar, Globe, Edit, Trash2, PowerOff, Power } from 'lucide-rea
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MaintenancePlanFormModal } from '@/components/maintenance/MaintenancePlanFormModal';
+import { MaintenanceFormModal } from '@/components/maintenance/MaintenanceFormModal';
+import { MaintenanceCards } from '@/components/maintenance/MaintenanceCards';
 import { ClientMaintenanceHistory } from './ClientMaintenanceHistory';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -27,7 +29,8 @@ interface ClientMaintenanceTabProps {
 }
 
 export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false); // Plan form
+  const [isExecuteOpen, setIsExecuteOpen] = useState(false); // Execute maintenance modal
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; planId: string | null }>({ open: false, planId: null });
   const queryClient = useQueryClient();
@@ -39,6 +42,12 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
         .from('client_maintenance_plans')
         .select(`
           *,
+          clients (
+            id,
+            full_name,
+            company_name,
+            nickname
+          ),
           domains (
             id,
             domain
@@ -49,7 +58,8 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
           )
         `)
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
 
       if (error) throw error;
       return data;
@@ -102,6 +112,11 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
     setIsFormOpen(true);
   };
 
+  const handleExecute = (plan: any) => {
+    setSelectedPlan(plan);
+    setIsExecuteOpen(true);
+  };
+
   const handleDelete = (planId: string) => {
     setDeleteDialog({ open: true, planId });
   };
@@ -148,11 +163,11 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
   }
 
   return (
-    <Tabs defaultValue="plans" className="space-y-4">
+    <Tabs defaultValue="history" className="space-y-4">
       <div className="flex justify-between items-center">
         <TabsList>
-          <TabsTrigger value="plans">Planos Ativos</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="plans">Planos Ativos</TabsTrigger>
         </TabsList>
         <Button onClick={handleNew}>
           <Plus className="h-4 w-4 mr-2" />
@@ -162,89 +177,14 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
 
       <TabsContent value="plans" className="space-y-4">
         {!plans || plans.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Nenhum plano de manutenção cadastrado.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {plans.map((plan) => {
-            const nextDate = getNextScheduledDate(plan);
-            const lastExecution = plan.maintenance_executions?.[0];
-            const statusColor = getStatusColor(plan);
-
-            return (
-              <Card key={plan.id} className={!plan.is_active ? 'opacity-60' : ''}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <CardTitle className="text-base">
-                        {plan.domains?.domain || 'Sem domínio específico'}
-                      </CardTitle>
-                    </div>
-                    <Badge variant={plan.is_active ? 'default' : 'secondary'}>
-                      {plan.is_active ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Executado todo dia {plan.monthly_day}</span>
-                  </div>
-
-                  {lastExecution && (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Última: </span>
-                      <Badge variant={statusColor} className="ml-1">
-                        {format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </Badge>
-                    </div>
-                  )}
-
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Próxima: </span>
-                    <span className="font-medium">
-                      {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
-                      {!plan.is_active && ' (pausado)'}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(plan)}>
-                      <Edit className="h-3 w-3 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleActiveMutation.mutate({ planId: plan.id, isActive: plan.is_active })}
-                    >
-                      {plan.is_active ? (
-                        <>
-                          <PowerOff className="h-3 w-3 mr-1" />
-                          Desativar
-                        </>
-                      ) : (
-                        <>
-                          <Power className="h-3 w-3 mr-1" />
-                          Reativar
-                        </>
-                      )}
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(plan.id)}>
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Excluir
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              Nenhum plano de manutenção cadastrado.
+            </CardContent>
+          </Card>
+        ) : (
+          <MaintenanceCards plans={plans} onExecute={handleExecute} />
+        )}
       </TabsContent>
 
       <TabsContent value="history">
@@ -256,6 +196,12 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
         onOpenChange={setIsFormOpen}
         clientId={clientId}
         plan={selectedPlan}
+      />
+
+      <MaintenanceFormModal
+        open={isExecuteOpen}
+        onOpenChange={setIsExecuteOpen}
+        selectedPlan={selectedPlan}
       />
 
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>

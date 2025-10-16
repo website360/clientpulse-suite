@@ -43,7 +43,8 @@ export default function Maintenance() {
             next_scheduled_date
           )
         `)
-        .order('created_at', { ascending: false });
+.order('created_at', { ascending: false })
+        .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
 
       if (error) throw error;
       return data;

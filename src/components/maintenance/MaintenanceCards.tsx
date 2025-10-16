@@ -2,7 +2,7 @@ import { Globe, Calendar, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface MaintenanceCardsProps {
@@ -49,7 +49,7 @@ export function MaintenanceCards({ plans, onExecute }: MaintenanceCardsProps) {
   const getNextScheduledDate = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
     if (lastExecution?.next_scheduled_date) {
-      return new Date(lastExecution.next_scheduled_date);
+      return parseISO(lastExecution.next_scheduled_date);
     }
 
     const today = new Date();

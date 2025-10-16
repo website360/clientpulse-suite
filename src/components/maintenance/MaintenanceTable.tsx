@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface MaintenanceTableProps {
@@ -40,7 +40,7 @@ export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
   const getNextScheduledDate = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
     if (lastExecution?.next_scheduled_date) {
-      return new Date(lastExecution.next_scheduled_date);
+      return parseISO(lastExecution.next_scheduled_date);
     }
 
     const today = new Date();
