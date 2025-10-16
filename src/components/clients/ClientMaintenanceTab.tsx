@@ -56,6 +56,7 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
           )
         `)
         .eq('client_id', clientId)
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
 
@@ -68,17 +69,17 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
     mutationFn: async (planId: string) => {
       const { error } = await supabase
         .from('client_maintenance_plans')
-        .delete()
+        .update({ is_active: false })
         .eq('id', planId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Plano excluído com sucesso');
+      toast.success('Plano removido com sucesso');
       queryClient.invalidateQueries({ queryKey: ['client-maintenance-plans', clientId] });
       queryClient.invalidateQueries({ queryKey: ['maintenance-plans'] });
     },
     onError: (error: any) => {
-      toast.error('Erro ao excluir plano: ' + error.message);
+      toast.error('Erro ao remover plano: ' + error.message);
     },
   });
 
@@ -287,14 +288,14 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este plano de manutenção? Esta ação não pode ser desfeita.
+              Tem certeza que deseja remover este plano de manutenção? O histórico de manutenções será mantido.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete}>Remover</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
