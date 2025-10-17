@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { getStatusUpdateData } from '@/lib/tickets';
 
 export default function Tickets() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
@@ -207,13 +208,7 @@ export default function Tickets() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus };
-      
-      if (newStatus === 'resolved') {
-        updateData.resolved_at = new Date().toISOString();
-      } else if (newStatus === 'closed') {
-        updateData.closed_at = new Date().toISOString();
-      }
+      const updateData = getStatusUpdateData(newStatus);
 
       const { error } = await supabase
         .from('tickets')

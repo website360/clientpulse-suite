@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStatusUpdateData } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -113,39 +114,11 @@ export default function ClientDetail() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      const normalizeStatusInput = (value: string) => {
-        const s = (value || '')
-          .toString()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .trim();
-        const map: Record<string, 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = {
-          open: 'open',
-          'in_progress': 'in_progress',
-          'in progress': 'in_progress',
-          'em andamento': 'in_progress',
-          waiting: 'waiting',
-          aguardando: 'waiting',
-          resolved: 'resolved',
-          resolvido: 'resolved',
-          closed: 'closed',
-          fechado: 'closed',
-          aberto: 'open',
-        };
-        return (map[s] ?? (value as any)) as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
-      };
-
-      const normalized = normalizeStatusInput(newStatus);
-
-      const validStatuses: Array<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
-      if (!validStatuses.includes(normalized)) {
-        throw new Error(`Status inválido: ${newStatus}`);
-      }
+      const updateData = getStatusUpdateData(newStatus);
 
       const { error } = await supabase
         .from('tickets')
-        .update({ status: normalized })
+        .update(updateData)
         .eq('id', ticketId);
 
       if (error) throw error;

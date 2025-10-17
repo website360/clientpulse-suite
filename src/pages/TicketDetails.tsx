@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -15,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStatusUpdateData } from '@/lib/tickets';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
@@ -29,6 +29,9 @@ import {
   File
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
 
 export default function TicketDetails() {
   const { id } = useParams();
@@ -38,7 +41,7 @@ export default function TicketDetails() {
   const [messages, setMessages] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [messageAttachments, setMessageAttachments] = useState<File[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessageHtml, setNewMessageHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
@@ -217,7 +220,9 @@ export default function TicketDetails() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !id) return;
+    // Validate message content (strip HTML for validation)
+    const plainText = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim();
+    if (!plainText && messageAttachments.length === 0 || !id) return;
 
     setSending(true);
     try {
@@ -233,12 +238,15 @@ export default function TicketDetails() {
       
       const isAdmin = rolesData?.role === 'admin';
 
+      // Sanitize HTML before saving
+      const sanitizedMessage = DOMPurify.sanitize(newMessageHtml, { USE_PROFILES: { html: true } });
+
       const { data: messageData, error } = await supabase
         .from('ticket_messages')
         .insert({
           ticket_id: id,
           user_id: user.id,
-          message: newMessage,
+          message: sanitizedMessage,
           is_internal: false,
         })
         .select()
@@ -251,7 +259,7 @@ export default function TicketDetails() {
         await uploadMessageAttachments(messageData.id, messageAttachments);
       }
 
-      setNewMessage('');
+      setNewMessageHtml('');
       setMessageAttachments([]);
       fetchMessages();
       fetchAttachments();
@@ -354,41 +362,11 @@ export default function TicketDetails() {
     try {
       console.log('Updating status to:', newStatus);
 
-      // Normalize any input (handles Portuguese labels and diacritics)
-      const normalizeStatusInput = (value: string) => {
-        const s = (value || '')
-          .toString()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .trim();
-        const map: Record<string, 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = {
-          open: 'open',
-          'in_progress': 'in_progress',
-          'in progress': 'in_progress',
-          'em andamento': 'in_progress',
-          waiting: 'waiting',
-          aguardando: 'waiting',
-          resolved: 'resolved',
-          resolvido: 'resolved',
-          closed: 'closed',
-          fechado: 'closed',
-          aberto: 'open',
-        };
-        return (map[s] ?? (value as any)) as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
-      };
-
-      const normalized = normalizeStatusInput(newStatus);
-      
-      // Validate if it's a valid status
-      const validStatuses: Array<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
-      if (!validStatuses.includes(normalized)) {
-        throw new Error(`Status inválido: ${newStatus}`);
-      }
+      const updateData = getStatusUpdateData(newStatus);
 
       const { error } = await supabase
         .from('tickets')
-        .update({ status: normalized })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {
@@ -397,7 +375,7 @@ export default function TicketDetails() {
       }
 
       // Optimistic UI update
-      setTicket((prev: any) => prev ? { ...prev, status: normalized } : prev);
+      setTicket((prev: any) => prev ? { ...prev, status: updateData.status } : prev);
 
       console.log('Status updated successfully, fetching details...');
       fetchTicketDetails();
@@ -646,9 +624,10 @@ export default function TicketDetails() {
                                     {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                   </span>
                                 </div>
-                                <p className="text-sm whitespace-pre-wrap">
-                                  {message.message}
-                                </p>
+                                <div 
+                                  className="text-sm whitespace-pre-wrap prose prose-sm max-w-none dark:prose-invert"
+                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                                />
                               </div>
                             </div>
                           </CardContent>
@@ -660,12 +639,24 @@ export default function TicketDetails() {
 
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
-                  <Textarea
-                    placeholder="Escreva sua mensagem..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    rows={3}
-                  />
+                  <div className="border rounded-md">
+                    <ReactQuill
+                      theme="snow"
+                      value={newMessageHtml}
+                      onChange={setNewMessageHtml}
+                      placeholder="Digite sua mensagem..."
+                      className="min-h-[120px]"
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, 3, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          ['link', 'blockquote', 'code-block'],
+                          ['clean']
+                        ]
+                      }}
+                    />
+                  </div>
                   <FileUpload
                     onFilesChange={setMessageAttachments}
                     maxSizeMB={1}
@@ -673,7 +664,7 @@ export default function TicketDetails() {
                   />
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!newMessage.trim() || sending}
+                    disabled={(DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length === 0 && messageAttachments.length === 0) || sending}
                     className="w-full"
                   >
                     <Send className="h-4 w-4 mr-2" />
