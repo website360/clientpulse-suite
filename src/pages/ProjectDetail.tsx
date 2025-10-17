@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Calendar, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-// Components will be created
-const ProjectStages = ({ projectId, onUpdate }: any) => <div>Etapas em desenvolvimento...</div>;
-const ProjectLinks = ({ projectId }: any) => <div>Links em desenvolvimento...</div>;
-const ProjectCredentials = ({ projectId }: any) => <div>Credenciais em desenvolvimento...</div>;
+import { ProjectStages } from '@/components/projects/ProjectStages';
+import { ProjectLinks } from '@/components/projects/ProjectLinks';
+import { ProjectCredentials } from '@/components/projects/ProjectCredentials';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
