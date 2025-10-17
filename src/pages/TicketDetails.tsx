@@ -353,16 +353,42 @@ export default function TicketDetails() {
   const handleStatusChange = async (newStatus: string) => {
     try {
       console.log('Updating status to:', newStatus);
+
+      // Normalize any input (handles Portuguese labels and diacritics)
+      const normalizeStatusInput = (value: string) => {
+        const s = (value || '')
+          .toString()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+        const map: Record<string, 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = {
+          open: 'open',
+          'in_progress': 'in_progress',
+          'in progress': 'in_progress',
+          'em andamento': 'in_progress',
+          waiting: 'waiting',
+          aguardando: 'waiting',
+          resolved: 'resolved',
+          resolvido: 'resolved',
+          closed: 'closed',
+          fechado: 'closed',
+          aberto: 'open',
+        };
+        return (map[s] ?? (value as any)) as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
+      };
+
+      const normalized = normalizeStatusInput(newStatus);
       
       // Validate if it's a valid status
-      const validStatuses = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
-      if (!validStatuses.includes(newStatus)) {
+      const validStatuses: Array<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'> = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
+      if (!validStatuses.includes(normalized)) {
         throw new Error(`Status inválido: ${newStatus}`);
       }
 
       const { error } = await supabase
         .from('tickets')
-        .update({ status: newStatus as 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed' })
+        .update({ status: normalized })
         .eq('id', id);
 
       if (error) {
@@ -371,7 +397,7 @@ export default function TicketDetails() {
       }
 
       // Optimistic UI update
-      setTicket((prev: any) => prev ? { ...prev, status: newStatus } : prev);
+      setTicket((prev: any) => prev ? { ...prev, status: normalized } : prev);
 
       console.log('Status updated successfully, fetching details...');
       fetchTicketDetails();
