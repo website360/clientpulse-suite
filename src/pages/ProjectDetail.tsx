@@ -10,7 +10,7 @@ import { ProjectLinks } from '@/components/projects/ProjectLinks';
 import { ProjectCredentials } from '@/components/projects/ProjectCredentials';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function ProjectDetail() {
@@ -127,7 +127,7 @@ export default function ProjectDetail() {
               <div>
                 <p className="text-xs text-muted-foreground">Início</p>
                 <p className="text-sm font-medium">
-                  {project.start_date ? format(new Date(project.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                 </p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function ProjectDetail() {
               <div>
                 <p className="text-xs text-muted-foreground">Prazo</p>
                 <p className="text-sm font-medium">
-                  {project.due_date ? format(new Date(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  {project.due_date ? format(parseISO(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                 </p>
               </div>
             </div>
@@ -160,7 +160,17 @@ export default function ProjectDetail() {
               <span className="text-muted-foreground">Progresso Geral</span>
               <span className="font-medium">{progress || 0}%</span>
             </div>
-            <Progress value={progress || 0} className="h-2" />
+            <Progress 
+              value={progress || 0} 
+              className="h-2"
+              indicatorClassName={
+                progress >= 100 ? 'bg-green-500' :
+                progress >= 75 ? 'bg-blue-500' :
+                progress >= 50 ? 'bg-yellow-500' :
+                progress >= 25 ? 'bg-orange-500' :
+                'bg-red-500'
+              }
+            />
           </div>
         </div>
 

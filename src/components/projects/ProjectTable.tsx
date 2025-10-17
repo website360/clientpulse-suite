@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   AlertDialog,
@@ -87,7 +87,17 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
 
     return (
       <div className="flex items-center gap-2 min-w-[150px]">
-        <Progress value={progress || 0} className="h-2 flex-1" />
+        <Progress 
+          value={progress || 0} 
+          className="h-2 flex-1"
+          indicatorClassName={
+            progress >= 100 ? 'bg-green-500' :
+            progress >= 75 ? 'bg-blue-500' :
+            progress >= 50 ? 'bg-yellow-500' :
+            progress >= 25 ? 'bg-orange-500' :
+            'bg-red-500'
+          }
+        />
         <span className="text-sm text-muted-foreground w-12">{progress || 0}%</span>
       </div>
     );
@@ -159,7 +169,7 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {project.due_date ? format(new Date(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                  {project.due_date ? format(parseISO(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">

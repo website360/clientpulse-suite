@@ -176,7 +176,17 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                       </span>
                       <span className="font-medium">{progress}%</span>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Progress 
+                      value={progress} 
+                      className="h-2"
+                      indicatorClassName={
+                        progress >= 100 ? 'bg-green-500' :
+                        progress >= 75 ? 'bg-blue-500' :
+                        progress >= 50 ? 'bg-yellow-500' :
+                        progress >= 25 ? 'bg-orange-500' :
+                        'bg-red-500'
+                      }
+                    />
                   </div>
                 </CardHeader>
               </CollapsibleTrigger>
