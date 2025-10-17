@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStatusUpdateData } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -114,14 +113,17 @@ export default function ClientDetail() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      const updateData = getStatusUpdateData(newStatus);
+      console.debug('Updating ticket status:', { ticketId, newStatus });
 
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', ticketId);
+      const { error } = await supabase.rpc('set_ticket_status', {
+        p_ticket_id: ticketId,
+        p_new_status: newStatus
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
       
       toast({
         title: 'Status atualizado',
@@ -129,11 +131,11 @@ export default function ClientDetail() {
       });
       
       fetchClientTickets();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating status:', error);
       toast({
         title: 'Erro ao atualizar',
-        description: 'Não foi possível atualizar o status do ticket.',
+        description: error.message || 'Não foi possível atualizar o status do ticket.',
         variant: 'destructive',
       });
     }

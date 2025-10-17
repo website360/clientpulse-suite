@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+
+/* ReactQuill editor height */
+.ql-container .ql-editor {
+  min-height: 220px;
+}
