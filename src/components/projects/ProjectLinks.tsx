@@ -23,6 +23,7 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     url: '',
@@ -39,6 +40,19 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
         .eq('project_id', projectId)
         .order('order');
 
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: templates } = useQuery({
+    queryKey: ['project-link-templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_link_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('title');
       if (error) throw error;
       return data;
     },
@@ -93,15 +107,41 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
     },
   });
 
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    if (templateId === 'manual') {
+      setFormData({
+        title: '',
+        url: '',
+        description: '',
+        category: 'other',
+      });
+      return;
+    }
+
+    const template = templates?.find(t => t.id === templateId);
+    if (template) {
+      setFormData({
+        title: template.title || '',
+        url: template.url || '',
+        description: '',
+        category: template.category || 'other',
+      });
+    }
+  };
+
   const handleOpenModal = (link?: any) => {
     if (link) {
       setSelectedLink(link);
+      setSelectedTemplate('');
       setFormData({
         title: link.title || '',
         url: link.url || '',
         description: link.description || '',
         category: link.category || 'other',
       });
+    } else {
+      setSelectedTemplate('manual');
     }
     setIsModalOpen(true);
   };
@@ -109,6 +149,7 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedLink(null);
+    setSelectedTemplate('');
     setFormData({
       title: '',
       url: '',
@@ -123,26 +164,32 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
   };
 
   const categoryIcons: Record<string, any> = {
+    google_drive: LinkIcon,
+    images: Image,
+    identity: LinkIcon,
+    copy: FileText,
+    prototype: Code,
     documentation: FileText,
-    design: Image,
-    video: Video,
-    repository: Code,
     other: LinkIcon,
   };
 
   const categoryLabels: Record<string, string> = {
+    google_drive: 'Google Drive',
+    images: 'Imagens',
+    identity: 'Identidade Visual',
+    copy: 'Textos/Copy',
+    prototype: 'Protótipo',
     documentation: 'Documentação',
-    design: 'Design',
-    video: 'Vídeo',
-    repository: 'Repositório',
     other: 'Outro',
   };
 
   const categoryColors: Record<string, string> = {
-    documentation: 'bg-blue-500',
-    design: 'bg-purple-500',
-    video: 'bg-red-500',
-    repository: 'bg-green-500',
+    google_drive: 'bg-green-500',
+    images: 'bg-purple-500',
+    identity: 'bg-pink-500',
+    copy: 'bg-blue-500',
+    prototype: 'bg-indigo-500',
+    documentation: 'bg-orange-500',
     other: 'bg-gray-500',
   };
 
@@ -241,6 +288,24 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!selectedLink && (
+              <div>
+                <Label htmlFor="template">Selecionar Template</Label>
+                <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Cadastrar Manualmente</SelectItem>
+                    {templates?.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="title">Título *</Label>
               <Input
@@ -248,6 +313,7 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
+                disabled={selectedLink ? false : selectedTemplate !== 'manual' && !!selectedTemplate}
               />
             </div>
             <div>
@@ -263,15 +329,21 @@ export function ProjectLinks({ projectId }: ProjectLinksProps) {
             </div>
             <div>
               <Label htmlFor="category">Categoria</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                disabled={selectedLink ? false : selectedTemplate !== 'manual' && !!selectedTemplate}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="google_drive">Google Drive</SelectItem>
+                  <SelectItem value="images">Imagens</SelectItem>
+                  <SelectItem value="identity">Identidade Visual</SelectItem>
+                  <SelectItem value="copy">Textos/Copy</SelectItem>
+                  <SelectItem value="prototype">Protótipo</SelectItem>
                   <SelectItem value="documentation">Documentação</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
-                  <SelectItem value="repository">Repositório</SelectItem>
                   <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>

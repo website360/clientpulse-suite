@@ -29,6 +29,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { StageTemplatesSection } from './StageTemplatesSection';
 import { CredentialTemplatesSection } from './CredentialTemplatesSection';
+import { LinkTemplatesSection } from './LinkTemplatesSection';
 
 export function ProjectsSettingsTab() {
   return (
@@ -36,6 +37,7 @@ export function ProjectsSettingsTab() {
       <TabsList>
         <TabsTrigger value="types">Tipos de Projeto</TabsTrigger>
         <TabsTrigger value="stages">Etapas</TabsTrigger>
+        <TabsTrigger value="links">Links</TabsTrigger>
         <TabsTrigger value="credentials">Credenciais</TabsTrigger>
       </TabsList>
 
@@ -45,6 +47,10 @@ export function ProjectsSettingsTab() {
 
       <TabsContent value="stages">
         <StageTemplatesSection />
+      </TabsContent>
+
+      <TabsContent value="links">
+        <LinkTemplatesSection />
       </TabsContent>
 
       <TabsContent value="credentials">

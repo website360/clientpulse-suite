@@ -1493,6 +1493,36 @@ export type Database = {
           },
         ]
       }
+      project_link_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["project_link_category"]
+          created_at: string
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["project_link_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_link_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       project_links: {
         Row: {
           category: Database["public"]["Enums"]["project_link_category"]
