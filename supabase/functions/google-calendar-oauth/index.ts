@@ -96,16 +96,71 @@ serve(async (req) => {
 
       if (dbError) {
         console.error('Database error:', dbError);
-        throw new Error('Failed to store tokens');
+        
+        // Return HTML page with error message to popup
+        const errorHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Erro de Autenticação</title>
+              <style>
+                body { font-family: system-ui; padding: 2rem; text-align: center; }
+                .error { color: #dc2626; }
+              </style>
+            </head>
+            <body>
+              <h2 class="error">Erro ao salvar credenciais</h2>
+              <p>Por favor, tente novamente.</p>
+              <script>
+                if (window.opener) {
+                  window.opener.postMessage({
+                    type: 'GOOGLE_CALENDAR_AUTH_SUCCESS',
+                    success: false,
+                    error: 'Erro ao salvar credenciais'
+                  }, window.location.origin);
+                  setTimeout(() => window.close(), 2000);
+                }
+              </script>
+            </body>
+          </html>
+        `;
+        
+        return new Response(errorHtml, {
+          headers: { ...corsHeaders, 'Content-Type': 'text/html' },
+        });
       }
 
-      // Redirect back to settings page
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${Deno.env.get('SUPABASE_URL')}/settings?tab=google-calendar&success=true`,
-        },
+      // Return HTML page that sends message to parent and closes
+      const successHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Autenticação Concluída</title>
+            <style>
+              body { font-family: system-ui; padding: 2rem; text-align: center; }
+              .success { color: #16a34a; }
+            </style>
+          </head>
+          <body>
+            <h2 class="success">✓ Autenticação Concluída!</h2>
+            <p>Conectando ao Google Calendar...</p>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'GOOGLE_CALENDAR_AUTH_SUCCESS',
+                  success: true
+                }, window.location.origin);
+                setTimeout(() => window.close(), 1000);
+              } else {
+                document.body.innerHTML = '<p>Você pode fechar esta janela.</p>';
+              }
+            </script>
+          </body>
+        </html>
+      `;
+      
+      return new Response(successHtml, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' },
       });
     }
 

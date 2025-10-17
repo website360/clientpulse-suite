@@ -64,13 +64,57 @@ export const GoogleCalendarTab = () => {
       if (error) throw error;
 
       if (data?.authUrl) {
-        // Redirect to Google OAuth
-        window.location.href = data.authUrl;
+        // Open popup for OAuth
+        const width = 600;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        
+        const popup = window.open(
+          data.authUrl,
+          'Google Calendar OAuth',
+          `width=${width},height=${height},left=${left},top=${top},popup=1`
+        );
+
+        if (!popup) {
+          toast.error("Popup bloqueado! Por favor, permita popups para este site.");
+          setLoading(false);
+          return;
+        }
+
+        // Listen for message from popup
+        const messageHandler = async (event: MessageEvent) => {
+          // Validate origin
+          if (event.origin !== window.location.origin) return;
+          
+          if (event.data?.type === 'GOOGLE_CALENDAR_AUTH_SUCCESS') {
+            window.removeEventListener('message', messageHandler);
+            
+            if (event.data.success) {
+              toast.success("Conectado ao Google Calendar com sucesso!");
+              await fetchSettings();
+            } else {
+              toast.error(event.data.error || "Erro ao conectar ao Google Calendar");
+            }
+            
+            setLoading(false);
+          }
+        };
+
+        window.addEventListener('message', messageHandler);
+
+        // Check if popup was closed without completing auth
+        const checkPopupClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkPopupClosed);
+            window.removeEventListener('message', messageHandler);
+            setLoading(false);
+          }
+        }, 500);
       }
     } catch (error: any) {
       console.error("Erro ao conectar:", error);
       toast.error("Erro ao iniciar conexão com Google Calendar");
-    } finally {
       setLoading(false);
     }
   };
