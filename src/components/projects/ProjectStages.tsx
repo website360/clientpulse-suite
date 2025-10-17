@@ -106,13 +106,13 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   const statusColors: Record<string, string> = {
     pendente: 'bg-gray-500',
     em_andamento: 'bg-blue-500',
-    concluido: 'bg-green-500',
+    concluida: 'bg-green-500',
   };
 
   const statusLabels: Record<string, string> = {
     pendente: 'Pendente',
     em_andamento: 'Em Andamento',
-    concluido: 'Concluído',
+    concluida: 'Concluída',
   };
 
   if (isLoading) {
