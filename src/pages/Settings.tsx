@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollableTabs } from '@/components/ui/ScrollableTabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -225,34 +226,36 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="security">Segurança</TabsTrigger>
-            {userRole === 'admin' && (
-              <>
-                <TabsTrigger value="appearance">Aparência</TabsTrigger>
-                <TabsTrigger value="departments">Departamentos</TabsTrigger>
-                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-                <TabsTrigger value="financial">Financeiro</TabsTrigger>
-                <TabsTrigger value="services">Serviços</TabsTrigger>
-                <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
-                <TabsTrigger value="emails">Emails</TabsTrigger>
-                <TabsTrigger value="asaas">Asaas</TabsTrigger>
-                <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-                <TabsTrigger value="ticket-whatsapp">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Templates Tickets
-                </TabsTrigger>
-                <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
-                <TabsTrigger value="projects">
-                  <FolderKanban className="h-4 w-4 mr-2" />
-                  Projetos
-                </TabsTrigger>
-                <TabsTrigger value="clicksign">Clicksign</TabsTrigger>
-                <TabsTrigger value="document-templates">Templates Documentos</TabsTrigger>
-              </>
-            )}
-          </TabsList>
+          <ScrollableTabs>
+            <TabsList>
+              <TabsTrigger value="profile">Perfil</TabsTrigger>
+              <TabsTrigger value="security">Segurança</TabsTrigger>
+              {userRole === 'admin' && (
+                <>
+                  <TabsTrigger value="appearance">Aparência</TabsTrigger>
+                  <TabsTrigger value="departments">Departamentos</TabsTrigger>
+                  <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+                  <TabsTrigger value="financial">Financeiro</TabsTrigger>
+                  <TabsTrigger value="services">Serviços</TabsTrigger>
+                  <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
+                  <TabsTrigger value="emails">Emails</TabsTrigger>
+                  <TabsTrigger value="asaas">Asaas</TabsTrigger>
+                  <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                  <TabsTrigger value="ticket-whatsapp">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Templates Tickets
+                  </TabsTrigger>
+                  <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+                  <TabsTrigger value="projects">
+                    <FolderKanban className="h-4 w-4 mr-2" />
+                    Projetos
+                  </TabsTrigger>
+                  <TabsTrigger value="clicksign">Clicksign</TabsTrigger>
+                  <TabsTrigger value="document-templates">Templates Documentos</TabsTrigger>
+                </>
+              )}
+            </TabsList>
+          </ScrollableTabs>
 
           <TabsContent value="profile">
             <Card>
