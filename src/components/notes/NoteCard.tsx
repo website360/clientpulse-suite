@@ -1,4 +1,4 @@
-import { MoreVertical, Pencil, Trash2, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, Link as LinkIcon, Paperclip } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ import {
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { TagBadge } from './TagBadge';
+import { Badge } from '@/components/ui/badge';
 
 interface Tag {
   id: string;
@@ -33,7 +34,7 @@ interface Note {
   title?: string | null;
   content: string;
   link_url?: string | null;
-  image_url?: string | null;
+  image_urls?: string[];
   color: string;
   created_at: string;
   tags?: Tag[];
@@ -59,6 +60,8 @@ export function NoteCard({ note, onEdit, onDelete, onColorChange }: NoteCardProp
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
 
+  const imageCount = note.image_urls?.length || 0;
+
   const renderContent = () => {
     return (
       <div className="space-y-2 flex-1">
@@ -79,12 +82,11 @@ export function NoteCard({ note, onEdit, onDelete, onColorChange }: NoteCardProp
           </a>
         )}
         
-        {note.image_url && (
-          <img
-            src={note.image_url}
-            alt={note.title || 'Note image'}
-            className="w-full h-32 object-cover rounded mt-2"
-          />
+        {imageCount > 0 && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Paperclip className="h-3 w-3" />
+            <span>{imageCount} {imageCount === 1 ? 'imagem' : 'imagens'}</span>
+          </div>
         )}
       </div>
     );

@@ -21,6 +21,7 @@ interface Tag {
 interface TagSelectorProps {
   selectedTags: Tag[];
   onTagsChange: (tags: Tag[]) => void;
+  recentTags?: Tag[];
 }
 
 const DEFAULT_COLORS = [
@@ -29,7 +30,7 @@ const DEFAULT_COLORS = [
   '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
 ];
 
-export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
+export function TagSelector({ selectedTags, onTagsChange, recentTags = [] }: TagSelectorProps) {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(DEFAULT_COLORS[0]);
@@ -112,6 +113,10 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
     tag => !selectedTags.some(st => st.id === tag.id)
   );
 
+  const suggestedTags = recentTags.filter(
+    tag => !selectedTags.some(st => st.id === tag.id)
+  );
+
   return (
     <div className="space-y-3">
       <Label>Tags</Label>
@@ -128,10 +133,29 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
         ))}
       </div>
 
+      {/* Suggested Recent Tags */}
+      {suggestedTags.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Tags recentes (clique para adicionar)</Label>
+          <div className="flex flex-wrap gap-2">
+            {suggestedTags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => toggleTag(tag)}
+                className="transition-opacity hover:opacity-80"
+                type="button"
+              >
+                <TagBadge name={tag.name} color={tag.color} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Add Tag Popover */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" type="button">
             <Plus className="h-4 w-4" />
             Adicionar Tag
           </Button>
@@ -148,6 +172,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                       key={tag.id}
                       onClick={() => toggleTag(tag)}
                       className="transition-opacity hover:opacity-80"
+                      type="button"
                     >
                       <TagBadge name={tag.name} color={tag.color} />
                     </button>
@@ -163,6 +188,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                 size="sm"
                 onClick={() => setShowCreateForm(true)}
                 className="w-full gap-2"
+                type="button"
               >
                 <TagIcon className="h-4 w-4" />
                 Criar Nova Tag
@@ -187,6 +213,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                           newTagColor === color ? 'border-foreground' : 'border-transparent'
                         }`}
                         style={{ backgroundColor: color }}
+                        type="button"
                       />
                     ))}
                   </div>
@@ -196,6 +223,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                     size="sm"
                     onClick={handleCreateTag}
                     className="flex-1"
+                    type="button"
                   >
                     Criar
                   </Button>
@@ -206,6 +234,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
                       setShowCreateForm(false);
                       setNewTagName('');
                     }}
+                    type="button"
                   >
                     Cancelar
                   </Button>

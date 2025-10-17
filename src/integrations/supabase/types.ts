@@ -1109,7 +1109,7 @@ export type Database = {
           created_at: string
           height: number | null
           id: string
-          image_url: string | null
+          image_urls: Json | null
           link_url: string | null
           position_x: number | null
           position_y: number | null
@@ -1124,7 +1124,7 @@ export type Database = {
           created_at?: string
           height?: number | null
           id?: string
-          image_url?: string | null
+          image_urls?: Json | null
           link_url?: string | null
           position_x?: number | null
           position_y?: number | null
@@ -1139,7 +1139,7 @@ export type Database = {
           created_at?: string
           height?: number | null
           id?: string
-          image_url?: string | null
+          image_urls?: Json | null
           link_url?: string | null
           position_x?: number | null
           position_y?: number | null

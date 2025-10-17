@@ -9,8 +9,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X, Download, Upload } from 'lucide-react';
 import { TagSelector } from './TagSelector';
+import { Card } from '@/components/ui/card';
 
 const NOTE_COLORS = [
   { value: '#fef08a', label: 'Amarelo' },
@@ -38,9 +39,9 @@ interface NoteFormModalProps {
 export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const [recentTags, setRecentTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,7 +55,7 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
   });
 
   useEffect(() => {
-    const loadNoteTags = async () => {
+    const loadNoteData = async () => {
       if (note) {
         const { data } = await supabase
           .from('note_tag_relationships')
@@ -74,8 +75,10 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           link_url: note.link_url || '',
           color: note.color,
         });
-        if (note.image_url) {
-          setImagePreview(note.image_url);
+        
+        // Load existing images
+        if (note.image_urls) {
+          setImageUrls(Array.isArray(note.image_urls) ? note.image_urls : []);
         }
       } else if (!open) {
         form.reset({
@@ -84,66 +87,117 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           link_url: '',
           color: NOTE_COLORS[0].value,
         });
-        setImageFile(null);
-        setImagePreview(null);
+        setImageUrls([]);
         setSelectedTags([]);
       }
     };
 
+    const loadRecentTags = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get recently used tags from user's notes
+      const { data } = await supabase
+        .from('note_tag_relationships')
+        .select(`
+          note_tags(id, name, color),
+          notes!inner(created_at, user_id)
+        `)
+        .eq('notes.user_id', user.id)
+        .order('notes.created_at', { ascending: false })
+        .limit(20);
+
+      if (data) {
+        const uniqueTags = new Map();
+        data.forEach((rel: any) => {
+          const tag = rel.note_tags;
+          if (tag && !uniqueTags.has(tag.id)) {
+            uniqueTags.set(tag.id, tag);
+          }
+        });
+        setRecentTags(Array.from(uniqueTags.values()).slice(0, 5));
+      }
+    };
+
     if (open) {
-      loadNoteTags();
+      loadNoteData();
+      loadRecentTags();
     }
   }, [note, open, form]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'Arquivo muito grande',
-          description: 'O tamanho máximo é 5MB',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-  const uploadImage = async (file: File): Promise<string | null> => {
     setUploading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setUploading(false);
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const uploadPromises = Array.from(files).map(async (file) => {
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error(`Arquivo ${file.name} muito grande (máximo 5MB)`);
+        }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('note-images')
-        .upload(fileName, file);
+        const { error: uploadError } = await supabase.storage
+          .from('note-images')
+          .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('note-images')
-        .getPublicUrl(fileName);
+        const { data: { publicUrl } } = supabase.storage
+          .from('note-images')
+          .getPublicUrl(fileName);
 
-      return publicUrl;
+        return publicUrl;
+      });
+
+      const newUrls = await Promise.all(uploadPromises);
+      setImageUrls([...imageUrls, ...newUrls]);
+
+      toast({
+        title: 'Imagens enviadas!',
+        description: `${newUrls.length} imagem(ns) adicionada(s) com sucesso.`,
+      });
     } catch (error: any) {
       toast({
         title: 'Erro ao fazer upload',
         description: error.message,
         variant: 'destructive',
       });
-      return null;
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (url: string) => {
+    setImageUrls(imageUrls.filter(u => u !== url));
+  };
+
+  const handleDownloadImage = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `imagem-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      toast({
+        title: 'Erro ao baixar imagem',
+        description: 'Não foi possível baixar a imagem',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -154,18 +208,12 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      let imageUrl = note?.image_url || null;
-
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-      }
-
       const noteData = {
         user_id: user.id,
         title: values.title || null,
         content: values.content,
         link_url: values.link_url || null,
-        image_url: imageUrl,
+        image_urls: imageUrls,
         color: values.color,
       };
 
@@ -191,13 +239,11 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
 
       // Update tags
       if (noteId) {
-        // Remove old relationships
         await supabase
           .from('note_tag_relationships')
           .delete()
           .eq('note_id', noteId);
 
-        // Add new relationships
         if (selectedTags.length > 0) {
           const relationships = selectedTags.map(tag => ({
             note_id: noteId,
@@ -250,7 +296,7 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
             <Textarea
               id="content"
               {...form.register('content')}
-              placeholder="Digite sua anotação... Você pode incluir texto, links e adicionar imagens abaixo."
+              placeholder="Digite sua anotação..."
               rows={8}
             />
             {form.formState.errors.content && (
@@ -268,27 +314,65 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Imagem (opcional)</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-            {imagePreview && (
-              <div className="mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-w-full h-auto rounded-md border"
+            <Label>Imagens (opcional)</Label>
+            <div className="space-y-3">
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center justify-center">
+                  <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {uploading ? 'Enviando...' : 'Clique para adicionar imagens'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Máximo 5MB por arquivo</p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  disabled={uploading}
                 />
-              </div>
-            )}
+              </label>
+
+              {imageUrls.length > 0 && (
+                <div className="space-y-2">
+                  {imageUrls.map((url, index) => (
+                    <Card key={url} className="p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-muted-foreground truncate flex-1">
+                          Imagem {index + 1}
+                        </span>
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadImage(url)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveImage(url)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <TagSelector
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
+            recentTags={recentTags}
           />
 
           <div className="space-y-2">

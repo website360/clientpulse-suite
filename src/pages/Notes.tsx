@@ -57,6 +57,7 @@ export default function Notes() {
     } else {
       const notesWithTags = (data || []).map(note => ({
         ...note,
+        image_urls: note.image_urls || [],
         tags: note.note_tag_relationships
           ?.map((rel: any) => rel.note_tags)
           .filter((tag: any) => tag !== null) || [],
