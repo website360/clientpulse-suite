@@ -22,7 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { normalizeTicketStatus } from '@/lib/tickets';
+import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 
 export default function Tickets() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
@@ -210,13 +210,16 @@ export default function Tickets() {
     try {
       console.debug('[Tickets] Status change:', { ticketId, incomingStatus: newStatus });
 
-      const { error } = await supabase.rpc('set_ticket_status', {
-        p_ticket_id: ticketId,
-        p_new_status: newStatus
-      });
+      const normalized = normalizeTicketStatus(newStatus);
+      const updateData = getStatusUpdateData(normalized);
+
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', ticketId);
 
       if (error) {
-        console.error('[Tickets] RPC error:', error);
+        console.error('[Tickets] Update error:', error);
         toast({
           title: 'Erro ao atualizar status',
           description: error.message || 'Não foi possível atualizar o status do ticket.',
