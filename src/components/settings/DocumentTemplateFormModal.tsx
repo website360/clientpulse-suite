@@ -239,10 +239,59 @@ export function DocumentTemplateFormModal({
     mutation.mutate(values);
   };
 
+  const predefinedVariables = [
+    { key: "cliente_nome", label: "Nome do Cliente", type: "text", category: "Cliente", placeholder: "Ex: João Silva" },
+    { key: "cliente_empresa", label: "Empresa", type: "text", category: "Cliente", placeholder: "Ex: Empresa LTDA" },
+    { key: "cliente_cpf_cnpj", label: "CPF/CNPJ", type: "text", category: "Cliente", placeholder: "Ex: 000.000.000-00" },
+    { key: "cliente_email", label: "E-mail", type: "email", category: "Cliente", placeholder: "Ex: cliente@email.com" },
+    { key: "cliente_telefone", label: "Telefone", type: "text", category: "Cliente", placeholder: "Ex: (00) 00000-0000" },
+    { key: "cliente_endereco", label: "Endereço Completo", type: "text", category: "Cliente", placeholder: "Ex: Rua X, 123" },
+    { key: "contrato_numero", label: "Número do Contrato", type: "text", category: "Contrato", placeholder: "Ex: 001/2024" },
+    { key: "contrato_valor", label: "Valor do Contrato", type: "number", category: "Contrato", placeholder: "Ex: 1500.00" },
+    { key: "contrato_inicio", label: "Data de Início", type: "date", category: "Contrato", placeholder: "Ex: 01/01/2024" },
+    { key: "contrato_fim", label: "Data de Término", type: "date", category: "Contrato", placeholder: "Ex: 31/12/2024" },
+    { key: "servico_nome", label: "Nome do Serviço", type: "text", category: "Serviço", placeholder: "Ex: Manutenção Mensal" },
+    { key: "servico_descricao", label: "Descrição do Serviço", type: "textarea", category: "Serviço", placeholder: "Descreva o serviço" },
+    { key: "empresa_nome", label: "Nossa Empresa", type: "text", category: "Empresa", placeholder: "Ex: Agência XYZ" },
+    { key: "empresa_cnpj", label: "CNPJ da Empresa", type: "text", category: "Empresa", placeholder: "Ex: 00.000.000/0001-00" },
+    { key: "data_atual", label: "Data Atual", type: "date", category: "Geral", placeholder: "Data de hoje" },
+  ];
+
+  const addPredefinedVariable = (variable: typeof predefinedVariables[0]) => {
+    try {
+      const currentVars = JSON.parse(form.getValues("variables") || "[]");
+      
+      // Verificar se já existe
+      const exists = currentVars.some((v: any) => v.key === variable.key);
+      if (exists) {
+        toast({
+          title: "Variável já existe",
+          description: "Esta variável já foi adicionada ao template",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      currentVars.push(variable);
+      form.setValue("variables", JSON.stringify(currentVars, null, 2));
+      
+      toast({
+        title: "Variável adicionada",
+        description: `{${variable.key}} adicionada com sucesso`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar variável. Verifique o formato JSON.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {template ? "Editar Template" : "Novo Template"}
           </DialogTitle>
@@ -252,16 +301,16 @@ export function DocumentTemplateFormModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="grid w-full grid-cols-4 flex-shrink-0">
                 <TabsTrigger value="basic">Básico</TabsTrigger>
                 <TabsTrigger value="assets">Assets</TabsTrigger>
                 <TabsTrigger value="layout">Layout & Páginas</TabsTrigger>
                 <TabsTrigger value="preview">Preview</TabsTrigger>
               </TabsList>
 
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4 min-h-0">
                 <TabsContent value="basic" className="space-y-4 mt-0">
                   <FormField
                     control={form.control}
@@ -368,26 +417,62 @@ export function DocumentTemplateFormModal({
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="variables"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Variáveis (JSON)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder='[{"name": "cliente_nome", "label": "Nome do Cliente", "type": "text", "category": "Cliente"}]'
-                            className="font-mono text-sm min-h-[150px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Array JSON com as variáveis disponíveis no template
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Variáveis Disponíveis - Clique para Adicionar</h3>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Selecione as variáveis que você deseja usar no template
+                      </p>
+                      
+                      <div className="space-y-3">
+                        {["Cliente", "Contrato", "Serviço", "Empresa", "Geral"].map((category) => (
+                          <div key={category}>
+                            <h4 className="text-xs font-medium mb-2 text-muted-foreground">{category}</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {predefinedVariables
+                                .filter((v) => v.category === category)
+                                .map((variable) => (
+                                  <Button
+                                    key={variable.key}
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addPredefinedVariable(variable)}
+                                    className="text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    {`{${variable.key}}`}
+                                  </Button>
+                                ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <FormField
+                      control={form.control}
+                      name="variables"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Variáveis do Template (JSON)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder='[{"key": "cliente_nome", "label": "Nome do Cliente", "type": "text"}]'
+                              className="font-mono text-sm min-h-[200px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Lista em JSON das variáveis. Use os botões acima para adicionar facilmente.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <FormField
                     control={form.control}
@@ -634,7 +719,7 @@ export function DocumentTemplateFormModal({
               </div>
             </Tabs>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background">
               <Button
                 type="button"
                 variant="outline"
