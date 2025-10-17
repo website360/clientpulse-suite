@@ -1273,6 +1273,495 @@ export type Database = {
         }
         Relationships: []
       }
+      project_checklist_items: {
+        Row: {
+          approval_link: string | null
+          approval_sent_at: string | null
+          approval_type: string | null
+          approved_at: string | null
+          approved_by: string | null
+          checklist_template_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string
+          id: string
+          is_completed: boolean | null
+          notes: string | null
+          order: number
+          project_stage_id: string
+          requires_approval: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          approval_link?: string | null
+          approval_sent_at?: string | null
+          approval_type?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          checklist_template_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order?: number
+          project_stage_id: string
+          requires_approval?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          approval_link?: string | null
+          approval_sent_at?: string | null
+          approval_type?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          checklist_template_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order?: number
+          project_stage_id?: string
+          requires_approval?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_checklist_items_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_checklist_items_checklist_template_id_fkey"
+            columns: ["checklist_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_checklist_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_checklist_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_checklist_items_project_stage_id_fkey"
+            columns: ["project_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_checklist_templates: {
+        Row: {
+          approval_type: string | null
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean | null
+          order: number
+          requires_approval: boolean | null
+          stage_template_id: string
+          updated_at: string
+        }
+        Insert: {
+          approval_type?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean | null
+          order?: number
+          requires_approval?: boolean | null
+          stage_template_id: string
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          order?: number
+          requires_approval?: boolean | null
+          stage_template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_checklist_templates_stage_template_id_fkey"
+            columns: ["stage_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_stage_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_credentials: {
+        Row: {
+          category: Database["public"]["Enums"]["project_credential_category"]
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          password_encrypted: string
+          project_id: string
+          service_name: string
+          updated_at: string
+          url: string | null
+          username: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["project_credential_category"]
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          password_encrypted: string
+          project_id: string
+          service_name: string
+          updated_at?: string
+          url?: string | null
+          username?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_credential_category"]
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          password_encrypted?: string
+          project_id?: string
+          service_name?: string
+          updated_at?: string
+          url?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_credentials_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_credentials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_links: {
+        Row: {
+          category: Database["public"]["Enums"]["project_link_category"]
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          order: number | null
+          project_id: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["project_link_category"]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          order?: number | null
+          project_id: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_link_category"]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          order?: number | null
+          project_id?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_links_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_stage_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order: number
+          project_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order?: number
+          project_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order?: number
+          project_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stage_templates_project_type_id_fkey"
+            columns: ["project_type_id"]
+            isOneToOne: false
+            referencedRelation: "project_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_stages: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          order: number
+          project_id: string
+          stage_template_id: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["project_stage_status"]
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          order?: number
+          project_id: string
+          stage_template_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["project_stage_status"]
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          order?: number
+          project_id?: string
+          stage_template_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["project_stage_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_stages_stage_template_id_fkey"
+            columns: ["stage_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_stage_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_types: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_types_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_whatsapp_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_key: string
+          template_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_key: string
+          template_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_key?: string
+          template_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          client_id: string
+          completion_date: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          project_type_id: string
+          project_value: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completion_date?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          project_type_id: string
+          project_value?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completion_date?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          project_type_id?: string
+          project_value?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_project_type_id_fkey"
+            columns: ["project_type_id"]
+            isOneToOne: false
+            referencedRelation: "project_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           created_at: string
@@ -1652,6 +2141,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_project_progress: {
+        Args: { project_id_param: string }
+        Returns: number
+      }
+      calculate_stage_progress: {
+        Args: { stage_id_param: string }
+        Returns: number
+      }
       check_expiring_contracts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1703,6 +2200,31 @@ export type Database = {
       maintenance_item_status: "done" | "not_needed" | "skipped"
       note_type: "text" | "link" | "image"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
+      project_credential_category:
+        | "hosting"
+        | "cloudflare"
+        | "domain_registry"
+        | "cms"
+        | "ftp"
+        | "database"
+        | "api"
+        | "email"
+        | "other"
+      project_link_category:
+        | "google_drive"
+        | "images"
+        | "identity"
+        | "copy"
+        | "prototype"
+        | "documentation"
+        | "other"
+      project_stage_status: "pendente" | "em_andamento" | "concluida"
+      project_status:
+        | "planejamento"
+        | "em_andamento"
+        | "aguardando_aprovacao"
+        | "concluido"
+        | "cancelado"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "waiting" | "resolved" | "closed"
     }
@@ -1839,6 +2361,34 @@ export const Constants = {
       maintenance_item_status: ["done", "not_needed", "skipped"],
       note_type: ["text", "link", "image"],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
+      project_credential_category: [
+        "hosting",
+        "cloudflare",
+        "domain_registry",
+        "cms",
+        "ftp",
+        "database",
+        "api",
+        "email",
+        "other",
+      ],
+      project_link_category: [
+        "google_drive",
+        "images",
+        "identity",
+        "copy",
+        "prototype",
+        "documentation",
+        "other",
+      ],
+      project_stage_status: ["pendente", "em_andamento", "concluida"],
+      project_status: [
+        "planejamento",
+        "em_andamento",
+        "aguardando_aprovacao",
+        "concluido",
+        "cancelado",
+      ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "waiting", "resolved", "closed"],
     },
