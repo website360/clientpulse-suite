@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { toast } from '@/hooks/use-toast';
-import { Loader2, Upload } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { TagSelector } from './TagSelector';
 
 const NOTE_COLORS = [
   { value: '#fef08a', label: 'Amarelo' },
@@ -24,10 +23,9 @@ const NOTE_COLORS = [
 
 const formSchema = z.object({
   title: z.string().optional(),
-  content: z.string().min(1, 'Conteúdo obrigatório'),
-  note_type: z.enum(['text', 'link', 'image']),
-  link_url: z.string().url('URL inválida').optional().or(z.literal('')),
-  color: z.string().default('#fef08a'),
+  content: z.string().min(1, 'Conteúdo é obrigatório'),
+  link_url: z.string().optional(),
+  color: z.string(),
 });
 
 interface NoteFormModalProps {
@@ -38,49 +36,64 @@ interface NoteFormModalProps {
 }
 
 export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormModalProps) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       content: '',
-      note_type: 'text',
       link_url: '',
-      color: '#fef08a',
+      color: NOTE_COLORS[0].value,
     },
   });
 
-  const noteType = form.watch('note_type');
-
   useEffect(() => {
-    if (note) {
-      form.reset({
-        title: note.title || '',
-        content: note.content || '',
-        note_type: note.note_type,
-        link_url: note.link_url || '',
-        color: note.color || '#fef08a',
-      });
-      if (note.image_url) {
-        setImagePreview(note.image_url);
+    const loadNoteTags = async () => {
+      if (note) {
+        const { data } = await supabase
+          .from('note_tag_relationships')
+          .select('tag_id, note_tags(id, name, color)')
+          .eq('note_id', note.id);
+        
+        if (data) {
+          const tags = data
+            .map(rel => rel.note_tags)
+            .filter((tag): tag is { id: string; name: string; color: string } => tag !== null);
+          setSelectedTags(tags);
+        }
+
+        form.reset({
+          title: note.title || '',
+          content: note.content,
+          link_url: note.link_url || '',
+          color: note.color,
+        });
+        if (note.image_url) {
+          setImagePreview(note.image_url);
+        }
+      } else if (!open) {
+        form.reset({
+          title: '',
+          content: '',
+          link_url: '',
+          color: NOTE_COLORS[0].value,
+        });
+        setImageFile(null);
+        setImagePreview(null);
+        setSelectedTags([]);
       }
-    } else {
-      form.reset({
-        title: '',
-        content: '',
-        note_type: 'text',
-        link_url: '',
-        color: '#fef08a',
-      });
-      setImageFile(null);
-      setImagePreview(null);
+    };
+
+    if (open) {
+      loadNoteTags();
     }
-  }, [note, open]);
+  }, [note, open, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,17 +115,18 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
     }
   };
 
-  const uploadImage = async (): Promise<string | null> => {
-    if (!imageFile || !user) return null;
-
+  const uploadImage = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
-      const fileExt = imageFile.name.split('.').pop();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('note-images')
-        .upload(fileName, imageFile);
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
@@ -121,11 +135,10 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
         .getPublicUrl(fileName);
 
       return publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
+    } catch (error: any) {
       toast({
         title: 'Erro ao fazer upload',
-        description: 'Não foi possível fazer upload da imagem',
+        description: error.message,
         variant: 'destructive',
       });
       return null;
@@ -135,29 +148,28 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user) return;
-
     setLoading(true);
+
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       let imageUrl = note?.image_url || null;
 
-      if (values.note_type === 'image' && imageFile) {
-        imageUrl = await uploadImage();
-        if (!imageUrl) {
-          setLoading(false);
-          return;
-        }
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
       }
 
       const noteData = {
         user_id: user.id,
         title: values.title || null,
         content: values.content,
-        note_type: values.note_type,
-        link_url: values.note_type === 'link' ? values.link_url : null,
+        link_url: values.link_url || null,
         image_url: imageUrl,
         color: values.color,
       };
+
+      let noteId = note?.id;
 
       if (note) {
         const { error } = await supabase
@@ -166,31 +178,49 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           .eq('id', note.id);
 
         if (error) throw error;
-
-        toast({
-          title: 'Anotação atualizada',
-          description: 'Sua anotação foi atualizada com sucesso',
-        });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('notes')
-          .insert(noteData);
+          .insert(noteData)
+          .select()
+          .single();
 
         if (error) throw error;
-
-        toast({
-          title: 'Anotação criada',
-          description: 'Sua anotação foi criada com sucesso',
-        });
+        noteId = data.id;
       }
+
+      // Update tags
+      if (noteId) {
+        // Remove old relationships
+        await supabase
+          .from('note_tag_relationships')
+          .delete()
+          .eq('note_id', noteId);
+
+        // Add new relationships
+        if (selectedTags.length > 0) {
+          const relationships = selectedTags.map(tag => ({
+            note_id: noteId,
+            tag_id: tag.id,
+          }));
+
+          await supabase
+            .from('note_tag_relationships')
+            .insert(relationships);
+        }
+      }
+
+      toast({
+        title: note ? 'Anotação atualizada!' : 'Anotação criada!',
+        description: note ? 'Sua anotação foi atualizada com sucesso.' : 'Sua anotação foi criada com sucesso.',
+      });
 
       onSuccess();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving note:', error);
+    } catch (error: any) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível salvar a anotação',
+        description: error.message,
         variant: 'destructive',
       });
     } finally {
@@ -205,184 +235,95 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           <DialogTitle>{note ? 'Editar Anotação' : 'Nova Anotação'}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <Tabs value={noteType} onValueChange={(value) => form.setValue('note_type', value as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="text">Texto</TabsTrigger>
-                <TabsTrigger value="link">Link</TabsTrigger>
-                <TabsTrigger value="image">Imagem</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="text" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Título (opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite um título..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Conteúdo</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Digite sua anotação..." 
-                          className="min-h-[200px]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-
-              <TabsContent value="link" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="link_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Título (opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite um título..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notas (opcional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Adicione notas sobre este link..." 
-                          className="min-h-[100px]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-
-              <TabsContent value="image" className="space-y-4">
-                <FormItem>
-                  <FormLabel>Imagem</FormLabel>
-                  <div className="space-y-4">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Clique para selecionar uma imagem</p>
-                        <p className="text-xs text-muted-foreground">Máximo 5MB</p>
-                      </div>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handleImageChange}
-                      />
-                    </label>
-
-                    {imagePreview && (
-                      <div className="relative">
-                        <img 
-                          src={imagePreview} 
-                          alt="Preview" 
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </FormItem>
-
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Legenda (opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Adicione uma legenda..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-            </Tabs>
-
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cor</FormLabel>
-                  <div className="flex gap-2">
-                    {NOTE_COLORS.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        className={`h-10 w-10 rounded-full border-2 transition-all ${
-                          field.value === color.value ? 'border-primary scale-110' : 'border-transparent'
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                        onClick={() => field.onChange(color.value)}
-                        title={color.label}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Título (opcional)</Label>
+            <Input
+              id="title"
+              {...form.register('title')}
+              placeholder="Digite um título..."
             />
+          </div>
 
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={loading || uploading}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={loading || uploading}>
-                {(loading || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {note ? 'Atualizar' : 'Criar'}
-              </Button>
+          <div className="space-y-2">
+            <Label htmlFor="content">Conteúdo</Label>
+            <Textarea
+              id="content"
+              {...form.register('content')}
+              placeholder="Digite sua anotação... Você pode incluir texto, links e adicionar imagens abaixo."
+              rows={8}
+            />
+            {form.formState.errors.content && (
+              <p className="text-sm text-destructive">{form.formState.errors.content.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_url">Link (opcional)</Label>
+            <Input
+              id="link_url"
+              {...form.register('link_url')}
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image">Imagem (opcional)</Label>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-w-full h-auto rounded-md border"
+                />
+              </div>
+            )}
+          </div>
+
+          <TagSelector
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+          />
+
+          <div className="space-y-2">
+            <Label>Cor do Post-it</Label>
+            <div className="flex gap-2">
+              {NOTE_COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  className={`h-10 w-10 rounded-full border-2 transition-all ${
+                    form.watch('color') === color.value ? 'border-primary scale-110' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  onClick={() => form.setValue('color', color.value)}
+                  title={color.label}
+                />
+              ))}
             </div>
-          </form>
-        </Form>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading || uploading}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading || uploading}>
+              {(loading || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {note ? 'Atualizar' : 'Criar'}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

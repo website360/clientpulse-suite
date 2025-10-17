@@ -1036,6 +1036,72 @@ export type Database = {
         }
         Relationships: []
       }
+      note_tag_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          note_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_tag_relationships_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_tag_relationships_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "note_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_tags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           color: string
@@ -1045,7 +1111,6 @@ export type Database = {
           id: string
           image_url: string | null
           link_url: string | null
-          note_type: Database["public"]["Enums"]["note_type"]
           position_x: number | null
           position_y: number | null
           title: string | null
@@ -1061,7 +1126,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           link_url?: string | null
-          note_type?: Database["public"]["Enums"]["note_type"]
           position_x?: number | null
           position_y?: number | null
           title?: string | null
@@ -1077,7 +1141,6 @@ export type Database = {
           id?: string
           image_url?: string | null
           link_url?: string | null
-          note_type?: Database["public"]["Enums"]["note_type"]
           position_x?: number | null
           position_y?: number | null
           title?: string | null
