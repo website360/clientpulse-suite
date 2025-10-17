@@ -19,8 +19,9 @@ import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
+import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2 } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -241,6 +242,10 @@ export default function Settings() {
                   Templates Tickets
                 </TabsTrigger>
                 <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+                <TabsTrigger value="projects">
+                  <FolderKanban className="h-4 w-4 mr-2" />
+                  Projetos
+                </TabsTrigger>
               </>
             )}
           </TabsList>
@@ -431,6 +436,10 @@ export default function Settings() {
 
                   <TabsContent value="maintenance">
                     <MaintenanceSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="projects">
+                    <ProjectsSettingsTab />
                   </TabsContent>
                 </>
               )}

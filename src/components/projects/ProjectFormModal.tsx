@@ -29,7 +29,6 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
     status: 'planejamento',
     start_date: '',
     due_date: '',
-    project_value: '',
     notes: '',
   });
 
@@ -71,7 +70,6 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
         status: project.status || 'planejamento',
         start_date: project.start_date || '',
         due_date: project.due_date || '',
-        project_value: project.project_value || '',
         notes: project.notes || '',
       });
     } else {
@@ -83,7 +81,6 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
         status: 'planejamento',
         start_date: '',
         due_date: '',
-        project_value: '',
         notes: '',
       });
     }
@@ -103,7 +100,6 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
         start_date: formData.start_date || null,
         due_date: formData.due_date || null,
         notes: formData.notes || null,
-        project_value: formData.project_value ? parseFloat(formData.project_value) : null,
         created_by: user?.id,
       };
 
@@ -220,17 +216,6 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
                   <SelectItem value="cancelado">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="project_value">Valor do Projeto</Label>
-              <Input
-                id="project_value"
-                type="number"
-                step="0.01"
-                value={formData.project_value}
-                onChange={(e) => setFormData({ ...formData, project_value: e.target.value })}
-              />
             </div>
 
             <div>
