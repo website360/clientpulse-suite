@@ -12,7 +12,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AssetUploader } from "@/components/documents/AssetUploader";
+import { DocumentPreview } from "@/components/documents/DocumentPreview";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -22,6 +27,15 @@ const formSchema = z.object({
   template_html: z.string().min(1, "Template HTML é obrigatório"),
   variables: z.string().optional(),
   is_active: z.boolean().default(true),
+  page_count: z.number().min(1).default(1),
+  page_layouts: z.string().optional(),
+  header_image_url: z.string().optional(),
+  footer_image_url: z.string().optional(),
+  watermark_url: z.string().optional(),
+  page_backgrounds: z.string().optional(),
+  styles: z.string().optional(),
+  paper_size: z.enum(["A4", "Letter", "Legal"]).default("A4"),
+  orientation: z.enum(["portrait", "landscape"]).default("portrait"),
 });
 
 type DocumentTemplate = {
@@ -33,6 +47,15 @@ type DocumentTemplate = {
   template_html: string;
   variables: any;
   is_active: boolean;
+  page_count?: number;
+  page_layouts?: any;
+  header_image_url?: string | null;
+  footer_image_url?: string | null;
+  watermark_url?: string | null;
+  page_backgrounds?: any;
+  styles?: string | null;
+  paper_size?: string;
+  orientation?: string;
 };
 
 type DocumentTemplateFormModalProps = {
@@ -51,6 +74,9 @@ export function DocumentTemplateFormModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState("basic");
+  const [previewData, setPreviewData] = useState<Record<string, string>>({});
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,6 +87,15 @@ export function DocumentTemplateFormModal({
       template_html: "",
       variables: "[]",
       is_active: true,
+      page_count: 1,
+      page_layouts: "[]",
+      header_image_url: "",
+      footer_image_url: "",
+      watermark_url: "",
+      page_backgrounds: "[]",
+      styles: "",
+      paper_size: "A4",
+      orientation: "portrait",
     },
   });
 
@@ -89,6 +124,15 @@ export function DocumentTemplateFormModal({
         template_html: template.template_html,
         variables: JSON.stringify(template.variables || [], null, 2),
         is_active: template.is_active,
+        page_count: template.page_count || 1,
+        page_layouts: JSON.stringify(template.page_layouts || [], null, 2),
+        header_image_url: template.header_image_url || "",
+        footer_image_url: template.footer_image_url || "",
+        watermark_url: template.watermark_url || "",
+        page_backgrounds: JSON.stringify(template.page_backgrounds || [], null, 2),
+        styles: template.styles || "",
+        paper_size: (template.paper_size || "A4") as "A4" | "Letter" | "Legal",
+        orientation: (template.orientation || "portrait") as "portrait" | "landscape",
       });
     } else {
       form.reset({
@@ -99,6 +143,15 @@ export function DocumentTemplateFormModal({
         template_html: "",
         variables: "[]",
         is_active: true,
+        page_count: 1,
+        page_layouts: "[]",
+        header_image_url: "",
+        footer_image_url: "",
+        watermark_url: "",
+        page_backgrounds: "[]",
+        styles: "",
+        paper_size: "A4",
+        orientation: "portrait",
       });
     }
   }, [template, form]);
@@ -109,10 +162,25 @@ export function DocumentTemplateFormModal({
       if (!user) throw new Error("Usuário não autenticado");
 
       let parsedVariables = [];
+      let parsedPageLayouts = [];
+      let parsedPageBackgrounds = [];
+      
       try {
         parsedVariables = JSON.parse(values.variables || "[]");
       } catch (e) {
         throw new Error("Variáveis JSON inválido");
+      }
+
+      try {
+        parsedPageLayouts = JSON.parse(values.page_layouts || "[]");
+      } catch (e) {
+        throw new Error("Page Layouts JSON inválido");
+      }
+
+      try {
+        parsedPageBackgrounds = JSON.parse(values.page_backgrounds || "[]");
+      } catch (e) {
+        throw new Error("Page Backgrounds JSON inválido");
       }
 
       const templateData = {
@@ -123,6 +191,15 @@ export function DocumentTemplateFormModal({
         template_html: values.template_html,
         variables: parsedVariables,
         is_active: values.is_active,
+        page_count: values.page_count,
+        page_layouts: parsedPageLayouts,
+        header_image_url: values.header_image_url || null,
+        footer_image_url: values.footer_image_url || null,
+        watermark_url: values.watermark_url || null,
+        page_backgrounds: parsedPageBackgrounds,
+        styles: values.styles || null,
+        paper_size: values.paper_size,
+        orientation: values.orientation,
         created_by: user.id,
       };
 
@@ -164,169 +241,400 @@ export function DocumentTemplateFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {template ? "Editar Template" : "Novo Template"}
           </DialogTitle>
           <DialogDescription>
-            Configure o template de documento com HTML e variáveis dinâmicas
+            Configure o template de documento com HTML, assets e variáveis dinâmicas
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Template</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Contrato de Manutenção Mensal" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="basic">Básico</TabsTrigger>
+                <TabsTrigger value="assets">Assets</TabsTrigger>
+                <TabsTrigger value="layout">Layout & Páginas</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+              </TabsList>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descreva quando usar este template..."
-                      {...field}
+              <div className="flex-1 overflow-y-auto p-4">
+                <TabsContent value="basic" className="space-y-4 mt-0">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Template</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Contrato de Manutenção Mensal" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Descreva quando usar este template..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="document_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Documento</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="contract">Contrato</SelectItem>
+                              <SelectItem value="proposal">Proposta Comercial</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="document_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Documento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="contract">Contrato</SelectItem>
-                        <SelectItem value="proposal">Proposta Comercial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="service_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Serviço (Opcional)</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
-                      value={field.value || "none"}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um serviço" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Todos os serviços</SelectItem>
-                        {services?.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Deixe como "Todos" para usar em qualquer serviço
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="template_html"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Template HTML</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="<div>{{cliente_nome}}, este é seu contrato...</div>"
-                      className="font-mono text-sm min-h-[200px]"
-                      {...field}
+                    <FormField
+                      control={form.control}
+                      name="service_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Serviço</FormLabel>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
+                            value={field.value || "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Todos</SelectItem>
+                              {services?.map((service) => (
+                                <SelectItem key={service.id} value={service.id}>
+                                  {service.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription>
-                    Use variáveis entre chaves duplas: {`{{variavel}}`}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="variables"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Variáveis (JSON)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='[{"name": "cliente_nome", "label": "Nome do Cliente", "type": "text"}]'
-                      className="font-mono text-sm"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Array JSON com as variáveis disponíveis no template
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="is_active"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Template Ativo</FormLabel>
-                    <FormDescription>
-                      Templates inativos não aparecem para seleção
-                    </FormDescription>
                   </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
-            <div className="flex justify-end gap-2 pt-4">
+                  <FormField
+                    control={form.control}
+                    name="template_html"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Template HTML</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="<div>{{cliente_nome}}, este é seu contrato...</div>"
+                            className="font-mono text-sm min-h-[250px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Use variáveis entre chaves duplas: {`{{variavel}}`}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="variables"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Variáveis (JSON)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder='[{"name": "cliente_nome", "label": "Nome do Cliente", "type": "text", "category": "Cliente"}]'
+                            className="font-mono text-sm min-h-[150px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Array JSON com as variáveis disponíveis no template
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="is_active"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel>Template Ativo</FormLabel>
+                          <FormDescription>
+                            Templates inativos não aparecem para seleção
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                <TabsContent value="assets" className="space-y-6 mt-0">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Papel Timbrado</CardTitle>
+                      <CardDescription>
+                        Adicione cabeçalho e rodapé que aparecerão em todas as páginas
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="header_image_url"
+                        render={({ field }) => (
+                          <AssetUploader
+                            value={field.value}
+                            onChange={field.onChange}
+                            label="Cabeçalho (Header)"
+                            description="Imagem do topo do documento"
+                            folder="headers"
+                          />
+                        )}
+                      />
+
+                      <Separator />
+
+                      <FormField
+                        control={form.control}
+                        name="footer_image_url"
+                        render={({ field }) => (
+                          <AssetUploader
+                            value={field.value}
+                            onChange={field.onChange}
+                            label="Rodapé (Footer)"
+                            description="Imagem do rodapé do documento"
+                            folder="footers"
+                          />
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Marca D'água</CardTitle>
+                      <CardDescription>
+                        Imagem que aparecerá como marca d'água em todo o documento
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FormField
+                        control={form.control}
+                        name="watermark_url"
+                        render={({ field }) => (
+                          <AssetUploader
+                            value={field.value}
+                            onChange={field.onChange}
+                            label="Marca D'água"
+                            description="Será exibida com transparência"
+                            folder="watermarks"
+                          />
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="layout" className="space-y-6 mt-0">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações do Documento</CardTitle>
+                      <CardDescription>
+                        Defina o tamanho do papel e orientação
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="paper_size"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tamanho</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="A4">A4</SelectItem>
+                                  <SelectItem value="Letter">Letter</SelectItem>
+                                  <SelectItem value="Legal">Legal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="orientation"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Orientação</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="portrait">Retrato</SelectItem>
+                                  <SelectItem value="landscape">Paisagem</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="page_count"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Páginas</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min={1} 
+                                  max={20}
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>CSS Personalizado</CardTitle>
+                      <CardDescription>
+                        Adicione estilos CSS customizados para o documento
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FormField
+                        control={form.control}
+                        name="styles"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder=".titulo { font-size: 24px; color: #333; }"
+                                className="font-mono text-sm min-h-[200px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Layout das Páginas (JSON)</CardTitle>
+                      <CardDescription>
+                        Configure backgrounds e margens por página
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="page_layouts"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder='[{"page_number": 1, "background_url": "", "content_margin_top": 100, "content_margin_bottom": 50}]'
+                                className="font-mono text-sm min-h-[100px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Array JSON com configurações de cada página
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="preview" className="mt-0">
+                  {form.watch("template_html") && (
+                    <DocumentPreview
+                      template={{
+                        page_count: form.watch("page_count"),
+                        page_layouts: JSON.parse(form.watch("page_layouts") || "[]"),
+                        header_image_url: form.watch("header_image_url"),
+                        footer_image_url: form.watch("footer_image_url"),
+                        watermark_url: form.watch("watermark_url"),
+                        template_html: form.watch("template_html"),
+                        styles: form.watch("styles"),
+                        paper_size: form.watch("paper_size"),
+                        orientation: form.watch("orientation"),
+                      }}
+                      variablesData={previewData}
+                    />
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"

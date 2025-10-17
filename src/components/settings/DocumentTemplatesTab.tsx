@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Plus, Loader2, Pencil, Eye } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentTemplateFormModal } from "./DocumentTemplateFormModal";
+import { SeedTemplatesButton } from "./SeedTemplatesButton";
 
 type DocumentTemplate = {
   id: string;

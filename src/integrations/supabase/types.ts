@@ -645,8 +645,13 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          orientation: string | null
           page_backgrounds: Json | null
+          page_count: number | null
+          page_layouts: Json | null
+          paper_size: string | null
           service_id: string | null
+          styles: string | null
           template_html: string
           updated_at: string
           variables: Json
@@ -662,8 +667,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          orientation?: string | null
           page_backgrounds?: Json | null
+          page_count?: number | null
+          page_layouts?: Json | null
+          paper_size?: string | null
           service_id?: string | null
+          styles?: string | null
           template_html: string
           updated_at?: string
           variables?: Json
@@ -679,8 +689,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          orientation?: string | null
           page_backgrounds?: Json | null
+          page_count?: number | null
+          page_layouts?: Json | null
+          paper_size?: string | null
           service_id?: string | null
+          styles?: string | null
           template_html?: string
           updated_at?: string
           variables?: Json
