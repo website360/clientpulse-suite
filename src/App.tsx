@@ -18,6 +18,8 @@ import Reports from "./pages/Reports";
 import Tasks from "./pages/Tasks";
 import Maintenance from "./pages/Maintenance";
 import Notes from "./pages/Notes";
+import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import ClientDashboard from './pages/portal/Dashboard';
 import ClientTickets from './pages/portal/Tickets';
 import ClientContracts from './pages/portal/Contracts';
@@ -57,6 +59,8 @@ const App = () => (
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/manutencao" element={<Maintenance />} />
             <Route path="/anotacoes" element={<Notes />} />
+            <Route path="/projetos" element={<Projects />} />
+            <Route path="/projetos/:id" element={<ProjectDetail />} />
             <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
             <Route path="/departments" element={<Navigate to="/settings" replace />} />
             <Route path="/settings" element={<Settings />} />
