@@ -191,17 +191,25 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
 
   const categoryIcons: Record<string, any> = {
     hosting: Server,
+    cloudflare: Server,
+    domain_registry: Globe,
+    cms: Server,
+    ftp: Server,
     database: Database,
+    api: Key,
     email: Mail,
-    domain: Globe,
     other: Key,
   };
 
   const categoryLabels: Record<string, string> = {
     hosting: 'Hospedagem',
+    cloudflare: 'Cloudflare',
+    domain_registry: 'Registro de Domínio',
+    cms: 'CMS',
+    ftp: 'FTP',
     database: 'Banco de Dados',
+    api: 'API',
     email: 'E-mail',
-    domain: 'Domínio',
     other: 'Outro',
   };
 
@@ -412,13 +420,17 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hosting">Hospedagem</SelectItem>
-                  <SelectItem value="database">Banco de Dados</SelectItem>
-                  <SelectItem value="email">E-mail</SelectItem>
-                  <SelectItem value="domain">Domínio</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
-                </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="hosting">Hospedagem</SelectItem>
+                    <SelectItem value="cloudflare">Cloudflare</SelectItem>
+                    <SelectItem value="domain_registry">Registro de Domínio</SelectItem>
+                    <SelectItem value="cms">CMS</SelectItem>
+                    <SelectItem value="ftp">FTP</SelectItem>
+                    <SelectItem value="database">Banco de Dados</SelectItem>
+                    <SelectItem value="api">API</SelectItem>
+                    <SelectItem value="email">E-mail</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
               </Select>
             </div>
             {(formData.category !== 'other' || selectedTemplate !== 'manual') && (
