@@ -257,9 +257,33 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded ${categoryColors[credential.category]}`}>
-                          <Icon className="h-4 w-4 text-white" />
-                        </div>
+                        {credential.url ? (
+                          <div className="p-2 rounded bg-white border border-border flex items-center justify-center">
+                            <img 
+                              src={`https://www.google.com/s2/favicons?domain=${new URL(credential.url).hostname}&sz=32`}
+                              alt=""
+                              className="h-4 w-4"
+                              onError={(e) => {
+                                // Se falhar ao carregar o favicon, mostra o ícone padrão
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.className = `p-2 rounded ${categoryColors[credential.category]}`;
+                                  const Icon = categoryIcons[credential.category] || Key;
+                                  parent.innerHTML = '';
+                                  const iconContainer = document.createElement('div');
+                                  iconContainer.className = 'h-4 w-4 text-white';
+                                  parent.appendChild(iconContainer);
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className={`p-2 rounded ${categoryColors[credential.category]}`}>
+                            <Icon className="h-4 w-4 text-white" />
+                          </div>
+                        )}
                         <div>
                           <h4 className="font-medium">{credential.service_name}</h4>
                           <Badge variant="secondary" className="text-xs mt-1">
