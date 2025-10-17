@@ -639,13 +639,12 @@ export default function TicketDetails() {
 
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
-                  <div className="border rounded-md">
+                  <div className="border rounded-md [&_.ql-editor]:min-h-[150px]">
                     <ReactQuill
                       theme="snow"
                       value={newMessageHtml}
                       onChange={setNewMessageHtml}
                       placeholder="Digite sua mensagem..."
-                      className="min-h-[200px]"
                       modules={{
                         toolbar: [
                           [{ 'header': [1, 2, 3, false] }],
