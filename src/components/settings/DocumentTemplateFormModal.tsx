@@ -236,14 +236,17 @@ export function DocumentTemplateFormModal({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Serviço (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
+                      value={field.value || "none"}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Todos os serviços" />
+                          <SelectValue placeholder="Selecione um serviço" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Todos os serviços</SelectItem>
+                        <SelectItem value="none">Todos os serviços</SelectItem>
                         {services?.map((service) => (
                           <SelectItem key={service.id} value={service.id}>
                             {service.name}
@@ -251,6 +254,9 @@ export function DocumentTemplateFormModal({
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      Deixe como "Todos" para usar em qualquer serviço
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
