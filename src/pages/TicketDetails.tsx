@@ -360,17 +360,21 @@ export default function TicketDetails() {
 
   const handleStatusChange = async (newStatus: string) => {
     try {
-      console.debug('Updating ticket status:', { ticketId: id, newStatus });
-      const normalized = normalizeTicketStatus(newStatus);
+      console.debug('[TicketDetails] Status change:', { ticketId: id, incomingStatus: newStatus });
 
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: id,
-        p_new_status: normalized
+        p_new_status: newStatus
       });
 
       if (error) {
-        console.error('RPC error:', error);
-        throw error;
+        console.error('[TicketDetails] RPC error:', error);
+        toast({
+          title: 'Erro ao atualizar status',
+          description: error.message || 'Não foi possível atualizar o status do ticket.',
+          variant: 'destructive',
+        });
+        return;
       }
 
       // Fetch updated ticket details
