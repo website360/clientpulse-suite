@@ -15,9 +15,10 @@ interface ProjectFormModalProps {
   onClose: () => void;
   project?: any;
   onSuccess: () => void;
+  clientId?: string; // Cliente pré-selecionado (opcional)
 }
 
-export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectFormModalProps) {
+export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }: ProjectFormModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -75,7 +76,7 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
     } else {
       setFormData({
         name: '',
-        client_id: '',
+        client_id: clientId || '', // Pré-preenche com clientId se fornecido
         project_type_id: '',
         description: '',
         status: 'planejamento',
@@ -84,7 +85,7 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
         notes: '',
       });
     }
-  }, [project, open]);
+  }, [project, open, clientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,7 +163,12 @@ export function ProjectFormModal({ open, onClose, project, onSuccess }: ProjectF
 
             <div>
               <Label htmlFor="client">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })} required>
+              <Select 
+                value={formData.client_id} 
+                onValueChange={(value) => setFormData({ ...formData, client_id: value })} 
+                required
+                disabled={!!clientId} // Desabilita se clientId foi fornecido
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>

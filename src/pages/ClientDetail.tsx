@@ -21,6 +21,8 @@ import { ContractTable } from '@/components/contracts/ContractTable';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ClientMaintenanceTab } from '@/components/clients/ClientMaintenanceTab';
 import { ClientFinancialTab } from '@/components/clients/ClientFinancialTab';
+import { ProjectTable } from '@/components/projects/ProjectTable';
+import { ProjectFormModal } from '@/components/projects/ProjectFormModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
@@ -46,12 +48,17 @@ export default function ClientDetail() {
   const [systemAccessEnabled, setSystemAccessEnabled] = useState(false);
   const [password, setPassword] = useState('');
   const [savingAccess, setSavingAccess] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projectFormOpen, setProjectFormOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
 
   useEffect(() => {
     fetchClient();
     fetchClientTickets();
     fetchClientContacts();
     fetchClientContracts();
+    fetchClientProjects();
   }, [id]);
 
   const fetchClient = async () => {
@@ -254,6 +261,50 @@ export default function ClientDetail() {
     setContractFormOpen(true);
   };
 
+  const fetchClientProjects = async () => {
+    try {
+      setLoadingProjects(true);
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          clients (
+            full_name,
+            company_name,
+            nickname
+          ),
+          project_types (
+            name,
+            color
+          )
+        `)
+        .eq('client_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast({
+        title: 'Erro ao carregar projetos',
+        description: 'Não foi possível carregar os projetos do cliente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
+
+  const handleEditProject = (project: any) => {
+    setEditingProject(project);
+    setProjectFormOpen(true);
+  };
+
+  const handleNewProject = () => {
+    setEditingProject(null);
+    setProjectFormOpen(true);
+  };
+
   const handleSystemAccessToggle = async (enabled: boolean) => {
     if (!enabled && client.user_id) {
       // Disable access - remove user_id
@@ -402,6 +453,7 @@ export default function ClientDetail() {
           <TabsList>
             <TabsTrigger value="geral">Geral</TabsTrigger>
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
+            <TabsTrigger value="projetos">Projetos</TabsTrigger>
             <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="dominios">Domínios</TabsTrigger>
             <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
@@ -582,6 +634,30 @@ export default function ClientDetail() {
             )}
           </TabsContent>
 
+          <TabsContent value="projetos" className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={handleNewProject} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Projeto
+              </Button>
+            </div>
+            
+            {loadingProjects ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Carregando projetos...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <ProjectTable
+                projects={projects}
+                isLoading={loadingProjects}
+                onEdit={handleEditProject}
+                onRefresh={fetchClientProjects}
+              />
+            )}
+          </TabsContent>
+
           <TabsContent value="contratos" className="space-y-4">
             <div className="flex justify-end">
               <Button onClick={handleNewContract} className="gap-2">
@@ -677,6 +753,22 @@ export default function ClientDetail() {
             setEditingContract(null);
           }}
           contract={editingContract}
+        />
+
+        {/* Project Form Modal */}
+        <ProjectFormModal
+          open={projectFormOpen}
+          onClose={() => {
+            setProjectFormOpen(false);
+            setEditingProject(null);
+          }}
+          project={editingProject}
+          clientId={id} // Passa o ID do cliente para pré-selecionar
+          onSuccess={() => {
+            fetchClientProjects();
+            setProjectFormOpen(false);
+            setEditingProject(null);
+          }}
         />
       </div>
     </DashboardLayout>
