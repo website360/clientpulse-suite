@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { normalizeTicketStatus } from '@/lib/tickets';
 
 export default function Tickets() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
@@ -208,10 +209,11 @@ export default function Tickets() {
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
       console.debug('Updating ticket status:', { ticketId, newStatus });
+      const normalized = normalizeTicketStatus(newStatus);
 
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: ticketId,
-        p_new_status: newStatus
+        p_new_status: normalized
       });
 
       if (error) {

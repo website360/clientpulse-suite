@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeTicketStatus } from '@/lib/tickets';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
@@ -360,10 +361,11 @@ export default function TicketDetails() {
   const handleStatusChange = async (newStatus: string) => {
     try {
       console.debug('Updating ticket status:', { ticketId: id, newStatus });
+      const normalized = normalizeTicketStatus(newStatus);
 
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: id,
-        p_new_status: newStatus
+        p_new_status: normalized
       });
 
       if (error) {

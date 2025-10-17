@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeTicketStatus } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -114,10 +115,11 @@ export default function ClientDetail() {
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
       console.debug('Updating ticket status:', { ticketId, newStatus });
+      const normalized = normalizeTicketStatus(newStatus);
 
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: ticketId,
-        p_new_status: newStatus
+        p_new_status: normalized
       });
 
       if (error) {
