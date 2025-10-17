@@ -383,28 +383,14 @@ export default function TicketDetails() {
       // Fetch updated ticket details
       fetchTicketDetails();
       
-      // Send email notification
-      console.log('Sending email notification...');
-      supabase.functions.invoke('send-email', {
-        body: {
-          template_key: 'ticket_status_changed',
-          ticket_id: id,
-        },
-      }).catch(err => console.error('Error sending email:', err));
-      
-      // Send WhatsApp notification to client
-      console.log('Sending WhatsApp notification...');
+      // Enviar WhatsApp ao cliente
       supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'send_ticket_notification',
           ticket_id: id,
           event_type: 'status_changed',
         },
-      }).then(result => {
-        console.log('WhatsApp result:', result);
-      }).catch(err => {
-        console.error('Error sending WhatsApp:', err);
-      });
+      }).catch(err => console.error('Error sending WhatsApp:', err));
       
       toast({
         title: 'Status atualizado',
