@@ -45,12 +45,12 @@ export function ProjectFilters({ filters, onFiltersChange }: ProjectFiltersProps
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="space-y-2">
         <Label>Cliente</Label>
-        <Select value={filters.client} onValueChange={(value) => onFiltersChange({ ...filters, client: value })}>
+        <Select value={filters.client || "all"} onValueChange={(value) => onFiltersChange({ ...filters, client: value === "all" ? "" : value })}>
           <SelectTrigger>
             <SelectValue placeholder="Todos os clientes" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os clientes</SelectItem>
+            <SelectItem value="all">Todos os clientes</SelectItem>
             {clients?.map((client) => (
               <SelectItem key={client.id} value={client.id}>
                 {client.nickname || client.company_name || client.full_name}
@@ -62,12 +62,12 @@ export function ProjectFilters({ filters, onFiltersChange }: ProjectFiltersProps
 
       <div className="space-y-2">
         <Label>Tipo</Label>
-        <Select value={filters.type} onValueChange={(value) => onFiltersChange({ ...filters, type: value })}>
+        <Select value={filters.type || "all"} onValueChange={(value) => onFiltersChange({ ...filters, type: value === "all" ? "" : value })}>
           <SelectTrigger>
             <SelectValue placeholder="Todos os tipos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             {projectTypes?.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
@@ -79,12 +79,12 @@ export function ProjectFilters({ filters, onFiltersChange }: ProjectFiltersProps
 
       <div className="space-y-2">
         <Label>Status</Label>
-        <Select value={filters.status} onValueChange={(value) => onFiltersChange({ ...filters, status: value })}>
+        <Select value={filters.status || "all"} onValueChange={(value) => onFiltersChange({ ...filters, status: value === "all" ? "" : value })}>
           <SelectTrigger>
             <SelectValue placeholder="Todos os status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os status</SelectItem>
+            <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="planejamento">Planejamento</SelectItem>
             <SelectItem value="em_andamento">Em Andamento</SelectItem>
             <SelectItem value="aguardando_aprovacao">Aguardando Aprovação</SelectItem>
