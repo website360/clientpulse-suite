@@ -334,6 +334,36 @@ export type Database = {
         }
         Relationships: []
       }
+      clicksign_settings: {
+        Row: {
+          api_token: string | null
+          created_at: string
+          environment: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          webhook_token: string | null
+        }
+        Insert: {
+          api_token?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          webhook_token?: string | null
+        }
+        Update: {
+          api_token?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          webhook_token?: string | null
+        }
+        Relationships: []
+      }
       client_contacts: {
         Row: {
           client_id: string
@@ -604,6 +634,68 @@ export type Database = {
         }
         Relationships: []
       }
+      document_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          footer_image_url: string | null
+          header_image_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          page_backgrounds: Json | null
+          service_id: string | null
+          template_html: string
+          updated_at: string
+          variables: Json
+          watermark_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          footer_image_url?: string | null
+          header_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          page_backgrounds?: Json | null
+          service_id?: string | null
+          template_html: string
+          updated_at?: string
+          variables?: Json
+          watermark_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          document_type?: Database["public"]["Enums"]["document_type"]
+          footer_image_url?: string | null
+          header_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          page_backgrounds?: Json | null
+          service_id?: string | null
+          template_html?: string
+          updated_at?: string
+          variables?: Json
+          watermark_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domains: {
         Row: {
           client_id: string
@@ -770,6 +862,100 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      generated_documents: {
+        Row: {
+          asaas_payment_id: string | null
+          clicksign_document_id: string | null
+          clicksign_signed_url: string | null
+          clicksign_status:
+            | Database["public"]["Enums"]["clicksign_status"]
+            | null
+          client_id: string
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          document_name: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          generated_pdf_url: string | null
+          id: string
+          payment_status: string | null
+          signed_at: string | null
+          template_id: string | null
+          updated_at: string
+          variables_data: Json
+          whatsapp_message_id: string | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          asaas_payment_id?: string | null
+          clicksign_document_id?: string | null
+          clicksign_signed_url?: string | null
+          clicksign_status?:
+            | Database["public"]["Enums"]["clicksign_status"]
+            | null
+          client_id: string
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          document_name: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          generated_pdf_url?: string | null
+          id?: string
+          payment_status?: string | null
+          signed_at?: string | null
+          template_id?: string | null
+          updated_at?: string
+          variables_data?: Json
+          whatsapp_message_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          asaas_payment_id?: string | null
+          clicksign_document_id?: string | null
+          clicksign_signed_url?: string | null
+          clicksign_status?:
+            | Database["public"]["Enums"]["clicksign_status"]
+            | null
+          client_id?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          document_name?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          generated_pdf_url?: string | null
+          id?: string
+          payment_status?: string | null
+          signed_at?: string | null
+          template_id?: string | null
+          updated_at?: string
+          variables_data?: Json
+          whatsapp_message_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integration_settings: {
         Row: {
@@ -2254,7 +2440,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client" | "contato"
+      clicksign_status: "draft" | "pending" | "signed" | "cancelled" | "expired"
       client_type: "person" | "company"
+      document_type: "contract" | "proposal"
       domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       maintenance_item_status: "done" | "not_needed" | "skipped"
@@ -2415,7 +2603,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client", "contato"],
+      clicksign_status: ["draft", "pending", "signed", "cancelled", "expired"],
       client_type: ["person", "company"],
+      document_type: ["contract", "proposal"],
       domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       maintenance_item_status: ["done", "not_needed", "skipped"],
