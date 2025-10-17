@@ -1036,6 +1036,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          color: string
+          content: string
+          created_at: string
+          height: number | null
+          id: string
+          image_url: string | null
+          link_url: string | null
+          note_type: Database["public"]["Enums"]["note_type"]
+          position_x: number | null
+          position_y: number | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          color?: string
+          content: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          note_type?: Database["public"]["Enums"]["note_type"]
+          position_x?: number | null
+          position_y?: number | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          color?: string
+          content?: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          note_type?: Database["public"]["Enums"]["note_type"]
+          position_x?: number | null
+          position_y?: number | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1587,6 +1638,7 @@ export type Database = {
       domain_owner: "agency" | "client"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       maintenance_item_status: "done" | "not_needed" | "skipped"
+      note_type: "text" | "link" | "image"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "waiting" | "resolved" | "closed"
@@ -1722,6 +1774,7 @@ export const Constants = {
       domain_owner: ["agency", "client"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       maintenance_item_status: ["done", "not_needed", "skipped"],
+      note_type: ["text", "link", "image"],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "waiting", "resolved", "closed"],
