@@ -645,7 +645,7 @@ export default function TicketDetails() {
                       value={newMessageHtml}
                       onChange={setNewMessageHtml}
                       placeholder="Digite sua mensagem..."
-                      className="min-h-[120px]"
+                      className="min-h-[200px]"
                       modules={{
                         toolbar: [
                           [{ 'header': [1, 2, 3, false] }],
