@@ -139,12 +139,6 @@ const TaskList = ({ tasks, onEditTask, onRefetch }: TaskListProps) => {
                   <Badge variant={getPriorityColor(task.priority)}>
                     {getPriorityLabel(task.priority)}
                   </Badge>
-                  {task.google_event_id && (
-                    <Badge variant="outline" className="gap-1">
-                      <Cloud className="h-3 w-3" />
-                      Google
-                    </Badge>
-                  )}
                   {task.ticket && (
                     <Badge variant="outline" className="gap-1">
                       <Link2 className="h-3 w-3" />

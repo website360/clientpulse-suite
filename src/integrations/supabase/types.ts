@@ -771,75 +771,6 @@ export type Database = {
         }
         Relationships: []
       }
-      google_calendar_settings: {
-        Row: {
-          client_id: string
-          client_secret: string
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          redirect_uri: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          client_id: string
-          client_secret: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          redirect_uri?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          client_id?: string
-          client_secret?: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          redirect_uri?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      google_calendar_tokens: {
-        Row: {
-          access_token: string
-          calendar_id: string | null
-          created_at: string | null
-          id: string
-          refresh_token: string
-          sync_enabled: boolean | null
-          sync_tickets: boolean | null
-          token_expiry: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          calendar_id?: string | null
-          created_at?: string | null
-          id?: string
-          refresh_token: string
-          sync_enabled?: boolean | null
-          sync_tickets?: boolean | null
-          token_expiry: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          calendar_id?: string | null
-          created_at?: string | null
-          id?: string
-          refresh_token?: string
-          sync_enabled?: boolean | null
-          sync_tickets?: boolean | null
-          token_expiry?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       integration_settings: {
         Row: {
           created_at: string | null
@@ -1297,7 +1228,6 @@ export type Database = {
           description: string | null
           due_date: string | null
           end_time: string | null
-          google_event_id: string | null
           id: string
           priority: string | null
           start_time: string | null
@@ -1314,7 +1244,6 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           end_time?: string | null
-          google_event_id?: string | null
           id?: string
           priority?: string | null
           start_time?: string | null
@@ -1331,7 +1260,6 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           end_time?: string | null
-          google_event_id?: string | null
           id?: string
           priority?: string | null
           start_time?: string | null

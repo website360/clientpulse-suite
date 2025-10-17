@@ -78,11 +78,6 @@ const TaskCard = ({ task, onClick, isDragging = false }: TaskCardProps) => {
         <Badge variant={getPriorityColor(task.priority)} className="text-xs">
           {getPriorityLabel(task.priority)}
         </Badge>
-        {task.google_event_id && (
-          <Badge variant="outline" className="text-xs gap-1">
-            <Cloud className="h-3 w-3" />
-          </Badge>
-        )}
         {task.ticket && (
           <Badge 
             variant="outline" 

@@ -16,13 +16,11 @@ import { ServicesTab } from '@/components/settings/ServicesTab';
 import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
 import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
-import { GoogleCalendarTab } from '@/components/settings/GoogleCalendarTab';
-import { GoogleCredentialsTab } from '@/components/settings/GoogleCredentialsTab';
 import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Calendar, MessageSquare, Settings2 } from 'lucide-react';
+import { User, MessageSquare, Settings2 } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -237,14 +235,6 @@ export default function Settings() {
                 <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
                 <TabsTrigger value="emails">Emails</TabsTrigger>
                 <TabsTrigger value="asaas">Asaas</TabsTrigger>
-                <TabsTrigger value="google-credentials">
-                  <Settings2 className="h-4 w-4 mr-2" />
-                  Credenciais Google
-                </TabsTrigger>
-                <TabsTrigger value="google-calendar">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Google Calendar
-                </TabsTrigger>
                 <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                 <TabsTrigger value="ticket-whatsapp">
                   <MessageSquare className="h-4 w-4 mr-2" />
@@ -429,14 +419,6 @@ export default function Settings() {
 
                   <TabsContent value="asaas">
                     <AsaasSettingsTab />
-                  </TabsContent>
-
-                  <TabsContent value="google-credentials">
-                    <GoogleCredentialsTab />
-                  </TabsContent>
-
-                  <TabsContent value="google-calendar">
-                    <GoogleCalendarTab />
                   </TabsContent>
 
                   <TabsContent value="whatsapp">

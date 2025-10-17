@@ -76,11 +76,7 @@ const TaskCalendar = ({ tasks, onEditTask, onRefetch, onDateChange }: TaskCalend
     let backgroundColor = "#3b82f6";
     
     if (type === "task") {
-      if (data.google_event_id) {
-        backgroundColor = "#10b981";
-      } else {
-        backgroundColor = "#3b82f6";
-      }
+      backgroundColor = "#3b82f6";
     } else if (type === "ticket") {
       switch (data.priority) {
         case "high":
