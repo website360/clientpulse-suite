@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,19 +22,33 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { StageTemplatesSection } from './StageTemplatesSection';
+import { CredentialTemplatesSection } from './CredentialTemplatesSection';
 
 export function ProjectsSettingsTab() {
   return (
     <Tabs defaultValue="types" className="space-y-6">
       <TabsList>
         <TabsTrigger value="types">Tipos de Projeto</TabsTrigger>
+        <TabsTrigger value="stages">Etapas</TabsTrigger>
+        <TabsTrigger value="credentials">Credenciais</TabsTrigger>
       </TabsList>
 
       <TabsContent value="types">
         <ProjectTypesSection />
+      </TabsContent>
+
+      <TabsContent value="stages">
+        <StageTemplatesSection />
+      </TabsContent>
+
+      <TabsContent value="credentials">
+        <CredentialTemplatesSection />
       </TabsContent>
     </Tabs>
   );
@@ -231,6 +246,9 @@ function ProjectTypesSection() {
             <DialogTitle>
               {selectedType ? 'Editar Tipo de Projeto' : 'Novo Tipo de Projeto'}
             </DialogTitle>
+            <DialogDescription>
+              Defina os tipos de projeto disponíveis no sistema
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

@@ -1406,6 +1406,36 @@ export type Database = {
           },
         ]
       }
+      project_credential_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["project_credential_category"]
+          created_at: string
+          id: string
+          is_active: boolean
+          service_name: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["project_credential_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_name: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_credential_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_name?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       project_credentials: {
         Row: {
           category: Database["public"]["Enums"]["project_credential_category"]

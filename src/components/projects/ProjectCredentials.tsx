@@ -24,6 +24,7 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCredential, setSelectedCredential] = useState<any>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [formData, setFormData] = useState({
     service_name: '',
     username: '',
@@ -40,6 +41,20 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
         .from('project_credentials')
         .select('*')
         .eq('project_id', projectId);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: templates } = useQuery({
+    queryKey: ['project-credential-templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_credential_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('service_name');
 
       if (error) throw error;
       return data;
@@ -122,6 +137,7 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCredential(null);
+    setSelectedTemplate('');
     setFormData({
       service_name: '',
       username: '',
@@ -130,6 +146,30 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
       category: 'other',
       notes: '',
     });
+  };
+
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    if (templateId === 'manual') {
+      // Manual entry - clear fields
+      setFormData({
+        ...formData,
+        service_name: '',
+        category: 'other',
+        url: '',
+      });
+    } else {
+      // Template selected - populate fields
+      const template = templates?.find(t => t.id === templateId);
+      if (template) {
+        setFormData({
+          ...formData,
+          service_name: template.service_name,
+          category: template.category,
+          url: template.url || '',
+        });
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -333,6 +373,24 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!selectedCredential && (
+              <div>
+                <Label htmlFor="template">Selecionar Template</Label>
+                <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha um template ou cadastre manualmente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Cadastrar Manualmente</SelectItem>
+                    {templates?.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.service_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="service_name">Serviço *</Label>
               <Input
@@ -340,12 +398,17 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                 value={formData.service_name}
                 onChange={(e) => setFormData({ ...formData, service_name: e.target.value })}
                 placeholder="Ex: cPanel, MySQL, Gmail"
+                disabled={selectedTemplate !== 'manual' && selectedTemplate !== '' && !selectedCredential}
                 required
               />
             </div>
             <div>
               <Label htmlFor="category">Categoria</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                disabled={selectedTemplate !== 'manual' && selectedTemplate !== '' && !selectedCredential}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -358,6 +421,19 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                 </SelectContent>
               </Select>
             </div>
+            {(formData.category !== 'other' || selectedTemplate !== 'manual') && (
+              <div>
+                <Label htmlFor="url">URL</Label>
+                <Input
+                  id="url"
+                  type="url"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  placeholder="https://..."
+                  disabled={selectedTemplate !== 'manual' && selectedTemplate !== '' && !selectedCredential}
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="username">Usuário</Label>
               <Input
@@ -374,16 +450,6 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
-              />
-            </div>
-            <div>
-              <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                type="url"
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                placeholder="https://..."
               />
             </div>
             <div>
