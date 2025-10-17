@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ProjectStagesProps {
   projectId: string;
@@ -17,6 +19,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
 
   const { data: stages, isLoading } = useQuery({
     queryKey: ['project-stages', projectId],
@@ -41,6 +44,27 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
       return data;
     },
   });
+
+  // Inicializar estados de expansão quando stages carregarem
+  useEffect(() => {
+    if (stages) {
+      const initialExpanded: Record<string, boolean> = {};
+      stages.forEach(stage => {
+        const items = stage.project_checklist_items || [];
+        const allCompleted = items.length > 0 && items.every((item: any) => item.is_completed);
+        // Expandido por padrão se não estiver 100% completo
+        initialExpanded[stage.id] = !allCompleted;
+      });
+      setExpandedStages(initialExpanded);
+    }
+  }, [stages]);
+
+  const toggleStage = (stageId: string) => {
+    setExpandedStages(prev => ({
+      ...prev,
+      [stageId]: !prev[stageId]
+    }));
+  };
 
   const toggleItemMutation = useMutation({
     mutationFn: async ({ itemId, isCompleted }: { itemId: string; isCompleted: boolean }) => {
@@ -110,80 +134,105 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
       {stages.map((stage) => {
         const progress = getStageProgress(stage);
         const items = stage.project_checklist_items || [];
+        const isExpanded = expandedStages[stage.id] ?? true;
+        const allCompleted = items.length > 0 && items.every((item: any) => item.is_completed);
 
         return (
-          <Card key={stage.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-xl">{stage.name}</CardTitle>
-                  {stage.description && (
-                    <CardDescription>{stage.description}</CardDescription>
-                  )}
-                </div>
-                <Badge className={statusColors[stage.status]}>
-                  {statusLabels[stage.status]}
-                </Badge>
-              </div>
-              <div className="space-y-2 pt-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {items.filter((i: any) => i.is_completed).length} de {items.length} itens concluídos
-                  </span>
-                  <span className="font-medium">{progress}%</span>
-                </div>
-                <Progress value={progress} className="h-2" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {items.length > 0 ? (
-                <div className="space-y-3">
-                  {items
-                    .sort((a: any, b: any) => a.order - b.order)
-                    .map((item: any) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
-                        <Checkbox
-                          id={item.id}
-                          checked={item.is_completed}
-                          onCheckedChange={() =>
-                            toggleItemMutation.mutate({
-                              itemId: item.id,
-                              isCompleted: item.is_completed,
-                            })
-                          }
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1 space-y-1">
-                          <label
-                            htmlFor={item.id}
-                            className={`text-sm font-medium cursor-pointer ${
-                              item.is_completed ? 'line-through text-muted-foreground' : ''
-                            }`}
-                          >
-                            {item.description}
-                          </label>
-                          {item.notes && (
-                            <p className="text-xs text-muted-foreground">{item.notes}</p>
-                          )}
-                        </div>
-                        {item.is_completed ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <Collapsible
+            key={stage.id}
+            open={isExpanded}
+            onOpenChange={() => toggleStage(stage.id)}
+          >
+            <Card className={allCompleted ? 'border-green-500/50' : ''}>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-xl">{stage.name}</CardTitle>
+                        {allCompleted && (
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
                         )}
                       </div>
-                    ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum item de checklist para esta etapa
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                      {stage.description && (
+                        <CardDescription>{stage.description}</CardDescription>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColors[stage.status]}>
+                        {statusLabels[stage.status]}
+                      </Badge>
+                      {isExpanded ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {items.filter((i: any) => i.is_completed).length} de {items.length} itens concluídos
+                      </span>
+                      <span className="font-medium">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <CardContent>
+                  {items.length > 0 ? (
+                    <div className="space-y-3">
+                      {items
+                        .sort((a: any, b: any) => a.order - b.order)
+                        .map((item: any) => (
+                          <div
+                            key={item.id}
+                            className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                          >
+                            <Checkbox
+                              id={item.id}
+                              checked={item.is_completed}
+                              onCheckedChange={() =>
+                                toggleItemMutation.mutate({
+                                  itemId: item.id,
+                                  isCompleted: item.is_completed,
+                                })
+                              }
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1 space-y-1">
+                              <label
+                                htmlFor={item.id}
+                                className={`text-sm font-medium cursor-pointer ${
+                                  item.is_completed ? 'line-through text-muted-foreground' : ''
+                                }`}
+                              >
+                                {item.description}
+                              </label>
+                              {item.notes && (
+                                <p className="text-xs text-muted-foreground">{item.notes}</p>
+                              )}
+                            </div>
+                            {item.is_completed ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum item de checklist para esta etapa
+                    </p>
+                  )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         );
       })}
     </div>
