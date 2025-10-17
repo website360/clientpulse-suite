@@ -5,21 +5,49 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function getGoogleCredentials(supabaseClient: any) {
+  const { data: settings } = await supabaseClient
+    .from('google_calendar_settings')
+    .select('client_id, client_secret, redirect_uri')
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (settings?.client_id && settings?.client_secret) {
+    return {
+      clientId: settings.client_id,
+      clientSecret: settings.client_secret,
+      redirectUri: settings.redirect_uri
+    };
+  }
+
+  return {
+    clientId: Deno.env.get('GOOGLE_CLIENT_ID'),
+    clientSecret: Deno.env.get('GOOGLE_CLIENT_SECRET'),
+    redirectUri: null
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID');
-    const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET');
-    const REDIRECT_URI = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-oauth/callback`;
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const url = new URL(req.url);
+    const credentials = await getGoogleCredentials(supabase);
+    const GOOGLE_CLIENT_ID = credentials.clientId;
+    const GOOGLE_CLIENT_SECRET = credentials.clientSecret;
+    const REDIRECT_URI = credentials.redirectUri || `${url.origin}/functions/v1/google-calendar-oauth/callback`;
 
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       throw new Error('Google credentials not configured');
     }
 
-    const url = new URL(req.url);
     
     // Handle OAuth callback
     if (url.pathname.includes('/callback')) {
@@ -52,12 +80,6 @@ serve(async (req) => {
       }
 
       const tokens = await tokenResponse.json();
-
-      // Store tokens in database
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       const expiryDate = new Date();
       expiryDate.setSeconds(expiryDate.getSeconds() + tokens.expires_in);

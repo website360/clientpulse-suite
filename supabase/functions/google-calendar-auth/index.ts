@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function getGoogleCredentials(supabaseClient: any) {
+  const { data: settings } = await supabaseClient
+    .from('google_calendar_settings')
+    .select('client_id, client_secret, redirect_uri')
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (settings?.client_id && settings?.client_secret) {
+    return {
+      clientId: settings.client_id,
+      clientSecret: settings.client_secret,
+      redirectUri: settings.redirect_uri
+    };
+  }
+
+  return {
+    clientId: Deno.env.get('GOOGLE_CLIENT_ID'),
+    clientSecret: Deno.env.get('GOOGLE_CLIENT_SECRET'),
+    redirectUri: null
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -29,9 +51,12 @@ serve(async (req) => {
 
     const { action, code, calendar_id, sync_enabled, sync_tickets } = await req.json();
 
+    const credentials = await getGoogleCredentials(supabaseClient);
+    const clientId = credentials.clientId;
+    const clientSecret = credentials.clientSecret;
+    const redirectUri = credentials.redirectUri || `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-auth`;
+
     if (action === 'get_auth_url') {
-      const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-auth`;
       
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}&` +
@@ -49,9 +74,6 @@ serve(async (req) => {
     }
 
     if (action === 'exchange_code') {
-      const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-      const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-auth`;
 
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -101,9 +123,6 @@ serve(async (req) => {
       if (!tokenData) {
         throw new Error('No token found');
       }
-
-      const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-      const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
 
       const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',

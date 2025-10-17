@@ -6,6 +6,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function getGoogleCredentials(supabaseClient: any) {
+  const { data: settings } = await supabaseClient
+    .from('google_calendar_settings')
+    .select('client_id, client_secret')
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (settings?.client_id && settings?.client_secret) {
+    return {
+      clientId: settings.client_id,
+      clientSecret: settings.client_secret
+    };
+  }
+
+  return {
+    clientId: Deno.env.get('GOOGLE_CLIENT_ID'),
+    clientSecret: Deno.env.get('GOOGLE_CLIENT_SECRET')
+  };
+}
+
 async function getValidAccessToken(supabaseClient: any, userId: string) {
   const { data: tokenData } = await supabaseClient
     .from('google_calendar_tokens')
@@ -21,8 +41,9 @@ async function getValidAccessToken(supabaseClient: any, userId: string) {
   const expiry = new Date(tokenData.token_expiry);
 
   if (now >= expiry) {
-    const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-    const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+    const credentials = await getGoogleCredentials(supabaseClient);
+    const clientId = credentials.clientId;
+    const clientSecret = credentials.clientSecret;
 
     const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
