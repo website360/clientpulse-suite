@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ProjectTableProps {
   projects: any[];
@@ -20,6 +31,7 @@ interface ProjectTableProps {
 export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: ProjectTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const statusColors: Record<string, string> = {
     planejamento: 'bg-blue-500',
@@ -37,11 +49,11 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
     cancelado: 'Cancelado',
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Deseja realmente excluir o projeto "${name}"?`)) return;
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete) return;
 
     try {
-      const { error } = await supabase.from('projects').delete().eq('id', id);
+      const { error } = await supabase.from('projects').delete().eq('id', projectToDelete.id);
       if (error) throw error;
 
       toast({
@@ -56,6 +68,8 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
         description: 'Não foi possível excluir o projeto.',
         variant: 'destructive',
       });
+    } finally {
+      setProjectToDelete(null);
     }
   };
 
@@ -92,8 +106,26 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <>
+      <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir o projeto "{projectToDelete?.name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="rounded-md border">
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Projeto</TableHead>
@@ -148,7 +180,7 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(project.id, project.name)}
+                      onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -160,5 +192,6 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
         </TableBody>
       </Table>
     </div>
+    </>
   );
 }
