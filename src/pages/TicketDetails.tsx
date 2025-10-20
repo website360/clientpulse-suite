@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { normalizeTicketStatus } from '@/lib/tickets';
+import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
@@ -362,14 +362,11 @@ export default function TicketDetails() {
     try {
       console.debug('[TicketDetails] Status change:', { ticketId: id, incomingStatus: newStatus });
 
-      // Normalizar para garantir que sempre enviamos valores em inglês
-      const normalized = normalizeTicketStatus(newStatus);
-
-      // Usar a função RPC do banco que normaliza e atualiza corretamente
-      const { error } = await supabase.rpc('set_ticket_status', {
-        p_ticket_id: id,
-        p_new_status: normalized
-      });
+      const updateData = getStatusUpdateData(newStatus);
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', id);
 
       if (error) {
         console.error('[TicketDetails] Update error:', error);
@@ -381,10 +378,8 @@ export default function TicketDetails() {
         return;
       }
 
-      // Fetch updated ticket details
       fetchTicketDetails();
       
-      // Enviar WhatsApp ao cliente
       supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'send_ticket_notification',

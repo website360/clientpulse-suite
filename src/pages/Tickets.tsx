@@ -22,7 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { normalizeTicketStatus } from '@/lib/tickets';
+import { getStatusUpdateData } from '@/lib/tickets';
 
 export default function Tickets() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
@@ -210,14 +210,11 @@ export default function Tickets() {
     try {
       console.debug('[Tickets] Status change:', { ticketId, incomingStatus: newStatus });
 
-      // Normalizar para garantir que sempre enviamos valores em inglês
-      const normalized = normalizeTicketStatus(newStatus);
-
-      // Usar a função RPC do banco que normaliza e atualiza corretamente
-      const { error } = await supabase.rpc('set_ticket_status', {
-        p_ticket_id: ticketId,
-        p_new_status: normalized
-      });
+      const updateData = getStatusUpdateData(newStatus);
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', ticketId);
 
       if (error) {
         console.error('[Tickets] Update error:', error);
@@ -229,7 +226,6 @@ export default function Tickets() {
         return;
       }
 
-      // Send WhatsApp notification to client
       supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'send_ticket_notification',
