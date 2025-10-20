@@ -24,6 +24,7 @@ serve(async (req) => {
       company_name,
       full_name,
       cpf_cnpj,
+      birth_date,
       email,
       phone,
       address_cep,
@@ -59,26 +60,38 @@ serve(async (req) => {
       throw new Error('Já existe um cadastro com este email ou CPF/CNPJ');
     }
 
+    // Preparar dados do cliente
+    const clientData: any = {
+      client_type,
+      company_name: client_type === 'company' ? company_name : null,
+      full_name: client_type === 'person' ? full_name : null,
+      responsible_name: client_type === 'company' ? full_name : null,
+      cpf_cnpj,
+      email,
+      phone,
+      address_cep,
+      address_street,
+      address_number,
+      address_complement,
+      address_neighborhood,
+      address_city,
+      address_state,
+      is_active: true,
+    };
+
+    // Adicionar data de nascimento se for pessoa física e foi fornecida
+    if (client_type === 'person' && birth_date) {
+      // Converter DD/MM/AAAA para AAAA-MM-DD
+      const parts = birth_date.split('/');
+      if (parts.length === 3) {
+        clientData.birth_date = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+
     // Criar cliente
     const { data: newClient, error: clientError } = await supabase
       .from('clients')
-      .insert({
-        client_type,
-        company_name: client_type === 'company' ? company_name : null,
-        full_name: client_type === 'person' ? full_name : null,
-        responsible_name: client_type === 'company' ? full_name : null,
-        cpf_cnpj,
-        email,
-        phone,
-        address_cep,
-        address_street,
-        address_number,
-        address_complement,
-        address_neighborhood,
-        address_city,
-        address_state,
-        is_active: true,
-      })
+      .insert(clientData)
       .select()
       .single();
 

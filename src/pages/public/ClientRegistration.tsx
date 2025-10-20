@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Building2, User } from 'lucide-react';
-import { formatPhone, formatCpfCnpj, formatCEP } from '@/lib/masks';
+import { maskPhone, maskCpfCnpj, maskCEP, maskDate } from '@/lib/masks';
 
 export default function ClientRegistration() {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ export default function ClientRegistration() {
     company_name: '',
     full_name: '',
     cpf_cnpj: '',
+    birth_date: '',
     email: '',
     phone: '',
     address_cep: '',
@@ -35,14 +36,16 @@ export default function ClientRegistration() {
     let processedValue = value;
 
     if (field === 'phone') {
-      processedValue = formatPhone(value);
+      processedValue = maskPhone(value);
     } else if (field === 'cpf_cnpj') {
-      processedValue = formatCpfCnpj(value);
+      processedValue = maskCpfCnpj(value);
     } else if (field === 'address_cep') {
-      processedValue = formatCEP(value);
+      processedValue = maskCEP(value);
       if (processedValue.replace(/\D/g, '').length === 8) {
         fetchAddressByCep(processedValue.replace(/\D/g, ''));
       }
+    } else if (field === 'birth_date') {
+      processedValue = maskDate(value);
     }
 
     setFormData(prev => ({ ...prev, [field]: processedValue }));
@@ -187,9 +190,23 @@ export default function ClientRegistration() {
                 value={formData.cpf_cnpj}
                 onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
                 placeholder={formData.client_type === 'company' ? '00.000.000/0000-00' : '000.000.000-00'}
+                maxLength={formData.client_type === 'company' ? 18 : 14}
                 required
               />
             </div>
+
+            {formData.client_type === 'person' && (
+              <div>
+                <Label htmlFor="birth_date">Data de Nascimento</Label>
+                <Input
+                  id="birth_date"
+                  value={formData.birth_date}
+                  onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                  placeholder="DD/MM/AAAA"
+                  maxLength={10}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -209,6 +226,7 @@ export default function ClientRegistration() {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="(00) 00000-0000"
+                  maxLength={15}
                   required
                 />
               </div>
@@ -225,6 +243,7 @@ export default function ClientRegistration() {
                     value={formData.address_cep}
                     onChange={(e) => handleInputChange('address_cep', e.target.value)}
                     placeholder="00000-000"
+                    maxLength={9}
                   />
                 </div>
 
