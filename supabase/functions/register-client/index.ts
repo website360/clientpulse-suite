@@ -24,6 +24,7 @@ serve(async (req) => {
       company_name,
       full_name,
       cpf_cnpj,
+      responsible_cpf,
       birth_date,
       email,
       phone,
@@ -66,6 +67,7 @@ serve(async (req) => {
       company_name: client_type === 'company' ? company_name : null,
       full_name: client_type === 'person' ? full_name : null,
       responsible_name: client_type === 'company' ? full_name : null,
+      responsible_cpf: client_type === 'company' ? responsible_cpf : null,
       cpf_cnpj,
       email,
       phone,
@@ -79,8 +81,8 @@ serve(async (req) => {
       is_active: true,
     };
 
-    // Adicionar data de nascimento se for pessoa física e foi fornecida
-    if (client_type === 'person' && birth_date) {
+    // Adicionar data de nascimento se foi fornecida
+    if (birth_date) {
       // Converter DD/MM/AAAA para AAAA-MM-DD
       const parts = birth_date.split('/');
       if (parts.length === 3) {

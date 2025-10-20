@@ -20,6 +20,7 @@ export default function ClientRegistration() {
     company_name: '',
     full_name: '',
     cpf_cnpj: '',
+    responsible_cpf: '',
     birth_date: '',
     email: '',
     phone: '',
@@ -38,6 +39,8 @@ export default function ClientRegistration() {
     if (field === 'phone') {
       processedValue = maskPhone(value);
     } else if (field === 'cpf_cnpj') {
+      processedValue = maskCpfCnpj(value);
+    } else if (field === 'responsible_cpf') {
       processedValue = maskCpfCnpj(value);
     } else if (field === 'address_cep') {
       processedValue = maskCEP(value);
@@ -157,55 +160,98 @@ export default function ClientRegistration() {
               </Select>
             </div>
 
-            {formData.client_type === 'company' && (
-              <div>
-                <Label htmlFor="company_name">Razão Social / Nome da Empresa *</Label>
-                <Input
-                  id="company_name"
-                  value={formData.company_name}
-                  onChange={(e) => handleInputChange('company_name', e.target.value)}
-                  required
-                />
-              </div>
-            )}
+            {formData.client_type === 'company' ? (
+              <>
+                <div>
+                  <Label htmlFor="cpf_cnpj">CNPJ *</Label>
+                  <Input
+                    id="cpf_cnpj"
+                    value={formData.cpf_cnpj}
+                    onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
+                    placeholder="00.000.000/0000-00"
+                    maxLength={18}
+                    required
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="full_name">
-                {formData.client_type === 'company' ? 'Nome do Responsável' : 'Nome Completo'} *
-              </Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                required
-              />
-            </div>
+                <div>
+                  <Label htmlFor="company_name">Razão Social *</Label>
+                  <Input
+                    id="company_name"
+                    value={formData.company_name}
+                    onChange={(e) => handleInputChange('company_name', e.target.value)}
+                    required
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="cpf_cnpj">
-                {formData.client_type === 'company' ? 'CNPJ' : 'CPF'} *
-              </Label>
-              <Input
-                id="cpf_cnpj"
-                value={formData.cpf_cnpj}
-                onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
-                placeholder={formData.client_type === 'company' ? '00.000.000/0000-00' : '000.000.000-00'}
-                maxLength={formData.client_type === 'company' ? 18 : 14}
-                required
-              />
-            </div>
+                <div>
+                  <Label htmlFor="full_name">Responsável *</Label>
+                  <Input
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    required
+                  />
+                </div>
 
-            {formData.client_type === 'person' && (
-              <div>
-                <Label htmlFor="birth_date">Data de Nascimento</Label>
-                <Input
-                  id="birth_date"
-                  value={formData.birth_date}
-                  onChange={(e) => handleInputChange('birth_date', e.target.value)}
-                  placeholder="DD/MM/AAAA"
-                  maxLength={10}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="responsible_cpf">CPF do Responsável *</Label>
+                  <Input
+                    id="responsible_cpf"
+                    value={formData.responsible_cpf}
+                    onChange={(e) => handleInputChange('responsible_cpf', e.target.value)}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="birth_date">Data de Nascimento do Responsável</Label>
+                  <Input
+                    id="birth_date"
+                    value={formData.birth_date}
+                    onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="full_name">Nome Completo *</Label>
+                  <Input
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="cpf_cnpj">CPF *</Label>
+                  <Input
+                    id="cpf_cnpj"
+                    value={formData.cpf_cnpj}
+                    onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="birth_date">Data de Nascimento</Label>
+                  <Input
+                    id="birth_date"
+                    value={formData.birth_date}
+                    onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                  />
+                </div>
+              </>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
