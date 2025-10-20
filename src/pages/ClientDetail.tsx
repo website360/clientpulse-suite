@@ -76,9 +76,8 @@ export default function ClientDetail() {
       // Check if client has system access (user_id is set)
       setSystemAccessEnabled(!!data.user_id);
       
-      // Set breadcrumb label to nickname (apelido)
-      const label = client.nickname || client.responsible_name || 
-        (client.client_type === 'person' ? client.full_name : client.company_name);
+      // Set breadcrumb label to nickname for company, full_name for person
+      const label = data.client_type === 'person' ? data.full_name : data.nickname;
       setBreadcrumbLabel(label || 'Cliente');
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -432,10 +431,10 @@ export default function ClientDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {client.nickname || client.responsible_name || (client.client_type === 'person' ? client.full_name : client.company_name)}
+                {client.client_type === 'person' ? client.full_name : client.nickname}
               </h1>
               <p className="text-muted-foreground mt-1">
-                {(client.nickname || client.responsible_name) && (client.client_type === 'person' ? client.full_name : client.company_name)}
+                {client.client_type === 'company' && client.company_name}
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant={client.client_type === 'person' ? 'default' : 'secondary'}>
@@ -519,7 +518,7 @@ export default function ClientDetail() {
                       </div>
                     </div>
                   )}
-                  {client.birth_date && (
+                  {client.client_type === 'person' && client.birth_date && (
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
