@@ -51,14 +51,9 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
             </div>
 
             <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-              {client.responsible_name || client.full_name || client.company_name}
+              {client.client_type === 'person' ? client.full_name : client.nickname}
             </h3>
             
-            {client.client_type === 'person' && client.full_name && (
-              <p className="text-sm text-muted-foreground mb-3">
-                {client.full_name}
-              </p>
-            )}
             {client.client_type === 'company' && client.company_name && (
               <p className="text-sm text-muted-foreground mb-3">
                 {client.company_name}
