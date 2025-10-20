@@ -360,16 +360,13 @@ export default function TicketDetails() {
 
   const handleStatusChange = async (newStatus: string) => {
     try {
-      console.debug('[TicketDetails] Status change:', { ticketId: id, incomingStatus: newStatus });
-
       const normalized = normalizeTicketStatus(newStatus);
-      const updateData = getStatusUpdateData(normalized);
-      console.debug('[TicketDetails] updateData to send:', updateData);
+      console.log('[TicketDetails] Changing status', { ticketId: id, incoming: newStatus, normalized });
 
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', id);
+      const { error } = await supabase.rpc('set_ticket_status', {
+        p_ticket_id: id,
+        p_new_status: normalized,
+      });
 
       if (error) {
         console.error('[TicketDetails] Update error:', error);
@@ -382,7 +379,7 @@ export default function TicketDetails() {
       }
 
       fetchTicketDetails();
-      
+
       supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'send_ticket_notification',
@@ -390,7 +387,7 @@ export default function TicketDetails() {
           event_type: 'status_changed',
         },
       }).catch(err => console.error('Error sending WhatsApp:', err));
-      
+
       toast({
         title: 'Status atualizado',
         description: 'O status do ticket foi alterado com sucesso.',

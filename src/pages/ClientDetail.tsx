@@ -121,16 +121,13 @@ export default function ClientDetail() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      console.debug('[ClientDetail] Status change:', { ticketId, incomingStatus: newStatus });
-
       const normalized = normalizeTicketStatus(newStatus);
-      const updateData = getStatusUpdateData(normalized);
-      console.debug('[ClientDetail] updateData to send:', updateData);
+      console.log('[ClientDetail] Changing status', { ticketId, incoming: newStatus, normalized });
 
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', ticketId);
+      const { error } = await supabase.rpc('set_ticket_status', {
+        p_ticket_id: ticketId,
+        p_new_status: normalized,
+      });
 
       if (error) {
         console.error('[ClientDetail] Update error:', error);

@@ -208,16 +208,13 @@ export default function Tickets() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      console.debug('[Tickets] Status change:', { ticketId, incomingStatus: newStatus });
-
       const normalized = normalizeTicketStatus(newStatus);
-      const updateData = getStatusUpdateData(normalized);
-      console.debug('[Tickets] updateData to send:', updateData);
+      console.log('[Tickets] Changing status', { ticketId, incoming: newStatus, normalized });
 
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', ticketId);
+      const { error } = await supabase.rpc('set_ticket_status', {
+        p_ticket_id: ticketId,
+        p_new_status: normalized,
+      });
 
       if (error) {
         console.error('[Tickets] Update error:', error);
