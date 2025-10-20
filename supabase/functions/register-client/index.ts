@@ -51,11 +51,17 @@ serve(async (req) => {
     }
 
     // Verificar se já existe cliente com este email ou CPF/CNPJ
-    const { data: existingClient } = await supabase
+    let existingClientQuery = supabase
       .from('clients')
-      .select('id')
-      .or(`email.eq.${email},cpf_cnpj.eq.${cpf_cnpj}`)
-      .maybeSingle();
+      .select('id');
+    
+    if (cpf_cnpj) {
+      existingClientQuery = existingClientQuery.or(`email.eq.${email},cpf_cnpj.eq.${cpf_cnpj}`);
+    } else {
+      existingClientQuery = existingClientQuery.eq('email', email);
+    }
+    
+    const { data: existingClient } = await existingClientQuery.maybeSingle();
 
     if (existingClient) {
       throw new Error('Já existe um cadastro com este email ou CPF/CNPJ');
