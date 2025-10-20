@@ -362,7 +362,10 @@ export default function TicketDetails() {
     try {
       console.debug('[TicketDetails] Status change:', { ticketId: id, incomingStatus: newStatus });
 
-      const updateData = getStatusUpdateData(newStatus);
+      const normalized = normalizeTicketStatus(newStatus);
+      const updateData = getStatusUpdateData(normalized);
+      console.debug('[TicketDetails] updateData to send:', updateData);
+
       const { error } = await supabase
         .from('tickets')
         .update(updateData)

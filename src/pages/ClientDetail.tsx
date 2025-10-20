@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStatusUpdateData } from '@/lib/tickets';
+import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -123,7 +123,10 @@ export default function ClientDetail() {
     try {
       console.debug('[ClientDetail] Status change:', { ticketId, incomingStatus: newStatus });
 
-      const updateData = getStatusUpdateData(newStatus);
+      const normalized = normalizeTicketStatus(newStatus);
+      const updateData = getStatusUpdateData(normalized);
+      console.debug('[ClientDetail] updateData to send:', updateData);
+
       const { error } = await supabase
         .from('tickets')
         .update(updateData)
