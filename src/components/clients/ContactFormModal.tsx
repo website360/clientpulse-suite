@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { maskPhone } from '@/lib/masks';
+import { maskPhone, maskCpfCnpj, maskDate } from '@/lib/masks';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,8 @@ export function ContactFormModal({
     department: '',
     email: '',
     phone: '',
+    cpf: '',
+    birth_date: '',
   });
 
   useEffect(() => {
@@ -45,6 +47,8 @@ export function ContactFormModal({
         department: contact.department || '',
         email: contact.email || '',
         phone: contact.phone || '',
+        cpf: contact.cpf || '',
+        birth_date: contact.birth_date ? new Date(contact.birth_date).toLocaleDateString('pt-BR') : '',
       });
     } else {
       setFormData({
@@ -52,6 +56,8 @@ export function ContactFormModal({
         department: '',
         email: '',
         phone: '',
+        cpf: '',
+        birth_date: '',
       });
     }
   }, [contact, open]);
@@ -61,11 +67,30 @@ export function ContactFormModal({
     setLoading(true);
 
     try {
+      // Preparar dados para salvar
+      const dataToSave: any = {
+        name: formData.name,
+        department: formData.department,
+        email: formData.email,
+        phone: formData.phone,
+        cpf: formData.cpf || null,
+      };
+
+      // Converter data de nascimento se fornecida
+      if (formData.birth_date) {
+        const parts = formData.birth_date.split('/');
+        if (parts.length === 3) {
+          dataToSave.birth_date = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      } else {
+        dataToSave.birth_date = null;
+      }
+
       if (contact) {
         // Update existing contact
         const { error } = await supabase
           .from('client_contacts')
-          .update(formData)
+          .update(dataToSave)
           .eq('id', contact.id);
 
         if (error) throw error;
@@ -78,7 +103,7 @@ export function ContactFormModal({
         // Create new contact
         const { error } = await supabase
           .from('client_contacts')
-          .insert([{ ...formData, client_id: clientId }]);
+          .insert([{ ...dataToSave, client_id: clientId }]);
 
         if (error) throw error;
 
@@ -162,6 +187,28 @@ export function ContactFormModal({
             <p className="text-xs text-muted-foreground mt-1">
               Necessário para receber notificações no WhatsApp
             </p>
+          </div>
+
+          <div>
+            <Label htmlFor="cpf">CPF</Label>
+            <Input
+              id="cpf"
+              placeholder="000.000.000-00"
+              value={formData.cpf}
+              onChange={(e) => setFormData({ ...formData, cpf: maskCpfCnpj(e.target.value) })}
+              maxLength={14}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="birth_date">Data de Nascimento</Label>
+            <Input
+              id="birth_date"
+              placeholder="DD/MM/AAAA"
+              value={formData.birth_date}
+              onChange={(e) => setFormData({ ...formData, birth_date: maskDate(e.target.value) })}
+              maxLength={10}
+            />
           </div>
 
           <DialogFooter>

@@ -33,7 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatPhone } from '@/lib/masks';
+import { formatPhone, formatCpfCnpj } from '@/lib/masks';
 
 interface ContactsListProps {
   contacts: any[];
@@ -179,6 +179,8 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
               <TableHead>Departamento</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Telefone</TableHead>
+              <TableHead>CPF</TableHead>
+              <TableHead>Data Nasc.</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -213,6 +215,12 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
+                </TableCell>
+                <TableCell>
+                  {contact.cpf ? formatCpfCnpj(contact.cpf) : <span className="text-muted-foreground">-</span>}
+                </TableCell>
+                <TableCell>
+                  {contact.birth_date ? new Date(contact.birth_date).toLocaleDateString('pt-BR') : <span className="text-muted-foreground">-</span>}
                 </TableCell>
                 <TableCell>
                   {contact.user_id ? (

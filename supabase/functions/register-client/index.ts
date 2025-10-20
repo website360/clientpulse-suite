@@ -104,6 +104,37 @@ serve(async (req) => {
 
     console.log('Client created successfully:', newClient.id);
 
+    // Se for pessoa jurídica, criar contato automático com os dados do responsável
+    if (client_type === 'company' && full_name && responsible_cpf) {
+      const contactData: any = {
+        client_id: newClient.id,
+        name: full_name,
+        email: email,
+        phone: phone,
+        department: 'Responsável',
+        cpf: responsible_cpf,
+      };
+
+      // Adicionar data de nascimento se foi fornecida
+      if (birth_date) {
+        const parts = birth_date.split('/');
+        if (parts.length === 3) {
+          contactData.birth_date = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+
+      const { error: contactError } = await supabase
+        .from('client_contacts')
+        .insert(contactData);
+
+      if (contactError) {
+        console.error('Error creating contact:', contactError);
+        // Não falha o cadastro se o contato não for criado
+      } else {
+        console.log('Contact created successfully for company client');
+      }
+    }
+
     // Notificar admins sobre novo cadastro
     const { data: adminRoles } = await supabase
       .from('user_roles')
