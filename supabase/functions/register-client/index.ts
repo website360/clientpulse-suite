@@ -22,6 +22,7 @@ serve(async (req) => {
     const {
       client_type,
       company_name,
+      nickname,
       full_name,
       cpf_cnpj,
       responsible_cpf,
@@ -42,8 +43,8 @@ serve(async (req) => {
       throw new Error('Dados obrigatórios não foram fornecidos');
     }
 
-    if (client_type === 'company' && !company_name) {
-      throw new Error('Nome da empresa é obrigatório para pessoa jurídica');
+    if (client_type === 'company' && (!company_name || !nickname)) {
+      throw new Error('Nome da empresa e razão social são obrigatórios para pessoa jurídica');
     }
 
     if (client_type === 'person' && !full_name) {
@@ -71,6 +72,7 @@ serve(async (req) => {
     const clientData: any = {
       client_type,
       company_name: client_type === 'company' ? company_name : null,
+      nickname: client_type === 'company' ? nickname : null,
       full_name: client_type === 'person' ? full_name : null,
       responsible_name: client_type === 'company' ? full_name : null,
       responsible_cpf: client_type === 'company' ? responsible_cpf : null,
@@ -151,7 +153,7 @@ serve(async (req) => {
       const notifications = adminRoles.map(role => ({
         user_id: role.user_id,
         title: 'Novo Cliente Cadastrado',
-        description: `${client_type === 'company' ? company_name : full_name} se cadastrou pelo formulário público.`,
+        description: `${client_type === 'company' ? nickname || company_name : full_name} se cadastrou pelo formulário público.`,
         type: 'info',
         reference_type: 'client',
         reference_id: newClient.id,

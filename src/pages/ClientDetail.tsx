@@ -76,9 +76,9 @@ export default function ClientDetail() {
       // Check if client has system access (user_id is set)
       setSystemAccessEnabled(!!data.user_id);
       
-      // Set breadcrumb label to responsible_name (apelido)
-      const label = data.responsible_name || 
-        (data.client_type === 'person' ? data.full_name : data.company_name);
+      // Set breadcrumb label to nickname (apelido)
+      const label = client.nickname || client.responsible_name || 
+        (client.client_type === 'person' ? client.full_name : client.company_name);
       setBreadcrumbLabel(label || 'Cliente');
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -432,10 +432,10 @@ export default function ClientDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {client.responsible_name || (client.client_type === 'person' ? client.full_name : client.company_name)}
+                {client.nickname || client.responsible_name || (client.client_type === 'person' ? client.full_name : client.company_name)}
               </h1>
               <p className="text-muted-foreground mt-1">
-                {client.responsible_name && (client.client_type === 'person' ? client.full_name : client.company_name)}
+                {(client.nickname || client.responsible_name) && (client.client_type === 'person' ? client.full_name : client.company_name)}
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant={client.client_type === 'person' ? 'default' : 'secondary'}>
@@ -499,12 +499,12 @@ export default function ClientDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {client.responsible_name && (
+                  {client.nickname && (
                     <div className="flex items-center gap-3">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Apelido</p>
-                        <p className="font-medium">{client.responsible_name}</p>
+                        <p className="font-medium">{client.nickname}</p>
                       </div>
                     </div>
                   )}

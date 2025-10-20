@@ -16,6 +16,7 @@ export default function ClientRegistration() {
   const [formData, setFormData] = useState({
     client_type: 'company' as 'person' | 'company',
     company_name: '',
+    nickname: '',
     full_name: '',
     cpf_cnpj: '',
     responsible_cpf: '',
@@ -156,6 +157,17 @@ export default function ClientRegistration() {
 
             {formData.client_type === 'company' ? (
               <>
+                <div>
+                  <Label htmlFor="nickname">Nome da Empresa *</Label>
+                  <Input
+                    id="nickname"
+                    value={formData.nickname}
+                    onChange={(e) => handleInputChange('nickname', e.target.value)}
+                    placeholder="Como a empresa é conhecida"
+                    required
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="cpf_cnpj">CNPJ *</Label>
                   <Input
