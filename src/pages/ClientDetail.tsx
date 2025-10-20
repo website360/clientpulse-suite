@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeTicketStatus } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -122,10 +123,13 @@ export default function ClientDetail() {
     try {
       console.debug('[ClientDetail] Status change:', { ticketId, incomingStatus: newStatus });
 
+      // Normalizar para garantir que sempre enviamos valores em inglês
+      const normalized = normalizeTicketStatus(newStatus);
+
       // Usar a função RPC do banco que normaliza e atualiza corretamente
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: ticketId,
-        p_new_status: newStatus,
+        p_new_status: normalized,
       });
 
       if (error) {

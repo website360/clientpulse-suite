@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { normalizeTicketStatus } from '@/lib/tickets';
 
 export default function Tickets() {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
@@ -209,10 +210,13 @@ export default function Tickets() {
     try {
       console.debug('[Tickets] Status change:', { ticketId, incomingStatus: newStatus });
 
+      // Normalizar para garantir que sempre enviamos valores em inglês
+      const normalized = normalizeTicketStatus(newStatus);
+
       // Usar a função RPC do banco que normaliza e atualiza corretamente
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: ticketId,
-        p_new_status: newStatus
+        p_new_status: normalized
       });
 
       if (error) {

@@ -361,10 +361,13 @@ export default function TicketDetails() {
     try {
       console.debug('[TicketDetails] Status change:', { ticketId: id, incomingStatus: newStatus });
 
+      // Normalizar para garantir que sempre enviamos valores em inglês
+      const normalized = normalizeTicketStatus(newStatus);
+
       // Usar a função RPC do banco que normaliza e atualiza corretamente
       const { error } = await supabase.rpc('set_ticket_status', {
         p_ticket_id: id,
-        p_new_status: newStatus
+        p_new_status: normalized
       });
 
       if (error) {
