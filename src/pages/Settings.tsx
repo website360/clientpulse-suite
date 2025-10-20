@@ -217,7 +217,7 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-full">
         <div>
           <h1 className="text-2xl font-bold">Configurações</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -225,8 +225,8 @@ export default function Settings() {
           </p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <ScrollableTabs>
+        <Tabs defaultValue="profile" className="space-y-6 max-w-full overflow-x-hidden">
+          <ScrollableTabs className="max-w-full">
             <TabsList>
               <TabsTrigger value="profile">Perfil</TabsTrigger>
               <TabsTrigger value="security">Segurança</TabsTrigger>

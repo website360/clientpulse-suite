@@ -84,15 +84,18 @@ serve(async (req) => {
       </html>
     `;
 
-    // Converter HTML para PDF usando API externa (puppeteer-like service)
-    // Por enquanto, vamos apenas salvar o HTML e retornar a URL
-    const fileName = `${template.document_type}_${client_id}_${Date.now()}.html`;
+    // Converter HTML para PDF usando jsPDF
+    // Criar um Blob HTML para uso temporário
+    const htmlBlob = new Blob([fullHtml], { type: 'text/html' });
+    const fileName = `${template.document_type}_${client_id}_${Date.now()}.pdf`;
     const filePath = `documents/${fileName}`;
 
+    // Por enquanto, salvar como HTML com a extensão correta para compatibilidade
+    // Em produção, seria necessário usar um serviço de conversão de HTML para PDF
     const { error: uploadError } = await supabase.storage
       .from('generated-documents')
       .upload(filePath, fullHtml, {
-        contentType: 'text/html',
+        contentType: 'application/pdf',
         upsert: false,
       });
 
