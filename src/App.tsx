@@ -40,40 +40,45 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/cadastro-cliente" element={<ClientRegistration />} />
-            <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
-            <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
-          <Route path="/portal" element={<ClientDashboard />} />
-          <Route path="/portal/tickets" element={<ClientTickets />} />
-          <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
-          <Route path="/portal/contracts" element={<ClientContracts />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/clients/:id" element={<ClientDetail />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/tickets/:id" element={<TicketDetails />} />
-            <Route path="/domains" element={<Domains />} />
-            <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
-            <Route path="/financeiro/pagar" element={<AccountsPayable />} />
-            <Route path="/financeiro/receber" element={<AccountsReceivable />} />
-            <Route path="/contracts" element={<Contracts />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/manutencao" element={<Maintenance />} />
-            <Route path="/anotacoes" element={<Notes />} />
-            <Route path="/projetos" element={<Projects />} />
-            <Route path="/projetos/:id" element={<ProjectDetail />} />
-            {/* documentos route removed */}
-            <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
-            <Route path="/departments" element={<Navigate to="/settings" replace />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
+        <Routes>
+          {/* Rotas públicas - SEM AuthProvider */}
+          <Route path="/cadastro-cliente" element={<ClientRegistration />} />
+          <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
+          <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
+          
+          {/* Rotas protegidas - COM AuthProvider */}
+          <Route path="/*" element={
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/portal" element={<ClientDashboard />} />
+                <Route path="/portal/tickets" element={<ClientTickets />} />
+                <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
+                <Route path="/portal/contracts" element={<ClientContracts />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/clients/:id" element={<ClientDetail />} />
+                <Route path="/tickets" element={<Tickets />} />
+                <Route path="/tickets/:id" element={<TicketDetails />} />
+                <Route path="/domains" element={<Domains />} />
+                <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
+                <Route path="/financeiro/pagar" element={<AccountsPayable />} />
+                <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+                <Route path="/contracts" element={<Contracts />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/manutencao" element={<Maintenance />} />
+                <Route path="/anotacoes" element={<Notes />} />
+                <Route path="/projetos" element={<Projects />} />
+                <Route path="/projetos/:id" element={<ProjectDetail />} />
+                <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
+                <Route path="/departments" element={<Navigate to="/settings" replace />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
