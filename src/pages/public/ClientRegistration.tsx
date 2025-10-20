@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +10,6 @@ import { CheckCircle, Building2, User } from 'lucide-react';
 import { maskPhone, maskCpfCnpj, maskCEP, maskDate } from '@/lib/masks';
 
 export default function ClientRegistration() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -89,10 +87,6 @@ export default function ClientRegistration() {
         title: 'Cadastro realizado!',
         description: 'Seus dados foram enviados com sucesso. Em breve entraremos em contato.',
       });
-
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 3000);
     } catch (error: any) {
       console.error('Error registering client:', error);
       toast({
