@@ -30,6 +30,8 @@ import NotFound from "./pages/NotFound";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
 
+import ClientRegistration from "./pages/public/ClientRegistration";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,6 +43,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/cadastro-cliente" element={<ClientRegistration />} />
             <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
             <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
           <Route path="/portal" element={<ClientDashboard />} />

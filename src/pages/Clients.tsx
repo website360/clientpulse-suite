@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Download } from 'lucide-react';
+import { Plus, LayoutGrid, Table as TableIcon, Download, Link2 } from 'lucide-react';
 import { ClientTable } from '@/components/clients/ClientTable';
 import { ClientCards } from '@/components/clients/ClientCards';
 import { ClientFilters } from '@/components/clients/ClientFilters';
@@ -196,6 +196,15 @@ export default function Clients() {
     a.click();
   };
 
+  const handleCopyRegistrationLink = () => {
+    const link = `${window.location.origin}/cadastro-cliente`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: 'Link copiado!',
+      description: 'O link de cadastro foi copiado para a área de transferência.',
+    });
+  };
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -228,10 +237,21 @@ export default function Clients() {
               Gerencie seus clientes e informações de contato
             </p>
           </div>
-          <Button onClick={() => { setSelectedClient(null); setFormModalOpen(true); }} size="lg" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Cliente
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleCopyRegistrationLink} 
+              variant="outline"
+              size="lg" 
+              className="gap-2"
+            >
+              <Link2 className="h-4 w-4" />
+              Copiar Link de Cadastro
+            </Button>
+            <Button onClick={() => { setSelectedClient(null); setFormModalOpen(true); }} size="lg" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Cliente
+            </Button>
+          </div>
         </div>
 
         {/* Filters and Actions */}
