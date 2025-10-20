@@ -124,10 +124,17 @@ export default function ClientDetail() {
       const normalized = normalizeTicketStatus(newStatus);
       console.log('[ClientDetail] Changing status', { ticketId, incoming: newStatus, normalized });
 
-      const { error } = await supabase.rpc('set_ticket_status', {
-        p_ticket_id: ticketId,
-        p_new_status: normalized,
-      });
+      let error: any = null;
+      if (normalized === 'closed') {
+        const resp = await supabase.rpc('close_ticket', { p_ticket_id: ticketId });
+        error = resp.error;
+      } else {
+        const resp = await supabase.rpc('set_ticket_status', {
+          p_ticket_id: ticketId,
+          p_new_status: normalized,
+        });
+        error = resp.error;
+      }
 
       if (error) {
         console.error('[ClientDetail] Update error:', error);

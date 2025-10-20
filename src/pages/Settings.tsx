@@ -21,8 +21,7 @@ import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
-import { ClicksignSettingsTab } from '@/components/settings/ClicksignSettingsTab';
-import { DocumentTemplatesTab } from '@/components/settings/DocumentTemplatesTab';
+// Removed ClicksignSettingsTab and DocumentTemplatesTab
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, MessageSquare, Settings2, FolderKanban } from 'lucide-react';
 
@@ -250,8 +249,7 @@ export default function Settings() {
                     <FolderKanban className="h-4 w-4 mr-2" />
                     Projetos
                   </TabsTrigger>
-                  <TabsTrigger value="clicksign">Clicksign</TabsTrigger>
-                  <TabsTrigger value="document-templates">Templates Documentos</TabsTrigger>
+                  {/* Removed Clicksign and Document Templates tabs */}
                 </>
               )}
             </TabsList>
@@ -449,13 +447,7 @@ export default function Settings() {
                     <ProjectsSettingsTab />
                   </TabsContent>
 
-                  <TabsContent value="clicksign">
-                    <ClicksignSettingsTab />
-                  </TabsContent>
-
-                  <TabsContent value="document-templates">
-                    <DocumentTemplatesTab />
-                  </TabsContent>
+                  {/* Removed Clicksign and Document Templates content */}
                 </>
               )}
         </Tabs>
