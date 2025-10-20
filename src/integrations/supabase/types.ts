@@ -478,6 +478,7 @@ export type Database = {
           is_active: boolean | null
           nickname: string | null
           phone: string
+          responsible_cpf: string | null
           responsible_name: string | null
           updated_at: string
           user_id: string | null
@@ -503,6 +504,7 @@ export type Database = {
           is_active?: boolean | null
           nickname?: string | null
           phone: string
+          responsible_cpf?: string | null
           responsible_name?: string | null
           updated_at?: string
           user_id?: string | null
@@ -528,6 +530,7 @@ export type Database = {
           is_active?: boolean | null
           nickname?: string | null
           phone?: string
+          responsible_cpf?: string | null
           responsible_name?: string | null
           updated_at?: string
           user_id?: string | null
