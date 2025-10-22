@@ -12,6 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Edit, Trash2, Filter, Copy } from 'lucide-react';
@@ -58,6 +68,8 @@ export default function KnowledgeBase() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,14 +128,19 @@ export default function KnowledgeBase() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este post?')) return;
+  const openDeleteDialog = (id: string) => {
+    setPostToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!postToDelete) return;
 
     try {
       const { error } = await supabase
         .from('knowledge_base_posts')
         .delete()
-        .eq('id', id);
+        .eq('id', postToDelete);
 
       if (error) throw error;
       toast({ title: 'Post excluído com sucesso!' });
@@ -134,6 +151,9 @@ export default function KnowledgeBase() {
         title: 'Erro ao excluir post',
         variant: 'destructive',
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setPostToDelete(null);
     }
   };
 
@@ -302,7 +322,7 @@ export default function KnowledgeBase() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleDelete(post.id)}
+                              onClick={() => openDeleteDialog(post.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -324,6 +344,21 @@ export default function KnowledgeBase() {
         post={editingPost}
         onSuccess={fetchPosts}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O post será permanentemente excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
