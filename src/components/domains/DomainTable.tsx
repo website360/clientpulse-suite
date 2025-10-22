@@ -186,7 +186,7 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy")}
                     </span>
                     {isExpired(domain.expires_at) && (
                       <Badge variant="destructive">Vencido</Badge>
