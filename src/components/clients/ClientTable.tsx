@@ -129,7 +129,7 @@ export function ClientTable({
                     </div>
                     <div>
                       <p className="font-medium">
-                        {client.client_type === 'person' ? client.full_name : client.nickname}
+                        {client.client_type === 'person' ? client.full_name : client.responsible_name}
                       </p>
                       {client.client_type === 'company' && client.company_name && (
                         <p className="text-xs text-muted-foreground">
