@@ -77,7 +77,7 @@ export default function ClientDetail() {
       setSystemAccessEnabled(!!data.user_id);
       
       // Set breadcrumb label to nickname for company, full_name for person
-      const label = data.client_type === 'person' ? data.full_name : data.nickname;
+      const label = data.client_type === 'person' ? data.full_name : data.responsible_name;
       setBreadcrumbLabel(label || 'Cliente');
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -431,7 +431,7 @@ export default function ClientDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {client.client_type === 'person' ? client.full_name : client.nickname}
+                {client.client_type === 'person' ? client.full_name : client.responsible_name}
               </h1>
               <p className="text-muted-foreground mt-1">
                 {client.client_type === 'company' && client.company_name}
