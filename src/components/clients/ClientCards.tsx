@@ -54,19 +54,10 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
               {client.client_type === 'person' ? client.full_name : client.nickname}
             </h3>
             
-            {client.client_type === 'company' && (
-              <>
-                {client.company_name && (
-                  <p className="text-sm text-muted-foreground">
-                    {client.company_name}
-                  </p>
-                )}
-                {client.full_name && (
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Responsável: {client.full_name}
-                  </p>
-                )}
-              </>
+            {client.client_type === 'company' && client.company_name && (
+              <p className="text-sm text-muted-foreground mb-3">
+                {client.company_name}
+              </p>
             )}
 
             <div className="space-y-2">
