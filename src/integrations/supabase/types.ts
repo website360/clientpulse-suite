@@ -2419,18 +2419,9 @@ export type Database = {
         Args: { stage_id_param: string }
         Returns: number
       }
-      check_expiring_contracts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      check_expiring_domains: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      close_ticket: {
-        Args: { p_ticket_id: string }
-        Returns: undefined
-      }
+      check_expiring_contracts: { Args: never; Returns: undefined }
+      check_expiring_domains: { Args: never; Returns: undefined }
+      close_ticket: { Args: { p_ticket_id: string }; Returns: undefined }
       get_receivable_parent_id: {
         Args: { receivable_id: string }
         Returns: string
@@ -2459,6 +2450,12 @@ export type Database = {
           subject: string
           ticket_number: number
           updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tickets"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
     }

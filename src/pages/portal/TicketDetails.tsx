@@ -416,24 +416,8 @@ export default function ClientTicketDetails() {
 
   const handleReviewSubmit = async (rating: number, feedback: string) => {
     try {
-      const mapped = 'closed';
-      const normalized = normalizeTicketStatus(mapped);
-      const updateData = getStatusUpdateData(normalized);
-      let { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) {
-        console.warn('[Portal/TicketDetails] Direct close failed, trying RPC fallback:', error);
-        const resp = await supabase.rpc('set_ticket_status', {
-          p_ticket_id: id as string,
-          p_new_status: normalized,
-        });
-        error = resp.error;
-      }
-
-      if (error) throw error;
+      const { updateTicketStatus } = await import('@/lib/updateTicketStatus');
+      await updateTicketStatus(id as string, 'closed');
 
       // Atualização otimista do estado local para UI imediata
       setTicket(prev => prev ? {
