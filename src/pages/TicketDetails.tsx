@@ -691,14 +691,16 @@ export default function TicketDetails() {
                   <p className="text-sm text-muted-foreground mb-2">Status</p>
                   <Select value={ticket.status} onValueChange={handleStatusChange}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue>
+                        {getStatusLabel(ticket.status)}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="open">{getStatusLabel('open')}</SelectItem>
-                      <SelectItem value="in_progress">{getStatusLabel('in_progress')}</SelectItem>
-                      <SelectItem value="waiting">{getStatusLabel('waiting')}</SelectItem>
-                      <SelectItem value="resolved">{getStatusLabel('resolved')}</SelectItem>
-                      <SelectItem value="closed">{getStatusLabel('closed')}</SelectItem>
+                      <SelectItem value="open">Aberto</SelectItem>
+                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="waiting">Aguardando</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -706,13 +708,15 @@ export default function TicketDetails() {
                   <p className="text-sm text-muted-foreground mb-2">Prioridade</p>
                   <Select value={ticket.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue>
+                        {getPriorityLabel(ticket.priority)}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">{getPriorityLabel('low')}</SelectItem>
-                      <SelectItem value="medium">{getPriorityLabel('medium')}</SelectItem>
-                      <SelectItem value="high">{getPriorityLabel('high')}</SelectItem>
-                      <SelectItem value="urgent">{getPriorityLabel('urgent')}</SelectItem>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
