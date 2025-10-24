@@ -28,6 +28,7 @@ import { TicketReviewModal } from '@/components/tickets/TicketReviewModal';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
+import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 
 export default function ClientTicketDetails() {
   const { id } = useParams();
@@ -415,9 +416,22 @@ export default function ClientTicketDetails() {
 
   const handleReviewSubmit = async (rating: number, feedback: string) => {
     try {
-      const { error } = await supabase.rpc('close_ticket', {
-        p_ticket_id: id
-      });
+      const mapped = 'closed';
+      const normalized = normalizeTicketStatus(mapped);
+      const updateData = getStatusUpdateData(normalized);
+      let { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) {
+        console.warn('[Portal/TicketDetails] Direct close failed, trying RPC fallback:', error);
+        const resp = await supabase.rpc('set_ticket_status', {
+          p_ticket_id: id as string,
+          p_new_status: normalized,
+        });
+        error = resp.error;
+      }
 
       if (error) throw error;
 

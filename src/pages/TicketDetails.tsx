@@ -360,14 +360,33 @@ export default function TicketDetails() {
 
   const handleStatusChange = async (newStatus: string) => {
     try {
-      const normalized = normalizeTicketStatus(newStatus);
-      console.log('[TicketDetails] Changing status', { ticketId: id, incoming: newStatus, normalized });
+      const STATUS_VALUE_MAP: Record<string, string> = {
+        'Aberto': 'open',
+        'Em Andamento': 'in_progress',
+        'Aguardando': 'waiting',
+        'Resolvido': 'resolved',
+        'Fechado': 'closed',
+      };
+      const mapped = STATUS_VALUE_MAP[newStatus] ?? newStatus;
+      const normalized = normalizeTicketStatus(mapped);
+      console.log('[TicketDetails] Changing status', { ticketId: id, incoming: newStatus, afterMap: mapped, normalized });
 
       const updateData = getStatusUpdateData(normalized);
-      const { error } = await supabase
+      let { error } = await supabase
         .from('tickets')
         .update(updateData)
         .eq('id', id);
+
+      if (error) {
+        console.warn('[TicketDetails] Direct update failed, trying RPC fallback:', error);
+        if (normalized === 'closed') {
+          const resp = await supabase.rpc('set_ticket_status', { p_ticket_id: id as string, p_new_status: 'closed' });
+          error = resp.error;
+        } else {
+          const resp = await supabase.rpc('set_ticket_status', { p_ticket_id: id as string, p_new_status: normalized });
+          error = resp.error;
+        }
+      }
 
       if (error) {
         console.error('[TicketDetails] Update error:', error);
