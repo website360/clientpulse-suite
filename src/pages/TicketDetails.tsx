@@ -678,9 +678,7 @@ export default function TicketDetails() {
                   <p className="text-sm text-muted-foreground mb-2">Status</p>
                   <Select value={ticket.status} onValueChange={handleStatusChange}>
                     <SelectTrigger>
-                      <SelectValue>
-                        {getStatusLabel(ticket.status)}
-                      </SelectValue>
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="open">{getStatusLabel('open')}</SelectItem>
@@ -695,9 +693,7 @@ export default function TicketDetails() {
                   <p className="text-sm text-muted-foreground mb-2">Prioridade</p>
                   <Select value={ticket.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger>
-                      <SelectValue>
-                        {getPriorityLabel(ticket.priority)}
-                      </SelectValue>
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">{getPriorityLabel('low')}</SelectItem>
