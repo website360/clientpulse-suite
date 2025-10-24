@@ -211,17 +211,11 @@ export default function Tickets() {
       const normalized = normalizeTicketStatus(newStatus);
       console.log('[Tickets] Changing status', { ticketId, incoming: newStatus, normalized });
 
-      let error: any = null;
-      if (normalized === 'closed') {
-        const resp = await supabase.rpc('close_ticket', { p_ticket_id: ticketId });
-        error = resp.error;
-      } else {
-        const resp = await supabase.rpc('set_ticket_status', {
-          p_ticket_id: ticketId,
-          p_new_status: normalized,
-        });
-        error = resp.error;
-      }
+      const updateData = getStatusUpdateData(normalized);
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', ticketId);
 
       if (error) {
         console.error('[Tickets] Update error:', error);
