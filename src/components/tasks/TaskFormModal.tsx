@@ -94,10 +94,9 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
       const { data, error } = await supabase
         .from("tickets")
         .select("id, ticket_number, subject")
-        .neq("status", "closed")
         .order("ticket_number", { ascending: false });
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 

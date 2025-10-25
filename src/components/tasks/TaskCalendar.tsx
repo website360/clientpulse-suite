@@ -26,10 +26,9 @@ const TaskCalendar = ({ tasks, onEditTask, onRefetch, onDateChange }: TaskCalend
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select("*, client:clients(id, full_name, nickname, company_name)")
-        .neq("status", "closed");
+        .select("*, client:clients(id, full_name, nickname, company_name)");
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 

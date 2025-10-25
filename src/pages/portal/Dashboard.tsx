@@ -50,7 +50,7 @@ export default function ClientDashboard() {
 
       // Build queries based on user type
       let ticketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId);
-      let openTicketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId).neq('status', 'closed');
+      let openTicketsQuery = supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('client_id', clientId);
       
       // If user is a contact, filter by their created tickets only
       if (userIsContact) {
