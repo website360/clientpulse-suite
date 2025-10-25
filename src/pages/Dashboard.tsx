@@ -235,15 +235,13 @@ export default function Dashboard() {
           .order('created_at', { ascending: false })
           .limit(5);
 
-        // Buscar tarefas urgentes em atraso
-        const now = new Date().toISOString();
+        // Buscar tarefas urgentes (prioridade alta)
         const { data: overdueData } = await supabase
           .from('tasks')
           .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
           .eq('priority', 'high')
-          .lt('due_date', now)
           .neq('status', 'done')
-          .order('due_date', { ascending: true });
+          .order('created_at', { ascending: false });
 
         setRecentTasks(tasksData || []);
         setOverdueTasks(overdueData || []);
@@ -487,12 +485,12 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
-                  Tarefas Urgentes em Atraso
+                  Tarefas Urgentes
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {overdueTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma tarefa urgente em atraso</p>
+                  <p className="text-sm text-muted-foreground">Nenhuma tarefa urgente</p>
                 ) : (
                   <div className="space-y-3">
                     {overdueTasks.map((task) => (
@@ -502,13 +500,8 @@ export default function Dashboard() {
                           <p className="text-xs text-muted-foreground">
                             {task.assigned_to_profile?.full_name || "Não atribuído"}
                           </p>
-                          {task.due_date && (
-                            <p className="text-xs text-destructive">
-                              Venceu em: {format(new Date(task.due_date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                            </p>
-                          )}
                         </div>
-                        <Badge variant="destructive">Atrasada</Badge>
+                        <Badge variant="destructive">Alta Prioridade</Badge>
                       </div>
                     ))}
                   </div>
