@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, User, Plus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { ContactFormModal } from '@/components/clients/ContactFormModal';
@@ -120,8 +119,38 @@ export default function ClientDetail() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      const { updateTicketStatus } = await import('@/lib/updateTicketStatus');
-      await updateTicketStatus(ticketId, newStatus);
+      // Verificar se é admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (roleData?.role !== 'admin') {
+        throw new Error('Apenas administradores podem alterar o status');
+      }
+
+      // Update direto com timestamps apropriados
+      const updateData: any = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+
+      if (newStatus === 'resolved') {
+        updateData.resolved_at = new Date().toISOString();
+      } else if (newStatus === 'closed') {
+        updateData.closed_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', ticketId);
+
+      if (error) throw error;
 
       toast({
         title: 'Status atualizado',

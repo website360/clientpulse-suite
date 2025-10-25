@@ -28,7 +28,6 @@ import { TicketReviewModal } from '@/components/tickets/TicketReviewModal';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
-import { normalizeTicketStatus, getStatusUpdateData } from '@/lib/tickets';
 
 export default function ClientTicketDetails() {
   const { id } = useParams();
@@ -416,26 +415,30 @@ export default function ClientTicketDetails() {
 
   const handleReviewSubmit = async (rating: number, feedback: string) => {
     try {
-      const { updateTicketStatus } = await import('@/lib/updateTicketStatus');
-      await updateTicketStatus(id as string, 'closed');
+      // Usar RPC para marcar como resolvido
+      const { error } = await supabase.rpc('mark_ticket_as_resolved', {
+        p_ticket_id: id
+      });
+
+      if (error) throw error;
 
       // Atualização otimista do estado local para UI imediata
       setTicket(prev => prev ? {
         ...prev,
-        status: 'closed',
-        closed_at: new Date().toISOString()
+        status: 'resolved',
+        resolved_at: new Date().toISOString()
       } : prev);
 
       // Sincronizar com o backend
       fetchTicketDetails();
       
       toast({
-        title: 'Ticket fechado',
+        title: 'Ticket marcado como resolvido',
         description: 'Obrigado pela sua avaliação!',
       });
     } catch (error: any) {
       toast({
-        title: 'Erro ao fechar ticket',
+        title: 'Erro ao marcar ticket como resolvido',
         description: error.message,
         variant: 'destructive',
       });
@@ -563,7 +566,7 @@ export default function ClientTicketDetails() {
               </Card>
             )}
 
-            {/* Alerta de ticket fechado */}
+            {/* Alerta de ticket fechado ou resolvido */}
             {ticket.status === 'closed' && (
               <div className="bg-muted border border-border rounded-lg p-4 flex items-center gap-3">
                 <AlertCircle className="h-5 w-5 text-muted-foreground" />
@@ -571,6 +574,18 @@ export default function ClientTicketDetails() {
                   <p className="font-semibold text-sm">Ticket Fechado</p>
                   <p className="text-sm text-muted-foreground">
                     Este ticket foi fechado e não permite mais o envio de mensagens.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {ticket.status === 'resolved' && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-semibold text-sm">Ticket Resolvido</p>
+                  <p className="text-sm text-muted-foreground">
+                    Este ticket foi marcado como resolvido. Aguardando o administrador fechá-lo definitivamente.
                   </p>
                 </div>
               </div>

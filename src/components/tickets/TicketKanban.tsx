@@ -1,11 +1,13 @@
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface TicketKanbanProps {
   tickets: any[];
@@ -14,7 +16,9 @@ interface TicketKanbanProps {
 
 export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -23,6 +27,27 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
       },
     })
   );
+
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      setIsAdmin(roleData?.role === 'admin');
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+    }
+  };
 
   const columns = [
     { id: 'open', label: 'Aberto', icon: AlertCircle, color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
@@ -63,10 +88,20 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
   };
 
   const handleDragStart = (event: any) => {
+    if (!isAdmin) {
+      toast({
+        title: 'Acesso negado',
+        description: 'Apenas administradores podem alterar status via drag-and-drop',
+        variant: 'destructive',
+      });
+      return;
+    }
     setActiveId(event.active.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (!isAdmin) return;
+    
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
@@ -128,14 +163,18 @@ export function TicketKanban({ tickets, onStatusChange }: TicketKanbanProps) {
                   <Card
                     key={ticket.id}
                     id={ticket.id}
-                    draggable
+                    draggable={isAdmin}
                     onDragStart={(e) => {
+                      if (!isAdmin) {
+                        e.preventDefault();
+                        return;
+                      }
                       e.dataTransfer.setData('text/plain', ticket.id);
                       setActiveId(ticket.id);
                     }}
                     onDragEnd={() => setActiveId(null)}
                     onClick={() => navigate(`/tickets/${ticket.id}`)}
-                    className={`cursor-move hover:shadow-md transition-all ${
+                    className={`${isAdmin ? 'cursor-move' : 'cursor-pointer'} hover:shadow-md transition-all ${
                       activeId === ticket.id ? 'opacity-50' : ''
                     }`}
                   >
