@@ -14,7 +14,6 @@ import { AppearanceTab } from '@/components/settings/AppearanceTab';
 import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab';
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
-import EmailSettingsTab from '@/components/settings/EmailSettingsTab';
 import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
@@ -237,7 +236,6 @@ export default function Settings() {
                   <TabsTrigger value="financial">Financeiro</TabsTrigger>
                   <TabsTrigger value="services">Serviços</TabsTrigger>
                   <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
-                  <TabsTrigger value="emails">Emails</TabsTrigger>
                   <TabsTrigger value="asaas">Asaas</TabsTrigger>
                   <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                   <TabsTrigger value="ticket-whatsapp">
@@ -421,10 +419,6 @@ export default function Settings() {
 
                   <TabsContent value="knowledge-base">
                     <KnowledgeBaseTab />
-                  </TabsContent>
-
-                  <TabsContent value="emails">
-                    <EmailSettingsTab />
                   </TabsContent>
 
                   <TabsContent value="asaas">
