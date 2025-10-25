@@ -98,7 +98,7 @@ export function MaintenanceHistory() {
                     </div>
                     <div>
                       <p className="font-medium">
-                        {client?.nickname || client?.company_name || client?.full_name}
+                        {client?.nickname || (client?.client_type === 'company' ? client?.company_name : client?.full_name) || '-'}
                       </p>
                       {client?.nickname && (
                         <p className="text-xs text-muted-foreground">

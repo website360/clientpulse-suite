@@ -110,7 +110,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       [filters.reportType === 'payable' ? 'Fornecedor' : 'Cliente']:
         filters.reportType === 'payable'
           ? record.supplier?.name
-          : record.client?.nickname || record.client?.company_name || record.client?.full_name,
+          : record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
       Valor: `R$ ${Number(record.amount).toFixed(2).replace('.', ',')}`,
       'Data de Vencimento': format(new Date(record.due_date), 'dd/MM/yyyy', { locale: ptBR }),
       Status: getStatusLabel(record.status),
@@ -147,7 +147,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       record.category,
       filters.reportType === 'payable'
         ? record.supplier?.name
-        : record.client?.nickname || record.client?.company_name || record.client?.full_name,
+        : record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
       `R$ ${Number(record.amount).toFixed(2).replace('.', ',')}`,
       format(new Date(record.due_date), 'dd/MM/yyyy', { locale: ptBR }),
       getStatusLabel(record.status),
@@ -250,7 +250,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
                         </div>
                         <div>
                           <p className="font-medium">
-                            {record.client?.nickname || record.client?.company_name || record.client?.full_name}
+                            {record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name) || '-'}
                           </p>
                           {record.client?.nickname && (
                             <p className="text-xs text-muted-foreground">

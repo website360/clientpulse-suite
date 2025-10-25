@@ -133,11 +133,11 @@ export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
                     </div>
                     <div>
                       <p className="font-medium">
-                        {plan.clients?.nickname || plan.clients?.company_name || plan.clients?.full_name}
+                        {plan.clients?.nickname || (plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name) || '-'}
                       </p>
                       {plan.clients?.nickname && (
                         <p className="text-xs text-muted-foreground">
-                          {plan.clients?.company_name || plan.clients?.full_name}
+                          {plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name}
                         </p>
                       )}
                     </div>

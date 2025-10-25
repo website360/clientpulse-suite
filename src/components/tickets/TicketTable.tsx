@@ -147,11 +147,11 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
                   </div>
                   <div>
                     <p className="font-medium text-sm">
-                      {ticket.clients?.nickname || ticket.clients?.company_name || ticket.clients?.full_name || '-'}
+                      {ticket.clients?.nickname || (ticket.clients?.client_type === 'company' ? ticket.clients?.company_name : ticket.clients?.full_name) || '-'}
                     </p>
                     {ticket.clients?.nickname && (
                       <p className="text-xs text-muted-foreground">
-                        {ticket.clients?.company_name || ticket.clients?.full_name}
+                        {ticket.clients?.client_type === 'company' ? ticket.clients?.company_name : ticket.clients?.full_name}
                       </p>
                     )}
                   </div>

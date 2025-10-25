@@ -189,11 +189,11 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                       </div>
                       <div>
                         <p className="font-medium">
-                          {contract.clients.nickname || contract.clients.company_name || contract.clients.full_name}
+                          {contract.clients.nickname || (contract.clients.client_type === 'company' ? contract.clients.company_name : contract.clients.full_name) || '-'}
                         </p>
                         {contract.clients.nickname && (
                           <p className="text-xs text-muted-foreground">
-                            {contract.clients.company_name || contract.clients.full_name}
+                            {contract.clients.client_type === 'company' ? contract.clients.company_name : contract.clients.full_name}
                           </p>
                         )}
                       </div>

@@ -88,8 +88,8 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
       let sortedData = (data as any) || [];
       if (!sortColumn) {
         sortedData = sortedData.sort((a: Domain, b: Domain) => {
-          const nameA = a.clients.nickname || a.clients.company_name || a.clients.full_name || '';
-          const nameB = b.clients.nickname || b.clients.company_name || b.clients.full_name || '';
+          const nameA = a.clients.nickname || (a.clients.client_type === 'company' ? a.clients.company_name : a.clients.full_name) || '';
+          const nameB = b.clients.nickname || (b.clients.client_type === 'company' ? b.clients.company_name : b.clients.full_name) || '';
           return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
         });
       }
@@ -191,7 +191,7 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
                     </div>
                     <div>
                       <p className="font-medium">
-                        {domain.clients.nickname || domain.clients.company_name || domain.clients.full_name}
+                        {domain.clients.nickname || (domain.clients.client_type === 'company' ? domain.clients.company_name : domain.clients.full_name) || '-'}
                       </p>
                       {domain.clients.nickname && (
                         <p className="text-xs text-muted-foreground">

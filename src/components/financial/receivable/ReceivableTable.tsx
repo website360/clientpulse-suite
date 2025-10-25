@@ -509,11 +509,11 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                       </div>
                       <div>
                         <p className="font-medium">
-                          {account.client?.nickname || account.client?.company_name || account.client?.full_name}
+                          {account.client?.nickname || (account.client?.client_type === 'company' ? account.client?.company_name : account.client?.full_name) || '-'}
                         </p>
                         {account.client?.nickname && (
                           <p className="text-xs text-muted-foreground">
-                            {account.client?.company_name || account.client?.full_name}
+                            {account.client?.client_type === 'company' ? account.client?.company_name : account.client?.full_name}
                           </p>
                         )}
                       </div>

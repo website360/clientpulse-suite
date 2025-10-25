@@ -163,11 +163,11 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
                     </div>
                     <div>
                       <p className="font-medium">
-                        {project.clients?.nickname || project.clients?.company_name || project.clients?.full_name || '-'}
+                        {project.clients?.nickname || (project.clients?.client_type === 'company' ? project.clients?.company_name : project.clients?.full_name) || '-'}
                       </p>
                       {project.clients?.nickname && (
                         <p className="text-xs text-muted-foreground">
-                          {project.clients?.company_name || project.clients?.full_name}
+                          {project.clients?.client_type === 'company' ? project.clients?.company_name : project.clients?.full_name}
                         </p>
                       )}
                     </div>
