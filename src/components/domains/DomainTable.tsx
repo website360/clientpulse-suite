@@ -70,10 +70,8 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
       // Apply sorting
       if (sortColumn) {
         query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
-      } else {
-        // Default: order by domain name alphabetically
-        query = query.order('domain', { ascending: true });
       }
+      // When no sort column is selected, we'll sort client-side by client nickname
 
       // Apply pagination
       const from = (currentPage - 1) * pageSize;
@@ -83,7 +81,18 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
       const { data, error } = await query;
 
       if (error) throw error;
-      setDomains((data as any) || []);
+      
+      // Sort by client nickname when no specific column is selected
+      let sortedData = (data as any) || [];
+      if (!sortColumn) {
+        sortedData = sortedData.sort((a: Domain, b: Domain) => {
+          const nameA = a.clients.nickname || a.clients.company_name || a.clients.full_name || '';
+          const nameB = b.clients.nickname || b.clients.company_name || b.clients.full_name || '';
+          return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
+        });
+      }
+      
+      setDomains(sortedData);
     } catch (error) {
       console.error('Error fetching domains:', error);
       toast.error('Erro ao carregar domínios');
