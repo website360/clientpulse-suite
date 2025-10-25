@@ -206,19 +206,24 @@ export default function KnowledgeBasePublic() {
         {/* Header */}
         <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
           <div className="container py-4">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={handleBackToList} size="lg">
+            <div className="flex items-center justify-between gap-4">
+              <Button variant="ghost" onClick={handleBackToList} size="lg" className="flex-shrink-0">
                 <ArrowLeft className="mr-2 h-5 w-5" />
                 Voltar para artigos
               </Button>
-              {articleLogo && (
-                <img 
-                  src={articleLogo} 
-                  alt="Logo" 
-                  className="h-8 w-auto object-contain"
-                />
-              )}
-              <Button variant="outline" size="lg" onClick={handleCopyPostLink}>
+              
+              {/* Logo centralizado */}
+              <div className="flex-1 flex justify-center">
+                {articleLogo && (
+                  <img 
+                    src={articleLogo} 
+                    alt="Logo" 
+                    className="h-10 w-auto object-contain"
+                  />
+                )}
+              </div>
+              
+              <Button variant="outline" size="lg" onClick={handleCopyPostLink} className="flex-shrink-0">
                 <Copy className="mr-2 h-4 w-4" />
                 Compartilhar
               </Button>
