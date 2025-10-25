@@ -3,7 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Edit, Trash2, Eye, Building2, User } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -153,25 +154,7 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
               <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.name}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {project.clients?.client_type === 'company' ? (
-                        <Building2 className="h-5 w-5 text-primary" />
-                      ) : (
-                        <User className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {project.clients?.nickname || (project.clients?.client_type === 'company' ? project.clients?.company_name : project.clients?.full_name) || '-'}
-                      </p>
-                      {project.clients?.nickname && (
-                        <p className="text-xs text-muted-foreground">
-                          {project.clients?.client_type === 'company' ? project.clients?.company_name : project.clients?.full_name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <ClientNameCell client={project.clients || {}} />
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>

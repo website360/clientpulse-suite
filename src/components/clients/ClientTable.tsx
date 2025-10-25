@@ -1,4 +1,5 @@
-import { Eye, Pencil, Trash2, Building2, User } from 'lucide-react';
+import { Eye, Pencil, Trash2, User } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -119,25 +120,7 @@ export function ClientTable({
             {clients.map((client) => (
               <TableRow key={client.id} className="hover:bg-accent/50">
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {client.client_type === 'company' ? (
-                        <Building2 className="h-5 w-5 text-primary" />
-                      ) : (
-                        <User className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {client.nickname || (client.client_type === 'company' ? client.company_name : client.full_name) || '-'}
-                      </p>
-                      {client.nickname && (
-                        <p className="text-xs text-muted-foreground">
-                          {client.client_type === 'company' ? client.company_name : client.full_name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <ClientNameCell client={client} />
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">

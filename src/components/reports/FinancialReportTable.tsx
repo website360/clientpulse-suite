@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { FinancialReportFilters } from '@/pages/Reports';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, FileText, Loader2, Building2, User } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       // Build query dynamically
       let query: any = supabase.from(table).select(`
         *,
-        ${filters.reportType === 'payable' ? 'supplier:suppliers(name)' : 'client:clients(full_name, nickname, company_name, client_type)'}
+        ${filters.reportType === 'payable' ? 'supplier:suppliers(name)' : 'client:clients(full_name, responsible_name, company_name, client_type)'}
       `);
 
       // Aplicar filtros de status
@@ -110,7 +111,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       [filters.reportType === 'payable' ? 'Fornecedor' : 'Cliente']:
         filters.reportType === 'payable'
           ? record.supplier?.name
-          : record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
+          : record.client?.responsible_name || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
       Valor: `R$ ${Number(record.amount).toFixed(2).replace('.', ',')}`,
       'Data de Vencimento': format(new Date(record.due_date), 'dd/MM/yyyy', { locale: ptBR }),
       Status: getStatusLabel(record.status),
@@ -147,7 +148,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
       record.category,
       filters.reportType === 'payable'
         ? record.supplier?.name
-        : record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
+        : record.client?.responsible_name || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name),
       `R$ ${Number(record.amount).toFixed(2).replace('.', ',')}`,
       format(new Date(record.due_date), 'dd/MM/yyyy', { locale: ptBR }),
       getStatusLabel(record.status),
@@ -240,27 +241,7 @@ export default function FinancialReportTable({ filters }: FinancialReportTablePr
                     {filters.reportType === 'payable' ? (
                       record.supplier?.name
                     ) : (
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          {record.client?.client_type === 'company' ? (
-                            <Building2 className="h-5 w-5 text-primary" />
-                          ) : (
-                            <User className="h-5 w-5 text-primary" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {record.client?.nickname || (record.client?.client_type === 'company' ? record.client?.company_name : record.client?.full_name) || '-'}
-                          </p>
-                          {record.client?.nickname && (
-                            <p className="text-xs text-muted-foreground">
-                              {record.client?.client_type === 'company' 
-                                ? record.client?.company_name 
-                                : record.client?.full_name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                      <ClientNameCell client={record.client || {}} />
                     )}
                   </TableCell>
                   <TableCell className="text-right font-semibold">

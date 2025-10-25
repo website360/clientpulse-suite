@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download, Calendar, Building2, User } from 'lucide-react';
+import { Pencil, Trash2, Download, Calendar } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ interface Contract {
   clients: {
     full_name: string | null;
     company_name: string | null;
-    nickname: string | null;
+    responsible_name: string | null;
     client_type: 'person' | 'company';
   };
   services: {
@@ -179,25 +180,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
               contracts.map((contract) => (
                 <TableRow key={contract.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        {contract.clients.client_type === 'company' ? (
-                          <Building2 className="h-5 w-5 text-primary" />
-                        ) : (
-                          <User className="h-5 w-5 text-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {contract.clients.nickname || (contract.clients.client_type === 'company' ? contract.clients.company_name : contract.clients.full_name) || '-'}
-                        </p>
-                        {contract.clients.nickname && (
-                          <p className="text-xs text-muted-foreground">
-                            {contract.clients.client_type === 'company' ? contract.clients.company_name : contract.clients.full_name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <ClientNameCell client={contract.clients} />
                   </TableCell>
                   <TableCell>{contract.services.name}</TableCell>
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>

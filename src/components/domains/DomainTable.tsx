@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Globe, Calendar, User, Building2 } from 'lucide-react';
+import { Pencil, Trash2, Globe, Calendar } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { toast } from 'sonner';
 import { format, parse } from 'date-fns';
@@ -30,7 +31,6 @@ interface Domain {
     full_name: string | null;
     company_name: string | null;
     responsible_name: string | null;
-    nickname: string | null;
     client_type: 'person' | 'company';
   };
 }
@@ -64,7 +64,6 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             full_name,
             company_name,
             responsible_name,
-            nickname,
             client_type
           )
         `);
@@ -88,8 +87,8 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
       let sortedData = (data as any) || [];
       if (!sortColumn) {
         sortedData = sortedData.sort((a: Domain, b: Domain) => {
-          const nameA = a.clients.nickname || (a.clients.client_type === 'company' ? a.clients.company_name : a.clients.full_name) || '';
-          const nameB = b.clients.nickname || (b.clients.client_type === 'company' ? b.clients.company_name : b.clients.full_name) || '';
+          const nameA = a.clients.responsible_name || (a.clients.client_type === 'company' ? a.clients.company_name : a.clients.full_name) || '';
+          const nameB = b.clients.responsible_name || (b.clients.client_type === 'company' ? b.clients.company_name : b.clients.full_name) || '';
           return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
         });
       }
@@ -181,27 +180,7 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             {domains.map((domain) => (
               <TableRow key={domain.id}>
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {domain.clients.client_type === 'company' ? (
-                        <Building2 className="h-5 w-5 text-primary" />
-                      ) : (
-                        <User className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {domain.clients.nickname || (domain.clients.client_type === 'company' ? domain.clients.company_name : domain.clients.full_name) || '-'}
-                      </p>
-                      {domain.clients.nickname && (
-                        <p className="text-xs text-muted-foreground">
-                          {domain.clients.client_type === 'company' 
-                            ? domain.clients.company_name 
-                            : domain.clients.full_name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <ClientNameCell client={domain.clients} />
                 </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">

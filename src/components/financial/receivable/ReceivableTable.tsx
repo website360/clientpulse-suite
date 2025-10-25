@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, Building2, User } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus } from 'lucide-react';
+import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { ReceivableFormModal } from './ReceivableFormModal';
@@ -85,7 +86,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         .from('accounts_receivable')
         .select(`
           *,
-          client:clients(full_name, company_name, nickname, client_type)
+          client:clients(full_name, company_name, responsible_name, client_type)
         `);
 
       if (filters.status !== 'all') {
@@ -499,25 +500,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
               accounts.map((account) => (
                 <TableRow key={account.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        {account.client?.client_type === 'company' ? (
-                          <Building2 className="h-5 w-5 text-primary" />
-                        ) : (
-                          <User className="h-5 w-5 text-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {account.client?.nickname || (account.client?.client_type === 'company' ? account.client?.company_name : account.client?.full_name) || '-'}
-                        </p>
-                        {account.client?.nickname && (
-                          <p className="text-xs text-muted-foreground">
-                            {account.client?.client_type === 'company' ? account.client?.company_name : account.client?.full_name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <ClientNameCell client={account.client || {}} />
                   </TableCell>
                   <TableCell>{account.category}</TableCell>
                   <TableCell className="capitalize">
