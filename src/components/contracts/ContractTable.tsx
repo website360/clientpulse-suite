@@ -52,10 +52,11 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     isOpen: false,
     contract: null,
   });
-  const [pdfViewModal, setPdfViewModal] = useState<{ isOpen: boolean; url: string | null; filename: string | null }>({
+  const [pdfViewModal, setPdfViewModal] = useState<{ isOpen: boolean; url: string | null; filename: string | null; storagePath: string | null }>({
     isOpen: false,
     url: null,
     filename: null,
+    storagePath: null,
   });
 
   const handleDelete = (contract: Contract) => {
@@ -98,26 +99,26 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
   };
 
   const viewPdf = async (url: string) => {
-    const { data } = supabase.storage
+    const { data, error } = await supabase.storage
       .from('contract-attachments')
-      .getPublicUrl(url);
+      .createSignedUrl(url, 3600); // URL válida por 1 hora
+    
+    if (error) {
+      toast.error('Erro ao gerar link do PDF');
+      return;
+    }
     
     setPdfViewModal({
       isOpen: true,
-      url: data.publicUrl,
+      url: data.signedUrl,
       filename: url.split('/').pop() || 'contrato',
+      storagePath: url,
     });
   };
 
   const downloadFromModal = async () => {
-    if (!pdfViewModal.url) return;
-    
-    // Extrair o path do storage da URL pública
-    const urlParts = pdfViewModal.url.split('/contract-attachments/');
-    if (urlParts.length < 2) return;
-    
-    const storagePath = urlParts[1].split('?')[0];
-    await downloadAttachment(storagePath);
+    if (!pdfViewModal.storagePath) return;
+    await downloadAttachment(pdfViewModal.storagePath);
   };
 
   const getStatusBadge = (contract: Contract) => {
@@ -277,7 +278,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
         </Table>
       </div>
 
-      <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null })}>
+      <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null, storagePath: null })}>
         <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center justify-between">
@@ -294,7 +295,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setPdfViewModal({ isOpen: false, url: null, filename: null })}
+                  onClick={() => setPdfViewModal({ isOpen: false, url: null, filename: null, storagePath: null })}
                 >
                   <X className="h-4 w-4" />
                 </Button>
