@@ -134,7 +134,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         subject: data.subject,
         description: data.description,
         created_by: user?.id,
-        status: 'open',
+        status: 'waiting',
       };
 
       const { data: ticketData, error } = await supabase

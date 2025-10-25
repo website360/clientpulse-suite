@@ -15,6 +15,7 @@ interface TicketFiltersProps {
     search: string;
     priority: string;
     department: string;
+    status: string;
   };
   onFiltersChange: (filters: any) => void;
 }
@@ -63,6 +64,23 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
               {dept.name}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.status}
+        onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
+      >
+        <SelectTrigger className="w-[180px] shrink-0">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos Status</SelectItem>
+          <SelectItem value="suggestion">Sugestão</SelectItem>
+          <SelectItem value="waiting">Aguardando</SelectItem>
+          <SelectItem value="in_progress">Em Atendimento</SelectItem>
+          <SelectItem value="resolved">Resolvido</SelectItem>
+          <SelectItem value="closed">Concluído</SelectItem>
         </SelectContent>
       </Select>
 

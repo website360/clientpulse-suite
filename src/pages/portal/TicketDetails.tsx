@@ -383,6 +383,37 @@ export default function ClientTicketDetails() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'suggestion':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'waiting':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'in_progress':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+      case 'resolved':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'closed':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case 'open':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      suggestion: 'Sugestão',
+      waiting: 'Aguardando',
+      in_progress: 'Em Atendimento',
+      resolved: 'Resolvido',
+      closed: 'Concluído',
+      open: 'Aberto',
+    };
+    return labels[status] || status;
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -628,12 +659,21 @@ export default function ClientTicketDetails() {
             {/* Priority */}
             <Card className="card-elevated">
               <CardHeader>
-                <CardTitle>Prioridade</CardTitle>
+                <CardTitle>Status e Prioridade</CardTitle>
               </CardHeader>
-              <CardContent>
-                <Badge className={getPriorityColor(ticket.priority)}>
-                  {getPriorityLabel(ticket.priority)}
-                </Badge>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Status</p>
+                  <Badge className={getStatusColor(ticket.status)}>
+                    {getStatusLabel(ticket.status)}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Prioridade</p>
+                  <Badge className={getPriorityColor(ticket.priority)}>
+                    {getPriorityLabel(ticket.priority)}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           </div>

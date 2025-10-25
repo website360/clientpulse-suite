@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -363,6 +364,46 @@ export default function TicketDetails() {
     }
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus as any })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Adicionar mensagem do sistema sobre mudança de status
+      const statusLabels: Record<string, string> = {
+        suggestion: 'Sugestão',
+        waiting: 'Aguardando',
+        in_progress: 'Em Atendimento',
+        resolved: 'Resolvido',
+        closed: 'Concluído',
+      };
+
+      await supabase.from('ticket_messages').insert({
+        ticket_id: id,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        message: `<em>Status do ticket alterado para: <strong>${statusLabels[newStatus]}</strong></em>`,
+        is_internal: false,
+      });
+
+      fetchTicketDetails();
+      fetchMessages();
+      toast({
+        title: 'Status atualizado',
+        description: 'O status do ticket foi alterado com sucesso.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar status',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
@@ -555,10 +596,27 @@ export default function TicketDetails() {
             {/* Priority */}
             <Card className="card-elevated">
               <CardHeader>
-                <CardTitle>Prioridade</CardTitle>
+                <CardTitle>Configurações</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={ticket.status} onValueChange={handleStatusChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="suggestion">Sugestão</SelectItem>
+                      <SelectItem value="waiting">Aguardando</SelectItem>
+                      <SelectItem value="in_progress">Em Atendimento</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Separator />
+                <div>
+                  <Label htmlFor="priority">Prioridade</Label>
                   <Select value={ticket.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger>
                       <SelectValue>

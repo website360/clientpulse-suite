@@ -35,6 +35,7 @@ export default function Tickets() {
     search: '',
     priority: 'all',
     department: 'all',
+    status: 'all',
   });
   const { toast } = useToast();
   const { userRole } = useAuth();
@@ -194,6 +195,11 @@ export default function Tickets() {
       filtered = filtered.filter((ticket) => ticket.department_id === filters.department);
     }
 
+    // Status filter
+    if (filters.status !== 'all') {
+      filtered = filtered.filter((ticket) => ticket.status === filters.status);
+    }
+
     setFilteredTickets(filtered);
   };
 
@@ -219,6 +225,56 @@ export default function Tickets() {
       toast({
         title: 'Erro ao atualizar prioridade',
         description: 'Não foi possível atualizar a prioridade do ticket.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleStatusChange = async (ticketId: string, newStatus: string) => {
+    try {
+      const validStatuses = ['suggestion', 'waiting', 'in_progress', 'resolved', 'closed'];
+      if (!validStatuses.includes(newStatus)) return;
+
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus as any })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+
+      // Notificar cliente quando status mudar para resolvido ou concluído
+      if (newStatus === 'resolved' || newStatus === 'closed') {
+        const ticket = tickets.find(t => t.id === ticketId);
+        if (ticket?.client_id) {
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('user_id')
+            .eq('id', ticket.client_id)
+            .single();
+
+          if (clientData?.user_id) {
+            await supabase.from('notifications').insert({
+              user_id: clientData.user_id,
+              title: `Ticket #${ticket.ticket_number} ${newStatus === 'resolved' ? 'resolvido' : 'concluído'}`,
+              description: `Seu ticket foi ${newStatus === 'resolved' ? 'resolvido' : 'concluído'}: ${ticket.subject}`,
+              type: 'success',
+              reference_type: 'ticket',
+              reference_id: ticketId,
+            });
+          }
+        }
+      }
+
+      toast({
+        title: 'Status atualizado',
+        description: 'Status do ticket atualizado com sucesso.',
+      });
+      fetchTickets();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Erro ao atualizar status',
+        description: 'Não foi possível atualizar o status do ticket.',
         variant: 'destructive',
       });
     }
@@ -355,6 +411,7 @@ export default function Tickets() {
             <TicketTable
               tickets={paginatedTickets}
               onPriorityChange={handlePriorityChange}
+              onStatusChange={handleStatusChange}
               onDelete={handleDelete}
               sortColumn={sortColumn}
               sortDirection={sortDirection}

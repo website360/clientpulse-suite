@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface TicketTableProps {
   tickets: any[];
   onPriorityChange: (ticketId: string, newPriority: string) => void;
+  onStatusChange?: (ticketId: string, newStatus: string) => void;
   onDelete?: (ticketId: string) => void;
   sortColumn?: string | null;
   sortDirection?: 'asc' | 'desc';
@@ -27,7 +28,7 @@ interface TicketTableProps {
   hideClientColumn?: boolean;
 }
 
-export function TicketTable({ tickets, onPriorityChange, onDelete, sortColumn, sortDirection, onSort, hideClientColumn = false }: TicketTableProps) {
+export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelete, sortColumn, sortDirection, onSort, hideClientColumn = false }: TicketTableProps) {
   const navigate = useNavigate();
   const { userRole } = useAuth();
 
@@ -56,6 +57,37 @@ export function TicketTable({ tickets, onPriorityChange, onDelete, sortColumn, s
     return labels[priority] || priority;
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'suggestion':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'waiting':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'in_progress':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+      case 'resolved':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'closed':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case 'open':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      suggestion: 'Sugestão',
+      waiting: 'Aguardando',
+      in_progress: 'Em Atendimento',
+      resolved: 'Resolvido',
+      closed: 'Concluído',
+      open: 'Aberto',
+    };
+    return labels[status] || status;
+  };
+
   if (tickets.length === 0) {
     return (
       <Card className="card-elevated p-12 text-center">
@@ -77,6 +109,7 @@ export function TicketTable({ tickets, onPriorityChange, onDelete, sortColumn, s
             <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[250px]" />
             {!hideClientColumn && <TableHead>Cliente</TableHead>}
             <TableHead>Departamento</TableHead>
+            <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <SortableTableHead column="created_at" label="Criado em" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <TableHead className="text-right">Ações</TableHead>
@@ -115,6 +148,11 @@ export function TicketTable({ tickets, onPriorityChange, onDelete, sortColumn, s
                   }}
                 >
                   {ticket.departments?.name || 'N/A'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className={getStatusColor(ticket.status)}>
+                  {getStatusLabel(ticket.status)}
                 </Badge>
               </TableCell>
               <TableCell>
