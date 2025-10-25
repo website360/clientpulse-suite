@@ -76,7 +76,6 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos Status</SelectItem>
-          <SelectItem value="suggestion">Sugestão</SelectItem>
           <SelectItem value="waiting">Aguardando</SelectItem>
           <SelectItem value="in_progress">Em Atendimento</SelectItem>
           <SelectItem value="resolved">Resolvido</SelectItem>

@@ -232,7 +232,7 @@ export default function Tickets() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      const validStatuses = ['suggestion', 'waiting', 'in_progress', 'resolved', 'closed'];
+      const validStatuses = ['waiting', 'in_progress', 'resolved', 'closed'];
       if (!validStatuses.includes(newStatus)) return;
 
       const { error } = await supabase

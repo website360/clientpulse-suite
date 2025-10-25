@@ -168,8 +168,6 @@ export default function ClientTickets() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'suggestion':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       case 'waiting':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'in_progress':
@@ -187,7 +185,6 @@ export default function ClientTickets() {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      suggestion: 'Sugestão',
       waiting: 'Aguardando',
       in_progress: 'Em Atendimento',
       resolved: 'Resolvido',

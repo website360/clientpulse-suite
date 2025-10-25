@@ -375,7 +375,6 @@ export default function TicketDetails() {
 
       // Adicionar mensagem do sistema sobre mudança de status
       const statusLabels: Record<string, string> = {
-        suggestion: 'Sugestão',
         waiting: 'Aguardando',
         in_progress: 'Em Atendimento',
         resolved: 'Resolvido',
@@ -606,7 +605,6 @@ export default function TicketDetails() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="suggestion">Sugestão</SelectItem>
                       <SelectItem value="waiting">Aguardando</SelectItem>
                       <SelectItem value="in_progress">Em Atendimento</SelectItem>
                       <SelectItem value="resolved">Resolvido</SelectItem>
