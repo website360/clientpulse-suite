@@ -140,9 +140,17 @@ export function MaintenanceCards({ plans, onExecute }: MaintenanceCardsProps) {
               </div>
 
               <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-                {plan.clients?.nickname || plan.clients?.company_name || plan.clients?.full_name}
+                {plan.clients?.nickname || (plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name) || '-'}
               </h3>
               
+              {plan.clients?.nickname && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  {plan.clients?.client_type === 'company' 
+                    ? plan.clients?.company_name 
+                    : plan.clients?.full_name}
+                </p>
+              )}
+
               <p className="text-sm text-muted-foreground mb-3">
                 {plan.domains?.domain || 'Sem domínio específico'}
               </p>
