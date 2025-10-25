@@ -353,7 +353,7 @@ export default function KnowledgeBasePublic() {
 
         <div className="container relative py-10 md:py-13">
           <div className="max-w-4xl mx-auto text-center space-y-6">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-8 mt-4">
               <img 
                 src={kbLogo}
                 alt="Logo" 
