@@ -51,20 +51,27 @@ serve(async (req) => {
       throw new Error('Nome completo é obrigatório para pessoa física');
     }
 
+    // Normalizar email
+    const emailNormalized = (email || '').trim().toLowerCase();
+
     // Verificar se já existe cliente com este email ou CPF/CNPJ
-    let existingClientQuery = supabase
+    let query = supabase
       .from('clients')
-      .select('id');
+      .select('id', { count: 'exact', head: true });
     
     if (cpf_cnpj) {
-      existingClientQuery = existingClientQuery.or(`email.eq.${email},cpf_cnpj.eq.${cpf_cnpj}`);
+      query = query.or(`email.eq.${emailNormalized},cpf_cnpj.eq.${cpf_cnpj}`);
     } else {
-      existingClientQuery = existingClientQuery.eq('email', email);
+      query = query.eq('email', emailNormalized);
     }
     
-    const { data: existingClient } = await existingClientQuery.maybeSingle();
+    const { count: existingCount, error: existingErr } = await query;
+    
+    if (existingErr) {
+      console.error('Error checking existing client:', existingErr);
+    }
 
-    if (existingClient) {
+    if ((existingCount ?? 0) > 0) {
       throw new Error('Já existe um cadastro com este email ou CPF/CNPJ');
     }
 
@@ -76,7 +83,7 @@ serve(async (req) => {
       full_name: client_type === 'person' ? full_name : null,
       responsible_cpf: client_type === 'company' ? responsible_cpf : null,
       cpf_cnpj,
-      email,
+      email: emailNormalized,
       phone,
       address_cep,
       address_street,
@@ -106,6 +113,12 @@ serve(async (req) => {
 
     if (clientError) {
       console.error('Error creating client:', clientError);
+      
+      // Tratar erro de duplicidade de forma amigável
+      if (clientError.code === '23505') {
+        throw new Error('Já existe um cadastro com este email ou CPF/CNPJ');
+      }
+      
       throw new Error('Erro ao criar cadastro: ' + clientError.message);
     }
 
