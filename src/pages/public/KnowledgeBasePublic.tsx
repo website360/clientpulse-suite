@@ -51,11 +51,13 @@ export default function KnowledgeBasePublic() {
     // Carregar logos customizados
     const loadLogos = () => {
       const customKbLogo = localStorage.getItem('app-kb-logo-light');
+      console.log('🔍 Logo KB carregado do localStorage:', customKbLogo);
       if (customKbLogo) {
         setKbLogo(customKbLogo);
       }
       
       const customArticleLogo = localStorage.getItem('app-kb-article-logo');
+      console.log('🔍 Logo Artigo carregado do localStorage:', customArticleLogo);
       if (customArticleLogo) {
         setArticleLogo(customArticleLogo);
       }
@@ -66,6 +68,7 @@ export default function KnowledgeBasePublic() {
     // Listener para atualizações de logo
     const handleLogoUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
+      console.log('🔄 Evento logoUpdated recebido:', customEvent.detail);
       if (customEvent.detail.type === 'kb-logo-light' || customEvent.detail.type === 'kb-article-logo') {
         loadLogos();
       }
