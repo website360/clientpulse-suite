@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { MaintenanceFormModal } from "@/components/maintenance/MaintenanceFormModal";
+import { MaintenancePlanFormModal } from "@/components/maintenance/MaintenancePlanFormModal";
 import { MaintenanceHistory } from "@/components/maintenance/MaintenanceHistory";
 import { MaintenanceFilters } from "@/components/maintenance/MaintenanceFilters";
 import { MaintenanceCards } from "@/components/maintenance/MaintenanceCards";
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function Maintenance() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isPlanFormOpen, setIsPlanFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [filters, setFilters] = useState({
@@ -20,7 +22,7 @@ export default function Maintenance() {
     status: 'all',
   });
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, refetch } = useQuery({
     queryKey: ['maintenance-plans'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -103,6 +105,10 @@ export default function Maintenance() {
               Gerenciamento de manutenções preventivas dos clientes
             </p>
           </div>
+          <Button onClick={() => setIsPlanFormOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Manutenção
+          </Button>
         </div>
 
         <Tabs defaultValue="plans" className="space-y-6">
@@ -156,6 +162,14 @@ export default function Maintenance() {
             if (!open) setSelectedPlan(null);
           }}
           selectedPlan={selectedPlan}
+        />
+
+        <MaintenancePlanFormModal
+          open={isPlanFormOpen}
+          onOpenChange={(open) => {
+            setIsPlanFormOpen(open);
+            if (!open) refetch();
+          }}
         />
       </div>
     </DashboardLayout>

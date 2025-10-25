@@ -11,19 +11,35 @@ import { toast } from 'sonner';
 interface MaintenancePlanFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clientId: string;
+  clientId?: string;
   plan?: any;
 }
 
-export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }: MaintenancePlanFormModalProps) {
+export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propClientId, plan }: MaintenancePlanFormModalProps) {
+  const [clientId, setClientId] = useState<string>(propClientId || 'none');
   const [domainId, setDomainId] = useState<string>('none');
   const [monthlyDay, setMonthlyDay] = useState<number>(1);
   const [isActive, setIsActive] = useState(true);
   const queryClient = useQueryClient();
 
+  const { data: clients } = useQuery({
+    queryKey: ['clients-for-maintenance'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, full_name, responsible_name, company_name, client_type')
+        .eq('is_active', true)
+        .order('responsible_name', { nullsFirst: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !propClientId,
+  });
+
   const { data: domains } = useQuery({
     queryKey: ['client-domains', clientId],
     queryFn: async () => {
+      if (clientId === 'none') return [];
       const { data, error } = await supabase
         .from('domains')
         .select('*')
@@ -32,7 +48,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
       if (error) throw error;
       return data;
     },
-    enabled: open,
+    enabled: open && clientId !== 'none',
   });
 
   const { data: settings } = useQuery({
@@ -50,18 +66,30 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
 
   useEffect(() => {
     if (plan) {
+      setClientId(plan.client_id);
       setDomainId(plan.domain_id || 'none');
       setMonthlyDay(plan.monthly_day);
       setIsActive(plan.is_active);
-    } else if (settings) {
-      setDomainId('none');
-      setMonthlyDay(settings.default_monthly_day);
-      setIsActive(true);
+    } else {
+      if (propClientId) {
+        setClientId(propClientId);
+      } else {
+        setClientId('none');
+      }
+      if (settings) {
+        setDomainId('none');
+        setMonthlyDay(settings.default_monthly_day);
+        setIsActive(true);
+      }
     }
-  }, [plan, settings, open]);
+  }, [plan, settings, open, propClientId]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (clientId === 'none') {
+        throw new Error('Selecione um cliente');
+      }
+
       const planData = {
         client_id: clientId,
         domain_id: domainId === 'none' ? null : domainId,
@@ -119,6 +147,25 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId, plan }:
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!propClientId && (
+            <div className="space-y-2">
+              <Label htmlFor="client">Cliente *</Label>
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger id="client">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Selecione um cliente</SelectItem>
+                  {clients?.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="domain">Domínio</Label>
             <Select value={domainId} onValueChange={setDomainId}>
