@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Globe, Calendar, User } from 'lucide-react';
+import { Pencil, Trash2, Globe, Calendar, User, Building2 } from 'lucide-react';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { toast } from 'sonner';
 import { format, parse } from 'date-fns';
@@ -31,6 +31,7 @@ interface Domain {
     company_name: string | null;
     responsible_name: string | null;
     nickname: string | null;
+    client_type: 'person' | 'company';
   };
 }
 
@@ -63,7 +64,8 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             full_name,
             company_name,
             responsible_name,
-            nickname
+            nickname,
+            client_type
           )
         `);
 
@@ -180,8 +182,12 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
               <TableRow key={domain.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      {domain.clients.client_type === 'company' ? (
+                        <Building2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <User className="h-5 w-5 text-primary" />
+                      )}
                     </div>
                     <div>
                       <p className="font-medium">
@@ -189,7 +195,9 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
                       </p>
                       {domain.clients.nickname && (
                         <p className="text-xs text-muted-foreground">
-                          {domain.clients.company_name || domain.clients.full_name}
+                          {domain.clients.client_type === 'company' 
+                            ? domain.clients.company_name 
+                            : domain.clients.full_name}
                         </p>
                       )}
                     </div>
