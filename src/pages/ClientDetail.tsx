@@ -476,6 +476,24 @@ export default function ClientDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {client.client_type === 'company' && client.company_name && (
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nome da Empresa</p>
+                        <p className="font-medium">{client.company_name}</p>
+                      </div>
+                    </div>
+                  )}
+                  {client.client_type === 'person' && client.full_name && (
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nome Completo</p>
+                        <p className="font-medium">{client.full_name}</p>
+                      </div>
+                    </div>
+                  )}
                   {client.nickname && (
                     <div className="flex items-center gap-3">
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -487,7 +505,7 @@ export default function ClientDetail() {
                   )}
                   {client.cpf_cnpj && (
                     <div className="flex items-center gap-3">
-                      <User className="h-4 w-4 text-muted-foreground" />
+                      <FileText className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">
                           {client.client_type === 'person' ? 'CPF' : 'CNPJ'}
