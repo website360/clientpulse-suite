@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Upload, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +13,8 @@ export function AppearanceTab() {
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark' | 'kb-logo-light' | 'kb-article-logo'
+    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark' | 'kb-logo-light' | 'kb-article-logo',
+    onUploadComplete?: (url: string) => void
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -27,10 +29,10 @@ export function AppearanceTab() {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'Erro',
-        description: 'A imagem deve ter no máximo 2MB.',
+        description: 'A imagem deve ter no máximo 5MB.',
         variant: 'destructive',
       });
       return;
@@ -39,41 +41,60 @@ export function AppearanceTab() {
     setUploading(true);
 
     try {
+      toast({
+        title: 'Enviando imagem...',
+        description: 'Por favor, aguarde.',
+      });
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${type}.${fileExt}`;
+      const fileName = `${type}-${Date.now()}.${fileExt}`;
       const filePath = `branding/${fileName}`;
 
-      // Upload para o storage
-      const { error: uploadError } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('ticket-attachments')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: true,
+          upsert: false,
         });
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
-      // Salvar configuração no localStorage para uso imediato
-      const { data } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from('ticket-attachments')
-        .getPublicUrl(filePath);
+        .getPublicUrl(data.path);
 
-      localStorage.setItem(`app-${type}`, data.publicUrl);
-
+      // Adicionar timestamp para evitar cache
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      
+      // Salvar a URL no localStorage
+      localStorage.setItem(`app-${type}`, urlWithTimestamp);
+      
+      // Disparar evento customizado para notificar outros componentes
+      window.dispatchEvent(new CustomEvent('logoUpdated', { detail: { type, url: urlWithTimestamp } }));
+      
+      // Atualizar favicon dinamicamente se necessário
+      if (type === 'favicon') {
+        const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+        link.setAttribute('rel', 'icon');
+        link.setAttribute('href', urlWithTimestamp);
+        link.setAttribute('type', 'image/png');
+        document.head.appendChild(link);
+      }
+      
+      // Chamar callback se fornecido
+      if (onUploadComplete) {
+        onUploadComplete(urlWithTimestamp);
+      }
+      
       toast({
-        title: 'Sucesso',
-        description: 'Imagem atualizada com sucesso. Recarregue a página para ver as alterações.',
+        title: 'Imagem enviada!',
+        description: 'A imagem foi atualizada com sucesso.',
       });
-
-      // Recarregar após 2 segundos
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({
-        title: 'Erro ao fazer upload',
-        description: 'Não foi possível fazer upload da imagem.',
+        title: 'Erro ao enviar imagem',
+        description: 'Não foi possível enviar a imagem. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -94,50 +115,55 @@ export function AppearanceTab() {
   }) => {
     const [preview, setPreview] = useState<string>('');
 
-    // Tentar carregar preview do localStorage ou das imagens padrão
     useEffect(() => {
       const savedUrl = localStorage.getItem(`app-${type}`);
       if (savedUrl) {
         setPreview(savedUrl);
       }
+
+      // Listener para atualizações de logo
+      const handleLogoUpdate = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        if (customEvent.detail.type === type) {
+          setPreview(customEvent.detail.url);
+        }
+      };
+
+      window.addEventListener('logoUpdated', handleLogoUpdate);
+      return () => window.removeEventListener('logoUpdated', handleLogoUpdate);
     }, [type]);
 
     return (
-      <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
-        <p className="text-sm text-muted-foreground">{description}</p>
-        
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor={id} className="text-sm font-medium">
+            {label}
+          </Label>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        </div>
         {preview && (
-          <div className="border rounded-lg p-4 bg-muted/50 inline-block">
+          <div className="rounded-md border p-4 bg-muted/30">
             <img 
               src={preview} 
-              alt={label} 
-              className="h-16 w-auto object-contain"
-              onError={(e) => {
-                console.error('Error loading image:', preview);
-                e.currentTarget.style.display = 'none';
-              }}
+              alt={label}
+              className="max-h-16 w-auto object-contain mx-auto"
             />
           </div>
         )}
-        
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => document.getElementById(id)?.click()}
-            disabled={uploading}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {uploading ? 'Enviando...' : 'Fazer Upload'}
-          </Button>
-          <input
+          <Input
             id={id}
             type="file"
             accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileUpload(e, type)}
+            onChange={(e) => handleFileUpload(e, type, (url) => setPreview(url))}
+            className="cursor-pointer"
           />
+          <Button variant="outline" size="sm" asChild>
+            <label htmlFor={id} className="cursor-pointer">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Enviar
+            </label>
+          </Button>
         </div>
       </div>
     );
@@ -149,20 +175,20 @@ export function AppearanceTab() {
         <CardHeader>
           <CardTitle>Logos e Ícones - Tema Claro</CardTitle>
           <CardDescription>
-            Personalize os logos e ícones para o tema claro
+            Logos e ícones exibidos quando o aplicativo está em modo claro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <LogoUploadSection
-            id="logo-light"
+            id="logo-icon-light"
             label="Ícone Menu"
-            description="Ícone exibido no menu lateral"
-            type="logo-light"
+            description="Essa imagem aparece no menu ao lado esquerdo do nome e email no tema claro"
+            type="logo-icon-light"
           />
           <LogoUploadSection
             id="auth-logo-light"
             label="Logo da Tela de Login"
-            description="Logo exibido na tela de autenticação"
+            description="Essa imagem aparece na tela de login do tema claro, em cima do formulário de login"
             type="auth-logo-light"
           />
         </CardContent>
@@ -172,20 +198,20 @@ export function AppearanceTab() {
         <CardHeader>
           <CardTitle>Logos e Ícones - Tema Escuro</CardTitle>
           <CardDescription>
-            Personalize os logos e ícones para o tema escuro
+            Logos e ícones exibidos quando o aplicativo está em modo escuro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <LogoUploadSection
-            id="logo-dark"
+            id="logo-icon-dark"
             label="Ícone Menu"
-            description="Ícone exibido no menu lateral no tema escuro"
-            type="logo-dark"
+            description="Essa imagem aparece no menu ao lado esquerdo do nome e email no tema escuro"
+            type="logo-icon-dark"
           />
           <LogoUploadSection
             id="auth-logo-dark"
             label="Logo da Tela de Login"
-            description="Logo exibido na tela de autenticação no tema escuro"
+            description="Essa imagem aparece na tela de login do tema escuro, em cima do formulário de login"
             type="auth-logo-dark"
           />
         </CardContent>
@@ -202,7 +228,7 @@ export function AppearanceTab() {
           <LogoUploadSection
             id="favicon"
             label="Favicon"
-            description="Recomendado: 32x32px ou 64x64px, formato PNG ou ICO"
+            description="Essa imagem aparece no navegador, como favicon"
             type="favicon"
           />
         </CardContent>
@@ -212,14 +238,14 @@ export function AppearanceTab() {
         <CardHeader>
           <CardTitle>Logo da Base de Conhecimento</CardTitle>
           <CardDescription>
-            Logo exibido no hero da página pública de base de conhecimento
+            Logo exibido na página pública da base de conhecimento
           </CardDescription>
         </CardHeader>
         <CardContent>
           <LogoUploadSection
             id="kb-logo-light"
             label="Logo Base de Conhecimento"
-            description="Logo branco/claro para exibir no hero azul (recomendado: formato PNG com transparência)"
+            description="Essa imagem aparece na página inicial da base de conhecimento, em cima do título Base de Conhecimento"
             type="kb-logo-light"
           />
         </CardContent>
@@ -236,7 +262,7 @@ export function AppearanceTab() {
           <LogoUploadSection
             id="kb-article-logo"
             label="Logo do Artigo"
-            description="Logo exibido entre os botões de voltar e compartilhar"
+            description="Essa imagem aparece nos detalhes do post, na barra superior, entre os itens 'voltar para artigos' e o botão 'compartilhar'"
             type="kb-article-logo"
           />
         </CardContent>
@@ -251,7 +277,7 @@ export function AppearanceTab() {
               <li>Use imagens PNG com fundo transparente</li>
               <li>Logo completo: largura recomendada de 150-200px</li>
               <li>Ícone: formato quadrado, 64x64px ou 128x128px</li>
-              <li>Tamanho máximo: 2MB por imagem</li>
+              <li>Tamanho máximo: 5MB por imagem</li>
             </ul>
           </div>
         </div>

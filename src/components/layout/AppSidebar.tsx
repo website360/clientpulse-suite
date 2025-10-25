@@ -41,13 +41,17 @@ export function AppSidebar() {
     fetchTicketCount();
     
     // Carregar logos customizados do localStorage
-    const customLogoLight = localStorage.getItem('app-logo-light');
-    const customLogoDark = localStorage.getItem('app-logo-dark');
+    const loadLogos = () => {
+      const customLogoLight = localStorage.getItem('app-logo-icon-light');
+      const customLogoDark = localStorage.getItem('app-logo-icon-dark');
+      
+      setMenuLogo({
+        light: customLogoLight || logoLight,
+        dark: customLogoDark || logoDark,
+      });
+    };
     
-    setMenuLogo({
-      light: customLogoLight || logoLight,
-      dark: customLogoDark || logoDark,
-    });
+    loadLogos();
     
     if (user) {
       fetchProfile();
@@ -65,7 +69,20 @@ export function AppSidebar() {
       attributeFilter: ['class'],
     });
 
-    return () => observer.disconnect();
+    // Listener para atualizações de logo
+    const handleLogoUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.type === 'logo-icon-light' || customEvent.detail.type === 'logo-icon-dark') {
+        loadLogos();
+      }
+    };
+
+    window.addEventListener('logoUpdated', handleLogoUpdate);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('logoUpdated', handleLogoUpdate);
+    };
   }, [user]);
 
   const fetchProfile = async () => {

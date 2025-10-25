@@ -48,17 +48,34 @@ export default function KnowledgeBasePublic() {
   const [articleLogo, setArticleLogo] = useState<string>('');
 
   useEffect(() => {
-    // Carregar logo customizado da base de conhecimento
-    const customKbLogo = localStorage.getItem('app-kb-logo-light');
-    if (customKbLogo) {
-      setKbLogo(customKbLogo);
-    }
+    // Carregar logos customizados
+    const loadLogos = () => {
+      const customKbLogo = localStorage.getItem('app-kb-logo-light');
+      if (customKbLogo) {
+        setKbLogo(customKbLogo);
+      }
+      
+      const customArticleLogo = localStorage.getItem('app-kb-article-logo');
+      if (customArticleLogo) {
+        setArticleLogo(customArticleLogo);
+      }
+    };
     
-    // Carregar logo customizado do artigo
-    const customArticleLogo = localStorage.getItem('app-kb-article-logo');
-    if (customArticleLogo) {
-      setArticleLogo(customArticleLogo);
-    }
+    loadLogos();
+
+    // Listener para atualizações de logo
+    const handleLogoUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.type === 'kb-logo-light' || customEvent.detail.type === 'kb-article-logo') {
+        loadLogos();
+      }
+    };
+
+    window.addEventListener('logoUpdated', handleLogoUpdate);
+
+    return () => {
+      window.removeEventListener('logoUpdated', handleLogoUpdate);
+    };
   }, []);
 
   useEffect(() => {

@@ -24,13 +24,17 @@ export default function Auth() {
     setIsDark(isDarkMode);
 
     // Carregar logos customizados do localStorage
-    const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
-    const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
+    const loadLogos = () => {
+      const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
+      const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
+      
+      setAuthLogo({
+        light: customAuthLogoLight || logoLight,
+        dark: customAuthLogoDark || logoDark,
+      });
+    };
     
-    setAuthLogo({
-      light: customAuthLogoLight || logoLight,
-      dark: customAuthLogoDark || logoDark,
-    });
+    loadLogos();
 
     // Observer para mudanças no tema
     const observer = new MutationObserver(() => {
@@ -43,7 +47,20 @@ export default function Auth() {
       attributeFilter: ['class'],
     });
 
-    return () => observer.disconnect();
+    // Listener para atualizações de logo
+    const handleLogoUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.type === 'auth-logo-light' || customEvent.detail.type === 'auth-logo-dark') {
+        loadLogos();
+      }
+    };
+
+    window.addEventListener('logoUpdated', handleLogoUpdate);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('logoUpdated', handleLogoUpdate);
+    };
   }, []);
 
   // Sign in state
