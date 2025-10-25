@@ -83,7 +83,7 @@ All colors MUST be HSL.
 
   .dark {
     /* Dark Mode - Trust-Blue Theme */
-    --background: 222 47% 11%;     /* #0F172A */
+    --background: 0 0% 13%;        /* #202020 */
     --background-secondary: 215 25% 15%; /* #1E293B */
     --foreground: 210 40% 95%;     /* #F1F5F9 - Text Primary */
     
