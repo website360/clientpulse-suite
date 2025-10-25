@@ -127,13 +127,6 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
     onEdit?.();
   };
 
-  const getClientName = (domain: Domain) => {
-    if (domain.clients.nickname?.trim()) {
-      return domain.clients.nickname;
-    }
-    return domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
-  };
-
   const getOwnerLabel = (owner: 'agency' | 'client') => {
     return owner === 'agency' ? 'Agência' : 'Cliente';
   };
@@ -186,9 +179,20 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             {domains.map((domain) => (
               <TableRow key={domain.id}>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    {getClientName(domain)}
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {domain.clients.nickname || domain.clients.company_name || domain.clients.full_name}
+                      </p>
+                      {domain.clients.nickname && (
+                        <p className="text-xs text-muted-foreground">
+                          {domain.clients.company_name || domain.clients.full_name}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">

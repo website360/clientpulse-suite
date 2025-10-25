@@ -122,8 +122,17 @@ export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
 
             return (
               <TableRow key={plan.id}>
-                <TableCell className="font-medium">
-                  {plan.clients?.nickname || plan.clients?.company_name || plan.clients?.full_name}
+                <TableCell>
+                  <div>
+                    <p className="font-medium">
+                      {plan.clients?.nickname || plan.clients?.company_name || plan.clients?.full_name}
+                    </p>
+                    {plan.clients?.nickname && (
+                      <p className="text-xs text-muted-foreground">
+                        {plan.clients?.company_name || plan.clients?.full_name}
+                      </p>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {plan.domains?.domain || '-'}

@@ -498,8 +498,17 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
             ) : (
               accounts.map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">
-                    {account.client?.nickname || account.client?.company_name || account.client?.full_name}
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">
+                        {account.client?.nickname || account.client?.company_name || account.client?.full_name}
+                      </p>
+                      {account.client?.nickname && (
+                        <p className="text-xs text-muted-foreground">
+                          {account.client?.company_name || account.client?.full_name}
+                        </p>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{account.category}</TableCell>
                   <TableCell className="capitalize">

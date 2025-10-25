@@ -177,8 +177,17 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
             ) : (
               contracts.map((contract) => (
                 <TableRow key={contract.id}>
-                  <TableCell className="font-medium">
-                    {contract.clients.nickname || contract.clients.company_name || contract.clients.full_name}
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">
+                        {contract.clients.nickname || contract.clients.company_name || contract.clients.full_name}
+                      </p>
+                      {contract.clients.nickname && (
+                        <p className="text-xs text-muted-foreground">
+                          {contract.clients.company_name || contract.clients.full_name}
+                        </p>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{contract.services.name}</TableCell>
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>

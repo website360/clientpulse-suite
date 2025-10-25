@@ -137,8 +137,17 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
-                  {ticket.clients?.nickname || ticket.clients?.company_name || ticket.clients?.full_name || '-'}
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="font-medium text-sm">
+                      {ticket.clients?.nickname || ticket.clients?.company_name || ticket.clients?.full_name || '-'}
+                    </p>
+                    {ticket.clients?.nickname && (
+                      <p className="text-xs text-muted-foreground">
+                        {ticket.clients?.company_name || ticket.clients?.full_name}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>

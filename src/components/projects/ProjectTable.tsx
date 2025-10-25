@@ -149,12 +149,21 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
         </TableHeader>
         <TableBody>
           {projects.map((project) => {
-            const clientName = project.clients?.nickname || project.clients?.company_name || project.clients?.full_name || '-';
-            
             return (
               <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.name}</TableCell>
-                <TableCell>{clientName}</TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">
+                      {project.clients?.nickname || project.clients?.company_name || project.clients?.full_name || '-'}
+                    </p>
+                    {project.clients?.nickname && (
+                      <p className="text-xs text-muted-foreground">
+                        {project.clients?.company_name || project.clients?.full_name}
+                      </p>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>
                     {project.project_types?.name}
