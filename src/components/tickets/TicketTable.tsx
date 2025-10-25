@@ -103,8 +103,8 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
         <TableHeader>
           <TableRow>
             <SortableTableHead column="ticket_number" label="#" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[100px]" />
-            <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[250px]" />
             {!hideClientColumn && <TableHead>Cliente</TableHead>}
+            <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[250px]" />
             <TableHead>Departamento</TableHead>
             <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
@@ -116,6 +116,11 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
           {tickets.map((ticket) => (
             <TableRow key={ticket.id} className="hover:bg-accent/50">
               <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
+              {!hideClientColumn && (
+                <TableCell>
+                  <ClientNameCell client={ticket.clients || {}} />
+                </TableCell>
+              )}
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
@@ -131,11 +136,6 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
                   )}
                 </div>
               </TableCell>
-              {!hideClientColumn && (
-                <TableCell>
-                  <ClientNameCell client={ticket.clients || {}} />
-                </TableCell>
-              )}
               <TableCell>
                 <Badge 
                   variant="outline"
