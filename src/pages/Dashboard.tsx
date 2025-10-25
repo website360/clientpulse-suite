@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 interface DashboardStats {
-  openTickets: number;
   inProgressTickets: number;
   waitingTickets: number;
   resolvedTickets: number;
@@ -45,7 +44,6 @@ interface Task {
 export default function Dashboard() {
   const { userRole } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
-    openTickets: 0,
     inProgressTickets: 0,
     waitingTickets: 0,
     resolvedTickets: 0,
@@ -86,18 +84,34 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Count total tickets
-      const { count: ticketsCount } = await supabase
+      // Count tickets by status
+      const { count: waitingCount } = await supabase
         .from('tickets')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'waiting');
+
+      const { count: inProgressCount } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'in_progress');
+
+      const { count: resolvedCount } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'resolved');
+
+      const { count: closedCount } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'closed');
 
       setStats(prev => ({
         ...prev,
-        openTickets: ticketsCount || 0,
-        inProgressTickets: 0,
-        waitingTickets: 0,
-        resolvedTickets: 0,
-        closedTickets: 0,
+        openTickets: 0,
+        inProgressTickets: inProgressCount || 0,
+        waitingTickets: waitingCount || 0,
+        resolvedTickets: resolvedCount || 0,
+        closedTickets: closedCount || 0,
       }));
 
       // Fetch clients count (admin only)
@@ -404,42 +418,34 @@ export default function Dashboard() {
         {/* Ticket Indicators */}
         <div>
           <h2 className="text-lg font-bold mb-4">Indicadores de Tickets</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <MetricCard
-              title="Total de Tickets"
-              value={stats.openTickets + stats.inProgressTickets + stats.waitingTickets + stats.resolvedTickets + stats.closedTickets}
-              icon={Ticket}
-              variant="default"
-            />
-            <MetricCard
-              title="Aberto"
-              value={stats.openTickets}
-              icon={Ticket}
-              variant="default"
-            />
-            <MetricCard
-              title="Em Andamento"
-              value={stats.inProgressTickets}
-              icon={Clock}
-              variant="default"
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard
               title="Aguardando"
               value={stats.waitingTickets}
               icon={Clock}
               variant="default"
+              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+            />
+            <MetricCard
+              title="Em Atendimento"
+              value={stats.inProgressTickets}
+              icon={Clock}
+              variant="default"
+              className="border-purple-200/50 dark:border-purple-800/50 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-purple-50 [&_.icon-wrapper]:to-purple-100/50 dark:[&_.icon-wrapper]:from-purple-950/50 dark:[&_.icon-wrapper]:to-purple-900/30 [&_.icon-wrapper_.lucide]:text-purple-600 dark:[&_.icon-wrapper_.lucide]:text-purple-400"
             />
             <MetricCard
               title="Resolvido"
               value={stats.resolvedTickets}
               icon={CheckCircle}
-              variant="default"
+              variant="success"
+              className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
             />
             <MetricCard
-              title="Fechado"
+              title="Concluído"
               value={stats.closedTickets}
               icon={XCircle}
               variant="default"
+              className="border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-gray-50 [&_.icon-wrapper]:to-gray-100/50 dark:[&_.icon-wrapper]:from-gray-950/50 dark:[&_.icon-wrapper]:to-gray-900/30 [&_.icon-wrapper_.lucide]:text-gray-600 dark:[&_.icon-wrapper_.lucide]:text-gray-400"
             />
           </div>
         </div>
