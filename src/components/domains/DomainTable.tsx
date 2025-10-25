@@ -128,7 +128,10 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
   };
 
   const getClientName = (domain: Domain) => {
-    return domain.clients.nickname || domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
+    if (domain.clients.nickname?.trim()) {
+      return domain.clients.nickname;
+    }
+    return domain.clients.company_name || domain.clients.full_name || 'Cliente sem nome';
   };
 
   const getOwnerLabel = (owner: 'agency' | 'client') => {
