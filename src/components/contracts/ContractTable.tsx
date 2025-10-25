@@ -43,9 +43,10 @@ interface ContractTableProps {
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
+  hideClientColumn?: boolean;
 }
 
-export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDirection, onSort }: ContractTableProps) {
+export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDirection, onSort, hideClientColumn = false }: ContractTableProps) {
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; contract: Contract | null }>({
     isOpen: false,
     contract: null,
@@ -159,7 +160,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              {!hideClientColumn && <TableHead>Cliente</TableHead>}
               <SortableTableHead column="service_id" label="Serviço" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Meio de Pagamento</TableHead>
@@ -179,9 +180,11 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
             ) : (
               contracts.map((contract) => (
                 <TableRow key={contract.id}>
-                  <TableCell>
-                    <ClientNameCell client={contract.clients} />
-                  </TableCell>
+                  {!hideClientColumn && (
+                    <TableCell>
+                      <ClientNameCell client={contract.clients} />
+                    </TableCell>
+                  )}
                   <TableCell>{contract.services.name}</TableCell>
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
                   <TableCell>{contract.payment_methods?.name || '-'}</TableCell>

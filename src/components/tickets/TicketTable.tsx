@@ -32,9 +32,10 @@ interface TicketTableProps {
   sortColumn?: string | null;
   sortDirection?: 'asc' | 'desc';
   onSort?: (column: string) => void;
+  hideClientColumn?: boolean;
 }
 
-export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete, sortColumn, sortDirection, onSort }: TicketTableProps) {
+export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete, sortColumn, sortDirection, onSort, hideClientColumn = false }: TicketTableProps) {
   const navigate = useNavigate();
   const { userRole } = useAuth();
 
@@ -110,7 +111,7 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
           <TableRow>
             <SortableTableHead column="ticket_number" label="#" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[100px]" />
             <SortableTableHead column="subject" label="Assunto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="w-[250px]" />
-            <TableHead>Cliente</TableHead>
+            {!hideClientColumn && <TableHead>Cliente</TableHead>}
             <TableHead>Departamento</TableHead>
             <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
@@ -137,9 +138,11 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
                   )}
                 </div>
               </TableCell>
-              <TableCell>
-                <ClientNameCell client={ticket.clients || {}} />
-              </TableCell>
+              {!hideClientColumn && (
+                <TableCell>
+                  <ClientNameCell client={ticket.clients || {}} />
+                </TableCell>
+              )}
               <TableCell>
                 <Badge 
                   variant="outline"

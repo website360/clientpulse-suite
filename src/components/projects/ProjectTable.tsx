@@ -27,9 +27,10 @@ interface ProjectTableProps {
   isLoading: boolean;
   onEdit: (project: any) => void;
   onRefresh: () => void;
+  hideClientColumn?: boolean;
 }
 
-export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: ProjectTableProps) {
+export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClientColumn = false }: ProjectTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -140,7 +141,7 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
         <TableHeader>
           <TableRow>
             <TableHead>Projeto</TableHead>
-            <TableHead>Cliente</TableHead>
+            {!hideClientColumn && <TableHead>Cliente</TableHead>}
             <TableHead>Tipo</TableHead>
             <TableHead>Progresso</TableHead>
             <TableHead>Status</TableHead>
@@ -153,9 +154,11 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh }: Project
             return (
               <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.name}</TableCell>
-                <TableCell>
-                  <ClientNameCell client={project.clients || {}} />
-                </TableCell>
+                {!hideClientColumn && (
+                  <TableCell>
+                    <ClientNameCell client={project.clients || {}} />
+                  </TableCell>
+                )}
                 <TableCell>
                   <Badge variant="outline" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>
                     {project.project_types?.name}

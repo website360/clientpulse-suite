@@ -630,6 +630,7 @@ export default function ClientDetail() {
                 tickets={tickets}
                 onStatusChange={handleStatusChange}
                 onPriorityChange={handlePriorityChange}
+                hideClientColumn={true}
               />
             )}
           </TabsContent>
@@ -654,6 +655,7 @@ export default function ClientDetail() {
                 isLoading={loadingProjects}
                 onEdit={handleEditProject}
                 onRefresh={fetchClientProjects}
+                hideClientColumn={true}
               />
             )}
           </TabsContent>
@@ -680,6 +682,7 @@ export default function ClientDetail() {
                 sortColumn={null}
                 sortDirection="asc"
                 onSort={() => {}}
+                hideClientColumn={true}
               />
             )}
           </TabsContent>
