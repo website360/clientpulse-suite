@@ -161,18 +161,18 @@ export default function Clients() {
     try {
       const { error } = await supabase
         .from('clients')
-        .update({ is_active: false })
+        .delete()
         .eq('id', clientToDelete);
 
       if (error) throw error;
 
       toast({
         title: 'Cliente excluído',
-        description: 'Cliente excluído com sucesso.',
+        description: 'Cliente excluído permanentemente com sucesso.',
       });
       fetchClients();
     } catch (error) {
-      console.error('Error deactivating client:', error);
+      console.error('Error deleting client:', error);
       toast({
         title: 'Erro ao excluir cliente',
         description: 'Não foi possível excluir o cliente.',
@@ -181,6 +181,30 @@ export default function Clients() {
     } finally {
       setDeleteDialogOpen(false);
       setClientToDelete(null);
+    }
+  };
+
+  const handleToggleStatus = async (clientId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ is_active: !currentStatus })
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Status alterado',
+        description: `Cliente ${!currentStatus ? 'ativado' : 'inativado'} com sucesso.`,
+      });
+      fetchClients();
+    } catch (error) {
+      console.error('Error toggling client status:', error);
+      toast({
+        title: 'Erro ao alterar status',
+        description: 'Não foi possível alterar o status do cliente.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -306,6 +330,7 @@ export default function Clients() {
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleDelete}
+            onToggleStatus={handleToggleStatus}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={handleSort}
@@ -341,9 +366,9 @@ export default function Clients() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Cliente</AlertDialogTitle>
+              <AlertDialogTitle>Excluir Cliente Permanentemente</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir este cliente? Esta ação pode ser revertida posteriormente.
+                Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita. O cliente será removido permanentemente do sistema.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

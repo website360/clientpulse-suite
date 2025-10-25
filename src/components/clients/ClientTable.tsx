@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, User } from 'lucide-react';
+import { Eye, Pencil, Trash2, User, MoreVertical, UserX, UserCheck } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Card } from '@/components/ui/card';
 import { formatPhone, formatCpfCnpj } from '@/lib/masks';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
@@ -19,6 +26,7 @@ interface ClientTableProps {
   onEdit: (client: any) => void;
   onView: (client: any) => void;
   onDelete: (clientId: string) => void;
+  onToggleStatus: (clientId: string, currentStatus: boolean) => void;
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
@@ -35,6 +43,7 @@ export function ClientTable({
   onEdit, 
   onView, 
   onDelete,
+  onToggleStatus,
   sortColumn,
   sortDirection,
   onSort,
@@ -159,13 +168,36 @@ export function ClientTable({
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(client.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-error" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onToggleStatus(client.id, client.is_active)}>
+                          {client.is_active ? (
+                            <>
+                              <UserX className="h-4 w-4 mr-2" />
+                              Inativar Cliente
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Ativar Cliente
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => onDelete(client.id)}
+                          className="text-error focus:text-error"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir Permanentemente
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
