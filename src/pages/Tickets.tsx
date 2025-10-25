@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Ticket } from 'lucide-react';
+import { Plus, Clock, PlayCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
@@ -359,13 +359,34 @@ export default function Tickets() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
-            title="Total de Tickets"
-            value={filteredTickets.length}
-            icon={Ticket}
+            title="Aguardando"
+            value={filteredTickets.filter(t => t.status === 'waiting').length}
+            icon={Clock}
+            variant="default"
+            className="border-amber-200/50 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-amber-50 [&_.icon-wrapper]:to-amber-100/50 dark:[&_.icon-wrapper]:from-amber-950/50 dark:[&_.icon-wrapper]:to-amber-900/30 [&_.icon-wrapper_.lucide]:text-amber-600 dark:[&_.icon-wrapper_.lucide]:text-amber-400"
+          />
+          <MetricCard
+            title="Em Atendimento"
+            value={filteredTickets.filter(t => t.status === 'in_progress').length}
+            icon={PlayCircle}
             variant="default"
             className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+          />
+          <MetricCard
+            title="Resolvido"
+            value={filteredTickets.filter(t => t.status === 'resolved').length}
+            icon={CheckCircle2}
+            variant="default"
+            className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
+          />
+          <MetricCard
+            title="Concluído"
+            value={filteredTickets.filter(t => t.status === 'closed').length}
+            icon={XCircle}
+            variant="default"
+            className="border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-gray-50 [&_.icon-wrapper]:to-gray-100/50 dark:[&_.icon-wrapper]:from-gray-950/50 dark:[&_.icon-wrapper]:to-gray-900/30 [&_.icon-wrapper_.lucide]:text-gray-600 dark:[&_.icon-wrapper_.lucide]:text-gray-400"
           />
         </div>
 
