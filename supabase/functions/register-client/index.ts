@@ -43,8 +43,8 @@ serve(async (req) => {
       throw new Error('Dados obrigatórios não foram fornecidos');
     }
 
-    if (client_type === 'company' && (!company_name || !responsible_name)) {
-      throw new Error('Nome da empresa e razão social são obrigatórios para pessoa jurídica');
+    if (client_type === 'company' && !responsible_name) {
+      throw new Error('Nome da empresa é obrigatório para pessoa jurídica');
     }
 
     if (client_type === 'person' && !full_name) {
