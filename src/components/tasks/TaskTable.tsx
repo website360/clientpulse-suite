@@ -1,13 +1,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Calendar, Link2, User } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Edit, Trash2, Link2 } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -80,18 +77,23 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tarefa</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Responsável</TableHead>
+              <TableHead>Tarefa</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Prioridade</TableHead>
-              <TableHead>Vencimento</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tasks.map((task) => (
               <TableRow key={task.id}>
+                <TableCell>
+                  {task.client ? (
+                    <ClientNameCell client={task.client} />
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <div className="font-medium">{task.title}</div>
@@ -108,40 +110,8 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
                     )}
                   </div>
                 </TableCell>
-                <TableCell>
-                  {task.client ? (
-                    <ClientNameCell client={task.client} />
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {task.assigned_profile ? (
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={task.assigned_profile.avatar_url} />
-                        <AvatarFallback>
-                          {task.assigned_profile.full_name?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{task.assigned_profile.full_name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
                 <TableCell>{getStatusBadge(task.status)}</TableCell>
                 <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                <TableCell>
-                  {task.due_date ? (
-                    <div className="flex items-center gap-1 text-sm">
-                      <Calendar className="h-3 w-3 text-muted-foreground" />
-                      {format(new Date(task.due_date), 'dd/MM/yyyy', { locale: ptBR })}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     <Button

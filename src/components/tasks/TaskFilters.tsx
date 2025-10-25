@@ -11,18 +11,6 @@ interface TaskFiltersProps {
 }
 
 const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
-  const { data: users = [] } = useQuery({
-    queryKey: ["users-for-tasks"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .order("full_name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-for-tasks"],
     queryFn: async () => {
@@ -37,7 +25,7 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -76,23 +64,6 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
           <SelectItem value="low">Baixa</SelectItem>
           <SelectItem value="medium">Média</SelectItem>
           <SelectItem value="high">Alta</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={filters.assignedTo}
-        onValueChange={(value) => onFiltersChange({ ...filters, assignedTo: value })}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Responsável" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
-          {users.map((user) => (
-            <SelectItem key={user.id} value={user.id}>
-              {user.full_name}
-            </SelectItem>
-          ))}
         </SelectContent>
       </Select>
 

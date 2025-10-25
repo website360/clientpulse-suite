@@ -15,9 +15,7 @@ export interface TaskFilters {
   search: string;
   status: string;
   priority: string;
-  assignedTo: string;
   clientId: string;
-  dateRange: { from: Date | undefined; to: Date | undefined };
 }
 
 const Tasks = () => {
@@ -27,9 +25,7 @@ const Tasks = () => {
     search: "",
     status: "active",
     priority: "all",
-    assignedTo: "all",
     clientId: "all",
-    dateRange: { from: undefined, to: undefined },
   });
 
   const { data: tasks = [], refetch } = useQuery({
@@ -39,11 +35,9 @@ const Tasks = () => {
         .from("tasks")
         .select(`
           *,
-          assigned_profile:profiles!tasks_assigned_to_fkey(id, full_name, avatar_url),
           client:clients(id, full_name, responsible_name, company_name, client_type),
           ticket:tickets(id, ticket_number, subject)
         `)
-        .order("due_date", { ascending: true, nullsFirst: false })
         .order("title", { ascending: true });
 
       if (filters.search) {
@@ -57,17 +51,8 @@ const Tasks = () => {
       if (filters.priority !== "all") {
         query = query.eq("priority", filters.priority);
       }
-      if (filters.assignedTo !== "all") {
-        query = query.eq("assigned_to", filters.assignedTo);
-      }
       if (filters.clientId !== "all") {
         query = query.eq("client_id", filters.clientId);
-      }
-      if (filters.dateRange.from) {
-        query = query.gte("due_date", filters.dateRange.from.toISOString());
-      }
-      if (filters.dateRange.to) {
-        query = query.lte("due_date", filters.dateRange.to.toISOString());
       }
 
       const { data, error } = await query;

@@ -17,12 +17,8 @@ const taskSchema = z.object({
   description: z.string().optional(),
   status: z.enum(["todo", "in_progress", "done"]),
   priority: z.enum(["low", "medium", "high"]),
-  assigned_to: z.string().optional(),
   client_id: z.string().optional(),
   ticket_id: z.string().optional(),
-  due_date: z.string().optional(),
-  start_time: z.string().optional(),
-  end_time: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -47,31 +43,6 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
     defaultValues: {
       status: "todo",
       priority: "medium",
-    },
-  });
-
-  const { data: users = [] } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: async () => {
-      const { data: adminRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-      
-      if (rolesError) throw rolesError;
-      
-      const adminIds = adminRoles?.map(r => r.user_id) || [];
-      
-      if (adminIds.length === 0) return [];
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", adminIds)
-        .order("full_name");
-      
-      if (error) throw error;
-      return data;
     },
   });
 
@@ -128,12 +99,10 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
       status: data.status,
       priority: data.priority,
       created_by: user.id,
-      assigned_to: data.assigned_to || null,
+      assigned_to: user.id,
       client_id: data.client_id || null,
       ticket_id: data.ticket_id || null,
-      due_date: data.due_date || null,
-      start_time: data.start_time || null,
-      end_time: data.end_time || null,
+      start_time: new Date().toISOString(),
     };
 
     if (task?.id) {
@@ -219,56 +188,37 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="assigned_to">Responsável</Label>
-              <Select
-                value={watch("assigned_to")}
-                onValueChange={(value) => setValue("assigned_to", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="client_id">Cliente</Label>
-              <Select
-                value={watch("client_id")}
-                onValueChange={(value) => setValue("client_id", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="ticket_id">Ticket Vinculado</Label>
+            <Label htmlFor="client_id">Cliente</Label>
             <Select
-              value={watch("ticket_id")}
-              onValueChange={(value) => setValue("ticket_id", value)}
+              value={watch("client_id") || ""}
+              onValueChange={(value) => setValue("client_id", value || undefined)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">Nenhum</SelectItem>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ticket_id">Ticket Vinculado</Label>
+            <Select
+              value={watch("ticket_id") || ""}
+              onValueChange={(value) => setValue("ticket_id", value || undefined)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Nenhum</SelectItem>
                 {tickets.map((ticket) => (
                   <SelectItem key={ticket.id} value={ticket.id}>
                     #{ticket.ticket_number} - {ticket.subject}
@@ -276,23 +226,6 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="due_date">Data de Vencimento</Label>
-              <Input id="due_date" type="datetime-local" {...register("due_date")} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="start_time">Início</Label>
-              <Input id="start_time" type="datetime-local" {...register("start_time")} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="end_time">Fim</Label>
-              <Input id="end_time" type="datetime-local" {...register("end_time")} />
-            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
