@@ -348,19 +348,10 @@ export default function KnowledgeBasePublic() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative bg-primary text-primary-foreground overflow-hidden border-b-4 border-accent">
+      <div className="relative text-primary-foreground overflow-hidden border-b-4 border-accent" style={{ backgroundColor: '#193366' }}>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDMwaDJ2MmgtMnYtMnptMC0xMGgtMnYyaDJ2LTJ6bTAgMTBoMnYyaC0ydi0yem0wLTEwaDJ2MmgtMnYtMnptMCAxMGgydjJoLTJ2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-100"></div>
-        
-        {/* Background Logo Pattern */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-5">
-          <img 
-            src={kbLogo}
-            alt="Background" 
-            className="h-96 w-auto object-contain"
-          />
-        </div>
 
-        <div className="container relative py-12 md:py-16">
+        <div className="container relative py-10 md:py-13">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <div className="flex justify-center mb-4">
               <img 
