@@ -494,15 +494,6 @@ export default function ClientDetail() {
                       </div>
                     </div>
                   )}
-                  {client.nickname && (
-                    <div className="flex items-center gap-3">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Apelido</p>
-                        <p className="font-medium">{client.nickname}</p>
-                      </div>
-                    </div>
-                  )}
                   {client.cpf_cnpj && (
                     <div className="flex items-center gap-3">
                       <FileText className="h-4 w-4 text-muted-foreground" />
