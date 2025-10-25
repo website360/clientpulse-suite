@@ -19,6 +19,8 @@ export function AppearanceTab() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('📤 Iniciando upload:', { type, fileName: file.name, fileSize: file.size });
+
     // Validação
     if (!file.type.startsWith('image/')) {
       toast({
@@ -50,6 +52,8 @@ export function AppearanceTab() {
       const fileName = `${type}-${Date.now()}.${fileExt}`;
       const filePath = `branding/${fileName}`;
 
+      console.log('📁 Upload para:', filePath);
+
       const { data, error } = await supabase.storage
         .from('ticket-attachments')
         .upload(filePath, file, {
@@ -57,7 +61,12 @@ export function AppearanceTab() {
           upsert: false,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no upload:', error);
+        throw error;
+      }
+
+      console.log('✅ Upload concluído:', data);
 
       const { data: { publicUrl } } = supabase.storage
         .from('ticket-attachments')
@@ -66,11 +75,17 @@ export function AppearanceTab() {
       // Adicionar timestamp para evitar cache
       const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
       
+      console.log('💾 Salvando no localStorage:', { key: `app-${type}`, url: urlWithTimestamp });
+      
       // Salvar a URL no localStorage
       localStorage.setItem(`app-${type}`, urlWithTimestamp);
       
+      console.log('✅ Salvo no localStorage:', localStorage.getItem(`app-${type}`));
+      
       // Disparar evento customizado para notificar outros componentes
       window.dispatchEvent(new CustomEvent('logoUpdated', { detail: { type, url: urlWithTimestamp } }));
+      
+      console.log('📢 Evento logoUpdated disparado');
       
       // Atualizar favicon dinamicamente se necessário
       if (type === 'favicon') {
@@ -91,7 +106,7 @@ export function AppearanceTab() {
         description: 'A imagem foi atualizada com sucesso.',
       });
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('❌ Error uploading file:', error);
       toast({
         title: 'Erro ao enviar imagem',
         description: 'Não foi possível enviar a imagem. Tente novamente.',
