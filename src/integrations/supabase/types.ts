@@ -2301,6 +2301,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_ticket_status: {
+        Args: { p_new_status: string; p_ticket_id: string }
+        Returns: {
+          assigned_to: string | null
+          client_id: string
+          created_at: string
+          created_by: string
+          department_id: string
+          description: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tickets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "client" | "contato"

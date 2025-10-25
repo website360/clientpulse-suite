@@ -320,13 +320,12 @@ serve(async (req) => {
 
       // CASO 2: Admin interage em ticket criado por contato
       if (isContactCreated && ['admin_response', 'status_changed', 'ticket_deleted'].includes(event_type)) {
-        const statusLabels: Record<string, string> = {
-          open: 'Aberto',
-          in_progress: 'Em Andamento',
-          waiting: 'Aguardando',
-          resolved: 'Resolvido',
-          closed: 'Fechado',
-        };
+    const statusLabels: Record<string, string> = {
+      waiting: 'Aguardando',
+      in_progress: 'Em Atendimento',
+      resolved: 'Resolvido',
+      closed: 'Concluído',
+    };
 
         // Enviar para contato
         if (contactData.phone) {
@@ -496,11 +495,10 @@ serve(async (req) => {
         recipientPhone = client.phone;
 
         const statusLabels: Record<string, string> = {
-          open: 'Aberto',
-          in_progress: 'Em Andamento',
           waiting: 'Aguardando',
+          in_progress: 'Em Atendimento',
           resolved: 'Resolvido',
-          closed: 'Fechado',
+          closed: 'Concluído',
         };
 
         if (event_type === 'admin_response') {
