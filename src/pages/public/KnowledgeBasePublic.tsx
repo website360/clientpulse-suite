@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, ArrowLeft, Eye, Calendar, Copy } from 'lucide-react';
+import { Search, ArrowLeft, Eye, Calendar, Copy, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -169,63 +169,88 @@ export default function KnowledgeBasePublic() {
   if (selectedPost) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container max-w-4xl py-8">
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="ghost" onClick={handleBackToList}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleCopyPostLink}>
-              <Copy className="mr-2 h-3 w-3" />
-              Copiar Link
-            </Button>
+        {/* Header */}
+        <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
+          <div className="container py-4">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" onClick={handleBackToList} size="lg">
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Voltar para artigos
+              </Button>
+              <Button variant="outline" size="lg" onClick={handleCopyPostLink}>
+                <Copy className="mr-2 h-4 w-4" />
+                Compartilhar
+              </Button>
+            </div>
           </div>
+        </div>
 
-          <article className="space-y-6">
+        {/* Article Content */}
+        <div className="container max-w-4xl py-12">
+          <article className="space-y-8">
+            {/* Featured Image */}
             {selectedPost.featured_image_url && (
-              <img
-                src={selectedPost.featured_image_url}
-                alt={selectedPost.title}
-                className="w-full h-64 object-cover rounded-lg"
-              />
+              <div className="relative h-96 rounded-2xl overflow-hidden">
+                <img
+                  src={selectedPost.featured_image_url}
+                  alt={selectedPost.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </div>
             )}
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            {/* Article Header */}
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-4">
                 {selectedPost.knowledge_base_categories && (
                   <Badge
+                    className="text-base px-4 py-1.5 rounded-full"
                     style={{
                       backgroundColor: `${selectedPost.knowledge_base_categories.color}20`,
                       color: selectedPost.knowledge_base_categories.color,
+                      border: `1px solid ${selectedPost.knowledge_base_categories.color}40`,
                     }}
                   >
                     {selectedPost.knowledge_base_categories.name}
                   </Badge>
                 )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {formatDistanceToNow(new Date(selectedPost.created_at), {
-                    addSuffix: true,
-                    locale: ptBR,
-                  })}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  {selectedPost.view_count} visualizações
+                <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {formatDistanceToNow(new Date(selectedPost.created_at), {
+                        addSuffix: true,
+                        locale: ptBR,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    <span className="font-medium">{selectedPost.view_count} visualizações</span>
+                  </div>
                 </div>
               </div>
 
-              <h1 className="text-4xl font-bold">{selectedPost.title}</h1>
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+                {selectedPost.title}
+              </h1>
               
               {selectedPost.excerpt && (
-                <p className="text-xl text-muted-foreground">{selectedPost.excerpt}</p>
+                <p className="text-2xl text-muted-foreground leading-relaxed">
+                  {selectedPost.excerpt}
+                </p>
               )}
-
-              <div
-                className="prose prose-lg max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
-              />
             </div>
+
+            {/* Divider */}
+            <div className="border-t" />
+
+            {/* Article Content */}
+            <div
+              className="prose prose-lg md:prose-xl max-w-none dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-pre:bg-muted prose-pre:border"
+              dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+            />
           </article>
         </div>
       </div>
@@ -234,109 +259,138 @@ export default function KnowledgeBasePublic() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container py-8">
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold">Base de Conhecimento</h1>
-            <p className="text-xl text-muted-foreground">
-              Tutoriais e artigos para ajudar você
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoMnYyaC0ydi0yem0wLTEwaC0ydjJoMnYtMnptMCAxMGgydjJoLTJ2LTJ6bTAtMTBoMnYyaC0ydi0yem0wIDEwaDJ2MmgtMnYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+        <div className="container relative py-20 md:py-32">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+              Base de Conhecimento
+            </h1>
+            <p className="text-xl md:text-2xl text-primary-foreground/90">
+              Tutoriais, guias e documentação para ajudar você
             </p>
+            
+            <div className="max-w-2xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar artigos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-14 pl-12 pr-4 text-lg bg-background/95 backdrop-blur border-0 shadow-xl"
+                />
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Pesquisar artigos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={selectedCategory === '' ? 'default' : 'outline'}
-                    onClick={() => setSelectedCategory('')}
-                  >
-                    Todas
-                  </Button>
-                  {categories.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.id ? 'default' : 'outline'}
-                      onClick={() => setSelectedCategory(category.id)}
-                      style={
-                        selectedCategory === category.id
-                          ? {
-                              backgroundColor: category.color,
-                              borderColor: category.color,
-                            }
-                          : {}
+      <div className="container py-12">
+        {/* Categories */}
+        <div className="mb-12">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button
+              variant={selectedCategory === '' ? 'default' : 'outline'}
+              size="lg"
+              onClick={() => setSelectedCategory('')}
+              className="rounded-full"
+            >
+              Todas as Categorias
+            </Button>
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                size="lg"
+                onClick={() => setSelectedCategory(category.id)}
+                className="rounded-full"
+                style={
+                  selectedCategory === category.id
+                    ? {
+                        backgroundColor: category.color,
+                        borderColor: category.color,
                       }
-                    >
-                      {category.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    : {}
+                }
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPosts.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">Nenhum artigo encontrado</p>
-              </div>
-            ) : (
-              filteredPosts.map((post) => (
-                <Card
-                  key={post.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handlePostClick(post)}
-                >
-                  {post.featured_image_url && (
+        {/* Articles Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredPosts.length === 0 ? (
+            <div className="col-span-full text-center py-16">
+              <p className="text-xl text-muted-foreground">Nenhum artigo encontrado</p>
+            </div>
+          ) : (
+            filteredPosts.map((post) => (
+              <Card
+                key={post.id}
+                className="group cursor-pointer hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 hover:border-primary/20"
+                onClick={() => handlePostClick(post)}
+              >
+                {post.featured_image_url ? (
+                  <div className="relative h-56 overflow-hidden">
                     <img
                       src={post.featured_image_url}
                       alt={post.title}
-                      className="w-full h-48 object-cover rounded-t-lg"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
-                  )}
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      {post.knowledge_base_categories && (
-                        <Badge
-                          style={{
-                            backgroundColor: `${post.knowledge_base_categories.color}20`,
-                            color: post.knowledge_base_categories.color,
-                          }}
-                        >
-                          {post.knowledge_base_categories.name}
-                        </Badge>
-                      )}
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Eye className="h-4 w-4" />
-                        {post.view_count}
-                      </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  </div>
+                ) : (
+                  <div className="h-56 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                    <BookOpen className="h-16 w-16 text-primary/20" />
+                  </div>
+                )}
+                
+                <CardHeader className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    {post.knowledge_base_categories && (
+                      <Badge
+                        className="rounded-full px-3 py-1"
+                        style={{
+                          backgroundColor: `${post.knowledge_base_categories.color}20`,
+                          color: post.knowledge_base_categories.color,
+                          border: `1px solid ${post.knowledge_base_categories.color}40`,
+                        }}
+                      >
+                        {post.knowledge_base_categories.name}
+                      </Badge>
+                    )}
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span className="font-medium">{post.view_count}</span>
                     </div>
-                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                    <CardDescription className="line-clamp-3">
-                      {post.excerpt || 'Clique para ler mais...'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
+                  </div>
+                  
+                  <CardTitle className="text-2xl line-clamp-2 group-hover:text-primary transition-colors">
+                    {post.title}
+                  </CardTitle>
+                  
+                  <CardDescription className="text-base line-clamp-3">
+                    {post.excerpt || 'Clique para ler mais...'}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
                       {formatDistanceToNow(new Date(post.created_at), {
                         addSuffix: true,
                         locale: ptBR,
                       })}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </div>
