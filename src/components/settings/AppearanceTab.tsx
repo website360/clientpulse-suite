@@ -12,7 +12,7 @@ export function AppearanceTab() {
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark'
+    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark' | 'kb-logo-light'
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -90,7 +90,7 @@ export function AppearanceTab() {
     id: string;
     label: string;
     description: string;
-    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark';
+    type: 'favicon' | 'logo-light' | 'logo-dark' | 'logo-icon-light' | 'logo-icon-dark' | 'auth-logo-light' | 'auth-logo-dark' | 'kb-logo-light';
   }) => {
     const [preview, setPreview] = useState<string>('');
 
@@ -204,6 +204,23 @@ export function AppearanceTab() {
             label="Favicon"
             description="Recomendado: 32x32px ou 64x64px, formato PNG ou ICO"
             type="favicon"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Logo da Base de Conhecimento</CardTitle>
+          <CardDescription>
+            Logo exibido no hero da página pública de base de conhecimento
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LogoUploadSection
+            id="kb-logo-light"
+            label="Logo Base de Conhecimento"
+            description="Logo branco/claro para exibir no hero azul (recomendado: formato PNG com transparência)"
+            type="kb-logo-light"
           />
         </CardContent>
       </Card>

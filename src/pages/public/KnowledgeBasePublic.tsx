@@ -44,6 +44,15 @@ export default function KnowledgeBasePublic() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [kbLogo, setKbLogo] = useState<string>(logoIconLight);
+
+  useEffect(() => {
+    // Carregar logo customizado da base de conhecimento
+    const customKbLogo = localStorage.getItem('app-kb-logo-light');
+    if (customKbLogo) {
+      setKbLogo(customKbLogo);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCategories();
@@ -267,17 +276,17 @@ export default function KnowledgeBasePublic() {
         {/* Background Logo Pattern */}
         <div className="absolute inset-0 flex items-center justify-center opacity-5">
           <img 
-            src={logoIconLight}
+            src={kbLogo}
             alt="Background" 
             className="h-96 w-auto object-contain"
           />
         </div>
 
-        <div className="container relative py-16 md:py-20">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="container relative py-12 md:py-16">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
             <div className="flex justify-center mb-4">
               <img 
-                src={logoIconLight}
+                src={kbLogo}
                 alt="Logo" 
                 className="h-20 w-auto object-contain"
               />
