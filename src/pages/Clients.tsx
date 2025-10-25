@@ -105,10 +105,8 @@ export default function Clients() {
       // Apply sorting
       if (sortColumn) {
         query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
-      } else {
-        // Default sorting: by full_name (alphabetical)
-        query = query.order('full_name', { ascending: true, nullsFirst: false });
       }
+      // When no sort column is selected, we'll sort client-side by the displayed name
 
       // Apply pagination
       const from = (currentPage - 1) * pageSize;
@@ -118,7 +116,18 @@ export default function Clients() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setClients(data || []);
+      
+      // Sort by displayed name when no specific column is selected
+      let sortedData = data || [];
+      if (!sortColumn) {
+        sortedData = sortedData.sort((a, b) => {
+          const nameA = (a.client_type === 'person' ? a.full_name : a.responsible_name) || '';
+          const nameB = (b.client_type === 'person' ? b.full_name : b.responsible_name) || '';
+          return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
+        });
+      }
+      
+      setClients(sortedData);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast({
