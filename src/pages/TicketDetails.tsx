@@ -101,6 +101,7 @@ export default function TicketDetails() {
             id,
             full_name,
             company_name,
+            responsible_name,
             nickname,
             client_type,
             email,
@@ -357,46 +358,10 @@ export default function TicketDetails() {
     if (!id) return;
 
     try {
-      // Verificar se é admin
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (roleData?.role !== 'admin') {
-        throw new Error('Apenas administradores podem alterar o status');
-      }
-
-      // Normalizar caso venha label em PT
-      const ptToEn: Record<string, string> = {
-        'Aberto': 'open',
-        'Em Andamento': 'in_progress',
-        'Aguardando': 'waiting',
-        'Resolvido': 'resolved',
-        'Fechado': 'closed',
-      };
-      const normalized = ptToEn[newStatus] || newStatus;
-
-      // Update direto com timestamps apropriados
-      const updateData: any = { 
-        status: normalized,
-        updated_at: new Date().toISOString()
-      };
-
-      if (normalized === 'resolved') {
-        updateData.resolved_at = new Date().toISOString();
-      } else if (normalized === 'closed') {
-        updateData.closed_at = new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', id);
+      const { error } = await supabase.rpc('update_ticket_status_admin', {
+        p_ticket_id: id,
+        p_new_status: newStatus
+      });
 
       if (error) throw error;
 
@@ -738,12 +703,12 @@ export default function TicketDetails() {
                   <p className="text-sm text-muted-foreground">Identificação</p>
                   {ticket.clients?.client_type === 'person' ? (
                     <div>
-                      <p className="font-semibold">{ticket.clients?.nickname || 'Sem apelido'}</p>
+                      <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
                       <p className="text-sm text-muted-foreground">{ticket.clients?.full_name || 'N/A'}</p>
                     </div>
                   ) : (
                     <div>
-                      <p className="font-semibold">{ticket.clients?.nickname || 'Sem apelido'}</p>
+                      <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
                       <p className="text-sm text-muted-foreground">{ticket.clients?.company_name || 'N/A'}</p>
                     </div>
                   )}

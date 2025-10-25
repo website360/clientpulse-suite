@@ -119,46 +119,10 @@ export default function ClientDetail() {
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
     try {
-      // Verificar se é admin
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (roleData?.role !== 'admin') {
-        throw new Error('Apenas administradores podem alterar o status');
-      }
-
-      // Normalizar caso venha label em PT
-      const ptToEn: Record<string, string> = {
-        'Aberto': 'open',
-        'Em Andamento': 'in_progress',
-        'Aguardando': 'waiting',
-        'Resolvido': 'resolved',
-        'Fechado': 'closed',
-      };
-      const normalized = ptToEn[newStatus] || newStatus;
-
-      // Update direto com timestamps apropriados
-      const updateData: any = { 
-        status: normalized,
-        updated_at: new Date().toISOString()
-      };
-
-      if (normalized === 'resolved') {
-        updateData.resolved_at = new Date().toISOString();
-      } else if (normalized === 'closed') {
-        updateData.closed_at = new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from('tickets')
-        .update(updateData)
-        .eq('id', ticketId);
+      const { error } = await supabase.rpc('update_ticket_status_admin', {
+        p_ticket_id: ticketId,
+        p_new_status: newStatus
+      });
 
       if (error) throw error;
 

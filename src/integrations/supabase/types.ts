@@ -2311,6 +2311,10 @@ export type Database = {
         Args: { p_ticket_id: string }
         Returns: undefined
       }
+      update_ticket_status_admin: {
+        Args: { p_new_status: string; p_ticket_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "client" | "contato"
