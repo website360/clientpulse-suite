@@ -175,9 +175,9 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const fetchClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, full_name, company_name, nickname')
+      .select('id, full_name, company_name, responsible_name, client_type')
       .eq('is_active', true)
-      .order('full_name');
+      .order('responsible_name', { nullsFirst: false });
     
     setClients(data || []);
   };
@@ -442,9 +442,9 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                           {clients
                             .filter(client => {
                               const searchLower = clientSearch.toLowerCase();
+                              const responsibleName = (client.responsible_name || '').toLowerCase();
                               const name = (client.full_name || client.company_name || '').toLowerCase();
-                              const nickname = (client.nickname || '').toLowerCase();
-                              return name.includes(searchLower) || nickname.includes(searchLower);
+                              return responsibleName.includes(searchLower) || name.includes(searchLower);
                             })
                             .map((client) => (
                               <div
@@ -452,11 +452,12 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                                 className="px-3 py-2 cursor-pointer hover:bg-accent"
                                 onClick={() => {
                                   field.onChange(client.id);
-                                  setClientSearch(client.nickname || client.full_name || client.company_name || '');
+                                  const displayName = client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name) || '';
+                                  setClientSearch(displayName);
                                   setShowClientDropdown(false);
                                 }}
                               >
-                                {client.nickname || client.full_name || client.company_name}
+                                {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
                               </div>
                             ))}
                         </div>

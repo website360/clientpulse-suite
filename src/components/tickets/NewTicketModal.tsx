@@ -90,7 +90,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         // Fetch the client's info so it shows in the select (disabled)
         const { data: clientData } = await supabase
           .from('clients')
-          .select('id, full_name, company_name, email')
+          .select('id, full_name, company_name, email, responsible_name, client_type')
           .eq('id', contactData.client_id)
           .maybeSingle();
 
@@ -108,9 +108,9 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
   const fetchClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, full_name, company_name, email')
+      .select('id, full_name, company_name, email, responsible_name, client_type')
       .eq('is_active', true)
-      .order('full_name');
+      .order('responsible_name', { nullsFirst: false });
     setClients(data || []);
   };
 
@@ -263,7 +263,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.full_name || client.company_name} ({client.email})
+                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)} ({client.email})
                   </SelectItem>
                 ))}
               </SelectContent>

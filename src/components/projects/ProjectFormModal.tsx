@@ -38,9 +38,9 @@ export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
-        .select('id, full_name, company_name, nickname')
+        .select('id, full_name, company_name, responsible_name, client_type')
         .eq('is_active', true)
-        .order('full_name');
+        .order('responsible_name', { nullsFirst: false });
       
       if (error) throw error;
       return data;
@@ -173,11 +173,11 @@ export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.nickname || client.company_name || client.full_name}
-                    </SelectItem>
-                  ))}
+                {clients?.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                  </SelectItem>
+                ))}
                 </SelectContent>
               </Select>
             </div>

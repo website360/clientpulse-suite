@@ -14,6 +14,8 @@ interface Client {
   id: string;
   full_name: string | null;
   company_name: string | null;
+  responsible_name: string | null;
+  client_type: 'person' | 'company';
 }
 
 interface Domain {
@@ -70,9 +72,9 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
     try {
       const { data, error } = await supabase
         .from('clients')
-        .select('id, full_name, company_name')
+        .select('id, full_name, company_name, responsible_name, client_type')
         .eq('is_active', true)
-        .order('full_name');
+        .order('responsible_name', { nullsFirst: false });
 
       if (error) throw error;
       setClients(data || []);
@@ -136,7 +138,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
   };
 
   const getClientName = (client: Client) => {
-    return client.company_name || client.full_name || 'Cliente sem nome';
+    return client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name) || 'Cliente sem nome';
   };
 
   return (

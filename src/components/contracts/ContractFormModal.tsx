@@ -21,6 +21,8 @@ interface Client {
   id: string;
   full_name: string | null;
   company_name: string | null;
+  responsible_name: string | null;
+  client_type: 'person' | 'company';
 }
 
 interface Service {
@@ -102,9 +104,9 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
   const fetchClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, full_name, company_name')
+      .select('id, full_name, company_name, responsible_name, client_type')
       .eq('is_active', true)
-      .order('full_name');
+      .order('responsible_name', { nullsFirst: false });
     setClients(data || []);
   };
 
@@ -259,11 +261,11 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.full_name || client.company_name}
-                    </SelectItem>
-                  ))}
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                  </SelectItem>
+                ))}
                 </SelectContent>
               </Select>
             </div>

@@ -28,9 +28,9 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, full_name, nickname, company_name")
+        .select("id, full_name, responsible_name, company_name, client_type")
         .eq("is_active", true)
-        .order("full_name");
+        .order("responsible_name", { nullsFirst: false });
       if (error) throw error;
       return data;
     },
@@ -107,7 +107,7 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
           <SelectItem value="all">Todos</SelectItem>
           {clients.map((client) => (
             <SelectItem key={client.id} value={client.id}>
-              {client.nickname || client.company_name || client.full_name}
+              {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
             </SelectItem>
           ))}
         </SelectContent>
