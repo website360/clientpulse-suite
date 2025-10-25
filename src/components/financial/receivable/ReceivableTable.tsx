@@ -48,11 +48,28 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     account: any;
   }>({ open: false, account: null });
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [asaasEnabled, setAsaasEnabled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchAccounts();
+    fetchAsaasSettings();
   }, [filters, currentPage, pageSize, sortColumn, sortDirection]);
+
+  const fetchAsaasSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('asaas_settings')
+        .select('is_active')
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      setAsaasEnabled(data?.is_active ?? false);
+    } catch (error) {
+      console.error('Error fetching Asaas settings:', error);
+      setAsaasEnabled(false);
+    }
+  };
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -485,14 +502,14 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
               <SortableTableHead column="due_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead>Asaas</TableHead>
+              {asaasEnabled && <TableHead>Asaas</TableHead>}
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={asaasEnabled ? 8 : 7} className="text-center py-8 text-muted-foreground">
                   Nenhuma conta encontrada
                 </TableCell>
               </TableRow>
@@ -522,26 +539,28 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                   </TableCell>
                   <TableCell className="font-medium">{formatCurrency(account.amount)}</TableCell>
                   <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
-                  <TableCell>
-                    {account.sync_with_asaas && account.asaas_payment_id ? (
-                      <div className="flex flex-col gap-1">
-                        {getAsaasStatusBadge(account.asaas_status)}
-                        {account.asaas_invoice_url && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-xs"
-                            onClick={() => window.open(account.asaas_invoice_url, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Ver Fatura
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Não sincronizado</span>
-                    )}
-                  </TableCell>
+                  {asaasEnabled && (
+                    <TableCell>
+                      {account.sync_with_asaas && account.asaas_payment_id ? (
+                        <div className="flex flex-col gap-1">
+                          {getAsaasStatusBadge(account.asaas_status)}
+                          {account.asaas_invoice_url && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-xs"
+                              onClick={() => window.open(account.asaas_invoice_url, '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Ver Fatura
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Não sincronizado</span>
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -560,7 +579,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                             Marcar como Recebido
                           </DropdownMenuItem>
                         )}
-                        {!account.asaas_payment_id && (
+                        {asaasEnabled && !account.asaas_payment_id && (
                           <DropdownMenuItem 
                             onClick={() => handleCreateInAsaas(account)}
                             disabled={syncing === account.id}
@@ -573,7 +592,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                             Criar no Asaas
                           </DropdownMenuItem>
                         )}
-                        {account.asaas_payment_id && (
+                        {asaasEnabled && account.asaas_payment_id && (
                           <>
                             <DropdownMenuItem 
                               onClick={() => handleSyncFromAsaas(account)}
