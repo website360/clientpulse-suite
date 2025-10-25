@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Download, Ticket } from 'lucide-react';
+import { Plus, Ticket } from 'lucide-react';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
@@ -280,29 +280,6 @@ export default function Tickets() {
     }
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['#', 'Assunto', 'Cliente', 'Departamento', 'Prioridade', 'Data de Criação'],
-      ...filteredTickets.map((ticket) => [
-        ticket.ticket_number,
-        ticket.subject,
-        ticket.clients?.full_name || ticket.clients?.company_name,
-        ticket.departments?.name,
-        ticket.priority,
-        new Date(ticket.created_at).toLocaleDateString('pt-BR'),
-      ]),
-    ]
-      .map((row) => row.join(','))
-      .join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tickets.csv';
-    a.click();
-  };
-
   const handleDelete = (ticketId: string) => {
     setTicketToDelete(ticketId);
     setDeleteDialogOpen(true);
@@ -376,18 +353,9 @@ export default function Tickets() {
           )}
         </div>
 
-        {/* Filters and Actions */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap flex-1">
-            <TicketFilters filters={filters} onFiltersChange={setFilters} />
-          </div>
-          
-          <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
-            </Button>
-          </div>
+        {/* Filters */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <TicketFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
         {/* Stats */}
