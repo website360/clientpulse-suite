@@ -9,6 +9,8 @@ import { Search, ArrowLeft, Eye, Calendar, Copy, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import logoLight from '@/assets/logo-light.png';
+import logoDark from '@/assets/logo-dark.png';
 
 interface Category {
   id: string;
@@ -43,6 +45,38 @@ export default function KnowledgeBasePublic() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [isDark, setIsDark] = useState(false);
+  const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
+    light: logoLight,
+    dark: logoDark,
+  });
+
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+    
+    // Carregar logos customizados do localStorage
+    const customLogoLight = localStorage.getItem('app-logo-light');
+    const customLogoDark = localStorage.getItem('app-logo-dark');
+    
+    setMenuLogo({
+      light: customLogoLight || logoLight,
+      dark: customLogoDark || logoDark,
+    });
+
+    // Observer para mudanças no tema
+    const observer = new MutationObserver(() => {
+      const newIsDark = document.documentElement.classList.contains('dark');
+      setIsDark(newIsDark);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     fetchCategories();
@@ -260,18 +294,25 @@ export default function KnowledgeBasePublic() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground overflow-hidden">
+      <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground overflow-hidden border-b-4 border-accent">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoMnYyaC0ydi0yem0wLTEwaC0ydjJoMnYtMnptMCAxMGgydjJoLTJ2LTJ6bTAtMTBoMnYyaC0ydi0yem0wIDEwaDJ2MmgtMnYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-10"></div>
-        <div className="container relative py-20 md:py-32">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+        <div className="container relative py-16 md:py-20">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <div className="flex justify-center mb-4">
+              <img 
+                src={isDark ? menuLogo.dark : menuLogo.light} 
+                alt="Logo" 
+                className="h-16 w-auto object-contain"
+              />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
               Base de Conhecimento
             </h1>
-            <p className="text-xl md:text-2xl text-primary-foreground/90">
+            <p className="text-lg md:text-xl text-primary-foreground/90">
               Tutoriais, guias e documentação para ajudar você
             </p>
             
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto pt-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
