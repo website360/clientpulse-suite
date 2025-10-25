@@ -117,12 +117,12 @@ export default function Clients() {
 
       if (error) throw error;
       
-      // Sort by displayed name when no specific column is selected
+      // Sort by responsible_name when no specific column is selected
       let sortedData = data || [];
       if (!sortColumn) {
         sortedData = sortedData.sort((a, b) => {
-          const nameA = a.nickname || (a.client_type === 'person' ? a.full_name : a.responsible_name) || '';
-          const nameB = b.nickname || (b.client_type === 'person' ? b.full_name : b.responsible_name) || '';
+          const nameA = a.responsible_name || a.full_name || a.company_name || '';
+          const nameB = b.responsible_name || b.full_name || b.company_name || '';
           return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
         });
       }
