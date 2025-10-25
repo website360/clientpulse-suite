@@ -133,15 +133,25 @@ export default function ClientDetail() {
         throw new Error('Apenas administradores podem alterar o status');
       }
 
+      // Normalizar caso venha label em PT
+      const ptToEn: Record<string, string> = {
+        'Aberto': 'open',
+        'Em Andamento': 'in_progress',
+        'Aguardando': 'waiting',
+        'Resolvido': 'resolved',
+        'Fechado': 'closed',
+      };
+      const normalized = ptToEn[newStatus] || newStatus;
+
       // Update direto com timestamps apropriados
       const updateData: any = { 
-        status: newStatus,
+        status: normalized,
         updated_at: new Date().toISOString()
       };
 
-      if (newStatus === 'resolved') {
+      if (normalized === 'resolved') {
         updateData.resolved_at = new Date().toISOString();
-      } else if (newStatus === 'closed') {
+      } else if (normalized === 'closed') {
         updateData.closed_at = new Date().toISOString();
       }
 

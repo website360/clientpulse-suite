@@ -101,6 +101,8 @@ export default function TicketDetails() {
             id,
             full_name,
             company_name,
+            nickname,
+            client_type,
             email,
             phone,
             cpf_cnpj
@@ -263,13 +265,7 @@ export default function TicketDetails() {
       fetchMessages();
       fetchAttachments();
       
-      // Send email notification
-      supabase.functions.invoke('send-email', {
-        body: {
-          template_key: 'ticket_message_added',
-          ticket_id: id,
-        },
-      }).catch(err => console.error('Error sending email:', err));
+      // (Email desativado)
       
       // Send WhatsApp notification to client if admin responded
       if (isAdmin) {
@@ -375,15 +371,25 @@ export default function TicketDetails() {
         throw new Error('Apenas administradores podem alterar o status');
       }
 
+      // Normalizar caso venha label em PT
+      const ptToEn: Record<string, string> = {
+        'Aberto': 'open',
+        'Em Andamento': 'in_progress',
+        'Aguardando': 'waiting',
+        'Resolvido': 'resolved',
+        'Fechado': 'closed',
+      };
+      const normalized = ptToEn[newStatus] || newStatus;
+
       // Update direto com timestamps apropriados
       const updateData: any = { 
-        status: newStatus,
+        status: normalized,
         updated_at: new Date().toISOString()
       };
 
-      if (newStatus === 'resolved') {
+      if (normalized === 'resolved') {
         updateData.resolved_at = new Date().toISOString();
-      } else if (newStatus === 'closed') {
+      } else if (normalized === 'closed') {
         updateData.closed_at = new Date().toISOString();
       }
 
@@ -729,10 +735,18 @@ export default function TicketDetails() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">Nome</p>
-                  <p className="font-medium">
-                    {ticket.clients?.full_name || ticket.clients?.company_name || 'N/A'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Identificação</p>
+                  {ticket.clients?.client_type === 'person' ? (
+                    <div>
+                      <p className="font-semibold">{ticket.clients?.nickname || 'Sem apelido'}</p>
+                      <p className="text-sm text-muted-foreground">{ticket.clients?.full_name || 'N/A'}</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-semibold">{ticket.clients?.nickname || 'Sem apelido'}</p>
+                      <p className="text-sm text-muted-foreground">{ticket.clients?.company_name || 'N/A'}</p>
+                    </div>
+                  )}
                 </div>
                 {ticket.clients?.email && (
                   <div>
