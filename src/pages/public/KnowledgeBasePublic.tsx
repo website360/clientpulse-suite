@@ -357,7 +357,7 @@ export default function KnowledgeBasePublic() {
               <img 
                 src={kbLogo}
                 alt="Logo" 
-                className="h-20 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
