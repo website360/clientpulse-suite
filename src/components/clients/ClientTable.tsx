@@ -122,7 +122,7 @@ export function ClientTable({
                 <TableCell>
                   <ClientNameCell 
                     client={client} 
-                    contactsCount={client.contacts_count?.[0]?.count}
+                    contactsCount={client.contacts_count?.[0]?.count || undefined}
                   />
                 </TableCell>
                 <TableCell>

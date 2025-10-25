@@ -53,7 +53,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
 
             <h3 className="font-semibold text-lg mb-1 line-clamp-1 flex items-center gap-1.5">
               {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-              {client.contacts_count?.[0]?.count > 0 && (
+              {(client.contacts_count?.[0]?.count || 0) > 0 && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
