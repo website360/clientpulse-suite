@@ -12,13 +12,6 @@ import {
 } from '@/components/ui/table';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Card } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +19,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface TicketTableProps {
   tickets: any[];
-  onStatusChange: (ticketId: string, newStatus: string) => void;
   onPriorityChange: (ticketId: string, newPriority: string) => void;
   onDelete?: (ticketId: string) => void;
   sortColumn?: string | null;
@@ -35,7 +27,7 @@ interface TicketTableProps {
   hideClientColumn?: boolean;
 }
 
-export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelete, sortColumn, sortDirection, onSort, hideClientColumn = false }: TicketTableProps) {
+export function TicketTable({ tickets, onPriorityChange, onDelete, sortColumn, sortDirection, onSort, hideClientColumn = false }: TicketTableProps) {
   const navigate = useNavigate();
   const { userRole } = useAuth();
 
@@ -52,34 +44,6 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
       default:
         return 'badge-priority-medium';
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'badge-status-open';
-      case 'in_progress':
-        return 'badge-status-in-progress';
-      case 'waiting':
-        return 'badge-status-waiting';
-      case 'resolved':
-        return 'badge-status-resolved';
-      case 'closed':
-        return 'badge-status-closed';
-      default:
-        return 'badge-status-open';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      open: 'Aberto',
-      in_progress: 'Em Andamento',
-      waiting: 'Aguardando',
-      resolved: 'Resolvido',
-      closed: 'Fechado',
-    };
-    return labels[status] || status;
   };
 
   const getPriorityLabel = (priority: string) => {
@@ -114,7 +78,6 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
             {!hideClientColumn && <TableHead>Cliente</TableHead>}
             <TableHead>Departamento</TableHead>
             <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <SortableTableHead column="created_at" label="Criado em" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
@@ -157,11 +120,6 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
               <TableCell>
                 <span className={getPriorityColor(ticket.priority)}>
                   {getPriorityLabel(ticket.priority)}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className={getStatusColor(ticket.status)}>
-                  {getStatusLabel(ticket.status)}
                 </span>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">

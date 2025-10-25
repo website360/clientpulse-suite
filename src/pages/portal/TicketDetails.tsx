@@ -4,8 +4,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,11 +18,9 @@ import {
   AlertCircle,
   Download,
   File,
-  CheckCircle,
   Paperclip
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
-import { TicketReviewModal } from '@/components/tickets/TicketReviewModal';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
@@ -41,7 +37,6 @@ export default function ClientTicketDetails() {
   const [newMessageHtml, setNewMessageHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [isContact, setIsContact] = useState(false);
 
   useEffect(() => {
@@ -57,7 +52,6 @@ export default function ClientTicketDetails() {
     if (!id || !user?.id) return;
     
     try {
-      // Inserir ou atualizar a visualização do ticket
       await supabase
         .from('ticket_views')
         .upsert({
@@ -68,7 +62,6 @@ export default function ClientTicketDetails() {
           onConflict: 'ticket_id,user_id'
         });
 
-      // Marcar notificações relacionadas como lidas
       await supabase
         .from('notifications')
         .update({ read: true })
@@ -83,7 +76,6 @@ export default function ClientTicketDetails() {
 
   const fetchTicketDetails = async () => {
     try {
-      // Resolver client_id: se for contato, pegar do vínculo; senão, do cliente dono
       const { data: contactData } = await supabase
         .from('client_contacts')
         .select('client_id')
@@ -103,35 +95,17 @@ export default function ClientTicketDetails() {
           .select('id')
           .eq('user_id', user?.id)
           .maybeSingle();
-        resolvedClientId = clientData?.id || null;
+
+        if (clientData?.id) {
+          resolvedClientId = clientData.id;
+        }
       }
 
       if (!resolvedClientId) {
-        // Tentar associar automaticamente o usuário ao cliente pelo e-mail
-        try {
-          await supabase.functions.invoke('link-client-user');
-          const { data: clientAfterLink } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('user_id', user?.id)
-            .maybeSingle();
-          resolvedClientId = clientAfterLink?.id || null;
-        } catch (e) {
-          console.error('Auto-link client failed', e);
-        }
-
-        if (!resolvedClientId) {
-          toast({
-            title: 'Acesso negado',
-            description: 'Você não está associado a nenhum cliente.',
-            variant: 'destructive',
-          });
-          navigate('/portal/tickets');
-          return;
-        }
+        throw new Error('Cliente não encontrado');
       }
 
-      let query = supabase
+      const { data, error } = await supabase
         .from('tickets')
         .select(`
           *,
@@ -142,23 +116,18 @@ export default function ClientTicketDetails() {
           )
         `)
         .eq('id', id)
-        .eq('client_id', resolvedClientId);
+        .eq('client_id', resolvedClientId)
+        .single();
 
-      if (userIsContact) {
-        query = query.eq('created_by', user?.id);
-      }
-
-      const { data, error } = await query.single();
       if (error) throw error;
 
-      // Check if ticket was created by a contact
-      const { data: creatorContactData } = await supabase
+      const { data: contactCreatorData } = await supabase
         .from('client_contacts')
         .select('id, name, email')
         .eq('user_id', data.created_by)
         .maybeSingle();
 
-      setTicket({ ...data, contact_creator: creatorContactData });
+      setTicket({ ...data, contact_creator: contactCreatorData });
     } catch (error: any) {
       toast({
         title: 'Erro ao carregar ticket',
@@ -194,26 +163,22 @@ export default function ClientTicketDetails() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles de todos os usuários
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('user_id, role')
         .in('user_id', userIds);
 
-      // Buscar contatos
       const { data: contactsData } = await supabase
         .from('client_contacts')
         .select('user_id, name')
         .in('user_id', userIds);
 
-      // Buscar cliente para pegar apelido
       const { data: clientData } = await supabase
         .from('clients')
         .select('user_id, nickname, full_name')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      // Buscar anexos das mensagens
       const messageIds = messagesData.map(m => m.id);
       const { data: attachmentsData } = await supabase
         .from('ticket_attachments')
@@ -278,18 +243,8 @@ export default function ClientTicketDetails() {
   };
 
   const handleSendMessage = async () => {
-    const plain = stripHtml(newMessageHtml).trim();
+    const plain = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim();
     if (!plain || !id) return;
-
-    // Impedir envio se ticket estiver fechado ou resolvido
-    if (ticket?.status === 'closed' || ticket?.status === 'resolved') {
-      toast({
-        title: 'Ticket fechado',
-        description: 'Não é possível enviar mensagens em um ticket fechado.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     setSending(true);
     try {
@@ -316,7 +271,6 @@ export default function ClientTicketDetails() {
       fetchMessages();
       fetchAttachments();
       
-      // Send WhatsApp notification to admin
       try {
         await supabase.functions.invoke('send-whatsapp', {
           body: {
@@ -402,76 +356,7 @@ export default function ClientTicketDetails() {
     }
   };
 
-  // Helpers
   const stripHtml = (html: string) => DOMPurify.sanitize(html || '', { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '');
-
-  const quoteMessage = (msg: any) => {
-    const author = msg.displayName || 'Usuário';
-    const time = format(new Date(msg.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-    const sanitizedMsg = DOMPurify.sanitize(msg.message || '');
-    const quoteHtml = `<blockquote><strong>${author}</strong> em ${time}<div>${sanitizedMsg}</div></blockquote><p><br/></p>`;
-    setNewMessageHtml((prev) => `${prev}${quoteHtml}`);
-  };
-
-  const handleReviewSubmit = async (rating: number, feedback: string) => {
-    try {
-      // Usar RPC para marcar como resolvido
-      const { error } = await supabase.rpc('mark_ticket_as_resolved', {
-        p_ticket_id: id
-      });
-
-      if (error) throw error;
-
-      // Atualização otimista do estado local para UI imediata
-      setTicket(prev => prev ? {
-        ...prev,
-        status: 'resolved',
-        resolved_at: new Date().toISOString()
-      } : prev);
-
-      // Sincronizar com o backend
-      fetchTicketDetails();
-      
-      toast({
-        title: 'Ticket marcado como resolvido',
-        description: 'Obrigado pela sua avaliação!',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao marcar ticket como resolvido',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      open: 'Aberto',
-      in_progress: 'Em Andamento',
-      waiting: 'Aguardando',
-      resolved: 'Resolvido',
-      closed: 'Fechado',
-    };
-    return labels[status] || status;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'badge-status-open';
-      case 'in_progress':
-        return 'badge-status-in-progress';
-      case 'waiting':
-        return 'badge-status-waiting';
-      case 'resolved':
-        return 'badge-status-resolved';
-      case 'closed':
-        return 'badge-status-closed';
-      default:
-        return 'badge-status-open';
-    }
-  };
 
   const getPriorityLabel = (priority: string) => {
     const labels: Record<string, string> = {
@@ -516,14 +401,12 @@ export default function ClientTicketDetails() {
           <h2 className="text-2xl font-bold mb-2">Ticket não encontrado</h2>
           <Button onClick={() => navigate('/portal/tickets')} className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar para Tickets
+            Voltar para Meus Tickets
           </Button>
         </div>
       </DashboardLayout>
     );
   }
-
-  const canResolve = ticket.status !== 'closed' && ticket.status !== 'resolved';
 
   return (
     <DashboardLayout breadcrumbLabel={`Ticket #${ticket.ticket_number}`}>
@@ -541,18 +424,11 @@ export default function ClientTicketDetails() {
             <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
             <p className="text-muted-foreground">{ticket.subject}</p>
           </div>
-          {canResolve && (
-            <Button onClick={() => setShowReviewModal(true)}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Problema Resolvido
-            </Button>
-          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Contact Creator Info - Hidden for contacts */}
             {!isContact && ticket.contact_creator && (
               <Card className="card-elevated border-blue-500/50 bg-blue-500/5">
                 <CardContent className="pt-6">
@@ -564,31 +440,6 @@ export default function ClientTicketDetails() {
                   </div>
                 </CardContent>
               </Card>
-            )}
-
-            {/* Alerta de ticket fechado ou resolvido */}
-            {ticket.status === 'closed' && (
-              <div className="bg-muted border border-border rounded-lg p-4 flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-semibold text-sm">Ticket Fechado</p>
-                  <p className="text-sm text-muted-foreground">
-                    Este ticket foi fechado e não permite mais o envio de mensagens.
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {ticket.status === 'resolved' && (
-              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="font-semibold text-sm">Ticket Resolvido</p>
-                  <p className="text-sm text-muted-foreground">
-                    Este ticket foi marcado como resolvido. Aguardando o administrador fechá-lo definitivamente.
-                  </p>
-                </div>
-              </div>
             )}
 
             {/* Description */}
@@ -633,98 +484,63 @@ export default function ClientTicketDetails() {
                            ? 'text-green-700 dark:text-green-400'
                            : 'text-blue-700 dark:text-blue-400';
                        
-                       const badgeClasses =
-                         message.messageType === 'admin'
-                           ? 'bg-gray-600 text-white'
-                           : message.messageType === 'contact'
-                           ? 'bg-green-600 text-white'
-                           : 'bg-blue-600 text-white';
-                       
                        return (
-                         <Card key={message.id} className={colorClasses}>
+                         <Card key={message.id} className={`${colorClasses} border`}>
                            <CardContent className="p-4">
-                             <div className="flex items-start gap-3">
-                               <div className="flex-1">
-                                 <div className="flex items-center gap-2 mb-2">
-                                   <span className={`font-semibold text-sm ${textColor}`}>
+                             <div className="space-y-2">
+                               <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-2">
+                                   <span className={`text-sm font-semibold ${textColor}`}>
                                      {message.displayName}
-                                     {message.isAdmin && (
-                                       <span className={`ml-2 text-xs px-2 py-0.5 rounded ${badgeClasses}`}>
-                                         Suporte
-                                       </span>
-                                     )}
-                                     {message.isContact && !message.isAdmin && (
-                                       <span className={`ml-2 text-xs px-2 py-0.5 rounded ${badgeClasses}`}>
-                                         Contato
-                                       </span>
-                                     )}
                                    </span>
-                                   <span className="text-xs text-muted-foreground">
-                                     {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                   </span>
-                                 {message.attachmentNames && (
-                                   <TooltipProvider>
-                                     <Tooltip>
-                                       <TooltipTrigger asChild>
-                                         <span>
-                                           <Paperclip className="h-3 w-3 text-muted-foreground" />
-                                         </span>
-                                       </TooltipTrigger>
-                                       <TooltipContent>
-                                         <p className="text-xs">{message.attachmentNames}</p>
-                                       </TooltipContent>
-                                     </Tooltip>
-                                   </TooltipProvider>
-                                 )}
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={() => quoteMessage(message)}
-                                   className="ml-auto h-6 text-xs"
-                                 >
-                                   Citar
-                                 </Button>
+                                   {message.messageType === 'admin' && (
+                                     <Badge variant="outline" className="text-xs bg-gray-100 dark:bg-gray-900">Admin</Badge>
+                                   )}
+                                   {message.messageType === 'contact' && (
+                                     <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900">Contato</Badge>
+                                   )}
+                                 </div>
+                                 <span className="text-xs text-muted-foreground">
+                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                 </span>
                                </div>
                                <div
                                   className="text-sm"
                                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
                                 />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                             </div>
+                           </CardContent>
+                         </Card>
                        );
                      })}
                    </div>
                  )}
 
                 {/* New Message */}
-                {canResolve && (
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="min-h-[250px]">
-                      <ReactQuill
-                        theme="snow"
-                        value={newMessageHtml}
-                        onChange={setNewMessageHtml}
-                        placeholder="Escreva sua mensagem..."
-                        style={{ height: '200px' }}
-                      />
-                    </div>
-                    <FileUpload
-                      onFilesChange={setMessageAttachments}
-                      maxSizeMB={1}
-                      multiple={true}
+                <div className="space-y-2 pt-4 border-t">
+                  <div className="min-h-[250px]">
+                    <ReactQuill
+                      theme="snow"
+                      value={newMessageHtml}
+                      onChange={setNewMessageHtml}
+                      placeholder="Escreva sua mensagem..."
+                      style={{ height: '200px' }}
                     />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!stripHtml(newMessageHtml).trim() || sending}
-                      className="w-full"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      {sending ? 'Enviando...' : 'Enviar Mensagem'}
-                    </Button>
                   </div>
-                )}
+                  <FileUpload
+                    onFilesChange={setMessageAttachments}
+                    maxSizeMB={1}
+                    multiple={true}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!stripHtml(newMessageHtml).trim() || sending}
+                    className="w-full"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {sending ? 'Enviando...' : 'Enviar Mensagem'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -771,26 +587,25 @@ export default function ClientTicketDetails() {
               </Card>
             )}
 
-            {/* Department Info */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Departamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge
-                  variant="outline"
-                  style={{
-                    borderColor: ticket.departments?.color || '#1E40AF',
-                    color: ticket.departments?.color || '#1E40AF',
-                  }}
-                >
-                  {ticket.departments?.name || 'N/A'}
-                </Badge>
-              </CardContent>
-            </Card>
+            {/* Department */}
+            {ticket.departments && (
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle>Departamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge
+                    variant="outline"
+                    style={{
+                      borderColor: ticket.departments.color,
+                      color: ticket.departments.color,
+                    }}
+                  >
+                    {ticket.departments.name}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Timeline */}
             <Card className="card-elevated">
@@ -800,58 +615,30 @@ export default function ClientTicketDetails() {
                   Timeline
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge className={getStatusColor(ticket.status)}>
-                    {getStatusLabel(ticket.status)}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Prioridade</p>
-                  <Badge className={getPriorityColor(ticket.priority)}>
-                    {getPriorityLabel(ticket.priority)}
-                  </Badge>
-                </div>
+              <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Criado em</p>
                   <p className="font-medium">
                     {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Última atualização</p>
-                  <p className="font-medium">
-                    {format(new Date(ticket.updated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-                {ticket.resolved_at && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Resolvido em</p>
-                    <p className="font-medium">
-                      {format(new Date(ticket.resolved_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                )}
-                {ticket.closed_at && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Fechado em</p>
-                    <p className="font-medium">
-                      {format(new Date(ticket.closed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                )}
+              </CardContent>
+            </Card>
+
+            {/* Priority */}
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle>Prioridade</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge className={getPriorityColor(ticket.priority)}>
+                  {getPriorityLabel(ticket.priority)}
+                </Badge>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-
-      <TicketReviewModal
-        open={showReviewModal}
-        onOpenChange={setShowReviewModal}
-        onSubmit={handleReviewSubmit}
-      />
     </DashboardLayout>
   );
 }

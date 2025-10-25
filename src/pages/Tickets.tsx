@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Download, Ticket, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Download, Ticket } from 'lucide-react';
 import { TicketTable } from '@/components/tickets/TicketTable';
-import { TicketKanban } from '@/components/tickets/TicketKanban';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
 import { MetricCard } from '@/components/dashboard/MetricCard';
@@ -24,7 +23,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Tickets() {
-  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [tickets, setTickets] = useState<any[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +33,6 @@ export default function Tickets() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filters, setFilters] = useState({
     search: '',
-    status: 'all',
     priority: 'all',
     department: 'all',
   });
@@ -187,11 +184,6 @@ export default function Tickets() {
       );
     }
 
-    // Status filter
-    if (filters.status !== 'all') {
-      filtered = filtered.filter((ticket) => ticket.status === filters.status);
-    }
-
     // Priority filter
     if (filters.priority !== 'all') {
       filtered = filtered.filter((ticket) => ticket.priority === filters.priority);
@@ -203,38 +195,6 @@ export default function Tickets() {
     }
 
     setFilteredTickets(filtered);
-  };
-
-  const handleStatusChange = async (ticketId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase.rpc('update_ticket_status_admin', {
-        p_ticket_id: ticketId,
-        p_new_status: newStatus
-      });
-
-      if (error) throw error;
-
-      supabase.functions.invoke('send-whatsapp', {
-        body: {
-          action: 'send_ticket_notification',
-          ticket_id: ticketId,
-          event_type: 'status_changed',
-        },
-      }).catch(err => console.error('Error sending WhatsApp:', err));
-
-      toast({
-        title: 'Status atualizado',
-        description: 'Status do ticket atualizado com sucesso.',
-      });
-      fetchTickets();
-    } catch (error: any) {
-      console.error('Error updating status:', error);
-      toast({
-        title: 'Erro ao atualizar status',
-        description: error.message || 'Não foi possível atualizar o status do ticket.',
-        variant: 'destructive',
-      });
-    }
   };
 
   const handlePriorityChange = async (ticketId: string, newPriority: string) => {
@@ -266,14 +226,13 @@ export default function Tickets() {
 
   const handleExport = () => {
     const csv = [
-      ['#', 'Assunto', 'Cliente', 'Departamento', 'Prioridade', 'Status', 'Data de Criação'],
+      ['#', 'Assunto', 'Cliente', 'Departamento', 'Prioridade', 'Data de Criação'],
       ...filteredTickets.map((ticket) => [
         ticket.ticket_number,
         ticket.subject,
         ticket.clients?.full_name || ticket.clients?.company_name,
         ticket.departments?.name,
         ticket.priority,
-        ticket.status,
         new Date(ticket.created_at).toLocaleDateString('pt-BR'),
       ]),
     ]
@@ -372,67 +331,15 @@ export default function Tickets() {
               <Download className="h-4 w-4" />
               Exportar
             </Button>
-            
-            <div className="flex items-center gap-1 border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                <TableIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('kanban')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <MetricCard
-            title="Total"
+            title="Total de Tickets"
             value={filteredTickets.length}
             icon={Ticket}
-            variant="default"
-            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-          />
-          <MetricCard
-            title="Aberto"
-            value={filteredTickets.filter((t) => t.status === 'open').length}
-            icon={Ticket}
-            variant="default"
-            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-          />
-          <MetricCard
-            title="Em Andamento"
-            value={filteredTickets.filter((t) => t.status === 'in_progress').length}
-            icon={Clock}
-            variant="default"
-            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-          />
-          <MetricCard
-            title="Aguardando"
-            value={filteredTickets.filter((t) => t.status === 'waiting').length}
-            icon={Clock}
-            variant="default"
-            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-          />
-          <MetricCard
-            title="Resolvido"
-            value={filteredTickets.filter((t) => t.status === 'resolved').length}
-            icon={CheckCircle}
-            variant="default"
-            className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-          />
-          <MetricCard
-            title="Fechado"
-            value={filteredTickets.filter((t) => t.status === 'closed').length}
-            icon={XCircle}
             variant="default"
             className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
           />
@@ -443,11 +350,10 @@ export default function Tickets() {
           <div className="text-center py-12">
             <p className="text-muted-foreground">Carregando tickets...</p>
           </div>
-        ) : viewMode === 'table' ? (
+        ) : (
           <>
             <TicketTable
               tickets={paginatedTickets}
-              onStatusChange={handleStatusChange}
               onPriorityChange={handlePriorityChange}
               onDelete={handleDelete}
               sortColumn={sortColumn}
@@ -463,11 +369,6 @@ export default function Tickets() {
               onPageSizeChange={handlePageSizeChange}
             />
           </>
-        ) : (
-          <TicketKanban
-            tickets={filteredTickets}
-            onStatusChange={handleStatusChange}
-          />
         )}
 
         {/* New Ticket Modal */}

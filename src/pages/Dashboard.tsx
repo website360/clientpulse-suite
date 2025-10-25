@@ -86,21 +86,19 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch ticket stats
-      const { data: tickets } = await supabase
+      // Count total tickets
+      const { count: ticketsCount } = await supabase
         .from('tickets')
-        .select('status');
+        .select('*', { count: 'exact', head: true });
 
-      if (tickets) {
-        setStats(prev => ({
-          ...prev,
-          openTickets: tickets.filter(t => t.status === 'open').length,
-          inProgressTickets: tickets.filter(t => t.status === 'in_progress').length,
-          waitingTickets: tickets.filter(t => t.status === 'waiting').length,
-          resolvedTickets: tickets.filter(t => t.status === 'resolved').length,
-          closedTickets: tickets.filter(t => t.status === 'closed').length,
-        }));
-      }
+      setStats(prev => ({
+        ...prev,
+        openTickets: ticketsCount || 0,
+        inProgressTickets: 0,
+        waitingTickets: 0,
+        resolvedTickets: 0,
+        closedTickets: 0,
+      }));
 
       // Fetch clients count (admin only)
       if (userRole === 'admin') {

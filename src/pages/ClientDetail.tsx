@@ -117,30 +117,7 @@ export default function ClientDetail() {
     }
   };
 
-  const handleStatusChange = async (ticketId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase.rpc('update_ticket_status_admin', {
-        p_ticket_id: ticketId,
-        p_new_status: newStatus
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Status atualizado',
-        description: 'O status do ticket foi atualizado com sucesso.',
-      });
-
-      fetchClientTickets();
-    } catch (error: any) {
-      console.error('Error updating status:', error);
-      toast({
-        title: 'Erro ao atualizar',
-        description: error.message || 'Não foi possível atualizar o status do ticket.',
-        variant: 'destructive',
-      });
-    }
-  };
+  // Remover handleStatusChange completamente
 
   const handlePriorityChange = async (ticketId: string, newPriority: string) => {
     try {
@@ -622,7 +599,6 @@ export default function ClientDetail() {
             ) : (
               <TicketTable
                 tickets={tickets}
-                onStatusChange={handleStatusChange}
                 onPriorityChange={handlePriorityChange}
                 hideClientColumn={true}
               />

@@ -78,7 +78,6 @@ export default function TicketDetails() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Marcar como lidas todas as notificações relacionadas a este ticket
       await supabase
         .from('notifications')
         .update({ read: true })
@@ -119,7 +118,6 @@ export default function TicketDetails() {
 
       if (error) throw error;
 
-      // Check if ticket was created by a contact
       const { data: contactData } = await supabase
         .from('client_contacts')
         .select('id, name, email')
@@ -141,7 +139,6 @@ export default function TicketDetails() {
 
   const fetchMessages = async () => {
     try {
-      // Buscar mensagens
       const { data: messagesData, error: messagesError } = await supabase
         .from('ticket_messages')
         .select('*')
@@ -155,7 +152,6 @@ export default function TicketDetails() {
         return;
       }
 
-      // Buscar perfis dos usuários
       const userIds = [...new Set(messagesData.map(m => m.user_id))];
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -164,19 +160,16 @@ export default function TicketDetails() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles dos usuários
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('user_id, role')
         .in('user_id', userIds);
 
-      // Buscar contatos
       const { data: contactsData } = await supabase
         .from('client_contacts')
         .select('user_id, name')
         .in('user_id', userIds);
 
-      // Combinar mensagens com perfis
       const messagesWithProfiles = messagesData.map(message => {
         const profile = profilesData?.find(p => p.id === message.user_id) || null;
         const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
@@ -222,7 +215,6 @@ export default function TicketDetails() {
   };
 
   const handleSendMessage = async () => {
-    // Validate message content (strip HTML for validation)
     const plainText = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim();
     if (!plainText && messageAttachments.length === 0 || !id) return;
 
@@ -231,7 +223,6 @@ export default function TicketDetails() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Check if user is admin
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('role')
@@ -240,7 +231,6 @@ export default function TicketDetails() {
       
       const isAdmin = rolesData?.role === 'admin';
 
-      // Sanitize HTML before saving
       const sanitizedMessage = DOMPurify.sanitize(newMessageHtml, { USE_PROFILES: { html: true } });
 
       const { data: messageData, error } = await supabase
@@ -256,7 +246,6 @@ export default function TicketDetails() {
 
       if (error) throw error;
 
-      // Upload attachments if any
       if (messageAttachments.length > 0) {
         await uploadMessageAttachments(messageData.id, messageAttachments);
       }
@@ -266,9 +255,6 @@ export default function TicketDetails() {
       fetchMessages();
       fetchAttachments();
       
-      // (Email desativado)
-      
-      // Send WhatsApp notification to client if admin responded
       if (isAdmin) {
         supabase.functions.invoke('send-whatsapp', {
           body: {
@@ -354,41 +340,6 @@ export default function TicketDetails() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!id) return;
-
-    try {
-      const { error } = await supabase.rpc('update_ticket_status_admin', {
-        p_ticket_id: id,
-        p_new_status: newStatus
-      });
-
-      if (error) throw error;
-
-      fetchTicketDetails();
-
-      supabase.functions.invoke('send-whatsapp', {
-        body: {
-          action: 'send_ticket_notification',
-          ticket_id: id,
-          event_type: 'status_changed',
-        },
-      }).catch(err => console.error('Error sending WhatsApp:', err));
-
-      toast({
-        title: 'Status atualizado',
-        description: 'O status do ticket foi alterado com sucesso.',
-      });
-    } catch (error: any) {
-      console.error('Status change error:', error);
-      toast({
-        title: 'Erro ao atualizar status',
-        description: error.message || 'Não foi possível atualizar o status do ticket.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handlePriorityChange = async (newPriority: string) => {
     try {
       const { error } = await supabase
@@ -427,33 +378,6 @@ export default function TicketDetails() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'badge-status-open';
-      case 'in_progress':
-        return 'badge-status-in-progress';
-      case 'waiting':
-        return 'badge-status-waiting';
-      case 'resolved':
-        return 'badge-status-resolved';
-      case 'closed':
-        return 'badge-status-closed';
-      default:
-        return 'badge-status-open';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      open: 'Aberto',
-      in_progress: 'Em Andamento',
-      waiting: 'Aguardando',
-      resolved: 'Resolvido',
-      closed: 'Fechado',
-    };
-    return labels[status] || status;
-  };
   const getPriorityLabel = (priority: string) => {
     const labels: Record<string, string> = {
       low: 'Baixa',
@@ -510,12 +434,11 @@ export default function TicketDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Contact Creator Info */}
             {ticket.contact_creator && (
               <Card className="card-elevated border-blue-500/50 bg-blue-500/5">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                    <User className="h-4 w-4" />
+                    <Building2 className="h-4 w-4" />
                     <span className="text-sm font-medium">
                       Criado por: {ticket.contact_creator.name} ({ticket.contact_creator.email})
                     </span>
@@ -566,41 +489,30 @@ export default function TicketDetails() {
                           ? 'text-green-700 dark:text-green-400'
                           : 'text-blue-700 dark:text-blue-400';
                       
-                      const badgeClasses =
-                        message.messageType === 'admin'
-                          ? 'bg-gray-600'
-                          : message.messageType === 'contact'
-                          ? 'bg-green-600'
-                          : 'bg-blue-600';
-                      
                       return (
-                        <Card key={message.id} className={colorClasses}>
+                        <Card key={message.id} className={`${colorClasses} border`}>
                           <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className={`font-semibold text-sm ${textColor}`}>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-sm font-semibold ${textColor}`}>
                                     {message.profiles?.full_name || 'Usuário'}
-                                    {message.isAdmin && (
-                                      <span className={`ml-2 text-xs text-white px-2 py-0.5 rounded ${badgeClasses}`}>
-                                        Admin
-                                      </span>
-                                    )}
-                                    {message.isContact && !message.isAdmin && (
-                                      <span className={`ml-2 text-xs text-white px-2 py-0.5 rounded ${badgeClasses}`}>
-                                        Contato
-                                      </span>
-                                    )}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                  </span>
+                                  {message.messageType === 'admin' && (
+                                    <Badge variant="outline" className="text-xs bg-gray-100 dark:bg-gray-900">Admin</Badge>
+                                  )}
+                                  {message.messageType === 'contact' && (
+                                    <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900">Contato</Badge>
+                                  )}
                                 </div>
-                                <div 
-                                  className="text-sm whitespace-pre-wrap prose prose-sm max-w-none dark:prose-invert"
-                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
-                                />
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
                               </div>
+                              <div
+                                className="text-sm"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                              />
                             </div>
                           </CardContent>
                         </Card>
@@ -611,21 +523,13 @@ export default function TicketDetails() {
 
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
-                  <div className="border rounded-md [&_.ql-editor]:min-h-[150px]">
+                  <div className="min-h-[250px]">
                     <ReactQuill
                       theme="snow"
                       value={newMessageHtml}
                       onChange={setNewMessageHtml}
-                      placeholder="Digite sua mensagem..."
-                      modules={{
-                        toolbar: [
-                          [{ 'header': [1, 2, 3, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                          ['link', 'blockquote', 'code-block'],
-                          ['clean']
-                        ]
-                      }}
+                      placeholder="Escreva sua mensagem..."
+                      style={{ height: '200px' }}
                     />
                   </div>
                   <FileUpload
@@ -648,31 +552,13 @@ export default function TicketDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Status and Priority */}
+            {/* Priority */}
             <Card className="card-elevated">
               <CardHeader>
-                <CardTitle>Status e Prioridade</CardTitle>
+                <CardTitle>Prioridade</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Status</p>
-                  <Select value={ticket.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger>
-                      <SelectValue>
-                        {getStatusLabel(ticket.status)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Aberto</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
-                      <SelectItem value="waiting">Aguardando</SelectItem>
-                      <SelectItem value="resolved">Resolvido</SelectItem>
-                      <SelectItem value="closed">Fechado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Prioridade</p>
                   <Select value={ticket.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger>
                       <SelectValue>
@@ -768,26 +654,25 @@ export default function TicketDetails() {
               </Card>
             )}
 
-            {/* Department Info */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Departamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge
-                  variant="outline"
-                  style={{
-                    borderColor: ticket.departments?.color || '#1E40AF',
-                    color: ticket.departments?.color || '#1E40AF',
-                  }}
-                >
-                  {ticket.departments?.name || 'N/A'}
-                </Badge>
-              </CardContent>
-            </Card>
+            {/* Department */}
+            {ticket.departments && (
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle>Departamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge
+                    variant="outline"
+                    style={{
+                      borderColor: ticket.departments.color,
+                      color: ticket.departments.color,
+                    }}
+                  >
+                    {ticket.departments.name}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Timeline */}
             <Card className="card-elevated">
@@ -797,27 +682,13 @@ export default function TicketDetails() {
                   Timeline
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Criado em</p>
                   <p className="font-medium">
                     {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Última atualização</p>
-                  <p className="font-medium">
-                    {format(new Date(ticket.updated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-                {ticket.resolved_at && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Resolvido em</p>
-                    <p className="font-medium">
-                      {format(new Date(ticket.resolved_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

@@ -21,20 +21,11 @@ import { ptBR } from 'date-fns/locale';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface Ticket {
-  id: string;
-  subject: string;
-  status: string;
-  priority: string;
-  created_at: string;
-  description: string;
-}
-
 export default function ClientTickets() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [clientId, setClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNewTicket, setShowNewTicket] = useState(false);
@@ -53,76 +44,50 @@ export default function ClientTickets() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Detect contact by presence in client_contacts
+
       const { data: contactData } = await supabase
         .from('client_contacts')
         .select('client_id')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      const isContact = !!contactData?.client_id;
-      
-      let clientId: string | null = null;
+      let resolvedClientId: string | null = null;
 
-      if (isContact) {
-        clientId = contactData!.client_id;
+      if (contactData?.client_id) {
+        resolvedClientId = contactData.client_id;
       } else {
-        // Get client data (owner)
         const { data: clientData } = await supabase
           .from('clients')
           .select('id')
           .eq('user_id', user?.id)
           .maybeSingle();
-        
-        clientId = clientData?.id || null;
-      }
 
-      if (!clientId) {
-        // Tentar associar automaticamente o usuário ao cliente pelo e-mail
-        try {
-          await supabase.functions.invoke('link-client-user');
-          const { data: clientAfterLink } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('user_id', user?.id)
-            .maybeSingle();
-          clientId = clientAfterLink?.id || null;
-        } catch (e) {
-          console.error('Auto-link client failed', e);
-        }
-
-        if (!clientId) {
-          setLoading(false);
-          toast({
-            title: 'Acesso negado',
-            description: 'Você não está associado a nenhum cliente.',
-            variant: 'destructive',
-          });
-          setTickets([]);
-          return;
+        if (clientData?.id) {
+          resolvedClientId = clientData.id;
         }
       }
 
-      setClientId(clientId);
+      if (!resolvedClientId) {
+        throw new Error('Cliente não encontrado para este usuário');
+      }
 
-      // Build the query based on user type
-      let query = supabase
+      setClientId(resolvedClientId);
+
+      const { data: ticketsData, error } = await supabase
         .from('tickets')
-        .select('*, clients(*), departments(*)')
-        .eq('client_id', clientId)
+        .select(`
+          *,
+          departments (
+            id,
+            name,
+            color
+          )
+        `)
+        .eq('client_id', resolvedClientId)
         .order('created_at', { ascending: false });
 
-      // If user is a contact, filter by their created tickets only
-      if (isContact) {
-        query = query.eq('created_by', user?.id);
-      }
+      if (error) throw error;
 
-      const { data: ticketsData, error: ticketsError } = await query;
-
-      if (ticketsError) throw ticketsError;
-
-      // Buscar última mensagem de cada ticket e última visualização
       const ticketIds = ticketsData?.map(t => t.id) || [];
       
       const { data: lastMessages } = await supabase
@@ -135,9 +100,8 @@ export default function ClientTickets() {
         .from('ticket_views')
         .select('ticket_id, last_viewed_at')
         .in('ticket_id', ticketIds)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id || '');
 
-      // Mapear última mensagem por ticket
       const lastMessageMap = new Map();
       lastMessages?.forEach(msg => {
         if (!lastMessageMap.has(msg.ticket_id)) {
@@ -145,18 +109,15 @@ export default function ClientTickets() {
         }
       });
 
-      // Mapear última visualização por ticket
       const viewsMap = new Map();
       ticketViews?.forEach(view => {
         viewsMap.set(view.ticket_id, view.last_viewed_at);
       });
 
-      // Adicionar flag de não lido
       const ticketsWithUnread = ticketsData?.map(ticket => {
         const lastMessage = lastMessageMap.get(ticket.id);
         const lastViewDate = viewsMap.get(ticket.id);
         
-        // Só mostrar como não lido se a última mensagem foi de OUTRA pessoa (não do usuário logado)
         const hasUnread = lastMessage && 
                          lastMessage.user_id !== user?.id && 
                          (!lastViewDate || new Date(lastMessage.created_at) > new Date(lastViewDate));
@@ -183,44 +144,16 @@ export default function ClientTickets() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'badge-priority-urgent';
+        return 'bg-red-500/10 text-red-600 border-red-500/20';
       case 'high':
-        return 'badge-priority-high';
+        return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
       case 'medium':
-        return 'badge-priority-medium';
+        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
       case 'low':
-        return 'badge-priority-low';
+        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
       default:
-        return 'badge-priority-medium';
+        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'badge-status-open';
-      case 'in_progress':
-        return 'badge-status-in-progress';
-      case 'waiting':
-        return 'badge-status-waiting';
-      case 'resolved':
-        return 'badge-status-resolved';
-      case 'closed':
-        return 'badge-status-closed';
-      default:
-        return 'badge-status-open';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      open: 'Aberto',
-      in_progress: 'Em Andamento',
-      waiting: 'Aguardando',
-      resolved: 'Resolvido',
-      closed: 'Fechado',
-    };
-    return labels[status] || status;
   };
 
   const getPriorityLabel = (priority: string) => {
@@ -236,8 +169,8 @@ export default function ClientTickets() {
   if (loading) {
     return (
       <DashboardLayout breadcrumbLabel="Meus Tickets">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground">Carregando...</p>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </DashboardLayout>
     );
@@ -250,11 +183,11 @@ export default function ClientTickets() {
           <div>
             <h1 className="text-2xl font-bold">Meus Tickets</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Gerencie suas solicitações de suporte
+              Acompanhe seus tickets de suporte
             </p>
           </div>
-          <Button onClick={() => setShowNewTicket(true)}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={() => setShowNewTicket(true)} size="lg" className="gap-2">
+            <Plus className="h-4 w-4" />
             Novo Ticket
           </Button>
         </div>
@@ -263,88 +196,71 @@ export default function ClientTickets() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">#</TableHead>
+                <TableHead>#</TableHead>
                 <TableHead>Assunto</TableHead>
                 <TableHead>Departamento</TableHead>
                 <TableHead>Prioridade</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Criado em</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    Nenhum ticket encontrado
+              {tickets.map((ticket) => (
+                <TableRow key={ticket.id} className="hover:bg-accent/50">
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      #{ticket.ticket_number}
+                      {ticket.hasUnread && (
+                        <span className="flex h-2 w-2 rounded-full bg-blue-600" title="Mensagens não lidas" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-medium">{ticket.subject}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{ticket.description}</p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      style={{
+                        borderColor: ticket.departments?.color || '#1E40AF',
+                        color: ticket.departments?.color || '#1E40AF',
+                      }}
+                    >
+                      {ticket.departments?.name}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getPriorityColor(ticket.priority)}>
+                      {getPriorityLabel(ticket.priority)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(`/portal/tickets/${ticket.id}`)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
-              ) : (
-                tickets.map((ticket) => (
-                  <TableRow key={ticket.id} className="hover:bg-accent/50">
-                    <TableCell className="font-medium">#{(ticket as any).ticket_number}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium line-clamp-1 flex items-center gap-2">
-                          {ticket.subject}
-                          {(ticket as any).hasUnread && (
-                            <span className="inline-flex h-2 w-2 rounded-full bg-blue-600" title="Mensagens não lidas" />
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {ticket.description}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline"
-                        style={{ 
-                          borderColor: (ticket as any).departments?.color || '#1E40AF',
-                          color: (ticket as any).departments?.color || '#1E40AF'
-                        }}
-                      >
-                        {(ticket as any).departments?.name || 'N/A'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className={getPriorityColor(ticket.priority)}>
-                        {getPriorityLabel(ticket.priority)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={getStatusColor(ticket.status)}>
-                        {getStatusLabel(ticket.status)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(`/portal/tickets/${ticket.id}`)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </Card>
-      </div>
 
-      {showNewTicket && clientId && (
-        <NewTicketModal
-          open={showNewTicket}
-          onOpenChange={setShowNewTicket}
-          onSuccess={handleTicketCreated}
-          preSelectedClientId={clientId}
-        />
-      )}
+        {clientId && (
+          <NewTicketModal
+            open={showNewTicket}
+            onOpenChange={setShowNewTicket}
+            onSuccess={handleTicketCreated}
+          />
+        )}
+      </div>
     </DashboardLayout>
   );
 }

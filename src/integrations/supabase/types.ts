@@ -2197,15 +2197,12 @@ export type Database = {
         Row: {
           assigned_to: string | null
           client_id: string
-          closed_at: string | null
           created_at: string
           created_by: string
           department_id: string
           description: string
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
-          resolved_at: string | null
-          status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number: number
           updated_at: string
@@ -2213,15 +2210,12 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id: string
-          closed_at?: string | null
           created_at?: string
           created_by: string
           department_id: string
           description: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
-          resolved_at?: string | null
-          status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number?: number
           updated_at?: string
@@ -2229,15 +2223,12 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string
-          closed_at?: string | null
           created_at?: string
           created_by?: string
           department_id?: string
           description?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
-          resolved_at?: string | null
-          status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
           ticket_number?: number
           updated_at?: string
@@ -2306,14 +2297,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      mark_ticket_as_resolved: {
-        Args: { p_ticket_id: string }
-        Returns: undefined
-      }
-      update_ticket_status_admin: {
-        Args: { p_new_status: string; p_ticket_id: string }
-        Returns: undefined
       }
     }
     Enums: {

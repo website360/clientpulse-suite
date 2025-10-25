@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 interface TicketFiltersProps {
   filters: {
     search: string;
-    status: string;
     priority: string;
     department: string;
   };
@@ -30,40 +29,25 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
   const fetchDepartments = async () => {
     const { data } = await supabase
       .from('departments')
-      .select('id, name')
+      .select('*')
       .eq('is_active', true)
       .order('name');
+    
     setDepartments(data || []);
   };
 
   return (
     <>
-      <div className="relative min-w-[200px] flex-1 max-w-xs">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="relative flex-1 min-w-[200px]">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar por número, assunto, cliente..."
+          type="text"
+          placeholder="Buscar tickets..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
           className="pl-9"
         />
       </div>
-
-      <Select
-        value={filters.status}
-        onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
-      >
-        <SelectTrigger className="w-[180px] shrink-0">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos Status</SelectItem>
-          <SelectItem value="open">Aberto</SelectItem>
-          <SelectItem value="in_progress">Em Andamento</SelectItem>
-          <SelectItem value="waiting">Aguardando</SelectItem>
-          <SelectItem value="resolved">Resolvido</SelectItem>
-          <SelectItem value="closed">Fechado</SelectItem>
-        </SelectContent>
-      </Select>
 
       <Select
         value={filters.department}
