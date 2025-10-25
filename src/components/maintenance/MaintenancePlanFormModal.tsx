@@ -106,12 +106,12 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
         if (error) throw error;
       } else {
         // Check for duplicate
-        const { data: existing } = await supabase
+        const { data: existing, error: checkError } = await supabase
           .from('client_maintenance_plans')
           .select('id')
           .eq('client_id', clientId)
           .eq('domain_id', domainId === 'none' ? null : domainId)
-          .single();
+          .maybeSingle();
 
         if (existing) {
           throw new Error('Já existe um plano para este cliente/domínio');
