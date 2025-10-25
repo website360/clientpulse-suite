@@ -121,8 +121,8 @@ export default function Clients() {
       let sortedData = data || [];
       if (!sortColumn) {
         sortedData = sortedData.sort((a, b) => {
-          const nameA = (a.client_type === 'person' ? a.full_name : a.responsible_name) || '';
-          const nameB = (b.client_type === 'person' ? b.full_name : b.responsible_name) || '';
+          const nameA = a.nickname || (a.client_type === 'person' ? a.full_name : a.responsible_name) || '';
+          const nameB = b.nickname || (b.client_type === 'person' ? b.full_name : b.responsible_name) || '';
           return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
         });
       }
