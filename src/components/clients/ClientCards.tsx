@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, Building2, User, Mail, Phone, FileText } from 'lucide-react';
+import { Eye, Pencil, Trash2, Building2, User, Mail, Phone, FileText, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -50,8 +50,11 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
               </div>
             </div>
 
-            <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+            <h3 className="font-semibold text-lg mb-1 line-clamp-1 flex items-center gap-2">
               {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+              {client.contacts_count?.[0]?.count > 0 && (
+                <Users className="h-3.5 w-3.5 text-muted-foreground/60" />
+              )}
             </h3>
             
             {client.responsible_name && (

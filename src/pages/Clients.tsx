@@ -79,10 +79,10 @@ export default function Clients() {
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
-      // Fetch paginated data
+      // Fetch paginated data with contacts count
       let query = supabase
         .from('clients')
-        .select('*');
+        .select('*, contacts_count:client_contacts(count)');
       
       // Filter by active status
       if (filters.status === 'active') {
