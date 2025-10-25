@@ -48,22 +48,61 @@ export default function KnowledgeBasePublic() {
   const [articleLogo, setArticleLogo] = useState<string>('');
 
   useEffect(() => {
-    // Carregar logos customizados
+    // Carregar logos customizados do localStorage ou buscar do Storage
     const loadLogos = () => {
       const customKbLogo = localStorage.getItem('app-kb-logo-light');
       console.log('🔍 Logo KB carregado do localStorage:', customKbLogo);
-      if (customKbLogo) {
-        setKbLogo(customKbLogo);
-      }
+      if (customKbLogo) setKbLogo(customKbLogo);
       
       const customArticleLogo = localStorage.getItem('app-kb-article-logo');
       console.log('🔍 Logo Artigo carregado do localStorage:', customArticleLogo);
-      if (customArticleLogo) {
-        setArticleLogo(customArticleLogo);
+      if (customArticleLogo) setArticleLogo(customArticleLogo);
+    };
+
+    const fetchFromStorageIfMissing = async () => {
+      const kbInLs = localStorage.getItem('app-kb-logo-light');
+      const articleInLs = localStorage.getItem('app-kb-article-logo');
+      
+      if (!kbInLs || !articleInLs) {
+        try {
+          const { data: files, error } = await supabase.storage
+            .from('ticket-attachments')
+            .list('branding', { sortBy: { column: 'created_at', order: 'desc' }, limit: 100 });
+          if (error) throw error;
+
+          if (!kbInLs) {
+            const kbFile = files?.find((f: any) => f.name?.startsWith('kb-logo-light-'));
+            if (kbFile) {
+              const { data: pub } = supabase.storage
+                .from('ticket-attachments')
+                .getPublicUrl(`branding/${kbFile.name}`);
+              const url = `${pub.publicUrl}?t=${Date.now()}`;
+              localStorage.setItem('app-kb-logo-light', url);
+              setKbLogo(url);
+              console.log('☁️ KB logo carregado do Storage e salvo no localStorage:', url);
+            }
+          }
+
+          if (!articleInLs) {
+            const articleFile = files?.find((f: any) => f.name?.startsWith('kb-article-logo-'));
+            if (articleFile) {
+              const { data: pub } = supabase.storage
+                .from('ticket-attachments')
+                .getPublicUrl(`branding/${articleFile.name}`);
+              const url = `${pub.publicUrl}?t=${Date.now()}`;
+              localStorage.setItem('app-kb-article-logo', url);
+              setArticleLogo(url);
+              console.log('☁️ Article logo carregado do Storage e salvo no localStorage:', url);
+            }
+          }
+        } catch (err) {
+          console.error('Erro buscando logos do Storage:', err);
+        }
       }
     };
     
     loadLogos();
+    fetchFromStorageIfMissing();
 
     // Listener para atualizações de logo
     const handleLogoUpdate = (event: Event) => {
