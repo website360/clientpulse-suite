@@ -1,4 +1,5 @@
-import { Building2, User } from 'lucide-react';
+import { Building2, User, UserCheck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ClientNameCellProps {
   client: {
@@ -7,10 +8,11 @@ interface ClientNameCellProps {
     company_name?: string | null;
     full_name?: string | null;
   };
+  contactsCount?: number;
   className?: string;
 }
 
-export function ClientNameCell({ client, className = '' }: ClientNameCellProps) {
+export function ClientNameCell({ client, contactsCount, className = '' }: ClientNameCellProps) {
   const displayName = client.responsible_name || 
     (client.client_type === 'company' ? client.company_name : client.full_name) || 
     '-';
@@ -29,8 +31,20 @@ export function ClientNameCell({ client, className = '' }: ClientNameCellProps) 
         )}
       </div>
       <div className="leading-tight">
-        <p className="font-medium">
+        <p className="font-medium flex items-center gap-1.5">
           {displayName}
+          {contactsCount && contactsCount > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <UserCheck className="h-3.5 w-3.5 text-primary/40 flex-shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{contactsCount} contato{contactsCount > 1 ? 's' : ''}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </p>
         {client.responsible_name && (
           <p className="text-xs text-muted-foreground">
