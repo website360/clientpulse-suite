@@ -233,9 +233,15 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto border-t border-sidebar-border p-4">
-        <div className="text-xs text-muted-foreground text-center">
-          v1.0.0
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+          className="w-full justify-start gap-2"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? 'Modo Claro' : 'Modo Escuro'}
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
