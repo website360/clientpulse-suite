@@ -12,9 +12,16 @@ const PORT = process.env.PORT || 8080;
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Handle all routes by serving index.html (for SPA)
-app.get('*', (req, res) => {
+// SPA fallback only for non-file requests
+app.get('*', (req, res, next) => {
+  const accept = req.headers.accept || '';
+  const hasExtension = path.extname(req.path) !== '';
+  if (hasExtension || !accept.includes('text/html')) return next();
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+// 404 for other unmatched requests (prevents HTML for JS)
+app.use((req, res) => res.status(404).send('Not Found'));
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
