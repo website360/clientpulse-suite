@@ -140,8 +140,8 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
         <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Projeto</TableHead>
             {!hideClientColumn && <TableHead>Cliente</TableHead>}
+            <TableHead>Projeto</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Progresso</TableHead>
             <TableHead>Status</TableHead>
@@ -153,12 +153,12 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
           {projects.map((project) => {
             return (
               <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.name}</TableCell>
                 {!hideClientColumn && (
                   <TableCell>
                     <ClientNameCell client={project.clients || {}} />
                   </TableCell>
                 )}
+                <TableCell className="font-medium">{project.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>
                     {project.project_types?.name}
