@@ -44,7 +44,8 @@ const Tasks = () => {
           client:clients(id, full_name, nickname, company_name),
           ticket:tickets(id, ticket_number, subject)
         `)
-        .order("created_at", { ascending: false });
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .order("title", { ascending: true });
 
       if (filters.search) {
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);

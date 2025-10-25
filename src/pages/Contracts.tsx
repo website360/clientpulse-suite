@@ -60,6 +60,9 @@ export default function Contracts() {
     // Apply sorting
     if (sortColumn) {
       query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+    } else {
+      // Default: order by client name alphabetically
+      query = query.order('clients(full_name)', { ascending: true, nullsFirst: false });
     }
 
     // Apply pagination

@@ -72,7 +72,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
         .from('clients')
         .select('id, full_name, company_name')
         .eq('is_active', true)
-        .order('company_name');
+        .order('full_name');
 
       if (error) throw error;
       setClients(data || []);

@@ -107,7 +107,7 @@ export default function KnowledgeBase() {
             color
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('title', { ascending: true });
 
       if (selectedCategory && selectedCategory !== 'all') {
         query = query.eq('category_id', selectedCategory);

@@ -36,7 +36,7 @@ export default function Projects() {
             color
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
       if (filters.client) {
         query = query.eq('client_id', filters.client);

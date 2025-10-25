@@ -70,6 +70,9 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
       // Apply sorting
       if (sortColumn) {
         query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+      } else {
+        // Default: order by domain name alphabetically
+        query = query.order('domain', { ascending: true });
       }
 
       // Apply pagination

@@ -105,6 +105,9 @@ export default function Clients() {
       // Apply sorting
       if (sortColumn) {
         query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+      } else {
+        // Default sorting: by full_name (alphabetical)
+        query = query.order('full_name', { ascending: true, nullsFirst: false });
       }
 
       // Apply pagination
