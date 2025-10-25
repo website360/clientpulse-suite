@@ -31,7 +31,7 @@ export default function Maintenance() {
             id,
             full_name,
             company_name,
-            nickname,
+            responsible_name,
             client_type
           ),
           domains (
@@ -57,7 +57,7 @@ export default function Maintenance() {
     // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      const clientName = (plan.clients?.nickname || plan.clients?.company_name || plan.clients?.full_name || '').toLowerCase();
+      const clientName = (plan.clients?.responsible_name || (plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name) || '').toLowerCase();
       const domain = (plan.domains?.domain || '').toLowerCase();
       
       if (!clientName.includes(searchLower) && !domain.includes(searchLower)) {

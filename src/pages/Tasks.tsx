@@ -41,7 +41,7 @@ const Tasks = () => {
         .select(`
           *,
           assigned_profile:profiles!tasks_assigned_to_fkey(id, full_name, avatar_url),
-          client:clients(id, full_name, nickname, company_name),
+          client:clients(id, full_name, responsible_name, company_name, client_type),
           ticket:tickets(id, ticket_number, subject)
         `)
         .order("due_date", { ascending: true, nullsFirst: false })

@@ -91,7 +91,7 @@ export default function Tickets() {
         .from('tickets')
         .select(`
           *,
-          clients (full_name, company_name, email, nickname, client_type),
+          clients (full_name, company_name, email, responsible_name, client_type),
           departments (name, color)
         `)
         .order('created_at', { ascending: false });
