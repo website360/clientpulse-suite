@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   
   // Session timeout constants
-  const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+  const SESSION_TIMEOUT = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
   const ACTIVITY_CHECK_INTERVAL = 60 * 1000; // Check every minute
   
   useEffect(() => {
