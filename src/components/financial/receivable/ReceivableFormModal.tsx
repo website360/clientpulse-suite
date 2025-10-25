@@ -71,8 +71,6 @@ interface ReceivableFormModalProps {
 
 export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: ReceivableFormModalProps) {
   const [clients, setClients] = useState<any[]>([]);
-  const [clientSearch, setClientSearch] = useState("");
-  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncWithAsaas, setSyncWithAsaas] = useState(false);
   const { toast } = useToast();
@@ -163,7 +161,6 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           invoice_number: account.invoice_number || '',
           notes: account.notes || '',
         });
-        setClientSearch(account.client?.nickname || account.client?.full_name || account.client?.company_name || '');
       } else {
         form.reset({
           occurrence_type: 'unica',
@@ -425,45 +422,20 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cliente</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        placeholder="Digite para buscar cliente..."
-                        value={clientSearch}
-                        onChange={(e) => {
-                          setClientSearch(e.target.value);
-                          setShowClientDropdown(true);
-                        }}
-                        onFocus={() => setShowClientDropdown(true)}
-                        onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
-                      />
-                      {showClientDropdown && clientSearch && (
-                        <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-                          {clients
-                            .filter(client => {
-                              const searchLower = clientSearch.toLowerCase();
-                              const responsibleName = (client.responsible_name || '').toLowerCase();
-                              const name = (client.full_name || client.company_name || '').toLowerCase();
-                              return responsibleName.includes(searchLower) || name.includes(searchLower);
-                            })
-                            .map((client) => (
-                              <div
-                                key={client.id}
-                                className="px-3 py-2 cursor-pointer hover:bg-accent"
-                                onClick={() => {
-                                  field.onChange(client.id);
-                                  const displayName = client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name) || '';
-                                  setClientSearch(displayName);
-                                  setShowClientDropdown(false);
-                                }}
-                              >
-                                {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

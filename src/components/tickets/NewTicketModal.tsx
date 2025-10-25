@@ -263,7 +263,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)} ({client.email})
+                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
                   </SelectItem>
                 ))}
               </SelectContent>
