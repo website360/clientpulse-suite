@@ -1,4 +1,4 @@
-import { Eye, Ticket as TicketIcon, Trash2, Calendar } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2, Calendar, Building2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -138,6 +138,13 @@ export function TicketTable({ tickets, onStatusChange, onPriorityChange, onDelet
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    {ticket.clients?.client_type === 'company' ? (
+                      <Building2 className="h-5 w-5 text-primary" />
+                    ) : (
+                      <User className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
                   <div>
                     <p className="font-medium text-sm">
                       {ticket.clients?.nickname || ticket.clients?.company_name || ticket.clients?.full_name || '-'}

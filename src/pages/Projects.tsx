@@ -28,7 +28,8 @@ export default function Projects() {
             id,
             full_name,
             company_name,
-            nickname
+            nickname,
+            client_type
           ),
           project_types (
             id,

@@ -31,7 +31,8 @@ export default function Maintenance() {
             id,
             full_name,
             company_name,
-            nickname
+            nickname,
+            client_type
           ),
           domains (
             id,

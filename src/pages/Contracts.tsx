@@ -47,7 +47,8 @@ export default function Contracts() {
         clients (
           full_name,
           company_name,
-          nickname
+          nickname,
+          client_type
         ),
         services (
           name
