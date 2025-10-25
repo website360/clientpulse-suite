@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileText, Calendar, DollarSign } from 'lucide-react';
+import { FileText, Calendar } from 'lucide-react';
 
 interface ClientFinancialTabProps {
   clientId: string;
@@ -58,33 +59,27 @@ export function ClientFinancialTab({ clientId }: ClientFinancialTabProps) {
     }).format(value);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      pending: { label: 'Pendente', variant: 'secondary' },
-      received: { label: 'Recebido', variant: 'default' },
-      paid: { label: 'Pago', variant: 'default' },
-      overdue: { label: 'Vencido', variant: 'destructive' },
+  const getStatusBadge = (status: string, dueDate: string) => {
+    const parseLocalDate = (str: string) => {
+      const [y, m, d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d);
     };
-
-    const statusInfo = statusMap[status] || { label: status, variant: 'outline' };
-    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
-  };
-
-  // Agrupar por mês
-  const groupedByMonth = receivables.reduce((acc, receivable) => {
-    const monthYear = format(new Date(receivable.due_date), 'MMMM yyyy', { locale: ptBR });
-    if (!acc[monthYear]) {
-      acc[monthYear] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = parseLocalDate(dueDate);
+    due.setHours(0, 0, 0, 0);
+    
+    if (status === 'received') {
+      return <Badge variant="default" className="bg-success">Recebido</Badge>;
     }
-    acc[monthYear].push(receivable);
-    return acc;
-  }, {} as Record<string, any[]>);
-
-  const sortedMonths = Object.entries(groupedByMonth).sort((a, b) => {
-    const dateA = new Date(a[1][0].due_date);
-    const dateB = new Date(b[1][0].due_date);
-    return dateB.getTime() - dateA.getTime();
-  });
+    if (status === 'canceled') {
+      return <Badge variant="secondary">Cancelado</Badge>;
+    }
+    if (status === 'pending' && due < today) {
+      return <Badge variant="outline" className="border-destructive text-destructive">Vencido</Badge>;
+    }
+    return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
+  };
 
   if (loading) {
     return (
@@ -106,60 +101,63 @@ export function ClientFinancialTab({ clientId }: ClientFinancialTabProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {sortedMonths.map(([monthYear, items]: [string, any[]]) => {
-        return (
-          <Card key={monthYear}>
-            <CardHeader>
-              <CardTitle className="text-lg capitalize">{monthYear}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {items.map((receivable: any) => (
-                  <div
-                    key={receivable.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-medium">{receivable.description}</p>
-                        {getStatusBadge(receivable.status)}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>Vencimento: {format(new Date(receivable.due_date), 'dd/MM/yyyy')}</span>
-                        </div>
-                        {receivable.payment_date && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>Pago em: {format(new Date(receivable.payment_date), 'dd/MM/yyyy')}</span>
-                          </div>
-                        )}
-                        {receivable.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {receivable.category}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-lg font-semibold">
-                        <DollarSign className="h-4 w-4" />
-                        {formatCurrency(Number(receivable.amount))}
-                      </div>
-                      {receivable.payment_method && (
-                        <p className="text-xs text-muted-foreground">{receivable.payment_method}</p>
-                      )}
-                    </div>
+    <div className="border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Categoria</TableHead>
+            <TableHead>Vencimento</TableHead>
+            <TableHead>Pagamento</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Valor</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {receivables.map((receivable: any) => (
+            <TableRow key={receivable.id}>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{receivable.description}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                {receivable.category ? (
+                  <Badge variant="outline">{receivable.category}</Badge>
+                ) : (
+                  '-'
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  {format(new Date(receivable.due_date), 'dd/MM/yyyy', { locale: ptBR })}
+                </div>
+              </TableCell>
+              <TableCell>
+                {receivable.payment_date ? (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {format(new Date(receivable.payment_date), 'dd/MM/yyyy', { locale: ptBR })}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+                ) : (
+                  '-'
+                )}
+              </TableCell>
+              <TableCell>{getStatusBadge(receivable.status, receivable.due_date)}</TableCell>
+              <TableCell className="text-right">
+                <div>
+                  <div className="font-semibold">{formatCurrency(Number(receivable.amount))}</div>
+                  {receivable.payment_method && (
+                    <p className="text-xs text-muted-foreground">{receivable.payment_method}</p>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
