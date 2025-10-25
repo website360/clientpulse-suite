@@ -191,14 +191,14 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
           <div className="space-y-2">
             <Label htmlFor="client_id">Cliente</Label>
             <Select
-              value={watch("client_id") || ""}
-              onValueChange={(value) => setValue("client_id", value || undefined)}
+              value={watch("client_id") || "none"}
+              onValueChange={(value) => setValue("client_id", value === "none" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
+                <SelectItem value="none">Nenhum</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
@@ -211,14 +211,14 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
           <div className="space-y-2">
             <Label htmlFor="ticket_id">Ticket Vinculado</Label>
             <Select
-              value={watch("ticket_id") || ""}
-              onValueChange={(value) => setValue("ticket_id", value || undefined)}
+              value={watch("ticket_id") || "none"}
+              onValueChange={(value) => setValue("ticket_id", value === "none" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
+                <SelectItem value="none">Nenhum</SelectItem>
                 {tickets.map((ticket) => (
                   <SelectItem key={ticket.id} value={ticket.id}>
                     #{ticket.ticket_number} - {ticket.subject}
