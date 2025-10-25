@@ -45,7 +45,7 @@ const App = () => (
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
           <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
-          <Route path="/auth" element={<Auth />} />
+          
           
           {/* Rotas protegidas - COM AuthProvider */}
           <Route path="/*" element={
@@ -74,6 +74,7 @@ const App = () => (
                 <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
                 <Route path="/departments" element={<Navigate to="/settings" replace />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>
