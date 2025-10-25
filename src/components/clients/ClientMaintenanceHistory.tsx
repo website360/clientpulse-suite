@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -11,11 +11,22 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { ClientNameCell } from "@/components/shared/ClientNameCell";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MaintenanceExecutionViewModal } from "./MaintenanceExecutionViewModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface ClientMaintenanceHistoryProps {
   clientId: string;
@@ -24,6 +35,9 @@ interface ClientMaintenanceHistoryProps {
 export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryProps) {
   const [selectedExecution, setSelectedExecution] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [executionToDelete, setExecutionToDelete] = useState<any>(null);
+  const queryClient = useQueryClient();
 
   const { data: executions, isLoading } = useQuery({
     queryKey: ["client-maintenance-history", clientId],
@@ -72,6 +86,40 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
     setViewModalOpen(true);
   };
 
+  const handleDeleteClick = (execution: any) => {
+    setExecutionToDelete(execution);
+    setDeleteDialogOpen(true);
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (executionId: string) => {
+      // Deletar items da execução primeiro
+      const { error: itemsError } = await supabase
+        .from("maintenance_execution_items")
+        .delete()
+        .eq("maintenance_execution_id", executionId);
+
+      if (itemsError) throw itemsError;
+
+      // Deletar a execução
+      const { error } = await supabase
+        .from("maintenance_executions")
+        .delete()
+        .eq("id", executionId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Histórico de manutenção excluído com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["client-maintenance-history", clientId] });
+      setDeleteDialogOpen(false);
+      setExecutionToDelete(null);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao excluir histórico: " + error.message);
+    },
+  });
+
   if (isLoading) {
     return <div className="p-6">Carregando histórico...</div>;
   }
@@ -118,14 +166,24 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
                     : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleView(execution)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Visualizar
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleView(execution)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Visualizar
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(execution)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -138,6 +196,26 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
         onOpenChange={setViewModalOpen}
         execution={selectedExecution}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este histórico de manutenção? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => executionToDelete && deleteMutation.mutate(executionToDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
