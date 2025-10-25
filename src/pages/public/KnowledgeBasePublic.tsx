@@ -45,12 +45,19 @@ export default function KnowledgeBasePublic() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [kbLogo, setKbLogo] = useState<string>(logoIconLight);
+  const [articleLogo, setArticleLogo] = useState<string>('');
 
   useEffect(() => {
     // Carregar logo customizado da base de conhecimento
     const customKbLogo = localStorage.getItem('app-kb-logo-light');
     if (customKbLogo) {
       setKbLogo(customKbLogo);
+    }
+    
+    // Carregar logo customizado do artigo
+    const customArticleLogo = localStorage.getItem('app-kb-article-logo');
+    if (customArticleLogo) {
+      setArticleLogo(customArticleLogo);
     }
   }, []);
 
@@ -187,6 +194,13 @@ export default function KnowledgeBasePublic() {
                 <ArrowLeft className="mr-2 h-5 w-5" />
                 Voltar para artigos
               </Button>
+              {articleLogo && (
+                <img 
+                  src={articleLogo} 
+                  alt="Logo" 
+                  className="h-8 w-auto object-contain"
+                />
+              )}
               <Button variant="outline" size="lg" onClick={handleCopyPostLink}>
                 <Copy className="mr-2 h-4 w-4" />
                 Compartilhar
