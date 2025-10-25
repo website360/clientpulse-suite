@@ -79,7 +79,7 @@ serve(async (req) => {
     const clientData: any = {
       client_type,
       company_name: client_type === 'company' ? company_name : null,
-      responsible_name: client_type === 'company' ? responsible_name : null,
+      responsible_name: responsible_name || null,
       full_name: client_type === 'person' ? full_name : null,
       responsible_cpf: client_type === 'company' ? responsible_cpf : null,
       cpf_cnpj,
