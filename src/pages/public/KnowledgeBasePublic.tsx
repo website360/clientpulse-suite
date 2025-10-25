@@ -9,8 +9,7 @@ import { Search, ArrowLeft, Eye, Calendar, Copy, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import logoLight from '@/assets/logo-light.png';
-import logoDark from '@/assets/logo-dark.png';
+import logoIconLight from '@/assets/logo-icon-light.png';
 
 interface Category {
   id: string;
@@ -45,38 +44,6 @@ export default function KnowledgeBasePublic() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [isDark, setIsDark] = useState(false);
-  const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
-    light: logoLight,
-    dark: logoDark,
-  });
-
-  useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
-    
-    // Carregar logos customizados do localStorage
-    const customLogoLight = localStorage.getItem('app-logo-light');
-    const customLogoDark = localStorage.getItem('app-logo-dark');
-    
-    setMenuLogo({
-      light: customLogoLight || logoLight,
-      dark: customLogoDark || logoDark,
-    });
-
-    // Observer para mudanças no tema
-    const observer = new MutationObserver(() => {
-      const newIsDark = document.documentElement.classList.contains('dark');
-      setIsDark(newIsDark);
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     fetchCategories();
@@ -294,15 +261,25 @@ export default function KnowledgeBasePublic() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground overflow-hidden border-b-4 border-accent">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoMnYyaC0ydi0yem0wLTEwaC0ydjJoMnYtMnptMCAxMGgydjJoLTJ2LTJ6bTAtMTBoMnYyaC0ydi0yem0wIDEwaDJ2MmgtMnYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+      <div className="relative bg-primary text-primary-foreground overflow-hidden border-b-4 border-accent">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDMwaDJ2MmgtMnYtMnptMC0xMGgtMnYyaDJ2LTJ6bTAgMTBoMnYyaC0ydi0yem0wLTEwaDJ2MmgtMnYtMnptMCAxMGgydjJoLTJ2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-100"></div>
+        
+        {/* Background Logo Pattern */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-5">
+          <img 
+            src={logoIconLight}
+            alt="Background" 
+            className="h-96 w-auto object-contain"
+          />
+        </div>
+
         <div className="container relative py-16 md:py-20">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
             <div className="flex justify-center mb-4">
               <img 
-                src={isDark ? menuLogo.dark : menuLogo.light} 
+                src={logoIconLight}
                 alt="Logo" 
-                className="h-16 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
@@ -312,7 +289,8 @@ export default function KnowledgeBasePublic() {
               Tutoriais, guias e documentação para ajudar você
             </p>
             
-            <div className="max-w-2xl mx-auto pt-4">
+            {/* Search */}
+            <div className="max-w-2xl mx-auto pt-2">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -323,43 +301,42 @@ export default function KnowledgeBasePublic() {
                 />
               </div>
             </div>
+
+            {/* Categories */}
+            <div className="flex flex-wrap gap-2 justify-center pt-4">
+              <Button
+                variant={selectedCategory === '' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedCategory('')}
+                className={`rounded-full px-4 h-9 text-sm font-medium transition-all ${
+                  selectedCategory === '' 
+                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                    : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10'
+                }`}
+              >
+                Todas
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`rounded-full px-4 h-9 text-sm font-medium transition-all ${
+                    selectedCategory === category.id
+                      ? 'bg-accent text-accent-foreground hover:bg-accent/90'
+                      : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10'
+                  }`}
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container py-12">
-        {/* Categories */}
-        <div className="mb-12">
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button
-              variant={selectedCategory === '' ? 'default' : 'outline'}
-              size="lg"
-              onClick={() => setSelectedCategory('')}
-              className="rounded-full"
-            >
-              Todas as Categorias
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
-                size="lg"
-                onClick={() => setSelectedCategory(category.id)}
-                className="rounded-full"
-                style={
-                  selectedCategory === category.id
-                    ? {
-                        backgroundColor: category.color,
-                        borderColor: category.color,
-                      }
-                    : {}
-                }
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-        </div>
 
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
