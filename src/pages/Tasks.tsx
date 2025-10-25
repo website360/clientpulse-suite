@@ -3,9 +3,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import TaskList from "@/components/tasks/TaskList";
+import { TaskTable } from "@/components/tasks/TaskTable";
 import TaskKanban from "@/components/tasks/TaskKanban";
-import TaskCalendar from "@/components/tasks/TaskCalendar";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
 import TaskFilters from "@/components/tasks/TaskFilters";
 import { useQuery } from "@tanstack/react-query";
@@ -92,24 +91,6 @@ const Tasks = () => {
     refetch();
   };
 
-  const handleDateChange = async (taskId: string, newDate: Date) => {
-    const { error } = await supabase
-      .from("tasks")
-      .update({ 
-        due_date: newDate.toISOString(),
-        start_time: newDate.toISOString(),
-        end_time: new Date(newDate.getTime() + 60 * 60 * 1000).toISOString()
-      })
-      .eq("id", taskId);
-
-    if (error) {
-      toast.error("Erro ao atualizar data da tarefa");
-      return;
-    }
-
-    toast.success("Data atualizada com sucesso");
-    refetch();
-  };
 
   const handleEditTask = (task: any) => {
     setEditingTask(task);
@@ -143,11 +124,10 @@ const Tasks = () => {
           <TabsList>
             <TabsTrigger value="list">Lista</TabsTrigger>
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
-            <TabsTrigger value="calendar">Calendário</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
-            <TaskList
+            <TaskTable
               tasks={tasks}
               onEditTask={handleEditTask}
               onRefetch={refetch}
@@ -159,15 +139,6 @@ const Tasks = () => {
               tasks={tasks}
               onStatusChange={handleStatusChange}
               onEditTask={handleEditTask}
-            />
-          </TabsContent>
-
-          <TabsContent value="calendar" className="space-y-4">
-            <TaskCalendar
-              tasks={tasks}
-              onEditTask={handleEditTask}
-              onRefetch={refetch}
-              onDateChange={handleDateChange}
             />
           </TabsContent>
         </Tabs>

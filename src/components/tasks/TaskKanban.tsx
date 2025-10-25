@@ -69,14 +69,29 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
 
   // Componente para coluna com área de drop
   const DroppableColumn = ({ column, children }: { column: any; children: React.ReactNode }) => {
-    const { setNodeRef } = useDroppable({
+    const { setNodeRef, isOver } = useDroppable({
       id: column.id,
     });
+
+    const getColumnColor = (status: string) => {
+      switch (status) {
+        case 'todo':
+          return 'border-blue-200 dark:border-blue-800';
+        case 'in_progress':
+          return 'border-yellow-200 dark:border-yellow-800';
+        case 'done':
+          return 'border-green-200 dark:border-green-800';
+        default:
+          return 'border-border';
+      }
+    };
 
     return (
       <div
         ref={setNodeRef}
-        className="flex flex-col gap-3 p-4 rounded-lg bg-muted/30 min-h-[400px]"
+        className={`flex flex-col gap-4 p-4 rounded-lg border-2 bg-card transition-all min-h-[500px] ${
+          getColumnColor(column.status)
+        } ${isOver ? 'ring-2 ring-primary shadow-lg' : ''}`}
       >
         {children}
       </div>
@@ -85,15 +100,17 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {columns.map((column) => {
           const columnTasks = getTasksByStatus(column.status);
           
           return (
             <DroppableColumn key={column.id} column={column}>
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{column.label}</h3>
-                <Badge variant="secondary">{columnTasks.length}</Badge>
+              <div className="flex items-center justify-between pb-2 border-b">
+                <h3 className="font-semibold text-base">{column.label}</h3>
+                <Badge variant="outline" className="font-medium">
+                  {columnTasks.length}
+                </Badge>
               </div>
               
               <SortableContext
@@ -101,13 +118,19 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-3 flex-1">
-                  {columnTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onClick={() => onEditTask(task)}
-                    />
-                  ))}
+                  {columnTasks.length === 0 ? (
+                    <div className="flex items-center justify-center h-32 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+                      Arraste tarefas aqui
+                    </div>
+                  ) : (
+                    columnTasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onClick={() => onEditTask(task)}
+                      />
+                    ))
+                  )}
                 </div>
               </SortableContext>
             </DroppableColumn>
