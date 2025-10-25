@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +22,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<'admin' | 'client' | 'contato' | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  // Session timeout constants
+  const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+  const ACTIVITY_CHECK_INTERVAL = 60 * 1000; // Check every minute
+  
+  useEffect(() => {
+    if (!user) return;
+
+    let lastActivityTime = Date.now();
+    let timeoutCheckInterval: NodeJS.Timeout;
+
+    // Update last activity time on user interaction
+    const updateActivity = () => {
+      lastActivityTime = Date.now();
+    };
+
+    // Events that indicate user activity
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+      window.addEventListener(event, updateActivity);
+    });
+
+    // Check for inactivity periodically
+    timeoutCheckInterval = setInterval(() => {
+      const inactiveTime = Date.now() - lastActivityTime;
+      
+      if (inactiveTime >= SESSION_TIMEOUT) {
+        toast.error('Sessão expirada', {
+          description: 'Sua sessão expirou por inatividade. Faça login novamente.'
+        });
+        signOut();
+      }
+    }, ACTIVITY_CHECK_INTERVAL);
+
+    return () => {
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
+      clearInterval(timeoutCheckInterval);
+    };
+  }, [user]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -57,6 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUserRole = async (userId: string) => {
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.error('fetchUserRole timeout - forcing loading to false');
+      setLoading(false);
+    }, 10000); // 10 second timeout
+
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -88,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('User has contato role but is not associated with any client contact');
           await supabase.auth.signOut();
           navigate('/auth');
+          clearTimeout(timeoutId);
           return;
         }
       }
@@ -128,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserRole('client');
       navigate('/portal');
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
