@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Building2, User } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MaintenanceExecutionViewModal } from "@/components/clients/MaintenanceExecutionViewModal";
@@ -28,7 +28,7 @@ export function MaintenanceHistory() {
         .select(`
           *,
           plan:client_maintenance_plans(
-            client:clients(full_name, nickname, company_name),
+            client:clients(full_name, nickname, company_name, client_type),
             domain:domains(domain)
           ),
           checklist_items:maintenance_execution_items(
@@ -83,13 +83,33 @@ export function MaintenanceHistory() {
         </TableHeader>
         <TableBody>
           {executions?.map((execution) => {
-            const clientName = execution.plan?.client?.nickname || 
-                             execution.plan?.client?.company_name || 
-                             execution.plan?.client?.full_name;
+            const client = execution.plan?.client;
             
             return (
               <TableRow key={execution.id}>
-                <TableCell className="font-medium">{clientName}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      {client?.client_type === 'company' ? (
+                        <Building2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <User className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {client?.nickname || client?.company_name || client?.full_name}
+                      </p>
+                      {client?.nickname && (
+                        <p className="text-xs text-muted-foreground">
+                          {client?.client_type === 'company' 
+                            ? client?.company_name 
+                            : client?.full_name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
                 <TableCell>{execution.plan?.domain?.domain || "-"}</TableCell>
                 <TableCell>
                   {format(parseISO(execution.executed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
