@@ -42,7 +42,7 @@ export function MaintenanceHistory() {
         .select(`
           *,
           plan:client_maintenance_plans(
-            client:clients(full_name, nickname, company_name, client_type),
+            client:clients(full_name, nickname, company_name, client_type, responsible_name),
             domain:domains(domain)
           ),
           checklist_items:maintenance_execution_items(
@@ -146,9 +146,9 @@ export function MaintenanceHistory() {
                     </div>
                     <div>
                       <p className="font-medium">
-                        {client?.nickname || (client?.client_type === 'company' ? client?.company_name : client?.full_name) || '-'}
+                        {client?.responsible_name || (client?.client_type === 'company' ? client?.company_name : client?.full_name) || '-'}
                       </p>
-                      {client?.nickname && (
+                      {client?.responsible_name && (
                         <p className="text-xs text-muted-foreground">
                           {client?.client_type === 'company' 
                             ? client?.company_name 
