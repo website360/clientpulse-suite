@@ -409,10 +409,10 @@ export default function ClientDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {client.client_type === 'person' ? client.full_name : client.responsible_name}
+                {client.client_type === 'person' ? client.responsible_name : client.responsible_name}
               </h1>
               <p className="text-muted-foreground mt-1">
-                {client.client_type === 'company' && client.company_name}
+                {client.client_type === 'person' ? client.full_name : client.company_name}
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant={client.client_type === 'person' ? 'default' : 'secondary'}>

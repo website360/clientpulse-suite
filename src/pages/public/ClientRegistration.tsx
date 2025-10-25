@@ -226,6 +226,17 @@ export default function ClientRegistration() {
             ) : (
               <>
                 <div>
+                  <Label htmlFor="responsible_name">Nome da Empresa *</Label>
+                  <Input
+                    id="responsible_name"
+                    value={formData.responsible_name}
+                    onChange={(e) => handleInputChange('responsible_name', e.target.value)}
+                    placeholder="Como a empresa é conhecida"
+                    required
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="full_name">Nome Completo *</Label>
                   <Input
                     id="full_name"
