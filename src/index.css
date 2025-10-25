@@ -122,7 +122,7 @@ All colors MUST be HSL.
     --ring: 48 96% 53%;
     
     /* Dark Sidebar */
-    --sidebar-background: 213 26% 15%;  /* #1c2530 */
+    --sidebar-background: 0 0% 14%;  /* #242424 */
     --sidebar-foreground: 218 11% 85%;
     --sidebar-primary: 220 55% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
