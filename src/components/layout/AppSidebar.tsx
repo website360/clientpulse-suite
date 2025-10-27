@@ -179,7 +179,10 @@ export function AppSidebar() {
       className="border-r border-sidebar-border h-screen sticky top-0"
     >
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex flex-col gap-3">
+        <div className={cn(
+          "flex gap-3",
+          isCollapsed ? "flex-col" : "flex-row items-center justify-between"
+        )}>
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
@@ -200,7 +203,7 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className={cn("h-8 w-8 flex-shrink-0", isCollapsed ? "mx-auto" : "ml-auto")}
+            className={cn("h-8 w-8 flex-shrink-0", isCollapsed && "mx-auto")}
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
