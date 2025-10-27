@@ -231,14 +231,14 @@ export function AppSidebar() {
             <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
+            <SidebarMenu className={cn("gap-2", isCollapsed && "gap-4")}>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
                     className={cn(
                       "transition-all",
-                      isCollapsed ? "justify-center py-8 px-0" : "py-4 justify-start"
+                      isCollapsed ? "justify-center py-8 px-0 min-h-[80px] w-full" : "py-4 justify-start"
                     )}
                   >
                     <NavLink
@@ -249,7 +249,7 @@ export function AppSidebar() {
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                             : 'hover:bg-sidebar-accent/50',
-                          isCollapsed ? 'flex justify-center items-center w-full' : 'flex items-center'
+                          isCollapsed ? 'flex justify-center items-center w-full min-h-[80px] p-4' : 'flex items-center'
                         )
                       }
                       title={isCollapsed ? item.title : undefined}
@@ -296,7 +296,7 @@ export function AppSidebar() {
           onClick={toggleTheme}
           className={cn(
             "w-full gap-2 transition-all",
-            isCollapsed ? "justify-center px-0 py-8" : "justify-start"
+            isCollapsed ? "justify-center px-0 py-8 min-h-[80px]" : "justify-start"
           )}
           title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
