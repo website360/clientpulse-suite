@@ -6,6 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface MaintenancePlanFormModalProps {
@@ -18,7 +24,7 @@ interface MaintenancePlanFormModalProps {
 export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propClientId, plan }: MaintenancePlanFormModalProps) {
   const [clientId, setClientId] = useState<string>(propClientId || 'none');
   const [domainId, setDomainId] = useState<string>('none');
-  const [monthlyDay, setMonthlyDay] = useState<number>(1);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [isActive, setIsActive] = useState(true);
   const queryClient = useQueryClient();
 
@@ -68,7 +74,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
     if (plan) {
       setClientId(plan.client_id);
       setDomainId(plan.domain_id || 'none');
-      setMonthlyDay(plan.monthly_day);
+      setStartDate(plan.start_date ? new Date(plan.start_date) : undefined);
       setIsActive(plan.is_active);
     } else {
       if (propClientId) {
@@ -78,7 +84,11 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
       }
       if (settings) {
         setDomainId('none');
-        setMonthlyDay(settings.default_monthly_day);
+        // Set default to next month, day from settings
+        const defaultDate = new Date();
+        defaultDate.setMonth(defaultDate.getMonth() + 1);
+        defaultDate.setDate(settings.default_monthly_day);
+        setStartDate(defaultDate);
         setIsActive(true);
       }
     }
@@ -90,10 +100,15 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
         throw new Error('Selecione um cliente');
       }
 
+      if (!startDate) {
+        throw new Error('Selecione a data da primeira manutenção');
+      }
+
       const planData = {
         client_id: clientId,
         domain_id: domainId === 'none' ? null : domainId,
-        monthly_day: monthlyDay,
+        monthly_day: startDate.getDate(),
+        start_date: startDate.toISOString().split('T')[0],
         is_active: isActive,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       };
@@ -184,19 +199,35 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="monthly-day">Dia do Mês</Label>
-            <Select value={monthlyDay.toString()} onValueChange={(v) => setMonthlyDay(Number(v))}>
-              <SelectTrigger id="monthly-day">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <SelectItem key={day} value={day.toString()}>
-                    Dia {day}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="start-date">Data da Primeira Manutenção *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="start-date"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                  disabled={(date) => date < new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">
+              A manutenção se repetirá todo dia {startDate?.getDate() || 1} de cada mês
+            </p>
           </div>
 
           <div className="flex items-center justify-between">
