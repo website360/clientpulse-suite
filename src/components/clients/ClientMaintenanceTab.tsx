@@ -136,61 +136,81 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
               const getStatusInfo = (plan: any) => {
                 const lastExecution = plan.maintenance_executions?.[0];
                 const today = new Date();
-                const currentMonth = today.getMonth();
-                const currentYear = today.getFullYear();
-                const targetDay = plan.monthly_day;
+                const nextScheduledDate = getNextScheduledDate(plan);
+
+                today.setHours(0, 0, 0, 0);
+                nextScheduledDate.setHours(0, 0, 0, 0);
 
                 if (!lastExecution) {
-                  const scheduledDate = new Date(currentYear, currentMonth, targetDay);
-                  if (today > scheduledDate) {
-                    return { 
-                      variant: 'destructive' as const, 
+                  if (today > nextScheduledDate) {
+                    return {
+                      variant: 'destructive' as const,
                       label: 'Atrasada',
                       className: 'bg-error/10 text-error border-error/20'
                     };
                   }
-                  return { 
-                    variant: 'secondary' as const, 
+                  return {
+                    variant: 'secondary' as const,
                     label: 'Aguardando Manutenção',
                     className: 'bg-warning/10 text-warning border-warning/20'
                   };
                 }
 
                 const lastDate = new Date(lastExecution.executed_at);
+                lastDate.setHours(0, 0, 0, 0);
                 const lastMonth = lastDate.getMonth();
                 const lastYear = lastDate.getFullYear();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
 
                 if (lastMonth === currentMonth && lastYear === currentYear) {
-                  return { 
-                    variant: 'default' as const, 
+                  return {
+                    variant: 'default' as const,
                     label: 'Realizada',
                     className: 'bg-success/10 text-success border-success/20'
                   };
                 }
 
-                const scheduledDate = new Date(currentYear, currentMonth, targetDay);
-                if (today > scheduledDate) {
-                  return { 
-                    variant: 'destructive' as const, 
+                if (today > nextScheduledDate) {
+                  return {
+                    variant: 'destructive' as const,
                     label: 'Atrasada',
                     className: 'bg-error/10 text-error border-error/20'
                   };
                 }
 
-                return { 
-                  variant: 'secondary' as const, 
+                return {
+                  variant: 'secondary' as const,
                   label: 'Aguardando Manutenção',
                   className: 'bg-warning/10 text-warning border-warning/20'
                 };
               };
 
               const getNextScheduledDate = (plan: any) => {
-                const lastExecution = plan.maintenance_executions?.[0];
-                if (lastExecution?.next_scheduled_date) {
-                  return parseISO(lastExecution.next_scheduled_date);
-                }
                 const today = new Date();
-                return new Date(today.getFullYear(), today.getMonth(), plan.monthly_day);
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+                const targetDay = plan.monthly_day;
+                
+                const lastExecution = plan.maintenance_executions?.[0];
+                
+                if (lastExecution) {
+                  const lastDate = new Date(lastExecution.executed_at);
+                  const lastMonth = lastDate.getMonth();
+                  const lastYear = lastDate.getFullYear();
+                  if (lastMonth === currentMonth && lastYear === currentYear) {
+                    return new Date(currentYear, currentMonth + 1, targetDay);
+                  }
+                }
+                
+                if (!lastExecution && plan.start_date) {
+                  const startDate = new Date(plan.start_date);
+                  if (startDate > today) {
+                    return startDate;
+                  }
+                }
+                
+                return new Date(currentYear, currentMonth, targetDay);
               };
 
               const statusInfo = getStatusInfo(plan);
