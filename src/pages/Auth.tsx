@@ -119,7 +119,7 @@ export default function Auth() {
       <div className="relative z-10 w-full max-w-6xl bg-background rounded-3xl shadow-2xl overflow-hidden">
         <div className="grid lg:grid-cols-2">
           {/* Left Side - Welcome Section */}
-          <div className="hidden lg:flex flex-col justify-center px-12 py-16 bg-muted/30">
+          <div className="hidden lg:flex flex-col justify-center px-12 py-20 bg-muted/30">
             <div className="space-y-6">
               <img 
                 src={authLogo.light} 
@@ -139,7 +139,7 @@ export default function Auth() {
           </div>
 
           {/* Right Side - Sign In Form */}
-          <div className="flex items-center justify-center p-8 lg:p-12">
+          <div className="flex items-center justify-center p-8 lg:p-16">
             <div className="w-full max-w-md space-y-8">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-8 text-center">
@@ -192,7 +192,7 @@ export default function Auth() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-semibold text-sm hover:underline"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-semibold text-xs hover:underline"
                       >
                         {showPassword ? "OCULTAR" : "MOSTRAR"}
                       </button>
