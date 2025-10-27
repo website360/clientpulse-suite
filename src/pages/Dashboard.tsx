@@ -536,27 +536,36 @@ export default function Dashboard() {
             <div>
               <h2 className="text-lg font-bold mb-4">Indicadores de Manutenção</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <MetricCard
-                  title="Realizadas"
-                  value={stats.maintenanceDone}
-                  icon={CheckCircle}
-                  variant="success"
-                  className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
-                />
-                <MetricCard
-                  title="Aguardando"
-                  value={stats.maintenancePending}
-                  icon={Clock}
-                  variant="default"
-                  className="border-yellow-200/50 dark:border-yellow-800/50 hover:border-yellow-300 dark:hover:border-yellow-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-yellow-50 [&_.icon-wrapper]:to-yellow-100/50 dark:[&_.icon-wrapper]:from-yellow-950/50 dark:[&_.icon-wrapper]:to-yellow-900/30 [&_.icon-wrapper_.lucide]:text-yellow-600 dark:[&_.icon-wrapper_.lucide]:text-yellow-400"
-                />
-                <MetricCard
-                  title="Atrasadas"
-                  value={stats.maintenanceOverdue}
-                  icon={AlertCircle}
-                  variant="destructive"
-                  className="border-red-200/50 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-red-50 [&_.icon-wrapper]:to-red-100/50 dark:[&_.icon-wrapper]:from-red-950/50 dark:[&_.icon-wrapper]:to-red-900/30 [&_.icon-wrapper_.lucide]:text-red-600 dark:[&_.icon-wrapper_.lucide]:text-red-400"
-                />
+                <Card>
+                  <CardContent className="p-0">
+                    <MetricCard
+                      title="Realizadas"
+                      value={stats.maintenanceDone}
+                      icon={CheckCircle}
+                      variant="success"
+                    />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-0">
+                    <MetricCard
+                      title="Aguardando"
+                      value={stats.maintenancePending}
+                      icon={Clock}
+                      variant="default"
+                    />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-0">
+                    <MetricCard
+                      title="Atrasadas"
+                      value={stats.maintenanceOverdue}
+                      icon={AlertCircle}
+                      variant="destructive"
+                    />
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
