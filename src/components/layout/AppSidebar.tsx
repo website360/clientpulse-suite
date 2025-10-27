@@ -179,14 +179,14 @@ export function AppSidebar() {
       className="border-r border-sidebar-border h-screen sticky top-0"
     >
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
               className={cn(
                 "flex-shrink-0 object-contain transition-all",
-                isCollapsed ? "h-9 w-9" : "h-10 w-10"
+                isCollapsed ? "h-9 w-9 mx-auto" : "h-10 w-10"
               )}
             />
             {!isCollapsed && profile && (
@@ -200,7 +200,7 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 flex-shrink-0"
+            className={cn("h-8 w-8 flex-shrink-0", isCollapsed ? "mx-auto" : "ml-auto")}
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
