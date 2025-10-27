@@ -65,6 +65,7 @@ interface ProjectProgress {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
     inProgressTickets: 0,
     waitingTickets: 0,
@@ -110,26 +111,20 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Count tickets by status
-      const { count: waitingCount } = await supabase
-        .from('tickets')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting');
-
-      const { count: inProgressCount } = await supabase
-        .from('tickets')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'in_progress');
-
-      const { count: resolvedCount } = await supabase
-        .from('tickets')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'resolved');
-
-      const { count: closedCount } = await supabase
-        .from('tickets')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'closed');
+      setLoading(true);
+      
+      // Paralelizar contagem de tickets
+      const [
+        { count: waitingCount },
+        { count: inProgressCount },
+        { count: resolvedCount },
+        { count: closedCount }
+      ] = await Promise.all([
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'waiting'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'resolved'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'closed')
+      ]);
 
       setStats(prev => ({
         ...prev,
@@ -142,155 +137,54 @@ export default function Dashboard() {
 
       // Fetch clients count (admin only)
       if (userRole === 'admin') {
-        const { count: clientsCount } = await supabase
-          .from('clients')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_active', true);
-        
-        const { count: contactsCount } = await supabase
-          .from('client_contacts')
-          .select('*', { count: 'exact', head: true });
-        
-        setStats(prev => ({ 
-          ...prev, 
-          totalClients: clientsCount || 0,
-          totalContacts: contactsCount || 0
-        }));
-
-        // Fetch financial data
         const today = new Date();
         const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
         const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
         const todayFormatted = format(today, 'yyyy-MM-dd');
         const threeDaysFromNow = format(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
-        // Total a Receber (mês atual, pendente)
-        const { data: receivableData } = await supabase
-          .from('accounts_receivable')
-          .select('amount')
-          .gte('due_date', monthStart)
-          .lte('due_date', monthEnd)
-          .eq('status', 'pending');
+        // Paralelizar TODAS as requisições de dados administrativos
+        const [
+          { count: clientsCount },
+          { count: contactsCount },
+          { data: receivableData },
+          { data: receivedData },
+          { data: receivableDueSoonData },
+          { data: overdueReceivableData },
+          { data: payableData },
+          { data: paidData },
+          { data: payableDueSoonData },
+          { data: overduePayableData },
+          { data: tasksData },
+          { data: overdueData },
+          { data: maintenancePlans }
+        ] = await Promise.all([
+          supabase.from('clients').select('*', { count: 'exact', head: true }).eq('is_active', true),
+          supabase.from('client_contacts').select('*', { count: 'exact', head: true }),
+          supabase.from('accounts_receivable').select('amount').gte('due_date', monthStart).lte('due_date', monthEnd).eq('status', 'pending'),
+          supabase.from('accounts_receivable').select('amount').gte('payment_date', monthStart).lte('payment_date', monthEnd).in('status', ['received']),
+          supabase.from('accounts_receivable').select('amount').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
+          supabase.from('accounts_receivable').select('amount').lt('due_date', todayFormatted).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount').gte('due_date', monthStart).lte('due_date', monthEnd).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount').gte('payment_date', monthStart).lte('payment_date', monthEnd).in('status', ['paid']),
+          supabase.from('accounts_payable').select('amount').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount').lt('due_date', todayFormatted).eq('status', 'pending'),
+          supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').order('created_at', { ascending: false }).limit(5),
+          supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').eq('priority', 'high').neq('status', 'done').order('created_at', { ascending: false }),
+          supabase.from('client_maintenance_plans').select('*, maintenance_executions (executed_at)').eq('is_active', true).order('executed_at', { foreignTable: 'maintenance_executions', ascending: false })
+        ]);
 
         const totalReceivable = receivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Total Recebido no mês
-        const { data: receivedData } = await supabase
-          .from('accounts_receivable')
-          .select('amount')
-          .gte('payment_date', monthStart)
-          .lte('payment_date', monthEnd)
-          .in('status', ['received']);
-
         const totalReceived = receivedData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Contas a Receber que vencem em 3 dias
-        const { data: receivableDueSoonData } = await supabase
-          .from('accounts_receivable')
-          .select('amount')
-          .gte('due_date', todayFormatted)
-          .lte('due_date', threeDaysFromNow)
-          .eq('status', 'pending');
-
         const receivableDueSoon = receivableDueSoonData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Contas a Receber Vencidas
-        const { data: overdueReceivableData } = await supabase
-          .from('accounts_receivable')
-          .select('amount')
-          .lt('due_date', todayFormatted)
-          .eq('status', 'pending');
-
         const overdueReceivable = overdueReceivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Total a Pagar (mês atual, pendente)
-        const { data: payableData } = await supabase
-          .from('accounts_payable')
-          .select('amount')
-          .gte('due_date', monthStart)
-          .lte('due_date', monthEnd)
-          .eq('status', 'pending');
-
         const totalPayable = payableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Total Pago no mês
-        const { data: paidData } = await supabase
-          .from('accounts_payable')
-          .select('amount')
-          .gte('payment_date', monthStart)
-          .lte('payment_date', monthEnd)
-          .in('status', ['paid']);
-
         const totalPaid = paidData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Contas a Pagar que vencem em 3 dias
-        const { data: payableDueSoonData } = await supabase
-          .from('accounts_payable')
-          .select('amount')
-          .gte('due_date', todayFormatted)
-          .lte('due_date', threeDaysFromNow)
-          .eq('status', 'pending');
-
         const payableDueSoon = payableDueSoonData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        // Contas a Pagar Vencidas
-        const { data: overduePayableData } = await supabase
-          .from('accounts_payable')
-          .select('amount')
-          .lt('due_date', todayFormatted)
-          .eq('status', 'pending');
-
         const overduePayable = overduePayableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
-
-        setStats(prev => ({
-          ...prev,
-          totalReceivable,
-          totalReceived,
-          receivableDueSoon,
-          overdueReceivable,
-          totalPayable,
-          totalPaid,
-          payableDueSoon,
-          overduePayable,
-        }));
-
-        // Buscar últimas 5 tarefas
-        const { data: tasksData } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            client:clients(id, nickname),
-            assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        // Buscar tarefas urgentes (prioridade alta)
-        const { data: overdueData } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            client:clients(id, nickname),
-            assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
-          `)
-          .eq('priority', 'high')
-          .neq('status', 'done')
-          .order('created_at', { ascending: false });
 
         setRecentTasks(tasksData || []);
         setOverdueTasks(overdueData || []);
-
-        // Buscar dados de manutenção
-        const { data: maintenancePlans } = await supabase
-          .from('client_maintenance_plans')
-          .select(`
-            *,
-            maintenance_executions (
-              executed_at
-            )
-          `)
-          .eq('is_active', true)
-          .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
 
         const todayMaintenance = new Date();
         todayMaintenance.setHours(0, 0, 0, 0);
@@ -342,6 +236,16 @@ export default function Dashboard() {
 
         setStats(prev => ({
           ...prev,
+          totalClients: clientsCount || 0,
+          totalContacts: contactsCount || 0,
+          totalReceivable,
+          totalReceived,
+          receivableDueSoon,
+          overdueReceivable,
+          totalPayable,
+          totalPaid,
+          payableDueSoon,
+          overduePayable,
           maintenanceDone,
           maintenancePending,
           maintenanceOverdue,
@@ -432,6 +336,8 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -455,6 +361,12 @@ export default function Dashboard() {
             Visão geral do sistema de gerenciamento
           </p>
         </div>
+
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
 
         {userRole === 'admin' && (
           <>
