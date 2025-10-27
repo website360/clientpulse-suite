@@ -512,28 +512,31 @@ export default function ClientTicketDetails() {
                        return (
                          <Card key={message.id} className={`${colorClasses} border`}>
                            <CardContent className="p-4">
-                             <div className="space-y-2">
-                               <div className="flex items-center justify-between">
-                                 <div className="flex items-center gap-2">
-                                   <span className={`text-sm font-semibold ${textColor}`}>
-                                     {message.displayName}
-                                   </span>
-                                   {message.messageType === 'admin' && (
-                                     <Badge variant="outline" className="text-xs bg-gray-100 dark:bg-gray-900">Admin</Badge>
-                                   )}
-                                   {message.messageType === 'contact' && (
-                                     <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900">Contato</Badge>
-                                   )}
-                                 </div>
-                                 <span className="text-xs text-muted-foreground">
-                                   {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                 </span>
-                               </div>
-                               <div
-                                  className="text-sm"
-                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
-                                />
-                             </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex flex-col gap-1">
+                                    <span className={`text-sm font-semibold ${textColor}`}>
+                                      {message.displayName}
+                                    </span>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <span>{message.profiles?.email || 'Email não disponível'}</span>
+                                      <span>•</span>
+                                      <span className={textColor}>
+                                        {message.messageType === 'admin' && 'Suporte'}
+                                        {message.messageType === 'contact' && 'Colaborador'}
+                                        {message.messageType === 'client' && 'Cliente'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  </span>
+                                </div>
+                                <div
+                                   className="text-sm"
+                                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                                 />
+                              </div>
                            </CardContent>
                          </Card>
                        );
