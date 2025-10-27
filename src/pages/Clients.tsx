@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Download, Link2 } from 'lucide-react';
+import { Plus, LayoutGrid, Table as TableIcon, Link2 } from 'lucide-react';
 import { ClientTable } from '@/components/clients/ClientTable';
 import { ClientCards } from '@/components/clients/ClientCards';
 import { ClientFilters } from '@/components/clients/ClientFilters';
@@ -208,29 +208,6 @@ export default function Clients() {
     }
   };
 
-  const handleExport = () => {
-    // Export to CSV logic
-    const csv = [
-      ['Nome', 'Email', 'Telefone', 'CPF/CNPJ', 'Tipo', 'Status'],
-      ...filteredClients.map((client) => [
-        client.full_name || client.company_name,
-        client.email,
-        client.phone,
-        client.cpf_cnpj,
-        client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica',
-        client.is_active ? 'Ativo' : 'Inativo',
-      ]),
-    ]
-      .map((row) => row.join(','))
-      .join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'clientes.csv';
-    a.click();
-  };
 
   const handleCopyRegistrationLink = () => {
     const link = `${window.location.origin}/cadastro-cliente`;
@@ -294,28 +271,21 @@ export default function Clients() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <ClientFilters filters={filters} onFiltersChange={setFilters} />
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
+          <div className="flex items-center gap-1 border rounded-lg p-1">
+            <Button
+              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+            >
+              <TableIcon className="h-4 w-4" />
             </Button>
-            
-            <div className="flex items-center gap-1 border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                <TableIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('cards')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

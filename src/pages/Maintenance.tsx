@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutGrid, Table as TableIcon } from "lucide-react";
@@ -11,6 +11,8 @@ import { MaintenanceTable } from "@/components/maintenance/MaintenanceTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePaginationSort } from "@/hooks/usePaginationSort";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 export default function Maintenance() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -21,6 +23,16 @@ export default function Maintenance() {
     search: '',
     status: 'all',
   });
+
+  const {
+    currentPage,
+    pageSize,
+    sortColumn,
+    sortDirection,
+    handleSort,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePaginationSort('clients.full_name', 'asc');
 
   const { data: plans, isLoading, refetch } = useQuery({
     queryKey: ['maintenance-plans'],
@@ -55,40 +67,81 @@ export default function Maintenance() {
     },
   });
 
-  const filteredPlans = plans?.filter((plan) => {
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const clientName = (plan.clients?.responsible_name || (plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name) || '').toLowerCase();
-      const domain = (plan.domains?.domain || '').toLowerCase();
-      
-      if (!clientName.includes(searchLower) && !domain.includes(searchLower)) {
-        return false;
+  const filteredPlans = useMemo(() => {
+    return plans?.filter((plan) => {
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const clientName = (plan.clients?.responsible_name || (plan.clients?.client_type === 'company' ? plan.clients?.company_name : plan.clients?.full_name) || '').toLowerCase();
+        const domain = (plan.domains?.domain || '').toLowerCase();
+        
+        if (!clientName.includes(searchLower) && !domain.includes(searchLower)) {
+          return false;
+        }
       }
-    }
 
-    // Status filter
-    if (filters.status !== 'all') {
-      const lastExecution = plan.maintenance_executions?.[0];
-      
-      if (filters.status === 'active' && !plan.is_active) return false;
-      if (filters.status === 'inactive' && plan.is_active) return false;
-      
-      if (filters.status === 'pending' || filters.status === 'urgent') {
-        if (!lastExecution && filters.status === 'urgent') return true;
-        if (!lastExecution) return false;
+      // Status filter
+      if (filters.status !== 'all') {
+        const lastExecution = plan.maintenance_executions?.[0];
         
-        const daysSince = Math.floor((new Date().getTime() - new Date(lastExecution.executed_at).getTime()) / (1000 * 60 * 60 * 24));
+        if (filters.status === 'active' && !plan.is_active) return false;
+        if (filters.status === 'inactive' && plan.is_active) return false;
         
-        if (filters.status === 'pending' && (daysSince >= 25 && daysSince < 35)) return true;
-        if (filters.status === 'urgent' && daysSince >= 35) return true;
-        
-        return false;
+        if (filters.status === 'pending' || filters.status === 'urgent') {
+          if (!lastExecution && filters.status === 'urgent') return true;
+          if (!lastExecution) return false;
+          
+          const daysSince = Math.floor((new Date().getTime() - new Date(lastExecution.executed_at).getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (filters.status === 'pending' && (daysSince >= 25 && daysSince < 35)) return true;
+          if (filters.status === 'urgent' && daysSince >= 35) return true;
+          
+          return false;
+        }
       }
-    }
 
-    return true;
-  }) || [];
+      return true;
+    }) || [];
+  }, [plans, filters]);
+
+  const sortedPlans = useMemo(() => {
+    if (!sortColumn) return filteredPlans;
+
+    return [...filteredPlans].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortColumn === 'clients.full_name') {
+        aValue = a.clients?.responsible_name || (a.clients?.client_type === 'company' ? a.clients?.company_name : a.clients?.full_name) || '';
+        bValue = b.clients?.responsible_name || (b.clients?.client_type === 'company' ? b.clients?.company_name : b.clients?.full_name) || '';
+      } else if (sortColumn === 'domains.domain') {
+        aValue = a.domains?.domain || '';
+        bValue = b.domains?.domain || '';
+      } else if (sortColumn === 'last_execution') {
+        aValue = a.maintenance_executions?.[0]?.executed_at || '';
+        bValue = b.maintenance_executions?.[0]?.executed_at || '';
+      } else if (sortColumn === 'next_scheduled') {
+        const aLast = a.maintenance_executions?.[0];
+        const bLast = b.maintenance_executions?.[0];
+        aValue = aLast?.next_scheduled_date || '';
+        bValue = bLast?.next_scheduled_date || '';
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue, 'pt-BR', { sensitivity: 'base' })
+          : bValue.localeCompare(aValue, 'pt-BR', { sensitivity: 'base' });
+      }
+
+      return 0;
+    });
+  }, [filteredPlans, sortColumn, sortDirection]);
+
+  const {
+    paginatedItems: paginatedPlans,
+    totalPages,
+    totalItems,
+  } = useClientPagination(sortedPlans, pageSize);
 
   const handleExecute = (plan: any) => {
     setSelectedPlan(plan);
@@ -144,9 +197,21 @@ export default function Maintenance() {
                 <p className="text-muted-foreground">Carregando planos...</p>
               </div>
             ) : viewMode === 'table' ? (
-              <MaintenanceTable plans={filteredPlans} onExecute={handleExecute} />
+              <MaintenanceTable 
+                plans={paginatedPlans} 
+                onExecute={handleExecute}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
             ) : (
-              <MaintenanceCards plans={filteredPlans} onExecute={handleExecute} />
+              <MaintenanceCards plans={sortedPlans} onExecute={handleExecute} />
             )}
           </TabsContent>
 

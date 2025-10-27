@@ -10,15 +10,38 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface MaintenanceTableProps {
   plans: any[];
   onExecute: (plan: any) => void;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: string) => void;
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
-export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
+export function MaintenanceTable({ 
+  plans, 
+  onExecute,
+  sortColumn,
+  sortDirection,
+  onSort,
+  currentPage,
+  pageSize,
+  totalItems,
+  totalPages,
+  onPageChange,
+  onPageSizeChange,
+}: MaintenanceTableProps) {
   const getStatusBadge = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
     const today = new Date();
@@ -103,66 +126,113 @@ export function MaintenanceTable({ plans, onExecute }: MaintenanceTableProps) {
   }
 
   return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Domínio</TableHead>
-            <TableHead>Dia Execução</TableHead>
-            <TableHead>Última Manutenção</TableHead>
-            <TableHead>Próxima Manutenção</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {plans.map((plan) => {
-            const lastExecution = plan.maintenance_executions?.[0];
-            const nextDate = getNextScheduledDate(plan);
+    <div className="space-y-4">
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <SortableTableHead
+                column="clients.full_name"
+                label="Cliente"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="domains.domain"
+                label="Domínio"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="monthly_day"
+                label="Dia Execução"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="last_execution"
+                label="Última Manutenção"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="next_scheduled"
+                label="Próxima Manutenção"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <SortableTableHead
+                column="status"
+                label="Status"
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {plans.map((plan) => {
+              const lastExecution = plan.maintenance_executions?.[0];
+              const nextDate = getNextScheduledDate(plan);
 
-            return (
-              <TableRow key={plan.id}>
-                <TableCell>
-                  <ClientNameCell client={plan.clients || {}} />
-                </TableCell>
-                <TableCell>
-                  {plan.domains?.domain || '-'}
-                </TableCell>
-                <TableCell>
-                  Dia {plan.monthly_day}
-                </TableCell>
-                <TableCell>
-                  {lastExecution 
-                    ? format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })
-                    : '-'
-                  }
-                </TableCell>
-                <TableCell>
-                  {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
-                </TableCell>
-                <TableCell>
-                  {getStatusBadge(plan)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {shouldShowExecuteButton(plan) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onExecute(plan)}
-                      disabled={!plan.is_active}
-                      className="gap-2"
-                    >
-                      <Play className="h-3 w-3" />
-                      Executar
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+              return (
+                <TableRow key={plan.id}>
+                  <TableCell>
+                    <ClientNameCell client={plan.clients || {}} />
+                  </TableCell>
+                  <TableCell>
+                    {plan.domains?.domain || '-'}
+                  </TableCell>
+                  <TableCell>
+                    Dia {plan.monthly_day}
+                  </TableCell>
+                  <TableCell>
+                    {lastExecution 
+                      ? format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })
+                      : '-'
+                    }
+                  </TableCell>
+                  <TableCell>
+                    {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(plan)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {shouldShowExecuteButton(plan) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onExecute(plan)}
+                        disabled={!plan.is_active}
+                        className="gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Executar
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </div>
   );
 }
