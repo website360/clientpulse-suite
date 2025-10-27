@@ -94,7 +94,11 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
           .eq('id', contactData.client_id)
           .maybeSingle();
 
-        if (clientData) setClients([clientData]);
+        if (clientData) {
+          setClients([clientData]);
+          // Force form to recognize the value is set
+          form.setValue('client_id', clientData.id, { shouldValidate: true });
+        }
       } else {
         setIsContact(false);
         fetchClients();

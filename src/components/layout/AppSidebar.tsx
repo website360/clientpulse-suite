@@ -33,7 +33,6 @@ export function AppSidebar() {
     light: logoLight,
     dark: logoDark,
   });
-  const [isContact, setIsContact] = useState(false);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
@@ -55,7 +54,6 @@ export function AppSidebar() {
     
     if (user) {
       fetchProfile();
-      fetchIsContact();
     }
 
     // Observer para mudanças no tema
@@ -125,19 +123,6 @@ export function AppSidebar() {
     }
   };
 
-  const fetchIsContact = async () => {
-    try {
-      if (!user?.id) return;
-      const { data } = await supabase
-        .from('client_contacts')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setIsContact(!!data);
-    } catch (e) {
-      setIsContact(false);
-    }
-  };
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -177,7 +162,8 @@ export function AppSidebar() {
     { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
   ];
 
-  const items = userRole === 'admin' ? adminItems : isContact ? contatoItems : clientItems;
+  // Usar userRole diretamente para evitar flickering no menu
+  const items = userRole === 'admin' ? adminItems : userRole === 'contato' ? contatoItems : clientItems;
 
   const badgeCounts: Record<string, number> = {
     'Tickets': ticketCount,
