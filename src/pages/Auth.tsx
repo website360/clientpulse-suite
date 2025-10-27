@@ -107,8 +107,9 @@ export default function Auth() {
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
         background: backgroundImage 
-          ? `url(${backgroundImage}) center/cover no-repeat`
-          : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--accent)) 100%)'
+          ? `url(${backgroundImage}) center/contain no-repeat`
+          : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--accent)) 100%)',
+        backgroundColor: backgroundImage ? 'hsl(var(--muted))' : undefined
       }}
     >
       {/* Overlay */}
