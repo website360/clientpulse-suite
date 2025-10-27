@@ -122,7 +122,7 @@ export default function Auth() {
           <div className="hidden lg:flex flex-col justify-center px-12 bg-muted/40 h-full rounded-l-3xl">
             <div className="space-y-6">
               <img 
-                src={authLogo.light} 
+                src={isDark ? authLogo.dark : authLogo.light} 
                 alt="Logo" 
                 className="h-12 w-auto"
               />

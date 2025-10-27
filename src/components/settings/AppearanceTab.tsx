@@ -192,12 +192,6 @@ export function AppearanceTab() {
             description="Essa imagem aparece no menu ao lado esquerdo do nome e email no tema claro"
             type="logo-icon-light"
           />
-          <LogoUploadSection
-            id="auth-logo-light"
-            label="Logo da Tela de Login"
-            description="Essa imagem aparece na tela de login do tema claro, em cima do formulário de login"
-            type="auth-logo-light"
-          />
         </CardContent>
       </Card>
 
@@ -214,12 +208,6 @@ export function AppearanceTab() {
             label="Ícone Menu"
             description="Essa imagem aparece no menu ao lado esquerdo do nome e email no tema escuro"
             type="logo-icon-dark"
-          />
-          <LogoUploadSection
-            id="auth-logo-dark"
-            label="Logo da Tela de Login"
-            description="Essa imagem aparece na tela de login do tema escuro, em cima do formulário de login"
-            type="auth-logo-dark"
           />
         </CardContent>
       </Card>
