@@ -238,7 +238,7 @@ export function AppSidebar() {
                     asChild 
                     className={cn(
                       "transition-all",
-                      isCollapsed ? "justify-center py-6" : "py-4"
+                      isCollapsed ? "justify-center py-6 px-0" : "py-4 justify-start"
                     )}
                   >
                     <NavLink
@@ -249,14 +249,14 @@ export function AppSidebar() {
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                             : 'hover:bg-sidebar-accent/50',
-                          isCollapsed && 'flex justify-center items-center'
+                          isCollapsed ? 'flex justify-center items-center w-full' : 'flex items-center'
                         )
                       }
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className={cn(
-                        "flex-shrink-0 transition-all",
-                        isCollapsed ? "h-10 w-10" : "h-5 w-5"
+                        "transition-all",
+                        isCollapsed ? "h-8 w-8" : "h-5 w-5 flex-shrink-0"
                       )} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1">
@@ -301,9 +301,9 @@ export function AppSidebar() {
           title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
           {isDark ? (
-            <Sun className={cn("transition-all", isCollapsed ? "h-10 w-10" : "h-5 w-5")} />
+            <Sun className={cn("transition-all", isCollapsed ? "h-8 w-8" : "h-5 w-5")} />
           ) : (
-            <Moon className={cn("transition-all", isCollapsed ? "h-10 w-10" : "h-5 w-5")} />
+            <Moon className={cn("transition-all", isCollapsed ? "h-8 w-8" : "h-5 w-5")} />
           )}
           {!isCollapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
         </Button>
