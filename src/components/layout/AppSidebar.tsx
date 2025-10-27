@@ -219,7 +219,7 @@ export function AppSidebar() {
             <SidebarMenu className="gap-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center items-center px-0 mx-auto")}>
+                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center items-center px-0 mx-auto !size-10")}>
                     <NavLink
                       to={item.url}
                       end
@@ -235,7 +235,7 @@ export function AppSidebar() {
                     >
                       <item.icon className={cn(
                         "flex-shrink-0 transition-all",
-                        isCollapsed ? "h-9 w-9 mx-auto" : "h-5 w-5"
+                        isCollapsed ? "!h-9 !w-9 mx-auto" : "h-5 w-5"
                       )} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1">
