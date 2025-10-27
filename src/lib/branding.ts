@@ -9,6 +9,7 @@ const BRANDING_PATHS: Record<string, string> = {
   'logo-icon-dark': 'branding/logo-icon-dark.png',
   'auth-logo-light': 'branding/auth-logo-light.png',
   'auth-logo-dark': 'branding/auth-logo-dark.png',
+  'auth-background': 'branding/auth-background.jpg',
   'kb-logo-light': 'branding/kb-logo-light.png',
   'kb-article-logo': 'branding/kb-article-logo.png',
 };
@@ -83,14 +84,30 @@ export async function loadBrandingUrl(
   
   // 1. Tentar do bucket branding (fonte principal)
   try {
-    const url = getBrandingPublicUrl(type, true);
-    
-    // Verificar se o arquivo existe fazendo uma requisição HEAD
-    const response = await fetch(url, { method: 'HEAD' });
-    if (response.ok) {
-      // Salvar no localStorage como cache
-      localStorage.setItem(cacheKey, url);
-      return url;
+    // Para auth-background, tentar múltiplas extensões
+    if (type === 'auth-background') {
+      const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+      for (const ext of extensions) {
+        const path = `branding/auth-background.${ext}`;
+        const { data } = supabase.storage.from('branding').getPublicUrl(path);
+        const url = `${data.publicUrl}?v=${Date.now()}`;
+        
+        const response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+          localStorage.setItem(cacheKey, url);
+          return url;
+        }
+      }
+    } else {
+      const url = getBrandingPublicUrl(type, true);
+      
+      // Verificar se o arquivo existe fazendo uma requisição HEAD
+      const response = await fetch(url, { method: 'HEAD' });
+      if (response.ok) {
+        // Salvar no localStorage como cache
+        localStorage.setItem(cacheKey, url);
+        return url;
+      }
     }
   } catch (error) {
     console.log(`Branding '${type}' não encontrado no bucket principal`);
@@ -121,7 +138,16 @@ export async function uploadBrandingFile(
   file: File
 ): Promise<{ url: string; error?: string }> {
   try {
-    const path = getBrandingPath(type);
+    // Obter extensão do arquivo
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    
+    // Para auth-background, usar a extensão do arquivo; para outros, usar path fixo
+    let path: string;
+    if (type === 'auth-background') {
+      path = `branding/auth-background.${fileExt}`;
+    } else {
+      path = getBrandingPath(type);
+    }
     
     // Upload com upsert: true para sobrescrever arquivo existente
     const { data, error } = await supabase.storage
@@ -134,7 +160,8 @@ export async function uploadBrandingFile(
     if (error) throw error;
 
     // Gerar URL pública com cache-bust
-    const url = getBrandingPublicUrl(type, true);
+    const publicUrl = supabase.storage.from('branding').getPublicUrl(path).data.publicUrl;
+    const url = `${publicUrl}?v=${Date.now()}`;
     
     // Salvar no localStorage como cache
     localStorage.setItem(`app-${type}`, url);
