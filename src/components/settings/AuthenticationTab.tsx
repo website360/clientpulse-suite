@@ -10,9 +10,11 @@ import { uploadBrandingFile, loadBrandingUrl } from '@/lib/branding';
 
 export function AuthenticationTab() {
   const [uploadingBg, setUploadingBg] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingLogoLight, setUploadingLogoLight] = useState(false);
+  const [uploadingLogoDark, setUploadingLogoDark] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>('');
-  const [logoImage, setLogoImage] = useState<string>('');
+  const [logoLightImage, setLogoLightImage] = useState<string>('');
+  const [logoDarkImage, setLogoDarkImage] = useState<string>('');
 
   useEffect(() => {
     loadImages();
@@ -21,10 +23,12 @@ export function AuthenticationTab() {
   const loadImages = async () => {
     try {
       const bgUrl = await loadBrandingUrl('auth-background', '');
-      const logoUrl = await loadBrandingUrl('auth-logo-light', '');
+      const logoLightUrl = await loadBrandingUrl('auth-logo-light', '');
+      const logoDarkUrl = await loadBrandingUrl('auth-logo-dark', '');
       
       setBackgroundImage(bgUrl);
-      setLogoImage(logoUrl);
+      setLogoLightImage(logoLightUrl);
+      setLogoDarkImage(logoDarkUrl);
     } catch (error) {
       console.error('Error loading images:', error);
     }
@@ -69,42 +73,75 @@ export function AuthenticationTab() {
     }
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoLightUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de arquivo
     if (!file.type.startsWith('image/')) {
       toast.error('Por favor, selecione uma imagem válida');
       return;
     }
 
-    // Validar tamanho (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('A imagem deve ter no máximo 2MB');
       return;
     }
 
-    setUploadingLogo(true);
+    setUploadingLogoLight(true);
 
     try {
       const { url, error } = await uploadBrandingFile('auth-logo-light', file);
       
       if (error) throw new Error(error);
 
-      setLogoImage(url);
+      setLogoLightImage(url);
       
-      // Disparar evento para atualizar o preview
       window.dispatchEvent(new CustomEvent('logoUpdated', { 
         detail: { type: 'auth-logo-light' } 
       }));
 
-      toast.success('Logo atualizada com sucesso!');
+      toast.success('Logo clara atualizada com sucesso!');
     } catch (error) {
       console.error('Error uploading logo:', error);
       toast.error('Erro ao fazer upload da logo');
     } finally {
-      setUploadingLogo(false);
+      setUploadingLogoLight(false);
+    }
+  };
+
+  const handleLogoDarkUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB');
+      return;
+    }
+
+    setUploadingLogoDark(true);
+
+    try {
+      const { url, error } = await uploadBrandingFile('auth-logo-dark', file);
+      
+      if (error) throw new Error(error);
+
+      setLogoDarkImage(url);
+      
+      window.dispatchEvent(new CustomEvent('logoUpdated', { 
+        detail: { type: 'auth-logo-dark' } 
+      }));
+
+      toast.success('Logo escura atualizada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Erro ao fazer upload da logo');
+    } finally {
+      setUploadingLogoDark(false);
     }
   };
 
@@ -135,7 +172,7 @@ export function AuthenticationTab() {
     }
   };
 
-  const handleRemoveLogo = async () => {
+  const handleRemoveLogoLight = async () => {
     try {
       const { data: existingFiles } = await supabase.storage
         .from('branding')
@@ -148,13 +185,40 @@ export function AuthenticationTab() {
           .from('branding')
           .remove(existingFiles.map(f => f.name));
         
-        setLogoImage('');
+        setLogoLightImage('');
         
         window.dispatchEvent(new CustomEvent('logoUpdated', { 
           detail: { type: 'auth-logo-light' } 
         }));
         
-        toast.success('Logo removida com sucesso!');
+        toast.success('Logo clara removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('Erro ao remover logo');
+    }
+  };
+
+  const handleRemoveLogoDark = async () => {
+    try {
+      const { data: existingFiles } = await supabase.storage
+        .from('branding')
+        .list('', {
+          search: 'auth-logo-dark'
+        });
+
+      if (existingFiles && existingFiles.length > 0) {
+        await supabase.storage
+          .from('branding')
+          .remove(existingFiles.map(f => f.name));
+        
+        setLogoDarkImage('');
+        
+        window.dispatchEvent(new CustomEvent('logoUpdated', { 
+          detail: { type: 'auth-logo-dark' } 
+        }));
+        
+        toast.success('Logo escura removida com sucesso!');
       }
     } catch (error) {
       console.error('Error removing logo:', error);
@@ -227,27 +291,27 @@ export function AuthenticationTab() {
 
           <div className="border-t pt-6" />
 
-          {/* Logo Image */}
+          {/* Logo Light Image */}
           <div className="space-y-4">
             <div>
-              <Label className="text-base font-semibold">Logo do Formulário</Label>
+              <Label className="text-base font-semibold">Logo do Formulário - Versão Clara</Label>
               <p className="text-sm text-muted-foreground mt-1">
-                Logo exibida na área de boas-vindas (recomendado: 200x60px, fundo transparente)
+                Logo exibida no tema claro (recomendado: 200x60px, fundo transparente)
               </p>
             </div>
             
-            {logoImage && (
-              <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border bg-muted/50 flex items-center justify-center">
+            {logoLightImage && (
+              <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border bg-white flex items-center justify-center">
                 <img 
-                  src={logoImage} 
-                  alt="Logo preview" 
+                  src={logoLightImage} 
+                  alt="Logo clara preview" 
                   className="max-w-full max-h-full object-contain p-2"
                 />
                 <Button
                   variant="destructive"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={handleRemoveLogo}
+                  onClick={handleRemoveLogoLight}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -256,24 +320,79 @@ export function AuthenticationTab() {
 
             <div className="flex gap-2">
               <Input
-                id="logo-upload"
+                id="logo-light-upload"
                 type="file"
                 accept="image/*"
-                onChange={handleLogoUpload}
-                disabled={uploadingLogo}
+                onChange={handleLogoLightUpload}
+                disabled={uploadingLogoLight}
                 className="hidden"
               />
               <Button
                 variant="outline"
-                onClick={() => document.getElementById('logo-upload')?.click()}
-                disabled={uploadingLogo}
+                onClick={() => document.getElementById('logo-light-upload')?.click()}
+                disabled={uploadingLogoLight}
               >
-                {uploadingLogo ? (
+                {uploadingLogoLight ? (
                   <>Fazendo upload...</>
                 ) : (
                   <>
                     <ImageIcon className="h-4 w-4 mr-2" />
-                    {logoImage ? 'Alterar Logo' : 'Fazer Upload'}
+                    {logoLightImage ? 'Alterar Logo Clara' : 'Fazer Upload'}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="border-t pt-6" />
+
+          {/* Logo Dark Image */}
+          <div className="space-y-4">
+            <div>
+              <Label className="text-base font-semibold">Logo do Formulário - Versão Escura</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Logo exibida no tema escuro (recomendado: 200x60px, fundo transparente)
+              </p>
+            </div>
+            
+            {logoDarkImage && (
+              <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border bg-slate-900 flex items-center justify-center">
+                <img 
+                  src={logoDarkImage} 
+                  alt="Logo escura preview" 
+                  className="max-w-full max-h-full object-contain p-2"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={handleRemoveLogoDark}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Input
+                id="logo-dark-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoDarkUpload}
+                disabled={uploadingLogoDark}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('logo-dark-upload')?.click()}
+                disabled={uploadingLogoDark}
+              >
+                {uploadingLogoDark ? (
+                  <>Fazendo upload...</>
+                ) : (
+                  <>
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    {logoDarkImage ? 'Alterar Logo Escura' : 'Fazer Upload'}
                   </>
                 )}
               </Button>
