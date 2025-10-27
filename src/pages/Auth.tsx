@@ -231,38 +231,6 @@ export default function Auth() {
                   >
                     {loading ? 'Entrando...' : 'Entrar'}
                   </Button>
-
-                  {/* Divider */}
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-background text-muted-foreground">Ou</span>
-                    </div>
-                  </div>
-
-                  {/* Sign in with other */}
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 rounded-lg text-base font-medium"
-                    onClick={() => toast.info('Outros métodos de login não configurados')}
-                  >
-                    Entrar com outro método
-                  </Button>
-
-                  {/* Sign Up Link */}
-                  <p className="text-center text-sm text-muted-foreground mt-6">
-                    Não tem uma conta?{' '}
-                    <button
-                      type="button"
-                      className="text-primary font-semibold hover:underline"
-                      onClick={() => toast.info('Entre em contato com o administrador para criar uma conta')}
-                    >
-                      Cadastrar
-                    </button>
-                  </p>
                 </form>
               </div>
             </div>
