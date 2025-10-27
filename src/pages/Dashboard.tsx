@@ -338,13 +338,17 @@ export default function Dashboard() {
           const projectsResult = await (supabase as any)
             .from('projects')
             .select('id, name, status, due_date, client_id')
-            .in('status', ['em_andamento', 'planejamento'])
-            .eq('is_active', true);
+            .in('status', ['em_andamento', 'planejamento']);
 
           const projectsData = projectsResult.data;
           const projectsError = projectsResult.error;
 
-          if (projectsError) throw projectsError;
+          if (projectsError) {
+            console.error('Error fetching projects:', projectsError);
+            throw projectsError;
+          }
+
+          console.log('Projects found:', projectsData?.length || 0);
 
           if (projectsData && projectsData.length > 0) {
             const projectIds = projectsData.map((p: any) => p.id);
@@ -358,7 +362,12 @@ export default function Dashboard() {
             const stagesData = stagesResult.data;
             const stagesError = stagesResult.error;
 
-            if (stagesError) throw stagesError;
+            if (stagesError) {
+              console.error('Error fetching stages:', stagesError);
+              throw stagesError;
+            }
+
+            console.log('Stages found:', stagesData?.length || 0);
 
             const clientsResult = await (supabase as any)
               .from('clients')
@@ -368,7 +377,10 @@ export default function Dashboard() {
             const clientsData = clientsResult.data;
             const clientsError = clientsResult.error;
 
-            if (clientsError) throw clientsError;
+            if (clientsError) {
+              console.error('Error fetching clients:', clientsError);
+              throw clientsError;
+            }
 
             // Criar array com progresso individual de cada projeto
             const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any) => {
@@ -378,6 +390,8 @@ export default function Dashboard() {
 
               const client = clientsData?.find((c: any) => c.id === project.client_id);
               const clientName = client?.company_name || client?.responsible_name || client?.full_name || 'Cliente não identificado';
+
+              console.log(`Project ${project.name}: ${completedStages}/${stages.length} stages completed = ${progress}%`);
 
               return {
                 id: project.id,
@@ -389,8 +403,10 @@ export default function Dashboard() {
               };
             });
 
+            console.log('Projects with progress:', projectsWithProgress);
             setActiveProjects(projectsWithProgress);
           } else {
+            console.log('No projects found');
             setActiveProjects([]);
           }
         } catch (err) {
