@@ -131,7 +131,7 @@ export default function Auth() {
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
                   <span className="font-semibold">Acompanhe tudo em um só lugar!</span>
                   <br />
-                  Tenha acesso a todas as informações em um único ambiente: visualize o andamento dos projetos, consulte seus contratos, abra tickets de suporte, acompanhe o financeiro e muito mais — tudo de forma integrada e segura.
+                  Tenha acesso a todas as informações em um único ambiente: visualize o andamento dos projetos, consulte seus contratos, abra tickets de suporte, acompanhe o financeiro e muito mais.
                 </p>
               </div>
             </div>
