@@ -29,7 +29,11 @@ export function AppSidebar() {
   const { user, userRole } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
-  const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(() => {
+    // Tentar carregar do cache do sessionStorage primeiro
+    const cachedProfile = sessionStorage.getItem('user-profile');
+    return cachedProfile ? JSON.parse(cachedProfile) : null;
+  });
   const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>(() => {
     // Tentar carregar do cache do sessionStorage primeiro
     const cachedLight = sessionStorage.getItem('logo-icon-light-url');
@@ -108,6 +112,9 @@ export function AppSidebar() {
         .single();
       
       if (error) throw error;
+      
+      // Salvar no sessionStorage para cache
+      sessionStorage.setItem('user-profile', JSON.stringify(data));
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
