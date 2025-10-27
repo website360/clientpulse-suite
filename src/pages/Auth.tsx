@@ -23,14 +23,16 @@ export default function Auth() {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
 
-    // Carregar logos customizados do localStorage
-    const loadLogos = () => {
-      const customAuthLogoLight = localStorage.getItem('app-auth-logo-light');
-      const customAuthLogoDark = localStorage.getItem('app-auth-logo-dark');
+    // Carregar logos do Storage (fonte principal) com fallback
+    const loadLogos = async () => {
+      const { loadBrandingUrl } = await import('@/lib/branding');
+      
+      const lightUrl = await loadBrandingUrl('auth-logo-light', logoLight);
+      const darkUrl = await loadBrandingUrl('auth-logo-dark', logoDark);
       
       setAuthLogo({
-        light: customAuthLogoLight || logoLight,
-        dark: customAuthLogoDark || logoDark,
+        light: lightUrl,
+        dark: darkUrl,
       });
     };
     

@@ -3,18 +3,38 @@ import { useEffect } from "react";
 import App from "./App.tsx";
 import "./index.css";
 
-// Função para atualizar o favicon dinamicamente
-const updateFavicon = () => {
-  const faviconUrl = localStorage.getItem('app-favicon');
-  if (faviconUrl) {
+// Função para atualizar o favicon dinamicamente do Storage
+const updateFavicon = async () => {
+  // Tentar do localStorage primeiro (cache rápido)
+  const cached = localStorage.getItem('app-favicon');
+  if (cached) {
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
     if (!link) {
       link = document.createElement('link');
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.href = faviconUrl;
+    link.href = cached;
     link.type = 'image/png';
+  }
+  
+  // Buscar do Storage para verificar se há versão mais recente
+  try {
+    const { loadBrandingUrl } = await import('./lib/branding');
+    const faviconUrl = await loadBrandingUrl('favicon', '/favicon.png');
+    
+    if (faviconUrl && faviconUrl !== '/favicon.png') {
+      let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = faviconUrl;
+      link.type = 'image/png';
+    }
+  } catch (error) {
+    console.error('Error loading favicon from storage:', error);
   }
 };
 

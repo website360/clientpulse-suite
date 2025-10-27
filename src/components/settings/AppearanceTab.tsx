@@ -19,8 +19,6 @@ export function AppearanceTab() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log('📤 Iniciando upload:', { type, fileName: file.name, fileSize: file.size });
-
     // Validação
     if (!file.type.startsWith('image/')) {
       toast({
@@ -48,65 +46,39 @@ export function AppearanceTab() {
         description: 'Por favor, aguarde.',
       });
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}.${fileExt}`;
-      const filePath = `branding/${fileName}`;
+      // Usar upload do branding helper com nome fixo
+      const { uploadBrandingFile } = await import('@/lib/branding');
+      const result = await uploadBrandingFile(type, file);
 
-      console.log('📁 Upload para:', filePath);
-
-      const { data, error } = await supabase.storage
-        .from('ticket-attachments')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) {
-        console.error('❌ Erro no upload:', error);
-        throw error;
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      console.log('✅ Upload concluído:', data);
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('ticket-attachments')
-        .getPublicUrl(data.path);
-
-      // Adicionar timestamp para evitar cache
-      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      // Atualizar preview imediatamente
+      if (onUploadComplete) {
+        onUploadComplete(result.url);
+      }
       
-      console.log('💾 Salvando no localStorage:', { key: `app-${type}`, url: urlWithTimestamp });
-      
-      // Salvar a URL no localStorage
-      localStorage.setItem(`app-${type}`, urlWithTimestamp);
-      
-      console.log('✅ Salvo no localStorage:', localStorage.getItem(`app-${type}`));
-      
-      // Disparar evento customizado para notificar outros componentes
-      window.dispatchEvent(new CustomEvent('logoUpdated', { detail: { type, url: urlWithTimestamp } }));
-      
-      console.log('📢 Evento logoUpdated disparado');
+      // Disparar evento para atualizar outros componentes
+      window.dispatchEvent(new CustomEvent('logoUpdated', { detail: { type, url: result.url } }));
       
       // Atualizar favicon dinamicamente se necessário
       if (type === 'favicon') {
         const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
         link.setAttribute('rel', 'icon');
-        link.setAttribute('href', urlWithTimestamp);
+        link.setAttribute('href', result.url);
         link.setAttribute('type', 'image/png');
-        document.head.appendChild(link);
-      }
-      
-      // Chamar callback se fornecido
-      if (onUploadComplete) {
-        onUploadComplete(urlWithTimestamp);
+        if (!document.querySelector("link[rel*='icon']")) {
+          document.head.appendChild(link);
+        }
       }
       
       toast({
         title: 'Imagem enviada!',
-        description: 'A imagem foi atualizada com sucesso.',
+        description: 'A imagem foi atualizada com sucesso e será mantida permanentemente.',
       });
     } catch (error) {
-      console.error('❌ Error uploading file:', error);
+      console.error('Error uploading file:', error);
       toast({
         title: 'Erro ao enviar imagem',
         description: 'Não foi possível enviar a imagem. Tente novamente.',
@@ -131,10 +103,30 @@ export function AppearanceTab() {
     const [preview, setPreview] = useState<string>('');
 
     useEffect(() => {
-      const savedUrl = localStorage.getItem(`app-${type}`);
-      if (savedUrl) {
-        setPreview(savedUrl);
-      }
+      // Carregar preview do Storage (fonte principal) ou localStorage (cache)
+      const loadPreview = async () => {
+        const { getBrandingPublicUrl } = await import('@/lib/branding');
+        
+        // Tentar do localStorage primeiro (cache rápido)
+        const cached = localStorage.getItem(`app-${type}`);
+        if (cached) {
+          setPreview(cached);
+        }
+        
+        // Buscar do Storage para verificar se há versão mais recente
+        try {
+          const url = getBrandingPublicUrl(type, true);
+          const response = await fetch(url, { method: 'HEAD' });
+          if (response.ok) {
+            setPreview(url);
+            localStorage.setItem(`app-${type}`, url);
+          }
+        } catch (error) {
+          // Se falhar, mantém o cache ou vazio
+        }
+      };
+      
+      loadPreview();
 
       // Listener para atualizações de logo
       const handleLogoUpdate = (event: Event) => {

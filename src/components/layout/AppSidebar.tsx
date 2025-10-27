@@ -39,14 +39,16 @@ export function AppSidebar() {
     setIsDark(isDarkMode);
     fetchTicketCount();
     
-    // Carregar logos customizados do localStorage
-    const loadLogos = () => {
-      const customLogoLight = localStorage.getItem('app-logo-icon-light');
-      const customLogoDark = localStorage.getItem('app-logo-icon-dark');
+    // Carregar logos do Storage (fonte principal) com fallback
+    const loadLogos = async () => {
+      const { loadBrandingUrl } = await import('@/lib/branding');
+      
+      const lightUrl = await loadBrandingUrl('logo-icon-light', logoLight);
+      const darkUrl = await loadBrandingUrl('logo-icon-dark', logoDark);
       
       setMenuLogo({
-        light: customLogoLight || logoLight,
-        dark: customLogoDark || logoDark,
+        light: lightUrl,
+        dark: darkUrl,
       });
     };
     
