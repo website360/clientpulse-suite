@@ -414,209 +414,154 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            {/* Financial Indicators - Contas a Receber */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-lg font-bold">Contas a Receber</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowReceivableValues(!showReceivableValues)}
-                >
-                  {showReceivableValues ? (
-                    <Eye className="h-4 w-4" />
-                  ) : (
-                    <EyeOff className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <MetricCard
-                  title="Total a Receber"
-                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.totalReceivable) : '•••••'}
-                  icon={TrendingUp}
-                  variant="default"
-                />
-
-                <MetricCard
-                  title="Total Recebido"
-                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.totalReceived) : '•••••'}
-                  icon={CheckCircle}
-                  variant="success"
-                />
-
-                <MetricCard
-                  title="Vencem em 3 dias"
-                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.receivableDueSoon) : '•••••'}
-                  icon={Clock}
-                  variant="default"
-                />
-
-                <MetricCard
-                  title="Total Vencido"
-                  value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.overdueReceivable) : '•••••'}
-                  icon={AlertCircle}
-                  variant="destructive"
-                />
-              </div>
-            </div>
-
-            {/* Financial Indicators - Contas a Pagar */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-lg font-bold">Contas a Pagar</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPayableValues(!showPayableValues)}
-                >
-                  {showPayableValues ? (
-                    <Eye className="h-4 w-4" />
-                  ) : (
-                    <EyeOff className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <MetricCard
-                  title="Total a Pagar"
-                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.totalPayable) : '•••••'}
-                  icon={TrendingDown}
-                  variant="default"
-                />
-
-                <MetricCard
-                  title="Total Pago"
-                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.totalPaid) : '•••••'}
-                  icon={CheckCircle}
-                  variant="success"
-                />
-
-                <MetricCard
-                  title="Vencem em 3 dias"
-                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.payableDueSoon) : '•••••'}
-                  icon={Clock}
-                  variant="default"
-                />
-
-                <MetricCard
-                  title="Total Vencido"
-                  value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(stats.overduePayable) : '•••••'}
-                  icon={AlertCircle}
-                  variant="destructive"
-                />
-              </div>
-            </div>
-
-            {/* Maintenance Indicators */}
-            <div>
-              <h2 className="text-lg font-bold mb-4">Indicadores de Manutenção</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-0">
+            {/* Financial Indicators Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Indicadores Financeiros</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Contas a Receber */}
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <h2 className="text-base font-semibold">Contas a Receber</h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowReceivableValues(!showReceivableValues)}
+                    >
+                      {showReceivableValues ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <MetricCard
-                      title="Realizadas"
-                      value={stats.maintenanceDone}
+                      title="Total a Receber"
+                      value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalReceivable) : '•••••'}
+                      icon={TrendingUp}
+                      variant="default"
+                    />
+                    <MetricCard
+                      title="Total Recebido"
+                      value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalReceived) : '•••••'}
                       icon={CheckCircle}
                       variant="success"
                     />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-0">
                     <MetricCard
-                      title="Aguardando"
-                      value={stats.maintenancePending}
+                      title="Vencem em 3 dias"
+                      value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.receivableDueSoon) : '•••••'}
                       icon={Clock}
                       variant="default"
                     />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-0">
                     <MetricCard
-                      title="Atrasadas"
-                      value={stats.maintenanceOverdue}
+                      title="Total Vencido"
+                      value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.overdueReceivable) : '•••••'}
                       icon={AlertCircle}
                       variant="destructive"
                     />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                  </div>
+                </div>
 
-            {/* Projetos Ativos */}
-            {activeProjects.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold">Projetos Ativos</h2>
-                <Carousel className="w-full">
-                  <CarouselContent>
-                    {activeProjects.map((project) => (
-                      <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
-                        <Card className="h-full">
-                          <CardHeader>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <FolderKanban className="h-5 w-5" />
-                              {project.name}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">{project.clientName}</p>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Progresso</span>
-                                <span className="font-semibold">{project.progress}%</span>
-                              </div>
-                              <Progress value={project.progress} />
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                              <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">Status:</span>
-                                <Badge variant={project.status === "Em Andamento" ? "default" : "secondary"}>
-                                  {project.status}
-                                </Badge>
-                              </div>
-                            </div>
-                            {project.dueDate && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="h-4 w-4" />
-                                Prazo: {format(new Date(project.dueDate), "dd/MM/yyyy", { locale: ptBR })}
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </Carousel>
-              </div>
-            )}
+                {/* Contas a Pagar */}
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <h2 className="text-base font-semibold">Contas a Pagar</h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPayableValues(!showPayableValues)}
+                    >
+                      {showPayableValues ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <MetricCard
+                      title="Total a Pagar"
+                      value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalPayable) : '•••••'}
+                      icon={TrendingDown}
+                      variant="default"
+                    />
+                    <MetricCard
+                      title="Total Pago"
+                      value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.totalPaid) : '•••••'}
+                      icon={CheckCircle}
+                      variant="success"
+                    />
+                    <MetricCard
+                      title="Vencem em 3 dias"
+                      value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.payableDueSoon) : '•••••'}
+                      icon={Clock}
+                      variant="default"
+                    />
+                    <MetricCard
+                      title="Total Vencido"
+                      value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(stats.overduePayable) : '•••••'}
+                      icon={AlertCircle}
+                      variant="destructive"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Maintenance Indicators Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Indicadores de Manutenção</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <MetricCard
+                    title="Realizadas"
+                    value={stats.maintenanceDone}
+                    icon={CheckCircle}
+                    variant="success"
+                  />
+                  <MetricCard
+                    title="Aguardando"
+                    value={stats.maintenancePending}
+                    icon={Clock}
+                    variant="default"
+                  />
+                  <MetricCard
+                    title="Atrasadas"
+                    value={stats.maintenanceOverdue}
+                    icon={AlertCircle}
+                    variant="destructive"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </>
         )}
 
@@ -629,31 +574,80 @@ export default function Dashboard() {
               value={stats.waitingTickets}
               icon={Clock}
               variant="default"
-              className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
             />
             <MetricCard
               title="Em Atendimento"
               value={stats.inProgressTickets}
               icon={Play}
               variant="default"
-              className="border-purple-200/50 dark:border-purple-800/50 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-purple-50 [&_.icon-wrapper]:to-purple-100/50 dark:[&_.icon-wrapper]:from-purple-950/50 dark:[&_.icon-wrapper]:to-purple-900/30 [&_.icon-wrapper_.lucide]:text-purple-600 dark:[&_.icon-wrapper_.lucide]:text-purple-400"
             />
             <MetricCard
               title="Resolvido"
               value={stats.resolvedTickets}
               icon={CheckCircle}
               variant="success"
-              className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
             />
             <MetricCard
               title="Concluído"
               value={stats.closedTickets}
               icon={XCircle}
               variant="default"
-              className="border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-gray-50 [&_.icon-wrapper]:to-gray-100/50 dark:[&_.icon-wrapper]:from-gray-950/50 dark:[&_.icon-wrapper]:to-gray-900/30 [&_.icon-wrapper_.lucide]:text-gray-600 dark:[&_.icon-wrapper_.lucide]:text-gray-400"
             />
           </div>
         </div>
+
+        {userRole === 'admin' && (
+          <>
+            {/* Projetos Ativos */}
+            {activeProjects.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold">Projetos Ativos</h2>
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {activeProjects.map((project) => (
+                    <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Card className="h-full">
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <FolderKanban className="h-5 w-5" />
+                            {project.name}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">{project.clientName}</p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Progresso</span>
+                              <span className="font-semibold">{project.progress}%</span>
+                            </div>
+                            <Progress value={project.progress} />
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Status:</span>
+                              <Badge variant={project.status === "Em Andamento" ? "default" : "secondary"}>
+                                {project.status}
+                              </Badge>
+                            </div>
+                          </div>
+                          {project.dueDate && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4" />
+                              Prazo: {format(new Date(project.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Task Indicators */}
         {userRole === 'admin' && (
