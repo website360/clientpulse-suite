@@ -216,7 +216,7 @@ export function AppSidebar() {
             <SidebarMenu className="gap-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center px-0 items-center")}>
+                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center items-center px-0 mx-auto")}>
                     <NavLink
                       to={item.url}
                       end
