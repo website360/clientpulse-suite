@@ -11,6 +11,15 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutProps) {
   const { user, loading } = useAuth();
+  
+  // Inicializar estado do sidebar do localStorage antes do render
+  const getInitialSidebarState = () => {
+    if (typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('sidebar-state');
+      return savedState !== 'collapsed';
+    }
+    return true;
+  };
 
   if (loading) {
     return (
@@ -25,7 +34,7 @@ export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutPr
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={getInitialSidebarState()}>
       <div className="flex w-full h-screen overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col w-full overflow-hidden">

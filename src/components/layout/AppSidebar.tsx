@@ -40,14 +40,6 @@ export function AppSidebar() {
     setIsDark(isDarkMode);
     fetchTicketCount();
     
-    // Restaurar estado do sidebar do localStorage
-    const savedState = localStorage.getItem('sidebar-state');
-    if (savedState === 'collapsed') {
-      if (open) toggleSidebar();
-    } else if (savedState === 'open') {
-      if (!open) toggleSidebar();
-    }
-    
     // Carregar logos do Storage (fonte principal) com fallback
     const loadLogos = async () => {
       const { loadBrandingUrl } = await import('@/lib/branding');
