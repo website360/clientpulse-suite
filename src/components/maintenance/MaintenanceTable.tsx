@@ -57,7 +57,7 @@ export function MaintenanceTable({
       if (today > nextScheduledDate) {
         return <Badge variant="destructive">Atrasada</Badge>;
       }
-      return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Primeira Manutenção</Badge>;
+      return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Manutenção</Badge>;
     }
 
     const lastDate = new Date(lastExecution.executed_at);
