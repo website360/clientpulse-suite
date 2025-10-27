@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, FileText, Play } from 'lucide-react';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 
 export default function ClientDashboard() {
@@ -128,7 +128,7 @@ export default function ClientDashboard() {
             <MetricCard
               title="Em Atendimento"
               value={stats.inProgressTickets}
-              icon={Clock}
+              icon={Play}
               variant="default"
               className="border-purple-200/50 dark:border-purple-800/50 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-purple-50 [&_.icon-wrapper]:to-purple-100/50 dark:[&_.icon-wrapper]:from-purple-950/50 dark:[&_.icon-wrapper]:to-purple-900/30 [&_.icon-wrapper_.lucide]:text-purple-600 dark:[&_.icon-wrapper_.lucide]:text-purple-400"
             />
