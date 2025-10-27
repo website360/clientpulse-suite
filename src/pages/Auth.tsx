@@ -139,7 +139,7 @@ export default function Auth() {
           </div>
 
           {/* Right Side - Sign In Form */}
-          <div className="flex items-center justify-center p-12 lg:p-20">
+          <div className="flex items-center justify-center p-20 lg:p-20">
             <div className="w-full max-w-md space-y-10">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-8 text-center">
