@@ -2,7 +2,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Link2 } from 'lucide-react';
-import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -77,8 +76,9 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Empresa</TableHead>
               <TableHead>Tarefa</TableHead>
+              <TableHead>Descrição</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -88,20 +88,13 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
             {tasks.map((task) => (
               <TableRow key={task.id}>
                 <TableCell>
-                  {task.client ? (
-                    <ClientNameCell client={task.client} />
-                  ) : (
+                  {task.client?.company_name || (
                     <span className="text-muted-foreground">-</span>
                   )}
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <div className="font-medium">{task.title}</div>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {task.description}
-                      </p>
-                    )}
                     {task.ticket && (
                       <Badge variant="outline" className="gap-1">
                         <Link2 className="h-3 w-3" />
@@ -109,6 +102,15 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
                       </Badge>
                     )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  {task.description ? (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {task.description}
+                    </p>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell>{getStatusBadge(task.status)}</TableCell>
                 <TableCell>{getPriorityBadge(task.priority)}</TableCell>
