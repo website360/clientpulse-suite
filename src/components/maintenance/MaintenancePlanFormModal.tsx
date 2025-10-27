@@ -104,24 +104,23 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
         throw new Error('Selecione a data da primeira manutenção');
       }
 
-      const planData = {
+      const baseData = {
         client_id: clientId,
         domain_id: domainId === 'none' ? null : domainId,
         monthly_day: startDate.getDate(),
         start_date: startDate.toISOString().split('T')[0],
         is_active: isActive,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
       };
 
       if (plan) {
         const { error } = await supabase
           .from('client_maintenance_plans')
-          .update(planData)
+          .update(baseData)
           .eq('id', plan.id);
         if (error) throw error;
       } else {
         // Check for duplicate
-        const { data: existing, error: checkError } = await supabase
+        const { data: existing } = await supabase
           .from('client_maintenance_plans')
           .select('id')
           .eq('client_id', clientId)
@@ -132,9 +131,17 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
           throw new Error('Já existe um plano para este cliente/domínio');
         }
 
+        const user = await supabase.auth.getUser();
+        if (!user.data.user?.id) {
+          throw new Error('Usuário não autenticado');
+        }
+
         const { error } = await supabase
           .from('client_maintenance_plans')
-          .insert(planData);
+          .insert({
+            ...baseData,
+            created_by: user.data.user.id,
+          });
         if (error) throw error;
       }
     },
