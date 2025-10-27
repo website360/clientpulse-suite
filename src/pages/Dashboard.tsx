@@ -55,6 +55,7 @@ interface ProjectProgress {
   progress: number;
   status: string;
   dueDate: string | null;
+  projectType: string;
 }
 
 export default function Dashboard() {
@@ -337,7 +338,7 @@ export default function Dashboard() {
         try {
           const projectsResult = await (supabase as any)
             .from('projects')
-            .select('id, name, status, due_date, client_id')
+            .select('id, name, status, due_date, client_id, project_type_id')
             .in('status', ['em_andamento', 'planejamento']);
 
           const projectsData = projectsResult.data;
@@ -353,6 +354,7 @@ export default function Dashboard() {
           if (projectsData && projectsData.length > 0) {
             const projectIds = projectsData.map((p: any) => p.id);
             const clientIds = projectsData.map((p: any) => p.client_id);
+            const projectTypeIds = projectsData.map((p: any) => p.project_type_id).filter(Boolean);
             
             const stagesResult = await (supabase as any)
               .from('project_stages')
@@ -382,6 +384,13 @@ export default function Dashboard() {
               throw clientsError;
             }
 
+            const projectTypesResult = await (supabase as any)
+              .from('project_types')
+              .select('id, name')
+              .in('id', projectTypeIds);
+
+            const projectTypesData = projectTypesResult.data;
+
             // Criar array com progresso individual de cada projeto
             const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any) => {
               const stages = stagesData?.filter((s: any) => s.project_id === project.id) || [];
@@ -390,6 +399,9 @@ export default function Dashboard() {
 
               const client = clientsData?.find((c: any) => c.id === project.client_id);
               const clientName = client?.company_name || client?.responsible_name || client?.full_name || 'Cliente não identificado';
+
+              const projectType = projectTypesData?.find((pt: any) => pt.id === project.project_type_id);
+              const projectTypeName = projectType?.name || 'Tipo não definido';
 
               console.log(`Project ${project.name}: ${completedStages}/${stages.length} stages completed = ${progress}%`);
 
@@ -400,6 +412,7 @@ export default function Dashboard() {
                 progress,
                 status: project.status === 'em_andamento' ? 'Em Andamento' : 'Planejamento',
                 dueDate: project.due_date,
+                projectType: projectTypeName,
               };
             });
 
@@ -625,6 +638,11 @@ export default function Dashboard() {
                       <Link to={`/projetos/${project.id}`} className="block h-full">
                         <Card className="h-full transition-all duration-200 hover:shadow-lg cursor-pointer">
                           <CardHeader>
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="outline" className="text-xs">
+                                {project.projectType}
+                              </Badge>
+                            </div>
                             <CardTitle className="text-lg flex items-center gap-2">
                               <FolderKanban className="h-5 w-5" />
                               {project.name}
