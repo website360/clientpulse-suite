@@ -18,6 +18,7 @@ export default function Maintenance() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPlanFormOpen, setIsPlanFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [editingPlan, setEditingPlan] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [filters, setFilters] = useState({
     search: '',
@@ -148,6 +149,11 @@ export default function Maintenance() {
     setIsFormOpen(true);
   };
 
+  const handleEdit = (plan: any) => {
+    setEditingPlan(plan);
+    setIsPlanFormOpen(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -200,6 +206,7 @@ export default function Maintenance() {
               <MaintenanceTable 
                 plans={paginatedPlans} 
                 onExecute={handleExecute}
+                onEdit={handleEdit}
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
@@ -233,8 +240,12 @@ export default function Maintenance() {
           open={isPlanFormOpen}
           onOpenChange={(open) => {
             setIsPlanFormOpen(open);
-            if (!open) refetch();
+            if (!open) {
+              setEditingPlan(null);
+              refetch();
+            }
           }}
+          plan={editingPlan}
         />
       </div>
     </DashboardLayout>

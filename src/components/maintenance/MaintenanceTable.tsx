@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react';
+import { Play, Pencil } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import { ptBR } from 'date-fns/locale';
 interface MaintenanceTableProps {
   plans: any[];
   onExecute: (plan: any) => void;
+  onEdit: (plan: any) => void;
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
@@ -32,6 +33,7 @@ interface MaintenanceTableProps {
 export function MaintenanceTable({ 
   plans, 
   onExecute,
+  onEdit,
   sortColumn,
   sortDirection,
   onSort,
@@ -205,18 +207,28 @@ export function MaintenanceTable({
                     {getStatusBadge(plan)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {shouldShowExecuteButton(plan) && (
+                    <div className="flex items-center justify-end gap-2">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => onExecute(plan)}
-                        disabled={!plan.is_active}
+                        onClick={() => onEdit(plan)}
                         className="gap-2"
                       >
-                        <Play className="h-3 w-3" />
-                        Executar
+                        <Pencil className="h-3 w-3" />
                       </Button>
-                    )}
+                      {shouldShowExecuteButton(plan) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onExecute(plan)}
+                          disabled={!plan.is_active}
+                          className="gap-2"
+                        >
+                          <Play className="h-3 w-3" />
+                          Executar
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
