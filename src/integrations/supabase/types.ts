@@ -2301,6 +2301,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_contact_of_client: {
+        Args: { _client_id: string; _user_id: string }
+        Returns: boolean
+      }
       set_ticket_status: {
         Args: { p_new_status: string; p_ticket_id: string }
         Returns: {
