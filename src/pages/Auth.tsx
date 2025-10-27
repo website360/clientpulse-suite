@@ -128,7 +128,6 @@ export default function Auth() {
               />
               <div className="space-y-3">
                 <h1 className="text-5xl font-bold tracking-tight">BEM-VINDO</h1>
-                <p className="text-xl font-semibold text-muted-foreground">SEU TÍTULO AQUI</p>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
                   Gerencie seus clientes, projetos e tickets de forma eficiente.
                   Acompanhe o progresso em tempo real e mantenha sua equipe sempre
