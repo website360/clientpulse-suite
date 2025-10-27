@@ -39,10 +39,15 @@ interface DashboardStats {
 interface Task {
   id: string;
   title: string;
+  description: string | null;
   status: string;
   priority: string;
   due_date: string | null;
   created_at: string;
+  client?: {
+    id: string;
+    company_name: string;
+  };
   assigned_to_profile?: {
     full_name: string;
   };
@@ -252,14 +257,22 @@ export default function Dashboard() {
         // Buscar últimas 5 tarefas
         const { data: tasksData } = await supabase
           .from('tasks')
-          .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
+          .select(`
+            *,
+            client:clients(id, company_name),
+            assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
+          `)
           .order('created_at', { ascending: false })
           .limit(5);
 
         // Buscar tarefas urgentes (prioridade alta)
         const { data: overdueData } = await supabase
           .from('tasks')
-          .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)')
+          .select(`
+            *,
+            client:clients(id, company_name),
+            assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
+          `)
           .eq('priority', 'high')
           .neq('status', 'done')
           .order('created_at', { ascending: false });
@@ -712,11 +725,18 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       {recentTasks.map((task) => (
                         <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
-                          <div className="flex-1">
+                          <div className="flex-1 space-y-1">
+                            {task.client?.company_name && (
+                              <p className="text-xs font-medium text-muted-foreground">
+                                {task.client.company_name}
+                              </p>
+                            )}
                             <p className="text-sm font-medium">{task.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {task.assigned_to_profile?.full_name || "Não atribuído"}
-                            </p>
+                            {task.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">
+                                {task.description}
+                              </p>
+                            )}
                           </div>
                           <Badge variant={task.status === "done" ? "default" : "secondary"}>
                             {getStatusLabel(task.status)}
@@ -734,11 +754,18 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       {overdueTasks.map((task) => (
                         <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
-                          <div className="flex-1">
+                          <div className="flex-1 space-y-1">
+                            {task.client?.company_name && (
+                              <p className="text-xs font-medium text-muted-foreground">
+                                {task.client.company_name}
+                              </p>
+                            )}
                             <p className="text-sm font-medium">{task.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {task.assigned_to_profile?.full_name || "Não atribuído"}
-                            </p>
+                            {task.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">
+                                {task.description}
+                              </p>
+                            )}
                           </div>
                           <Badge variant="destructive">Alta Prioridade</Badge>
                         </div>
