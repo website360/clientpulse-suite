@@ -11,6 +11,7 @@ import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -532,65 +533,64 @@ export default function Dashboard() {
 
         {/* Task Indicators */}
         {userRole === 'admin' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Últimas Tarefas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma tarefa recente</p>
-                ) : (
-                  <div className="space-y-3">
-                    {recentTasks.map((task) => (
-                      <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{task.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {task.assigned_to_profile?.full_name || "Não atribuído"}
-                          </p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Tarefas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="recent" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="recent">Últimas Tarefas</TabsTrigger>
+                  <TabsTrigger value="urgent">Tarefas Urgentes</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="recent" className="mt-4">
+                  {recentTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma tarefa recente</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentTasks.map((task) => (
+                        <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{task.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {task.assigned_to_profile?.full_name || "Não atribuído"}
+                            </p>
+                          </div>
+                          <Badge variant={task.status === "done" ? "default" : "secondary"}>
+                            {getStatusLabel(task.status)}
+                          </Badge>
                         </div>
-                        <Badge variant={task.status === "done" ? "default" : "secondary"}>
-                          {getStatusLabel(task.status)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
-            <Card className="border-rose-200 dark:border-rose-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-destructive" />
-                  Tarefas Urgentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {overdueTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma tarefa urgente</p>
-                ) : (
-                  <div className="space-y-3">
-                    {overdueTasks.map((task) => (
-                      <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{task.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {task.assigned_to_profile?.full_name || "Não atribuído"}
-                          </p>
+                <TabsContent value="urgent" className="mt-4">
+                  {overdueTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma tarefa urgente</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {overdueTasks.map((task) => (
+                        <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{task.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {task.assigned_to_profile?.full_name || "Não atribuído"}
+                            </p>
+                          </div>
+                          <Badge variant="destructive">Alta Prioridade</Badge>
                         </div>
-                        <Badge variant="destructive">Alta Prioridade</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         )}
 
         {/* Charts */}
