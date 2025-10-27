@@ -140,7 +140,7 @@ export default function Auth() {
 
           {/* Right Side - Sign In Form */}
           <div className="flex items-center justify-center p-12 lg:p-20">
-            <div className="w-full max-w-md space-y-8">
+            <div className="w-full max-w-md space-y-10">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-8 text-center">
                 <img 
@@ -152,14 +152,14 @@ export default function Auth() {
 
               {/* Form */}
               <div>
-                <div className="mb-8">
+                <div className="mb-10">
                   <h2 className="text-4xl font-bold text-foreground mb-2">Entrar</h2>
                   <p className="text-sm text-muted-foreground">
                     Acesse sua conta para continuar
                   </p>
                 </div>
 
-                <form onSubmit={handleSignIn} className="space-y-5">
+                <form onSubmit={handleSignIn} className="space-y-6">
                   {/* Email Input */}
                   <div className="space-y-2">
                     <div className="relative">
@@ -199,8 +199,8 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  {/* Remember Me & Forgot Password */}
-                  <div className="flex items-center justify-between">
+                  {/* Remember Me */}
+                  <div className="flex items-center justify-start">
                     <div className="flex items-center space-x-2">
                       <Checkbox 
                         id="remember" 
@@ -214,13 +214,6 @@ export default function Auth() {
                         Lembrar-me
                       </Label>
                     </div>
-                    <button
-                      type="button"
-                      className="text-sm text-primary hover:underline font-medium"
-                      onClick={() => toast.info('Entre em contato com o administrador')}
-                    >
-                      Esqueceu a senha?
-                    </button>
                   </div>
 
                   {/* Sign In Button */}
