@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Progress } from '@/components/ui/progress';
 import { MetricCard } from '@/components/dashboard/MetricCard';
@@ -594,8 +595,8 @@ export default function Dashboard() {
                   <CarouselContent>
                     {activeProjects.map((project) => (
                     <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
-                      <a href={`/projects/${project.id}`} className="block h-full">
-                        <Card className="h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
+                      <Link to={`/projetos/${project.id}`} className="block h-full">
+                        <Card className="h-full transition-all duration-200 hover:shadow-lg cursor-pointer">
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                               <FolderKanban className="h-5 w-5" />
@@ -627,7 +628,7 @@ export default function Dashboard() {
                             )}
                           </CardContent>
                         </Card>
-                      </a>
+                      </Link>
                     </CarouselItem>
                   ))}
                   </CarouselContent>
@@ -641,7 +642,7 @@ export default function Dashboard() {
 
         {/* Task Indicators */}
         {userRole === 'admin' && (
-          <Card className="transition-all duration-200 hover:shadow-lg">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />

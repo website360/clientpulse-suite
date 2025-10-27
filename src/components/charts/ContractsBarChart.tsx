@@ -134,7 +134,7 @@ export function ContractsBarChart() {
   }
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-lg">
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Contratos</CardTitle>
       </CardHeader>
