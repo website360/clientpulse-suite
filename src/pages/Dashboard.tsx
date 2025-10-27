@@ -631,7 +631,7 @@ export default function Dashboard() {
             {activeProjects.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold">Projetos Ativos</h2>
-                <div className="pb-8">
+                <div>
                   <Carousel className="w-full">
                     <CarouselContent>
                       {activeProjects.map((project) => (
@@ -678,8 +678,10 @@ export default function Dashboard() {
                       </CarouselItem>
                     ))}
                     </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
+                    <div className="flex justify-end gap-2 mt-4">
+                      <CarouselPrevious className="static translate-y-0" />
+                      <CarouselNext className="static translate-y-0" />
+                    </div>
                   </Carousel>
                 </div>
               </div>
