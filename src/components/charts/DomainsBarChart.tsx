@@ -99,7 +99,7 @@ export function DomainsBarChart() {
   }
 
   return (
-    <Card>
+    <Card className="transition-all duration-200 hover:shadow-lg">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Domínios</CardTitle>
       </CardHeader>
