@@ -97,7 +97,7 @@ export default function ProjectDetail() {
   const clientName = project.clients?.nickname || project.clients?.company_name || project.clients?.full_name || 'Cliente';
 
   return (
-    <DashboardLayout>
+    <DashboardLayout breadcrumbLabel={project.name}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate('/projetos')}>

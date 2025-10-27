@@ -355,21 +355,6 @@ export default function Dashboard() {
             const projectIds = projectsData.map((p: any) => p.id);
             const clientIds = projectsData.map((p: any) => p.client_id);
             const projectTypeIds = projectsData.map((p: any) => p.project_type_id).filter(Boolean);
-            
-            const stagesResult = await (supabase as any)
-              .from('project_stages')
-              .select('project_id, status')
-              .in('project_id', projectIds);
-            
-            const stagesData = stagesResult.data;
-            const stagesError = stagesResult.error;
-
-            if (stagesError) {
-              console.error('Error fetching stages:', stagesError);
-              throw stagesError;
-            }
-
-            console.log('Stages found:', stagesData?.length || 0);
 
             const clientsResult = await (supabase as any)
               .from('clients')
@@ -391,11 +376,16 @@ export default function Dashboard() {
 
             const projectTypesData = projectTypesResult.data;
 
+            // Buscar progresso real usando a função RPC para cada projeto
+            const progressPromises = projectsData.map((project: any) => 
+              supabase.rpc('calculate_project_progress', { project_id_param: project.id })
+            );
+            
+            const progressResults = await Promise.all(progressPromises);
+
             // Criar array com progresso individual de cada projeto
-            const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any) => {
-              const stages = stagesData?.filter((s: any) => s.project_id === project.id) || [];
-              const completedStages = stages.filter((s: any) => s.status === 'concluida').length;
-              const progress = stages.length > 0 ? Math.round((completedStages / stages.length) * 100) : 0;
+            const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any, index: number) => {
+              const progress = progressResults[index]?.data || 0;
 
               const client = clientsData?.find((c: any) => c.id === project.client_id);
               const clientName = client?.company_name || client?.responsible_name || client?.full_name || 'Cliente não identificado';
@@ -403,7 +393,7 @@ export default function Dashboard() {
               const projectType = projectTypesData?.find((pt: any) => pt.id === project.project_type_id);
               const projectTypeName = projectType?.name || 'Tipo não definido';
 
-              console.log(`Project ${project.name}: ${completedStages}/${stages.length} stages completed = ${progress}%`);
+              console.log(`Project ${project.name}: ${progress}% completed`);
 
               return {
                 id: project.id,
@@ -656,7 +646,17 @@ export default function Dashboard() {
                                   <span className="text-muted-foreground">Progresso Geral</span>
                                   <span className="font-semibold">{project.progress}%</span>
                                 </div>
-                                <Progress value={project.progress} indicatorClassName="bg-primary" />
+                                <Progress 
+                                  value={project.progress} 
+                                  className="h-2"
+                                  indicatorClassName={
+                                    project.progress >= 100 ? 'bg-green-500' :
+                                    project.progress >= 75 ? 'bg-blue-500' :
+                                    project.progress >= 50 ? 'bg-yellow-500' :
+                                    project.progress >= 25 ? 'bg-orange-500' :
+                                    'bg-red-500'
+                                  }
+                                />
                               </div>
                               <div className="flex justify-between items-center text-sm">
                                 <div className="flex items-center gap-2">
