@@ -42,6 +42,14 @@ interface NewTicketModalProps {
   preSelectedClientId?: string;
 }
 
+// Helper to get client display name
+const getClientDisplayName = (client: any) => {
+  return client.responsible_name || 
+    (client.client_type === 'company' ? client.company_name : client.full_name) || 
+    client.email || 
+    'Cliente';
+};
+
 export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClientId }: NewTicketModalProps) {
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
@@ -49,6 +57,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isContact, setIsContact] = useState(false);
   const [contactClientId, setContactClientId] = useState<string | null>(null);
+  const [selectedClientName, setSelectedClientName] = useState<string>('');
   const { toast } = useToast();
   const { user, userRole } = useAuth();
 
@@ -65,13 +74,35 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
 
   useEffect(() => {
     if (open) {
-      checkIfContact();
-      fetchDepartments();
       if (preSelectedClientId) {
-        form.setValue('client_id', preSelectedClientId);
+        // Handle pre-selected client
+        fetchClientById(preSelectedClientId);
+        fetchDepartments();
+      } else {
+        // Normal flow: check if contact, then fetch departments
+        checkIfContact();
+        fetchDepartments();
       }
     }
   }, [open, preSelectedClientId]);
+
+  const fetchClientById = async (clientId: string) => {
+    try {
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('id, full_name, company_name, email, responsible_name, client_type')
+        .eq('id', clientId)
+        .maybeSingle();
+
+      if (clientData) {
+        setClients([clientData]);
+        form.setValue('client_id', clientData.id, { shouldValidate: true });
+        setSelectedClientName(getClientDisplayName(clientData));
+      }
+    } catch (e) {
+      console.error('Error fetching client:', e);
+    }
+  };
 
   const checkIfContact = async () => {
     try {
@@ -85,9 +116,8 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
       if (contactData?.client_id) {
         setIsContact(true);
         setContactClientId(contactData.client_id);
-        form.setValue('client_id', contactData.client_id);
 
-        // Fetch the client's info so it shows in the select (disabled)
+        // Fetch the client's info to display
         const { data: clientData } = await supabase
           .from('clients')
           .select('id, full_name, company_name, email, responsible_name, client_type')
@@ -96,8 +126,8 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
 
         if (clientData) {
           setClients([clientData]);
-          // Force form to recognize the value is set
           form.setValue('client_id', clientData.id, { shouldValidate: true });
+          setSelectedClientName(getClientDisplayName(clientData));
         }
       } else {
         setIsContact(false);
@@ -253,25 +283,32 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Client Selection - Shows for contacts but disabled */}
+          {/* Client Selection */}
           <div>
             <Label htmlFor="client_id">Cliente *</Label>
-            <Select
-              value={form.watch('client_id')}
-              onValueChange={(value) => form.setValue('client_id', value)}
-              disabled={isContact || !!preSelectedClientId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {(isContact || !!preSelectedClientId) ? (
+              <Input
+                value={selectedClientName || 'Carregando...'}
+                disabled
+                className="bg-muted"
+              />
+            ) : (
+              <Select
+                value={form.watch('client_id')}
+                onValueChange={(value) => form.setValue('client_id', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {getClientDisplayName(client)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {form.formState.errors.client_id && (
               <p className="text-sm text-error mt-1">
                 {form.formState.errors.client_id.message}
