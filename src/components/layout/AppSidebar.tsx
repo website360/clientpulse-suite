@@ -216,7 +216,7 @@ export function AppSidebar() {
             <SidebarMenu className="gap-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center")}>
+                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center px-0 items-center")}>
                     <NavLink
                       to={item.url}
                       end
@@ -225,14 +225,14 @@ export function AppSidebar() {
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                             : 'hover:bg-sidebar-accent/50',
-                          isCollapsed && 'flex justify-center'
+                          isCollapsed && 'flex items-center justify-center px-0'
                         )
                       }
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className={cn(
                         "flex-shrink-0 transition-all",
-                        isCollapsed ? "h-6 w-6" : "h-5 w-5"
+                        isCollapsed ? "h-6 w-6 mx-auto" : "h-5 w-5"
                       )} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1">
