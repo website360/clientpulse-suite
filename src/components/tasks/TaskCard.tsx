@@ -62,14 +62,7 @@ const TaskCard = ({ task, onClick, isDragging = false }: TaskCardProps) => {
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 space-y-1">
-          {task.client?.company_name && (
-            <p className="text-xs font-medium text-muted-foreground">
-              {task.client.company_name}
-            </p>
-          )}
-          <h4 className="font-medium text-sm">{task.title}</h4>
-        </div>
+        <h4 className="font-medium text-sm flex-1">{task.title}</h4>
         <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
