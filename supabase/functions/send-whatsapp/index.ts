@@ -239,6 +239,24 @@ serve(async (req) => {
 
       if (ticketError) throw ticketError;
 
+      // Check for duplicate notification (debounce 5 minutes)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentLog } = await supabase
+        .from('whatsapp_notification_log')
+        .select('id')
+        .eq('ticket_id', ticket_id)
+        .eq('event_type', event_type)
+        .gte('sent_at', fiveMinutesAgo)
+        .maybeSingle();
+
+      if (recentLog) {
+        console.log(`Notification already sent for ticket ${ticket_id} - event ${event_type} (debounced)`);
+        return new Response(
+          JSON.stringify({ success: true, message: 'Notification already sent (debounced)' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const client = Array.isArray(ticket.clients) ? ticket.clients[0] : ticket.clients;
       const department = Array.isArray(ticket.departments) ? ticket.departments[0] : ticket.departments;
       const clientName = client.company_name || client.full_name;
@@ -311,6 +329,12 @@ serve(async (req) => {
             results.push({ recipient: 'client', success: false, error: error.message });
           }
         }
+
+        // Log notification to prevent duplicates
+        await supabase.from('whatsapp_notification_log').insert({
+          ticket_id: ticket_id,
+          event_type: event_type
+        });
 
         return new Response(
           JSON.stringify({ success: true, message: 'Notifications sent', results }),
@@ -388,6 +412,12 @@ serve(async (req) => {
           }
         }
 
+        // Log notification to prevent duplicates
+        await supabase.from('whatsapp_notification_log').insert({
+          ticket_id: ticket_id,
+          event_type: event_type
+        });
+
         return new Response(
           JSON.stringify({ success: true, message: 'Notifications sent', results }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -429,6 +459,12 @@ serve(async (req) => {
             }
           }
         }
+
+        // Log notification to prevent duplicates
+        await supabase.from('whatsapp_notification_log').insert({
+          ticket_id: ticket_id,
+          event_type: event_type
+        });
 
         return new Response(
           JSON.stringify({ success: true, message: 'Notifications sent', results }),
@@ -520,6 +556,12 @@ serve(async (req) => {
       if (!cleanPhone.startsWith('55')) cleanPhone = '55' + cleanPhone;
 
       const result = await sendTextMessage(settings, cleanPhone, messageText);
+      
+      // Log notification to prevent duplicates
+      await supabase.from('whatsapp_notification_log').insert({
+        ticket_id: ticket_id,
+        event_type: event_type
+      });
       
       return new Response(
         JSON.stringify({ success: true, data: result }),

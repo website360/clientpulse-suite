@@ -174,20 +174,28 @@ export default function TicketDetails() {
       const messagesWithProfiles = messagesData.map(message => {
         const profile = profilesData?.find(p => p.id === message.user_id) || null;
         const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
-        const isContact = contactsData?.some(c => c.user_id === message.user_id);
+        const contact = contactsData?.find(c => c.user_id === message.user_id);
+        const isContact = !!contact;
         const isAdmin = userRole === 'admin';
         
         let messageType: 'admin' | 'client' | 'contact' = 'client';
+        let displayName = 'Usuário';
         
         if (isAdmin) {
           messageType = 'admin';
+          displayName = profile?.full_name || 'Suporte';
         } else if (isContact) {
           messageType = 'contact';
+          displayName = contact.name || profile?.full_name || 'Contato';
+        } else {
+          messageType = 'client';
+          displayName = profile?.full_name || 'Cliente';
         }
         
         return {
           ...message,
           profiles: profile,
+          displayName,
           messageType,
           isAdmin,
           isContact
@@ -534,9 +542,9 @@ export default function TicketDetails() {
                           <CardContent className="p-4">
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                                 <div className="flex items-center gap-2">
                                   <span className={`text-sm font-semibold ${textColor}`}>
-                                    {message.profiles?.full_name || 'Usuário'}
+                                    {message.displayName}
                                   </span>
                                   {message.messageType === 'admin' && (
                                     <Badge variant="outline" className="text-xs bg-gray-100 dark:bg-gray-900">Admin</Badge>
