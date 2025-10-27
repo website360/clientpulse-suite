@@ -20,9 +20,10 @@ import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
+import { AuthenticationTab } from '@/components/settings/AuthenticationTab';
 // Removed ClicksignSettingsTab and DocumentTemplatesTab
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -231,6 +232,10 @@ export default function Settings() {
               {userRole === 'admin' && (
                 <>
                   <TabsTrigger value="appearance">Aparência</TabsTrigger>
+                  <TabsTrigger value="authentication">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Autenticação
+                  </TabsTrigger>
                   <TabsTrigger value="departments">Departamentos</TabsTrigger>
                   <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   <TabsTrigger value="financial">Financeiro</TabsTrigger>
@@ -399,6 +404,10 @@ export default function Settings() {
                 <>
                   <TabsContent value="appearance">
                     <AppearanceTab />
+                  </TabsContent>
+
+                  <TabsContent value="authentication">
+                    <AuthenticationTab />
                   </TabsContent>
 
                   <TabsContent value="departments">
