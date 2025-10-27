@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play, Wrench } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play, Wrench, FolderKanban, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -31,6 +31,11 @@ interface DashboardStats {
   maintenanceDone: number;
   maintenancePending: number;
   maintenanceOverdue: number;
+  totalProjects: number;
+  projectsInProgress: number;
+  projectsCompleted: number;
+  projectsDelayed: number;
+  averageProjectProgress: number;
 }
 
 interface Task {
@@ -65,6 +70,11 @@ export default function Dashboard() {
     maintenanceDone: 0,
     maintenancePending: 0,
     maintenanceOverdue: 0,
+    totalProjects: 0,
+    projectsInProgress: 0,
+    projectsCompleted: 0,
+    projectsDelayed: 0,
+    averageProjectProgress: 0,
   });
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
@@ -319,6 +329,63 @@ export default function Dashboard() {
           maintenancePending,
           maintenanceOverdue,
         }));
+
+        // Buscar dados de projetos
+        try {
+          const projectsResult = await (supabase as any).from('projects').select('id, status, due_date').eq('is_active', true);
+          const projectsData = projectsResult.data;
+          const projectsError = projectsResult.error;
+
+          if (!projectsError && projectsData) {
+            const projectIds = projectsData.map((p: any) => p.id);
+            
+            const stagesResult = await (supabase as any).from('project_stages').select('project_id, status').in('project_id', projectIds);
+            const stagesData = stagesResult.data;
+            
+            const todayProjects = new Date();
+            todayProjects.setHours(0, 0, 0, 0);
+
+            let totalProjects = projectsData.length;
+            let projectsInProgress = 0;
+            let projectsCompleted = 0;
+            let projectsDelayed = 0;
+            let totalProgress = 0;
+
+            projectsData.forEach((project: any) => {
+              const stages = stagesData?.filter((s: any) => s.project_id === project.id) || [];
+              const completedStages = stages.filter((s: any) => s.status === 'concluida').length;
+              const progress = stages.length > 0 ? (completedStages / stages.length) * 100 : 0;
+              totalProgress += progress;
+
+              if (progress === 100) {
+                projectsCompleted++;
+              } else if (progress > 0) {
+                projectsInProgress++;
+              }
+
+              if (project.due_date) {
+                const dueDate = new Date(project.due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                if (todayProjects > dueDate && progress < 100) {
+                  projectsDelayed++;
+                }
+              }
+            });
+
+            const averageProjectProgress = totalProjects > 0 ? Math.round(totalProgress / totalProjects) : 0;
+
+            setStats(prev => ({
+              ...prev,
+              totalProjects,
+              projectsInProgress,
+              projectsCompleted,
+              projectsDelayed,
+              averageProjectProgress,
+            }));
+          }
+        } catch (err) {
+          console.error('Error fetching projects data:', err);
+        }
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -493,6 +560,48 @@ export default function Dashboard() {
                 />
               </div>
             </div>
+
+            {/* Project Indicators */}
+            <div>
+              <h2 className="text-lg font-bold mb-4">Indicadores de Projetos</h2>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <MetricCard
+                  title="Total de Projetos"
+                  value={stats.totalProjects}
+                  icon={FolderKanban}
+                  variant="default"
+                  className="border-indigo-200/50 dark:border-indigo-800/50 hover:border-indigo-300 dark:hover:border-indigo-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-indigo-50 [&_.icon-wrapper]:to-indigo-100/50 dark:[&_.icon-wrapper]:from-indigo-950/50 dark:[&_.icon-wrapper]:to-indigo-900/30 [&_.icon-wrapper_.lucide]:text-indigo-600 dark:[&_.icon-wrapper_.lucide]:text-indigo-400"
+                />
+                <MetricCard
+                  title="Em Andamento"
+                  value={stats.projectsInProgress}
+                  icon={Play}
+                  variant="default"
+                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
+                />
+                <MetricCard
+                  title="Concluídos"
+                  value={stats.projectsCompleted}
+                  icon={CheckCircle}
+                  variant="success"
+                  className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
+                />
+                <MetricCard
+                  title="Atrasados"
+                  value={stats.projectsDelayed}
+                  icon={AlertCircle}
+                  variant="destructive"
+                  className="border-red-200/50 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-red-50 [&_.icon-wrapper]:to-red-100/50 dark:[&_.icon-wrapper]:from-red-950/50 dark:[&_.icon-wrapper]:to-red-900/30 [&_.icon-wrapper_.lucide]:text-red-600 dark:[&_.icon-wrapper_.lucide]:text-red-400"
+                />
+                <MetricCard
+                  title="Progresso Médio"
+                  value={`${stats.averageProjectProgress}%`}
+                  icon={Percent}
+                  variant="default"
+                  className="border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-300 dark:hover:border-cyan-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-cyan-50 [&_.icon-wrapper]:to-cyan-100/50 dark:[&_.icon-wrapper]:from-cyan-950/50 dark:[&_.icon-wrapper]:to-cyan-900/30 [&_.icon-wrapper_.lucide]:text-cyan-600 dark:[&_.icon-wrapper_.lucide]:text-cyan-400"
+                />
+              </div>
+            </div>
           </>
         )}
 
@@ -541,7 +650,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="recent" className="w-full">
+              <Tabs defaultValue="urgent" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="recent">Últimas Tarefas</TabsTrigger>
                   <TabsTrigger value="urgent">Tarefas Urgentes</TabsTrigger>
