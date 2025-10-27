@@ -178,33 +178,51 @@ export function AppSidebar() {
       collapsible="icon" 
       className="border-r border-sidebar-border h-screen sticky top-0"
     >
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+      <SidebarHeader className={cn(
+        "p-4 border-b border-sidebar-border",
+        isCollapsed && "flex justify-center"
+      )}>
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-3">
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
-              className={cn(
-                "flex-shrink-0 object-contain transition-all",
-                isCollapsed ? "h-9 w-9" : "h-10 w-10"
-              )}
+              className="h-10 w-10 object-contain"
             />
-            {!isCollapsed && profile && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
-                <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-              </div>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className={cn("h-8 w-8 flex-shrink-0", isCollapsed && "hidden")}
-          >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <img 
+                src={isDark ? menuLogo.dark : menuLogo.light} 
+                alt="Logo" 
+                className="h-10 w-10 flex-shrink-0 object-contain"
+              />
+              {profile && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                </div>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8 flex-shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
@@ -213,10 +231,16 @@ export function AppSidebar() {
             <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center")}>
+                  <SidebarMenuButton 
+                    asChild 
+                    className={cn(
+                      "transition-all",
+                      isCollapsed ? "justify-center py-6" : "py-4"
+                    )}
+                  >
                     <NavLink
                       to={item.url}
                       end
@@ -225,14 +249,14 @@ export function AppSidebar() {
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                             : 'hover:bg-sidebar-accent/50',
-                          isCollapsed && 'flex justify-center'
+                          isCollapsed && 'flex justify-center items-center'
                         )
                       }
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className={cn(
                         "flex-shrink-0 transition-all",
-                        isCollapsed ? "h-6 w-6" : "h-5 w-5"
+                        isCollapsed ? "h-10 w-10" : "h-5 w-5"
                       )} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1">
@@ -272,11 +296,15 @@ export function AppSidebar() {
           onClick={toggleTheme}
           className={cn(
             "w-full gap-2 transition-all",
-            isCollapsed ? "justify-center px-0" : "justify-start"
+            isCollapsed ? "justify-center px-0 py-6" : "justify-start"
           )}
           title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
-          {isDark ? <Sun className={cn("transition-all", isCollapsed ? "h-6 w-6" : "h-5 w-5")} /> : <Moon className={cn("transition-all", isCollapsed ? "h-6 w-6" : "h-5 w-5")} />}
+          {isDark ? (
+            <Sun className={cn("transition-all", isCollapsed ? "h-10 w-10" : "h-5 w-5")} />
+          ) : (
+            <Moon className={cn("transition-all", isCollapsed ? "h-10 w-10" : "h-5 w-5")} />
+          )}
           {!isCollapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
         </Button>
       </SidebarFooter>
