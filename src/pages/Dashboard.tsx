@@ -335,32 +335,40 @@ export default function Dashboard() {
 
         // Buscar projetos ativos individuais
         try {
-          const projectsResult = await supabase
+          const projectsResult = await (supabase as any)
             .from('projects')
-            .select(`
-              id,
-              name,
-              status,
-              due_date,
-              clients (
-                full_name,
-                company_name,
-                responsible_name
-              )
-            `)
-            .in('status', ['em_andamento', 'planejamento']);
+            .select('id, name, status, due_date, client_id')
+            .in('status', ['em_andamento', 'planejamento'])
+            .eq('is_active', true);
 
           const projectsData = projectsResult.data;
+          const projectsError = projectsResult.error;
 
-          if (projectsData) {
+          if (projectsError) throw projectsError;
+
+          if (projectsData && projectsData.length > 0) {
             const projectIds = projectsData.map((p: any) => p.id);
+            const clientIds = projectsData.map((p: any) => p.client_id);
             
-            const stagesResult = await supabase
+            const stagesResult = await (supabase as any)
               .from('project_stages')
               .select('project_id, status')
               .in('project_id', projectIds);
             
             const stagesData = stagesResult.data;
+            const stagesError = stagesResult.error;
+
+            if (stagesError) throw stagesError;
+
+            const clientsResult = await (supabase as any)
+              .from('clients')
+              .select('id, full_name, company_name, responsible_name')
+              .in('id', clientIds);
+
+            const clientsData = clientsResult.data;
+            const clientsError = clientsResult.error;
+
+            if (clientsError) throw clientsError;
 
             // Criar array com progresso individual de cada projeto
             const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any) => {
@@ -368,7 +376,7 @@ export default function Dashboard() {
               const completedStages = stages.filter((s: any) => s.status === 'concluida').length;
               const progress = stages.length > 0 ? Math.round((completedStages / stages.length) * 100) : 0;
 
-              const client = project.clients;
+              const client = clientsData?.find((c: any) => c.id === project.client_id);
               const clientName = client?.company_name || client?.responsible_name || client?.full_name || 'Cliente não identificado';
 
               return {
@@ -382,9 +390,12 @@ export default function Dashboard() {
             });
 
             setActiveProjects(projectsWithProgress);
+          } else {
+            setActiveProjects([]);
           }
         } catch (err) {
           console.error('Error fetching projects data:', err);
+          setActiveProjects([]);
         }
       }
     } catch (error) {
