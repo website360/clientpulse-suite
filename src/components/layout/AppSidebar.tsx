@@ -200,7 +200,7 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className={cn("h-8 w-8 flex-shrink-0", isCollapsed && "hidden")}
+            className="h-8 w-8 flex-shrink-0"
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
