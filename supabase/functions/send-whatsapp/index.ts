@@ -271,7 +271,7 @@ serve(async (req) => {
       const isContactCreated = !!contactData;
       const results = [];
 
-      // CASO 1: Ticket criado por contato
+      // CASO 1: Ticket criado por contato - enviar APENAS para admin
       if (event_type === 'ticket_created' && isContactCreated) {
         // Enviar para admin
         const { data: adminUsers } = await supabase
@@ -307,26 +307,6 @@ serve(async (req) => {
               console.error('Error sending to admin:', error);
               results.push({ recipient: 'admin', success: false, error: error.message });
             }
-          }
-        }
-
-        // Enviar para cliente
-        if (client.phone) {
-          const clientMessageText = `🎫 *Novo Ticket Aberto*\n\n` +
-            `Número: #${ticket.ticket_number}\n` +
-            `Aberto por: ${contactData.name}\n` +
-            `Assunto: ${ticket.subject}\n\n` +
-            `Nosso time já foi notificado e entrará em contato em breve.`;
-
-          let cleanClientPhone = client.phone.replace(/\D/g, '');
-          if (!cleanClientPhone.startsWith('55')) cleanClientPhone = '55' + cleanClientPhone;
-
-          try {
-            const clientResult = await sendTextMessage(settings, cleanClientPhone, clientMessageText);
-            results.push({ recipient: 'client', success: true, data: clientResult });
-          } catch (error: any) {
-            console.error('Error sending to client:', error);
-            results.push({ recipient: 'client', success: false, error: error.message });
           }
         }
 

@@ -2276,6 +2276,7 @@ export type Database = {
       }
       whatsapp_notification_log: {
         Row: {
+          bucket_5min: string | null
           created_at: string | null
           event_type: string
           id: string
@@ -2283,6 +2284,7 @@ export type Database = {
           ticket_id: string
         }
         Insert: {
+          bucket_5min?: string | null
           created_at?: string | null
           event_type: string
           id?: string
@@ -2290,6 +2292,7 @@ export type Database = {
           ticket_id: string
         }
         Update: {
+          bucket_5min?: string | null
           created_at?: string | null
           event_type?: string
           id?: string
@@ -2311,6 +2314,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_5min_bucket: { Args: { ts: string }; Returns: string }
       calculate_project_progress: {
         Args: { project_id_param: string }
         Returns: number
