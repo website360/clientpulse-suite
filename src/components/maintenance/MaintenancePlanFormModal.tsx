@@ -70,10 +70,12 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
     enabled: open && !plan,
   });
 
+  // Primeiro useEffect - seta clientId e outras props do plan
   useEffect(() => {
     if (plan) {
+      console.log('Editando plano:', plan);
+      console.log('Domain do plano:', plan.domains);
       setClientId(plan.client_id);
-      setDomainId(plan.domains?.id || 'none');
       setStartDate(plan.start_date ? new Date(plan.start_date) : undefined);
       setIsActive(plan.is_active);
     } else {
@@ -82,17 +84,28 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
       } else {
         setClientId('none');
       }
+      setDomainId('none');
+      
       if (settings) {
-        setDomainId('none');
-        // Set default to next month, day from settings
-        const defaultDate = new Date();
-        defaultDate.setMonth(defaultDate.getMonth() + 1);
-        defaultDate.setDate(settings.default_monthly_day);
-        setStartDate(defaultDate);
-        setIsActive(true);
+        const defaultDay = settings.default_monthly_day || 1;
+        const today = new Date();
+        const suggestedDate = new Date(today.getFullYear(), today.getMonth(), defaultDay);
+        setStartDate(suggestedDate);
       }
+      setIsActive(true);
     }
   }, [plan, settings, open, propClientId]);
+
+  // Segundo useEffect - seta domainId após domains estar carregado
+  useEffect(() => {
+    if (plan && domains) {
+      const domainToSet = plan.domains?.id || plan.domain_id || 'none';
+      console.log('Setando domainId:', domainToSet);
+      setDomainId(domainToSet);
+    } else if (!plan && open) {
+      setDomainId('none');
+    }
+  }, [plan, domains, open]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {

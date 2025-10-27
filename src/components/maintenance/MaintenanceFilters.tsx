@@ -41,8 +41,9 @@ export function MaintenanceFilters({ filters, onFiltersChange }: MaintenanceFilt
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="active">Ativos</SelectItem>
             <SelectItem value="inactive">Inativos</SelectItem>
-            <SelectItem value="pending">Pendentes</SelectItem>
-            <SelectItem value="urgent">Urgentes</SelectItem>
+            <SelectItem value="done">Realizadas</SelectItem>
+            <SelectItem value="pending">Aguardando</SelectItem>
+            <SelectItem value="overdue">Atrasadas</SelectItem>
           </SelectContent>
         </Select>
       </div>

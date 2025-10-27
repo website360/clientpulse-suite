@@ -14,6 +14,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePaginationSort } from "@/hooks/usePaginationSort";
 import { useClientPagination } from "@/hooks/useClientPagination";
 
+// Helper para calcular próxima data agendada
+const calculateNextScheduledDate = (plan: any) => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const targetDay = plan.monthly_day;
+  
+  const lastExecution = plan.maintenance_executions?.[0];
+  
+  if (lastExecution) {
+    const lastDate = new Date(lastExecution.executed_at);
+    const lastMonth = lastDate.getMonth();
+    const lastYear = lastDate.getFullYear();
+    
+    if (lastMonth === currentMonth && lastYear === currentYear) {
+      return new Date(currentYear, currentMonth + 1, targetDay);
+    }
+  }
+  
+  if (!lastExecution && plan.start_date) {
+    const startDate = new Date(plan.start_date);
+    if (startDate > today) {
+      return startDate;
+    }
+  }
+  
+  return new Date(currentYear, currentMonth, targetDay);
+};
+
 export default function Maintenance() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPlanFormOpen, setIsPlanFormOpen] = useState(false);
@@ -84,20 +113,45 @@ export default function Maintenance() {
       // Status filter
       if (filters.status !== 'all') {
         const lastExecution = plan.maintenance_executions?.[0];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
         if (filters.status === 'active' && !plan.is_active) return false;
         if (filters.status === 'inactive' && plan.is_active) return false;
         
-        if (filters.status === 'pending' || filters.status === 'urgent') {
-          if (!lastExecution && filters.status === 'urgent') return true;
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        const nextScheduledDate = calculateNextScheduledDate(plan);
+        nextScheduledDate.setHours(0, 0, 0, 0);
+        
+        if (filters.status === 'done') {
+          // Executada neste mês
           if (!lastExecution) return false;
-          
-          const daysSince = Math.floor((new Date().getTime() - new Date(lastExecution.executed_at).getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (filters.status === 'pending' && (daysSince >= 25 && daysSince < 35)) return true;
-          if (filters.status === 'urgent' && daysSince >= 35) return true;
-          
-          return false;
+          const lastDate = new Date(lastExecution.executed_at);
+          return lastDate.getMonth() === currentMonth && lastDate.getFullYear() === currentYear;
+        }
+        
+        if (filters.status === 'pending') {
+          // Aguardando (não atrasada e não realizada neste mês)
+          if (lastExecution) {
+            const lastDate = new Date(lastExecution.executed_at);
+            if (lastDate.getMonth() === currentMonth && lastDate.getFullYear() === currentYear) {
+              return false; // Já foi realizada
+            }
+          }
+          return today <= nextScheduledDate;
+        }
+        
+        if (filters.status === 'overdue') {
+          // Atrasadas
+          if (lastExecution) {
+            const lastDate = new Date(lastExecution.executed_at);
+            if (lastDate.getMonth() === currentMonth && lastDate.getFullYear() === currentYear) {
+              return false; // Foi realizada neste mês
+            }
+          }
+          return today > nextScheduledDate;
         }
       }
 

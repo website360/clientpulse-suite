@@ -47,32 +47,33 @@ export function MaintenanceTable({
   const getStatusBadge = (plan: any) => {
     const lastExecution = plan.maintenance_executions?.[0];
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    const targetDay = plan.monthly_day;
+    const nextScheduledDate = getNextScheduledDate(plan);
+    
+    today.setHours(0, 0, 0, 0);
+    nextScheduledDate.setHours(0, 0, 0, 0);
 
     // Se nunca foi executada
     if (!lastExecution) {
-      // Verificar se já passou do dia de execução neste mês
-      const scheduledDate = new Date(currentYear, currentMonth, targetDay);
-      if (today > scheduledDate) {
+      if (today > nextScheduledDate) {
         return <Badge variant="destructive">Atrasada</Badge>;
       }
-      return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Manutenção</Badge>;
+      return <Badge className="bg-warning/10 text-warning border-warning/20">Aguardando Primeira Manutenção</Badge>;
     }
 
     const lastDate = new Date(lastExecution.executed_at);
+    lastDate.setHours(0, 0, 0, 0);
     const lastMonth = lastDate.getMonth();
     const lastYear = lastDate.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
 
     // Se foi executada no mês/ano atual
     if (lastMonth === currentMonth && lastYear === currentYear) {
       return <Badge className="bg-success/10 text-success border-success/20">Realizada</Badge>;
     }
 
-    // Verificar se já passou do dia de execução neste mês
-    const scheduledDate = new Date(currentYear, currentMonth, targetDay);
-    if (today > scheduledDate) {
+    // Verificar se está atrasada
+    if (today > nextScheduledDate) {
       return <Badge variant="destructive">Atrasada</Badge>;
     }
 
