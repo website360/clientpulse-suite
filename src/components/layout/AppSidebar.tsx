@@ -238,7 +238,7 @@ export function AppSidebar() {
                     asChild 
                     className={cn(
                       "transition-all",
-                      isCollapsed ? "justify-center py-6 px-0" : "py-4 justify-start"
+                      isCollapsed ? "justify-center py-8 px-0" : "py-4 justify-start"
                     )}
                   >
                     <NavLink
@@ -256,7 +256,7 @@ export function AppSidebar() {
                     >
                       <item.icon className={cn(
                         "transition-all",
-                        isCollapsed ? "h-8 w-8" : "h-5 w-5 flex-shrink-0"
+                        isCollapsed ? "h-12 w-12" : "h-5 w-5 flex-shrink-0"
                       )} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1">
@@ -296,14 +296,14 @@ export function AppSidebar() {
           onClick={toggleTheme}
           className={cn(
             "w-full gap-2 transition-all",
-            isCollapsed ? "justify-center px-0 py-6" : "justify-start"
+            isCollapsed ? "justify-center px-0 py-8" : "justify-start"
           )}
           title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
           {isDark ? (
-            <Sun className={cn("transition-all", isCollapsed ? "h-8 w-8" : "h-5 w-5")} />
+            <Sun className={cn("transition-all", isCollapsed ? "h-12 w-12" : "h-5 w-5")} />
           ) : (
-            <Moon className={cn("transition-all", isCollapsed ? "h-8 w-8" : "h-5 w-5")} />
+            <Moon className={cn("transition-all", isCollapsed ? "h-12 w-12" : "h-5 w-5")} />
           )}
           {!isCollapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
         </Button>
