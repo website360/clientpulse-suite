@@ -521,7 +521,7 @@ export default function ClientTicketDetails() {
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                       <span>{message.profiles?.email || 'Email não disponível'}</span>
                                       <span>•</span>
-                                      <span className={textColor}>
+                                      <span>
                                         {message.messageType === 'admin' && 'Suporte'}
                                         {message.messageType === 'contact' && 'Colaborador'}
                                         {message.messageType === 'client' && 'Cliente'}

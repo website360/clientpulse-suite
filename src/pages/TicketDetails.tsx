@@ -552,15 +552,15 @@ export default function TicketDetails() {
                                    <span className={`text-sm font-semibold ${textColor}`}>
                                      {message.displayName}
                                    </span>
-                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                     <span>{message.profiles?.email || 'Email não disponível'}</span>
-                                     <span>•</span>
-                                     <span className={textColor}>
-                                       {message.messageType === 'admin' && 'Suporte'}
-                                       {message.messageType === 'contact' && 'Colaborador'}
-                                       {message.messageType === 'client' && 'Cliente'}
-                                     </span>
-                                   </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <span>{message.profiles?.email || 'Email não disponível'}</span>
+                                      <span>•</span>
+                                      <span>
+                                        {message.messageType === 'admin' && 'Suporte'}
+                                        {message.messageType === 'contact' && 'Colaborador'}
+                                        {message.messageType === 'client' && 'Cliente'}
+                                      </span>
+                                    </div>
                                  </div>
                                  <span className="text-xs text-muted-foreground">
                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
