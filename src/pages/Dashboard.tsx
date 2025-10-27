@@ -656,7 +656,7 @@ export default function Dashboard() {
                                   <span className="text-muted-foreground">Progresso Geral</span>
                                   <span className="font-semibold">{project.progress}%</span>
                                 </div>
-                                <Progress value={project.progress} />
+                                <Progress value={project.progress} indicatorClassName="bg-primary" />
                               </div>
                               <div className="flex justify-between items-center text-sm">
                                 <div className="flex items-center gap-2">
