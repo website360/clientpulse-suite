@@ -129,8 +129,6 @@ export default function Auth() {
               <div className="space-y-3">
                 <h1 className="text-3xl font-bold tracking-tight">BEM-VINDO</h1>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                  <span className="font-semibold">Acompanhe tudo em um só lugar!</span>
-                  <br />
                   Tenha acesso a todas as informações em um único ambiente: visualize o andamento dos projetos, consulte seus contratos, abra tickets de suporte, acompanhe o financeiro e muito mais.
                 </p>
               </div>
