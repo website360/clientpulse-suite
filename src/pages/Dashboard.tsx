@@ -274,25 +274,6 @@ export default function Dashboard() {
 
         {userRole === 'admin' && (
           <>
-            {/* Client Indicators */}
-            <div>
-              <h2 className="text-lg font-bold mb-4">Indicadores de Clientes</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MetricCard
-                  title="Total de Clientes"
-                  value={stats.totalClients}
-                  icon={Users}
-                  variant="default"
-                />
-                <MetricCard
-                  title="Total de Contatos"
-                  value={stats.totalContacts}
-                  icon={Users}
-                  variant="default"
-                />
-              </div>
-            </div>
-
             {/* Financial Indicators - Contas a Receber */}
             <div>
               <div className="flex items-center gap-3 mb-4">

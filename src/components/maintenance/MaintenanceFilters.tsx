@@ -13,7 +13,7 @@ interface MaintenanceFiltersProps {
 
 export function MaintenanceFilters({ filters, onFiltersChange }: MaintenanceFiltersProps) {
   return (
-    <div className="flex flex-wrap items-end gap-4">
+    <div className="flex items-end gap-4">
       <div className="flex-1 min-w-[200px]">
         <Label htmlFor="search" className="mb-2 block">Buscar</Label>
         <div className="relative">
