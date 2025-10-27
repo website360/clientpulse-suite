@@ -205,9 +205,12 @@ export default function ClientTicketDetails() {
         } else if (isContact) {
           displayName = contact?.name || profile?.full_name || 'Contato';
           messageType = 'contact';
-        } else {
-          displayName = client?.nickname || profile?.full_name || 'Cliente';
+        } else if (client) {
+          displayName = client.nickname || profile?.full_name || 'Cliente';
           messageType = 'client';
+        } else {
+          displayName = profile?.full_name || 'Usuário';
+          messageType = 'admin';
         }
         
         return {

@@ -193,9 +193,12 @@ export default function TicketDetails() {
         } else if (isContact) {
           messageType = 'contact';
           displayName = contact.name || profile?.full_name || 'Contato';
-        } else {
+        } else if (client) {
           messageType = 'client';
-          displayName = client?.nickname || profile?.full_name || 'Cliente';
+          displayName = client.nickname || profile?.full_name || 'Cliente';
+        } else {
+          messageType = 'admin';
+          displayName = profile?.full_name || 'Usuário';
         }
         
         return {
