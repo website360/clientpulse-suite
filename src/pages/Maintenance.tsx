@@ -60,7 +60,7 @@ export default function Maintenance() {
           )
         `)
         .eq('is_active', true)
-        .order('clients(full_name)', { ascending: true, nullsFirst: false })
+        .order('full_name', { foreignTable: 'clients', ascending: true, nullsFirst: false })
         .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
 
       if (error) throw error;

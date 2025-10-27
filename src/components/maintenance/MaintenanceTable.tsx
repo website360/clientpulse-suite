@@ -80,20 +80,34 @@ export function MaintenanceTable({
   };
 
   const getNextScheduledDate = (plan: any) => {
-    const lastExecution = plan.maintenance_executions?.[0];
-    
-    // Se já foi executada, usar next_scheduled_date
-    if (lastExecution?.next_scheduled_date) {
-      return parseISO(lastExecution.next_scheduled_date);
-    }
-
-    // Se nunca foi executada, próxima é neste mês no dia configurado
     const today = new Date();
-    const targetDay = plan.monthly_day;
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
+    const targetDay = plan.monthly_day;
     
-    // Sempre retornar o dia do mês atual se nunca foi executada
+    const lastExecution = plan.maintenance_executions?.[0];
+    
+    // Se já foi executada neste mês, próxima é mês seguinte
+    if (lastExecution) {
+      const lastDate = new Date(lastExecution.executed_at);
+      const lastMonth = lastDate.getMonth();
+      const lastYear = lastDate.getFullYear();
+      
+      if (lastMonth === currentMonth && lastYear === currentYear) {
+        // Próxima é no mês seguinte
+        return new Date(currentYear, currentMonth + 1, targetDay);
+      }
+    }
+    
+    // Se nunca foi executada, verificar start_date
+    if (!lastExecution && plan.start_date) {
+      const startDate = parseISO(plan.start_date);
+      if (startDate > today) {
+        return startDate;
+      }
+    }
+    
+    // Caso padrão: próxima é no dia configurado do mês atual
     return new Date(currentYear, currentMonth, targetDay);
   };
 

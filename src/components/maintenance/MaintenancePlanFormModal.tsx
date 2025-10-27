@@ -73,7 +73,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
   useEffect(() => {
     if (plan) {
       setClientId(plan.client_id);
-      setDomainId(plan.domain_id || 'none');
+      setDomainId(plan.domains?.id || 'none');
       setStartDate(plan.start_date ? new Date(plan.start_date) : undefined);
       setIsActive(plan.is_active);
     } else {
@@ -152,6 +152,14 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
       onOpenChange(false);
     },
     onError: (error: any) => {
+      console.error('Erro ao salvar plano:', {
+        error,
+        plan,
+        clientId,
+        domainId,
+        startDate,
+        isActive,
+      });
       toast.error('Erro ao salvar plano: ' + error.message);
     },
   });
