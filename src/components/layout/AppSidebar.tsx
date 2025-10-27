@@ -216,7 +216,7 @@ export function AppSidebar() {
             <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center items-center px-0 mx-auto")}>
