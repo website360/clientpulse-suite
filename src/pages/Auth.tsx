@@ -119,7 +119,7 @@ export default function Auth() {
       <div className="relative z-10 w-full max-w-6xl min-h-[650px] bg-background rounded-3xl shadow-2xl overflow-hidden">
         <div className="grid lg:grid-cols-2 h-full">
           {/* Left Side - Welcome Section */}
-          <div className="hidden lg:flex flex-col justify-center px-12 py-28 bg-muted/30 h-full">
+          <div className="hidden lg:flex flex-col justify-center px-12 py-28 bg-muted/30 h-full rounded-l-3xl">
             <div className="space-y-6">
               <img 
                 src={authLogo.light} 
