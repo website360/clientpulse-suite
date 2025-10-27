@@ -116,10 +116,10 @@ export default function Auth() {
       <div className="absolute inset-0 bg-black/20" />
       
       {/* Modal Card Centralizado */}
-      <div className="relative z-10 w-full max-w-6xl bg-background rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-6xl min-h-[650px] bg-background rounded-3xl shadow-2xl overflow-hidden">
         <div className="grid lg:grid-cols-2">
           {/* Left Side - Welcome Section */}
-          <div className="hidden lg:flex flex-col justify-center px-12 py-20 bg-muted/30">
+          <div className="hidden lg:flex flex-col justify-center px-12 py-28 bg-muted/30">
             <div className="space-y-6">
               <img 
                 src={authLogo.light} 
@@ -139,7 +139,7 @@ export default function Auth() {
           </div>
 
           {/* Right Side - Sign In Form */}
-          <div className="flex items-center justify-center p-8 lg:p-16">
+          <div className="flex items-center justify-center p-12 lg:p-20">
             <div className="w-full max-w-md space-y-8">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-8 text-center">
