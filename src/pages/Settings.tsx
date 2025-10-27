@@ -23,7 +23,7 @@ import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
 import { AuthenticationTab } from '@/components/settings/AuthenticationTab';
 // Removed ClicksignSettingsTab and DocumentTemplatesTab
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -227,27 +227,60 @@ export default function Settings() {
         <Tabs defaultValue="profile" className="space-y-6 max-w-full overflow-x-hidden">
           <ScrollableTabs className="max-w-full">
             <TabsList>
-              <TabsTrigger value="profile">Perfil</TabsTrigger>
-              <TabsTrigger value="security">Segurança</TabsTrigger>
+              <TabsTrigger value="profile">
+                <User className="h-4 w-4 mr-2" />
+                Perfil
+              </TabsTrigger>
+              <TabsTrigger value="security">
+                <Shield className="h-4 w-4 mr-2" />
+                Segurança
+              </TabsTrigger>
               {userRole === 'admin' && (
                 <>
-                  <TabsTrigger value="appearance">Aparência</TabsTrigger>
+                  <TabsTrigger value="appearance">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Aparência
+                  </TabsTrigger>
                   <TabsTrigger value="authentication">
                     <LogIn className="h-4 w-4 mr-2" />
                     Autenticação
                   </TabsTrigger>
-                  <TabsTrigger value="departments">Departamentos</TabsTrigger>
-                  <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-                  <TabsTrigger value="financial">Financeiro</TabsTrigger>
-                  <TabsTrigger value="services">Serviços</TabsTrigger>
-                  <TabsTrigger value="knowledge-base">Base de Conhecimento</TabsTrigger>
-                  <TabsTrigger value="asaas">Asaas</TabsTrigger>
-                  <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                  <TabsTrigger value="departments">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Departamentos
+                  </TabsTrigger>
+                  <TabsTrigger value="suppliers">
+                    <Truck className="h-4 w-4 mr-2" />
+                    Fornecedores
+                  </TabsTrigger>
+                  <TabsTrigger value="financial">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Financeiro
+                  </TabsTrigger>
+                  <TabsTrigger value="services">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Serviços
+                  </TabsTrigger>
+                  <TabsTrigger value="knowledge-base">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Base de Conhecimento
+                  </TabsTrigger>
+                  <TabsTrigger value="asaas">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Asaas
+                  </TabsTrigger>
+                  <TabsTrigger value="whatsapp">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </TabsTrigger>
                   <TabsTrigger value="ticket-whatsapp">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Templates Tickets
                   </TabsTrigger>
-                  <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+                  <TabsTrigger value="maintenance">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Manutenção
+                  </TabsTrigger>
                   <TabsTrigger value="projects">
                     <FolderKanban className="h-4 w-4 mr-2" />
                     Projetos
