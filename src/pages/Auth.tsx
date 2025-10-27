@@ -127,7 +127,7 @@ export default function Auth() {
                 className="h-12 w-auto"
               />
               <div className="space-y-3">
-                <h1 className="text-5xl font-bold tracking-tight">BEM-VINDO</h1>
+                <h1 className="text-3xl font-bold tracking-tight">BEM-VINDO</h1>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
                   Gerencie seus clientes, projetos e tickets de forma eficiente.
                   Acompanhe o progresso em tempo real e mantenha sua equipe sempre
