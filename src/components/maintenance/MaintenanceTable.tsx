@@ -218,7 +218,7 @@ export function MaintenanceTable({
                   <TableCell>
                     {format(nextDate, "dd/MM/yyyy", { locale: ptBR })}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     {getStatusBadge(plan)}
                   </TableCell>
                   <TableCell className="text-right">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play } from 'lucide-react';
+import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play, Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -27,6 +27,9 @@ interface DashboardStats {
   totalPaid: number;
   payableDueSoon: number;
   overduePayable: number;
+  maintenanceDone: number;
+  maintenancePending: number;
+  maintenanceOverdue: number;
 }
 
 interface Task {
@@ -58,6 +61,9 @@ export default function Dashboard() {
     totalPaid: 0,
     payableDueSoon: 0,
     overduePayable: 0,
+    maintenanceDone: 0,
+    maintenancePending: 0,
+    maintenanceOverdue: 0,
   });
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
@@ -245,6 +251,73 @@ export default function Dashboard() {
 
         setRecentTasks(tasksData || []);
         setOverdueTasks(overdueData || []);
+
+        // Buscar dados de manutenção
+        const { data: maintenancePlans } = await supabase
+          .from('client_maintenance_plans')
+          .select(`
+            *,
+            maintenance_executions (
+              executed_at
+            )
+          `)
+          .eq('is_active', true)
+          .order('executed_at', { foreignTable: 'maintenance_executions', ascending: false });
+
+        const todayMaintenance = new Date();
+        todayMaintenance.setHours(0, 0, 0, 0);
+        const currentMonthMaintenance = todayMaintenance.getMonth();
+        const currentYearMaintenance = todayMaintenance.getFullYear();
+
+        let maintenanceDone = 0;
+        let maintenancePending = 0;
+        let maintenanceOverdue = 0;
+
+        maintenancePlans?.forEach((plan: any) => {
+          const lastExecution = plan.maintenance_executions?.[0];
+          const targetDay = plan.monthly_day;
+
+          // Calcular próxima data
+          let nextScheduledDate: Date;
+          if (lastExecution) {
+            const lastDate = new Date(lastExecution.executed_at);
+            const lastMonth = lastDate.getMonth();
+            const lastYear = lastDate.getFullYear();
+            if (lastMonth === currentMonthMaintenance && lastYear === currentYearMaintenance) {
+              nextScheduledDate = new Date(currentYearMaintenance, currentMonthMaintenance + 1, targetDay);
+            } else {
+              nextScheduledDate = new Date(currentYearMaintenance, currentMonthMaintenance, targetDay);
+            }
+          } else if (plan.start_date) {
+            const startDate = new Date(plan.start_date);
+            nextScheduledDate = startDate > todayMaintenance ? startDate : new Date(currentYearMaintenance, currentMonthMaintenance, targetDay);
+          } else {
+            nextScheduledDate = new Date(currentYearMaintenance, currentMonthMaintenance, targetDay);
+          }
+          nextScheduledDate.setHours(0, 0, 0, 0);
+
+          // Verificar status
+          if (lastExecution) {
+            const lastDate = new Date(lastExecution.executed_at);
+            if (lastDate.getMonth() === currentMonthMaintenance && lastDate.getFullYear() === currentYearMaintenance) {
+              maintenanceDone++;
+              return;
+            }
+          }
+
+          if (todayMaintenance > nextScheduledDate) {
+            maintenanceOverdue++;
+          } else {
+            maintenancePending++;
+          }
+        });
+
+        setStats(prev => ({
+          ...prev,
+          maintenanceDone,
+          maintenancePending,
+          maintenanceOverdue,
+        }));
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -388,6 +461,34 @@ export default function Dashboard() {
                   }).format(stats.overduePayable) : '•••••'}
                   icon={AlertCircle}
                   variant="destructive"
+                />
+              </div>
+            </div>
+
+            {/* Maintenance Indicators */}
+            <div>
+              <h2 className="text-lg font-bold mb-4">Indicadores de Manutenção</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <MetricCard
+                  title="Realizadas"
+                  value={stats.maintenanceDone}
+                  icon={CheckCircle}
+                  variant="success"
+                  className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
+                />
+                <MetricCard
+                  title="Aguardando"
+                  value={stats.maintenancePending}
+                  icon={Clock}
+                  variant="default"
+                  className="border-yellow-200/50 dark:border-yellow-800/50 hover:border-yellow-300 dark:hover:border-yellow-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-yellow-50 [&_.icon-wrapper]:to-yellow-100/50 dark:[&_.icon-wrapper]:from-yellow-950/50 dark:[&_.icon-wrapper]:to-yellow-900/30 [&_.icon-wrapper_.lucide]:text-yellow-600 dark:[&_.icon-wrapper_.lucide]:text-yellow-400"
+                />
+                <MetricCard
+                  title="Atrasadas"
+                  value={stats.maintenanceOverdue}
+                  icon={AlertCircle}
+                  variant="destructive"
+                  className="border-red-200/50 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-red-50 [&_.icon-wrapper]:to-red-100/50 dark:[&_.icon-wrapper]:from-red-950/50 dark:[&_.icon-wrapper]:to-red-900/30 [&_.icon-wrapper_.lucide]:text-red-600 dark:[&_.icon-wrapper_.lucide]:text-red-400"
                 />
               </div>
             </div>
