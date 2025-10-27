@@ -631,55 +631,57 @@ export default function Dashboard() {
             {activeProjects.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold">Projetos Ativos</h2>
-                <Carousel className="w-full">
-                  <CarouselContent>
-                    {activeProjects.map((project) => (
-                    <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
-                      <Link to={`/projetos/${project.id}`} className="block h-full">
-                        <Card className="h-full transition-all duration-200 hover:shadow-lg cursor-pointer">
-                          <CardHeader>
-                            <div className="flex items-center justify-between mb-2">
-                              <Badge variant="outline" className="text-xs">
-                                {project.projectType}
-                              </Badge>
-                            </div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <FolderKanban className="h-5 w-5" />
-                              {project.name}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">{project.clientName}</p>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Progresso</span>
-                                <span className="font-semibold">{project.progress}%</span>
-                              </div>
-                              <Progress value={project.progress} />
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                              <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">Status:</span>
-                                <Badge variant={project.status === "Em Andamento" ? "default" : "secondary"}>
-                                  {project.status}
+                <div className="pb-8">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {activeProjects.map((project) => (
+                      <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
+                        <Link to={`/projetos/${project.id}`} className="block h-full">
+                          <Card className="h-full transition-all duration-200 hover:shadow-lg cursor-pointer">
+                            <CardHeader>
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {project.projectType}
                                 </Badge>
                               </div>
-                            </div>
-                            {project.dueDate && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="h-4 w-4" />
-                                Prazo: {format(new Date(project.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                <FolderKanban className="h-5 w-5" />
+                                {project.name}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground">{project.clientName}</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Progresso Geral</span>
+                                  <span className="font-semibold">{project.progress}%</span>
+                                </div>
+                                <Progress value={project.progress} />
                               </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    </CarouselItem>
-                  ))}
-                  </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </Carousel>
+                              <div className="flex justify-between items-center text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Status:</span>
+                                  <Badge variant={project.status === "Em Andamento" ? "default" : "secondary"}>
+                                    {project.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {project.dueDate && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Clock className="h-4 w-4" />
+                                  Prazo: {format(new Date(project.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      </CarouselItem>
+                    ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
+                </div>
               </div>
             )}
           </>
