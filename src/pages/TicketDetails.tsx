@@ -171,10 +171,16 @@ export default function TicketDetails() {
         .select('user_id, name')
         .in('user_id', userIds);
 
+      const { data: clientsData } = await supabase
+        .from('clients')
+        .select('user_id, nickname, full_name, company_name')
+        .in('user_id', userIds);
+
       const messagesWithProfiles = messagesData.map(message => {
         const profile = profilesData?.find(p => p.id === message.user_id) || null;
         const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
         const contact = contactsData?.find(c => c.user_id === message.user_id);
+        const client = clientsData?.find(c => c.user_id === message.user_id);
         const isContact = !!contact;
         const isAdmin = userRole === 'admin';
         
@@ -189,7 +195,7 @@ export default function TicketDetails() {
           displayName = contact.name || profile?.full_name || 'Contato';
         } else {
           messageType = 'client';
-          displayName = profile?.full_name || 'Cliente';
+          displayName = client?.nickname || profile?.full_name || 'Cliente';
         }
         
         return {

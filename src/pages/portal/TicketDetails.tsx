@@ -173,11 +173,10 @@ export default function ClientTicketDetails() {
         .select('user_id, name')
         .in('user_id', userIds);
 
-      const { data: clientData } = await supabase
+      const { data: clientsData } = await supabase
         .from('clients')
-        .select('user_id, nickname, full_name')
-        .eq('user_id', user?.id)
-        .maybeSingle();
+        .select('user_id, nickname, full_name, company_name')
+        .in('user_id', userIds);
 
       const messageIds = messagesData.map(m => m.id);
       const { data: attachmentsData } = await supabase
@@ -191,7 +190,9 @@ export default function ClientTicketDetails() {
         const profile = profilesData?.find(p => p.id === message.user_id);
         const isCurrentUser = message.user_id === user?.id;
         const userRole = rolesData?.find(r => r.user_id === message.user_id)?.role;
-        const isContact = contactsData?.some(c => c.user_id === message.user_id);
+        const contact = contactsData?.find(c => c.user_id === message.user_id);
+        const client = clientsData?.find(c => c.user_id === message.user_id);
+        const isContact = !!contact;
         const isAdmin = userRole === 'admin';
         const messageAttachments = attachmentsData?.filter(a => a.message_id === message.id) || [];
         
@@ -202,11 +203,10 @@ export default function ClientTicketDetails() {
           displayName = profile?.full_name || 'Suporte';
           messageType = 'admin';
         } else if (isContact) {
-          const contact = contactsData?.find(c => c.user_id === message.user_id);
           displayName = contact?.name || profile?.full_name || 'Contato';
           messageType = 'contact';
         } else {
-          displayName = clientData?.nickname || clientData?.full_name || currentProfile?.full_name || 'Cliente';
+          displayName = client?.nickname || profile?.full_name || 'Cliente';
           messageType = 'client';
         }
         
