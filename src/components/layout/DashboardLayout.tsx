@@ -25,7 +25,7 @@ export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutPr
   }
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider>
       <div className="flex w-full h-screen overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col w-full overflow-hidden">

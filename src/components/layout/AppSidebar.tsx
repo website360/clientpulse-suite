@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -24,7 +24,8 @@ import logoDark from '@/assets/logo-dark.png';
 import { cn } from '@/lib/utils';
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar, open } = useSidebar();
+  const isCollapsed = !open;
   const { user, userRole } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
@@ -173,61 +174,85 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="none" className="border-r border-sidebar-border h-screen sticky top-0">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border h-screen sticky top-0">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <img 
-            src={isDark ? menuLogo.dark : menuLogo.light} 
-            alt="Logo" 
-            className="h-10 w-10 flex-shrink-0 object-contain"
-          />
-          {profile && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-            </div>
-          )}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <img 
+              src={isDark ? menuLogo.dark : menuLogo.light} 
+              alt="Logo" 
+              className={cn(
+                "flex-shrink-0 object-contain transition-all",
+                isCollapsed ? "h-8 w-8" : "h-10 w-10"
+              )}
+            />
+            {!isCollapsed && profile && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
+                <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 flex-shrink-0"
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
+            <SidebarMenu className="gap-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="py-3">
+                  <SidebarMenuButton asChild className={cn("py-3.5", isCollapsed && "justify-center")}>
                     <NavLink
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        isActive
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                          : 'hover:bg-sidebar-accent/50'
+                        cn(
+                          isActive
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                            : 'hover:bg-sidebar-accent/50',
+                          isCollapsed && 'flex justify-center'
+                        )
                       }
+                      title={isCollapsed ? item.title : undefined}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <div className="flex items-center justify-between flex-1">
-                        <span className="text-[15px]">{item.title}</span>
-                        <div className="flex items-center gap-1 ml-auto">
-                          {badgeCounts[item.title] && (
-                            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
-                              {badgeCounts[item.title]}
-                            </Badge>
-                          )}
-                          {item.title === 'Base de Conhecimento' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={handleCopyLink}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          )}
+                      <item.icon className={cn(
+                        "flex-shrink-0",
+                        isCollapsed ? "h-5 w-5" : "h-5 w-5"
+                      )} />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="text-[15px]">{item.title}</span>
+                          <div className="flex items-center gap-1 ml-auto">
+                            {badgeCounts[item.title] && (
+                              <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                                {badgeCounts[item.title]}
+                              </Badge>
+                            )}
+                            {item.title === 'Base de Conhecimento' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={handleCopyLink}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -242,10 +267,14 @@ export function AppSidebar() {
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
-          className="w-full justify-start gap-2"
+          className={cn(
+            "w-full gap-2",
+            isCollapsed ? "justify-center px-0" : "justify-start"
+          )}
+          title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {isDark ? 'Modo Claro' : 'Modo Escuro'}
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {!isCollapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
         </Button>
       </SidebarFooter>
     </Sidebar>
