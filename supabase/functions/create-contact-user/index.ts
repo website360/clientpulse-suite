@@ -84,35 +84,8 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
-    // Assign 'contato' role (upsert to avoid duplicate key errors)
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .upsert({
-        user_id: userData.user.id,
-        role: 'contato',
-      }, {
-        onConflict: 'user_id,role',
-        ignoreDuplicates: true,
-      });
-
-    if (roleError) {
-      console.error('Error assigning role:', roleError);
-      throw roleError;
-    }
-
-    // Create profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: userData.user.id,
-        full_name: contact.name,
-        email: contact.email,
-      });
-
-    if (profileError) {
-      console.error('Error creating profile:', profileError);
-      // Non-critical, continue anyway
-    }
+    // Note: Role and profile are automatically created by the handle_new_user() trigger
+    // based on the is_contact metadata passed during user creation
 
     console.log('Contact user created successfully:', {
       contactId,
