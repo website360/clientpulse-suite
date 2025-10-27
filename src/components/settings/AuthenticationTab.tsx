@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { uploadBrandingFile, loadBrandingUrl } from '@/lib/branding';
 
 export function AuthenticationTab() {
   const [uploadingBg, setUploadingBg] = useState(false);
@@ -19,33 +20,11 @@ export function AuthenticationTab() {
 
   const loadImages = async () => {
     try {
-      // Carregar imagem de fundo
-      const { data: bgFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-background'
-        });
-
-      if (bgFiles && bgFiles.length > 0) {
-        const { data: bgData } = supabase.storage
-          .from('branding')
-          .getPublicUrl(bgFiles[0].name);
-        setBackgroundImage(bgData.publicUrl);
-      }
-
-      // Carregar logo do formulário
-      const { data: logoFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-logo-light'
-        });
-
-      if (logoFiles && logoFiles.length > 0) {
-        const { data: logoData } = supabase.storage
-          .from('branding')
-          .getPublicUrl(logoFiles[0].name);
-        setLogoImage(logoData.publicUrl);
-      }
+      const bgUrl = await loadBrandingUrl('auth-background', '');
+      const logoUrl = await loadBrandingUrl('auth-logo-light', '');
+      
+      setBackgroundImage(bgUrl);
+      setLogoImage(logoUrl);
     } catch (error) {
       console.error('Error loading images:', error);
     }
@@ -70,36 +49,11 @@ export function AuthenticationTab() {
     setUploadingBg(true);
 
     try {
-      // Remover imagem antiga se existir
-      const { data: existingFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-background'
-        });
+      const { url, error } = await uploadBrandingFile('auth-background', file);
+      
+      if (error) throw new Error(error);
 
-      if (existingFiles && existingFiles.length > 0) {
-        await supabase.storage
-          .from('branding')
-          .remove(existingFiles.map(f => f.name));
-      }
-
-      // Upload nova imagem
-      const fileName = `auth-background-${Date.now()}.${file.name.split('.').pop()}`;
-      const { error: uploadError } = await supabase.storage
-        .from('branding')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Buscar URL pública
-      const { data } = supabase.storage
-        .from('branding')
-        .getPublicUrl(fileName);
-
-      setBackgroundImage(data.publicUrl);
+      setBackgroundImage(url);
       
       // Disparar evento para atualizar o preview
       window.dispatchEvent(new CustomEvent('logoUpdated', { 
@@ -134,36 +88,11 @@ export function AuthenticationTab() {
     setUploadingLogo(true);
 
     try {
-      // Remover logo antiga se existir
-      const { data: existingFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-logo-light'
-        });
+      const { url, error } = await uploadBrandingFile('auth-logo-light', file);
+      
+      if (error) throw new Error(error);
 
-      if (existingFiles && existingFiles.length > 0) {
-        await supabase.storage
-          .from('branding')
-          .remove(existingFiles.map(f => f.name));
-      }
-
-      // Upload nova logo
-      const fileName = `auth-logo-light-${Date.now()}.${file.name.split('.').pop()}`;
-      const { error: uploadError } = await supabase.storage
-        .from('branding')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Buscar URL pública
-      const { data } = supabase.storage
-        .from('branding')
-        .getPublicUrl(fileName);
-
-      setLogoImage(data.publicUrl);
+      setLogoImage(url);
       
       // Disparar evento para atualizar o preview
       window.dispatchEvent(new CustomEvent('logoUpdated', { 

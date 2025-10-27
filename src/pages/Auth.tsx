@@ -107,9 +107,9 @@ export default function Auth() {
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
         background: backgroundImage 
-          ? `url(${backgroundImage}) center/contain no-repeat`
+          ? `url(${backgroundImage}) center/cover no-repeat`
           : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--accent)) 100%)',
-        backgroundColor: backgroundImage ? 'hsl(var(--muted))' : undefined
+        backgroundPosition: backgroundImage ? 'center' : undefined
       }}
     >
       {/* Overlay */}
@@ -127,12 +127,12 @@ export default function Auth() {
                 className="h-12 w-auto"
               />
               <div className="space-y-3">
-                <h1 className="text-5xl font-bold tracking-tight">WELCOME</h1>
-                <p className="text-xl font-semibold text-muted-foreground">YOUR HEADLINE NAME</p>
+                <h1 className="text-5xl font-bold tracking-tight">BEM-VINDO</h1>
+                <p className="text-xl font-semibold text-muted-foreground">SEU TÍTULO AQUI</p>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam
-                  nonummy nibh euismod incidunt ut laoreet dolore magna aliquam
-                  erat volutpat. Ut wisi enim ad minim veniam
+                  Gerencie seus clientes, projetos e tickets de forma eficiente.
+                  Acompanhe o progresso em tempo real e mantenha sua equipe sempre
+                  conectada com as ferramentas certas.
                 </p>
               </div>
             </div>
@@ -153,9 +153,9 @@ export default function Auth() {
               {/* Form */}
               <div>
                 <div className="mb-8">
-                  <h2 className="text-4xl font-bold text-foreground mb-2">sign in</h2>
+                  <h2 className="text-4xl font-bold text-foreground mb-2">Entrar</h2>
                   <p className="text-sm text-muted-foreground">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                    Acesse sua conta para continuar
                   </p>
                 </div>
 
@@ -167,7 +167,7 @@ export default function Auth() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="User Name"
+                        placeholder="E-mail"
                         value={signInEmail}
                         onChange={(e) => setSignInEmail(e.target.value)}
                         className="h-12 pl-11 bg-muted/50 border-border/50 rounded-lg"
@@ -183,7 +183,7 @@ export default function Auth() {
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder="Senha"
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
                         className="h-12 pl-11 pr-12 bg-muted/50 border-border/50 rounded-lg"
@@ -194,7 +194,7 @@ export default function Auth() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-semibold text-sm hover:underline"
                       >
-                        {showPassword ? "HIDE" : "SHOW"}
+                        {showPassword ? "OCULTAR" : "MOSTRAR"}
                       </button>
                     </div>
                   </div>
@@ -211,7 +211,7 @@ export default function Auth() {
                         htmlFor="remember" 
                         className="text-sm text-muted-foreground cursor-pointer"
                       >
-                        Remember me
+                        Lembrar-me
                       </Label>
                     </div>
                     <button
@@ -219,7 +219,7 @@ export default function Auth() {
                       className="text-sm text-primary hover:underline font-medium"
                       onClick={() => toast.info('Entre em contato com o administrador')}
                     >
-                      Forgot Password?
+                      Esqueceu a senha?
                     </button>
                   </div>
 
@@ -229,7 +229,7 @@ export default function Auth() {
                     className="w-full h-12 rounded-lg text-base font-semibold shadow-lg" 
                     disabled={loading}
                   >
-                    {loading ? 'Signing in...' : 'Sing in'}
+                    {loading ? 'Entrando...' : 'Entrar'}
                   </Button>
 
                   {/* Divider */}
@@ -238,7 +238,7 @@ export default function Auth() {
                       <div className="w-full border-t border-border"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-background text-muted-foreground">Or</span>
+                      <span className="px-4 bg-background text-muted-foreground">Ou</span>
                     </div>
                   </div>
 
@@ -249,18 +249,18 @@ export default function Auth() {
                     className="w-full h-12 rounded-lg text-base font-medium"
                     onClick={() => toast.info('Outros métodos de login não configurados')}
                   >
-                    Sing in with other
+                    Entrar com outro método
                   </Button>
 
                   {/* Sign Up Link */}
                   <p className="text-center text-sm text-muted-foreground mt-6">
-                    Don't have an account?{' '}
+                    Não tem uma conta?{' '}
                     <button
                       type="button"
                       className="text-primary font-semibold hover:underline"
                       onClick={() => toast.info('Entre em contato com o administrador para criar uma conta')}
                     >
-                      Sign Up
+                      Cadastrar
                     </button>
                   </p>
                 </form>

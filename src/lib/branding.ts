@@ -4,14 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
  * Mapa de tipos de branding para caminhos fixos no bucket
  */
 const BRANDING_PATHS: Record<string, string> = {
-  'favicon': 'branding/favicon.png',
-  'logo-icon-light': 'branding/logo-icon-light.png',
-  'logo-icon-dark': 'branding/logo-icon-dark.png',
-  'auth-logo-light': 'branding/auth-logo-light.png',
-  'auth-logo-dark': 'branding/auth-logo-dark.png',
-  'auth-background': 'branding/auth-background.jpg',
-  'kb-logo-light': 'branding/kb-logo-light.png',
-  'kb-article-logo': 'branding/kb-article-logo.png',
+  'favicon': 'favicon.png',
+  'logo-icon-light': 'logo-icon-light.png',
+  'logo-icon-dark': 'logo-icon-dark.png',
+  'auth-logo-light': 'auth-logo-light.png',
+  'auth-logo-dark': 'auth-logo-dark.png',
+  'auth-background': 'auth-background.jpg',
+  'kb-logo-light': 'kb-logo-light.png',
+  'kb-article-logo': 'kb-article-logo.png',
 };
 
 /**
@@ -27,7 +27,7 @@ export function getBrandingPath(type: string): string {
  * @param cacheBust - Se true, adiciona timestamp para evitar cache
  */
 export function getBrandingPublicUrl(type: string, cacheBust: boolean = false): string {
-  const path = getBrandingPath(type);
+  const path = `branding/${getBrandingPath(type)}`;
   const { data } = supabase.storage.from('branding').getPublicUrl(path);
   
   if (cacheBust) {
@@ -94,6 +94,8 @@ export async function loadBrandingUrl(
         
         const response = await fetch(url, { method: 'HEAD' });
         if (response.ok) {
+          // Limpar cache antigo
+          localStorage.removeItem(cacheKey);
           localStorage.setItem(cacheKey, url);
           return url;
         }
@@ -104,7 +106,8 @@ export async function loadBrandingUrl(
       // Verificar se o arquivo existe fazendo uma requisição HEAD
       const response = await fetch(url, { method: 'HEAD' });
       if (response.ok) {
-        // Salvar no localStorage como cache
+        // Limpar cache antigo e salvar novo
+        localStorage.removeItem(cacheKey);
         localStorage.setItem(cacheKey, url);
         return url;
       }
@@ -142,12 +145,14 @@ export async function uploadBrandingFile(
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
     
     // Para auth-background, usar a extensão do arquivo; para outros, usar path fixo
-    let path: string;
+    let fileName: string;
     if (type === 'auth-background') {
-      path = `branding/auth-background.${fileExt}`;
+      fileName = `auth-background.${fileExt}`;
     } else {
-      path = getBrandingPath(type);
+      fileName = getBrandingPath(type);
     }
+    
+    const path = `branding/${fileName}`;
     
     // Upload com upsert: true para sobrescrever arquivo existente
     const { data, error } = await supabase.storage
@@ -163,8 +168,10 @@ export async function uploadBrandingFile(
     const publicUrl = supabase.storage.from('branding').getPublicUrl(path).data.publicUrl;
     const url = `${publicUrl}?v=${Date.now()}`;
     
-    // Salvar no localStorage como cache
-    localStorage.setItem(`app-${type}`, url);
+    // Limpar cache antigo e salvar novo
+    const cacheKey = `app-${type}`;
+    localStorage.removeItem(cacheKey);
+    localStorage.setItem(cacheKey, url);
     
     return { url };
   } catch (error: any) {
