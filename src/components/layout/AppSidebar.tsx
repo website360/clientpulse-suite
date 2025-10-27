@@ -30,9 +30,15 @@ export function AppSidebar() {
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
   const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(null);
-  const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>({
-    light: logoLight,
-    dark: logoDark,
+  const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>(() => {
+    // Tentar carregar do cache do sessionStorage primeiro
+    const cachedLight = sessionStorage.getItem('logo-icon-light-url');
+    const cachedDark = sessionStorage.getItem('logo-icon-dark-url');
+    
+    return {
+      light: cachedLight || logoLight,
+      dark: cachedDark || logoDark,
+    };
   });
 
   useEffect(() => {
@@ -46,6 +52,10 @@ export function AppSidebar() {
       
       const lightUrl = await loadBrandingUrl('logo-icon-light', logoLight);
       const darkUrl = await loadBrandingUrl('logo-icon-dark', logoDark);
+      
+      // Salvar no sessionStorage para cache
+      sessionStorage.setItem('logo-icon-light-url', lightUrl);
+      sessionStorage.setItem('logo-icon-dark-url', darkUrl);
       
       setMenuLogo({
         light: lightUrl,
@@ -74,6 +84,9 @@ export function AppSidebar() {
     const handleLogoUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail.type === 'logo-icon-light' || customEvent.detail.type === 'logo-icon-dark') {
+        // Limpar cache ao atualizar
+        sessionStorage.removeItem('logo-icon-light-url');
+        sessionStorage.removeItem('logo-icon-dark-url');
         loadLogos();
       }
     };
