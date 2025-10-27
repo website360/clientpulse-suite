@@ -129,9 +129,9 @@ export default function Auth() {
               <div className="space-y-3">
                 <h1 className="text-3xl font-bold tracking-tight">BEM-VINDO</h1>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                  Gerencie seus clientes, projetos e tickets de forma eficiente.
-                  Acompanhe o progresso em tempo real e mantenha sua equipe sempre
-                  conectada com as ferramentas certas.
+                  <span className="font-semibold">Acompanhe tudo em um só lugar!</span>
+                  <br />
+                  Tenha acesso a todas as informações em um único ambiente: visualize o andamento dos projetos, consulte seus contratos, abra tickets de suporte, acompanhe o financeiro e muito mais — tudo de forma integrada e segura.
                 </p>
               </div>
             </div>
