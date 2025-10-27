@@ -40,6 +40,14 @@ export function AppSidebar() {
     setIsDark(isDarkMode);
     fetchTicketCount();
     
+    // Restaurar estado do sidebar do localStorage
+    const savedState = localStorage.getItem('sidebar-state');
+    if (savedState === 'collapsed') {
+      if (open) toggleSidebar();
+    } else if (savedState === 'open') {
+      if (!open) toggleSidebar();
+    }
+    
     // Carregar logos do Storage (fonte principal) com fallback
     const loadLogos = async () => {
       const { loadBrandingUrl } = await import('@/lib/branding');
@@ -126,6 +134,13 @@ export function AppSidebar() {
     }
   };
 
+  const handleToggleSidebar = () => {
+    toggleSidebar();
+    // Salvar estado no localStorage
+    const newState = open ? 'collapsed' : 'open';
+    localStorage.setItem('sidebar-state', newState);
+  };
+
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -202,7 +217,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleSidebar}
+            onClick={handleToggleSidebar}
             className={cn("h-8 w-8 flex-shrink-0", isCollapsed && "mx-auto")}
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
