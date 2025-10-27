@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Progress } from '@/components/ui/progress';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
@@ -31,11 +33,6 @@ interface DashboardStats {
   maintenanceDone: number;
   maintenancePending: number;
   maintenanceOverdue: number;
-  totalProjects: number;
-  projectsInProgress: number;
-  projectsCompleted: number;
-  projectsDelayed: number;
-  averageProjectProgress: number;
 }
 
 interface Task {
@@ -48,6 +45,15 @@ interface Task {
   assigned_to_profile?: {
     full_name: string;
   };
+}
+
+interface ProjectProgress {
+  id: string;
+  name: string;
+  clientName: string;
+  progress: number;
+  status: string;
+  dueDate: string | null;
 }
 
 export default function Dashboard() {
@@ -70,14 +76,10 @@ export default function Dashboard() {
     maintenanceDone: 0,
     maintenancePending: 0,
     maintenanceOverdue: 0,
-    totalProjects: 0,
-    projectsInProgress: 0,
-    projectsCompleted: 0,
-    projectsDelayed: 0,
-    averageProjectProgress: 0,
   });
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
+  const [activeProjects, setActiveProjects] = useState<ProjectProgress[]>([]);
   const [showReceivableValues, setShowReceivableValues] = useState(() => {
     const saved = localStorage.getItem('showReceivableValues');
     return saved !== null ? JSON.parse(saved) : true;
@@ -330,58 +332,55 @@ export default function Dashboard() {
           maintenanceOverdue,
         }));
 
-        // Buscar dados de projetos
+        // Buscar projetos ativos individuais
         try {
-          const projectsResult = await (supabase as any).from('projects').select('id, status, due_date').eq('is_active', true);
-          const projectsData = projectsResult.data;
-          const projectsError = projectsResult.error;
+          const projectsResult = await supabase
+            .from('projects')
+            .select(`
+              id,
+              name,
+              status,
+              due_date,
+              clients (
+                full_name,
+                company_name,
+                responsible_name
+              )
+            `)
+            .in('status', ['em_andamento', 'planejamento']);
 
-          if (!projectsError && projectsData) {
+          const projectsData = projectsResult.data;
+
+          if (projectsData) {
             const projectIds = projectsData.map((p: any) => p.id);
             
-            const stagesResult = await (supabase as any).from('project_stages').select('project_id, status').in('project_id', projectIds);
-            const stagesData = stagesResult.data;
+            const stagesResult = await supabase
+              .from('project_stages')
+              .select('project_id, status')
+              .in('project_id', projectIds);
             
-            const todayProjects = new Date();
-            todayProjects.setHours(0, 0, 0, 0);
+            const stagesData = stagesResult.data;
 
-            let totalProjects = projectsData.length;
-            let projectsInProgress = 0;
-            let projectsCompleted = 0;
-            let projectsDelayed = 0;
-            let totalProgress = 0;
-
-            projectsData.forEach((project: any) => {
+            // Criar array com progresso individual de cada projeto
+            const projectsWithProgress: ProjectProgress[] = projectsData.map((project: any) => {
               const stages = stagesData?.filter((s: any) => s.project_id === project.id) || [];
               const completedStages = stages.filter((s: any) => s.status === 'concluida').length;
-              const progress = stages.length > 0 ? (completedStages / stages.length) * 100 : 0;
-              totalProgress += progress;
+              const progress = stages.length > 0 ? Math.round((completedStages / stages.length) * 100) : 0;
 
-              if (progress === 100) {
-                projectsCompleted++;
-              } else if (progress > 0) {
-                projectsInProgress++;
-              }
+              const client = project.clients;
+              const clientName = client?.company_name || client?.responsible_name || client?.full_name || 'Cliente não identificado';
 
-              if (project.due_date) {
-                const dueDate = new Date(project.due_date);
-                dueDate.setHours(0, 0, 0, 0);
-                if (todayProjects > dueDate && progress < 100) {
-                  projectsDelayed++;
-                }
-              }
+              return {
+                id: project.id,
+                name: project.name,
+                clientName,
+                progress,
+                status: project.status === 'em_andamento' ? 'Em Andamento' : 'Planejamento',
+                dueDate: project.due_date,
+              };
             });
 
-            const averageProjectProgress = totalProjects > 0 ? Math.round(totalProgress / totalProjects) : 0;
-
-            setStats(prev => ({
-              ...prev,
-              totalProjects,
-              projectsInProgress,
-              projectsCompleted,
-              projectsDelayed,
-              averageProjectProgress,
-            }));
+            setActiveProjects(projectsWithProgress);
           }
         } catch (err) {
           console.error('Error fetching projects data:', err);
@@ -561,47 +560,54 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Project Indicators */}
-            <div>
-              <h2 className="text-lg font-bold mb-4">Indicadores de Projetos</h2>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <MetricCard
-                  title="Total de Projetos"
-                  value={stats.totalProjects}
-                  icon={FolderKanban}
-                  variant="default"
-                  className="border-indigo-200/50 dark:border-indigo-800/50 hover:border-indigo-300 dark:hover:border-indigo-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-indigo-50 [&_.icon-wrapper]:to-indigo-100/50 dark:[&_.icon-wrapper]:from-indigo-950/50 dark:[&_.icon-wrapper]:to-indigo-900/30 [&_.icon-wrapper_.lucide]:text-indigo-600 dark:[&_.icon-wrapper_.lucide]:text-indigo-400"
-                />
-                <MetricCard
-                  title="Em Andamento"
-                  value={stats.projectsInProgress}
-                  icon={Play}
-                  variant="default"
-                  className="border-blue-200/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-blue-50 [&_.icon-wrapper]:to-blue-100/50 dark:[&_.icon-wrapper]:from-blue-950/50 dark:[&_.icon-wrapper]:to-blue-900/30 [&_.icon-wrapper_.lucide]:text-blue-600 dark:[&_.icon-wrapper_.lucide]:text-blue-400"
-                />
-                <MetricCard
-                  title="Concluídos"
-                  value={stats.projectsCompleted}
-                  icon={CheckCircle}
-                  variant="success"
-                  className="border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-green-50 [&_.icon-wrapper]:to-green-100/50 dark:[&_.icon-wrapper]:from-green-950/50 dark:[&_.icon-wrapper]:to-green-900/30 [&_.icon-wrapper_.lucide]:text-green-600 dark:[&_.icon-wrapper_.lucide]:text-green-400"
-                />
-                <MetricCard
-                  title="Atrasados"
-                  value={stats.projectsDelayed}
-                  icon={AlertCircle}
-                  variant="destructive"
-                  className="border-red-200/50 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-red-50 [&_.icon-wrapper]:to-red-100/50 dark:[&_.icon-wrapper]:from-red-950/50 dark:[&_.icon-wrapper]:to-red-900/30 [&_.icon-wrapper_.lucide]:text-red-600 dark:[&_.icon-wrapper_.lucide]:text-red-400"
-                />
-                <MetricCard
-                  title="Progresso Médio"
-                  value={`${stats.averageProjectProgress}%`}
-                  icon={Percent}
-                  variant="default"
-                  className="border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-300 dark:hover:border-cyan-700 bg-white dark:bg-card [&_.icon-wrapper]:bg-gradient-to-br [&_.icon-wrapper]:from-cyan-50 [&_.icon-wrapper]:to-cyan-100/50 dark:[&_.icon-wrapper]:from-cyan-950/50 dark:[&_.icon-wrapper]:to-cyan-900/30 [&_.icon-wrapper_.lucide]:text-cyan-600 dark:[&_.icon-wrapper_.lucide]:text-cyan-400"
-                />
+            {/* Projetos Ativos */}
+            {activeProjects.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold">Projetos Ativos</h2>
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {activeProjects.map((project) => (
+                      <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
+                        <Card className="h-full">
+                          <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <FolderKanban className="h-5 w-5" />
+                              {project.name}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">{project.clientName}</p>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Progresso</span>
+                                <span className="font-semibold">{project.progress}%</span>
+                              </div>
+                              <Progress value={project.progress} />
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Status:</span>
+                                <Badge variant={project.status === "Em Andamento" ? "default" : "secondary"}>
+                                  {project.status}
+                                </Badge>
+                              </div>
+                            </div>
+                            {project.dueDate && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="h-4 w-4" />
+                                Prazo: {format(new Date(project.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
               </div>
-            </div>
+            )}
           </>
         )}
 
