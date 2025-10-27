@@ -46,7 +46,7 @@ interface Task {
   created_at: string;
   client?: {
     id: string;
-    company_name: string;
+    nickname: string;
   };
   assigned_to_profile?: {
     full_name: string;
@@ -259,7 +259,7 @@ export default function Dashboard() {
           .from('tasks')
           .select(`
             *,
-            client:clients(id, company_name),
+            client:clients(id, nickname),
             assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
           `)
           .order('created_at', { ascending: false })
@@ -270,7 +270,7 @@ export default function Dashboard() {
           .from('tasks')
           .select(`
             *,
-            client:clients(id, company_name),
+            client:clients(id, nickname),
             assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)
           `)
           .eq('priority', 'high')
@@ -726,9 +726,9 @@ export default function Dashboard() {
                       {recentTasks.map((task) => (
                         <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
                           <div className="flex-1 space-y-1">
-                            {task.client?.company_name && (
+                            {task.client?.nickname && (
                               <p className="text-xs font-medium text-muted-foreground">
-                                {task.client.company_name}
+                                {task.client.nickname}
                               </p>
                             )}
                             <p className="text-sm font-medium">{task.title}</p>
@@ -755,9 +755,9 @@ export default function Dashboard() {
                       {overdueTasks.map((task) => (
                         <div key={task.id} className="flex items-start justify-between border-b pb-2 last:border-0">
                           <div className="flex-1 space-y-1">
-                            {task.client?.company_name && (
+                            {task.client?.nickname && (
                               <p className="text-xs font-medium text-muted-foreground">
-                                {task.client.company_name}
+                                {task.client.nickname}
                               </p>
                             )}
                             <p className="text-sm font-medium">{task.title}</p>
