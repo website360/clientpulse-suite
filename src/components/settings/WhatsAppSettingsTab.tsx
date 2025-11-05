@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone } from "lucide-react";
+import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw } from "lucide-react";
+import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
 
 export function WhatsAppSettingsTab() {
   const queryClient = useQueryClient();
@@ -19,6 +21,8 @@ export function WhatsAppSettingsTab() {
   const [instanceName, setInstanceName] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
+  
+  const { status: connectionStatus, checkStatus, isChecking } = useWhatsAppStatus(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["whatsapp-settings"],
@@ -36,7 +40,8 @@ export function WhatsAppSettingsTab() {
       }, {});
 
       if (settingsMap) {
-        setIsActive(settingsMap.whatsapp_enabled?.value === "true");
+        const active = settingsMap.whatsapp_enabled?.value === "true";
+        setIsActive(active);
         setApiUrl(settingsMap.whatsapp_api_url?.value || "");
         setApiKey(settingsMap.whatsapp_api_key?.value || "");
         setInstanceName(settingsMap.whatsapp_instance_name?.value || "");
@@ -45,6 +50,12 @@ export function WhatsAppSettingsTab() {
       return settingsMap;
     },
   });
+
+  useEffect(() => {
+    if (isActive && apiUrl && apiKey && instanceName) {
+      checkStatus();
+    }
+  }, [isActive, apiUrl, apiKey, instanceName]);
 
   const saveSettingsMutation = useMutation({
     mutationFn: async () => {
@@ -75,6 +86,9 @@ export function WhatsAppSettingsTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-settings"] });
       toast.success("Configurações salvas com sucesso!");
+      if (isActive && apiUrl && apiKey && instanceName) {
+        checkStatus();
+      }
     },
     onError: (error: Error) => {
       toast.error("Erro ao salvar configurações: " + error.message);
@@ -143,13 +157,53 @@ export function WhatsAppSettingsTab() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Integração com WhatsApp via Evolution API
-          </CardTitle>
-          <CardDescription>
-            Configure sua VPS com Evolution API para enviar mensagens automáticas pelo WhatsApp
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Integração com WhatsApp via Evolution API
+              </CardTitle>
+              <CardDescription>
+                Configure sua VPS com Evolution API para enviar mensagens automáticas pelo WhatsApp
+              </CardDescription>
+            </div>
+            {isActive && (
+              <div className="flex items-center gap-2">
+                {connectionStatus === 'connected' && (
+                  <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Conectado
+                  </Badge>
+                )}
+                {connectionStatus === 'disconnected' && (
+                  <Badge variant="destructive">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Desconectado
+                  </Badge>
+                )}
+                {connectionStatus === 'checking' && (
+                  <Badge variant="secondary">
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    Verificando...
+                  </Badge>
+                )}
+                {connectionStatus === 'unknown' && (
+                  <Badge variant="outline">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Não verificado
+                  </Badge>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={checkStatus}
+                  disabled={isChecking}
+                >
+                  <RefreshCw className={`h-3 w-3 ${isChecking ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
