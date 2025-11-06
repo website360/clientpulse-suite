@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, Send } from "lucide-react";
 import { ClientNameCell } from "@/components/shared/ClientNameCell";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -90,6 +90,24 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
     setExecutionToDelete(execution);
     setDeleteDialogOpen(true);
   };
+
+  const resendWhatsAppMutation = useMutation({
+    mutationFn: async (executionId: string) => {
+      const { data, error } = await supabase.functions.invoke("send-maintenance-whatsapp", {
+        body: { maintenance_execution_id: executionId }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || "Erro ao enviar mensagem");
+    },
+    onSuccess: () => {
+      toast.success("Mensagem WhatsApp enviada com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["client-maintenance-history", clientId] });
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar mensagem: " + error.message);
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (executionId: string) => {
@@ -175,6 +193,17 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
                       <Eye className="h-4 w-4 mr-2" />
                       Visualizar
                     </Button>
+                    {!execution.whatsapp_sent && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => resendWhatsAppMutation.mutate(execution.id)}
+                        disabled={resendWhatsAppMutation.isPending}
+                        title="Reenviar mensagem WhatsApp"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="sm" 
