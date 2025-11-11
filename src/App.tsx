@@ -4,41 +4,58 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Dashboard from "./pages/Dashboard";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
-import Tickets from "./pages/Tickets";
-import TicketDetails from "./pages/TicketDetails";
-import Settings from "./pages/Settings";
-import Domains from "./pages/Domains";
-import AccountsPayable from "./pages/AccountsPayable";
-import AccountsReceivable from "./pages/AccountsReceivable";
-import Contracts from "./pages/Contracts";
-import Reports from "./pages/Reports";
-import Tasks from "./pages/Tasks";
-import Maintenance from "./pages/Maintenance";
-import Notes from "./pages/Notes";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-// Removed GeneratedDocuments page
-import ClientDashboard from './pages/portal/Dashboard';
-import ClientTickets from './pages/portal/Tickets';
-import ClientContracts from './pages/portal/Contracts';
-import ClientTicketDetails from './pages/portal/TicketDetails';
+import { lazy, Suspense } from "react";
+import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
+import { PerformanceMonitor } from "@/components/dev/PerformanceMonitor";
+
+// Eager loading for public pages and auth
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import KnowledgeBase from "./pages/KnowledgeBase";
 import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
-
 import ClientRegistration from "./pages/public/ClientRegistration";
 
-const queryClient = new QueryClient();
+// Lazy loading for main application pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Clients = lazy(() => import("./pages/Clients"));
+const ClientDetail = lazy(() => import("./pages/ClientDetail"));
+const Tickets = lazy(() => import("./pages/Tickets"));
+const TicketDetails = lazy(() => import("./pages/TicketDetails"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Domains = lazy(() => import("./pages/Domains"));
+const AccountsPayable = lazy(() => import("./pages/AccountsPayable"));
+const AccountsReceivable = lazy(() => import("./pages/AccountsReceivable"));
+const Contracts = lazy(() => import("./pages/Contracts"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const Maintenance = lazy(() => import("./pages/Maintenance"));
+const Notes = lazy(() => import("./pages/Notes"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+
+// Client Portal
+const ClientDashboard = lazy(() => import('./pages/portal/Dashboard'));
+const ClientTickets = lazy(() => import('./pages/portal/Tickets'));
+const ClientContracts = lazy(() => import('./pages/portal/Contracts'));
+const ClientTicketDetails = lazy(() => import('./pages/portal/TicketDetails'));
+
+// Optimized QueryClient configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Avoid unnecessary refetches
+      retry: 1,
+      staleTime: 30000, // 30s default
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PerformanceMonitor />
       <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
@@ -46,37 +63,38 @@ const App = () => (
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
           <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
           
-          
           {/* Rotas protegidas - COM AuthProvider */}
           <Route path="/*" element={
             <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/portal" element={<ClientDashboard />} />
-                <Route path="/portal/tickets" element={<ClientTickets />} />
-                <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
-                <Route path="/portal/contracts" element={<ClientContracts />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/clients/:id" element={<ClientDetail />} />
-                <Route path="/tickets" element={<Tickets />} />
-                <Route path="/tickets/:id" element={<TicketDetails />} />
-                <Route path="/domains" element={<Domains />} />
-                <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
-                <Route path="/financeiro/pagar" element={<AccountsPayable />} />
-                <Route path="/financeiro/receber" element={<AccountsReceivable />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/tasks" element={<Tasks />} />
-                <Route path="/manutencao" element={<Maintenance />} />
-                <Route path="/anotacoes" element={<Notes />} />
-                <Route path="/projetos" element={<Projects />} />
-                <Route path="/projetos/:id" element={<ProjectDetail />} />
-                <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
-                <Route path="/departments" element={<Navigate to="/settings" replace />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/portal" element={<ClientDashboard />} />
+                  <Route path="/portal/tickets" element={<ClientTickets />} />
+                  <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
+                  <Route path="/portal/contracts" element={<ClientContracts />} />
+                  <Route path="/clients" element={<Clients />} />
+                  <Route path="/clients/:id" element={<ClientDetail />} />
+                  <Route path="/tickets" element={<Tickets />} />
+                  <Route path="/tickets/:id" element={<TicketDetails />} />
+                  <Route path="/domains" element={<Domains />} />
+                  <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
+                  <Route path="/financeiro/pagar" element={<AccountsPayable />} />
+                  <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+                  <Route path="/contracts" element={<Contracts />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/tasks" element={<Tasks />} />
+                  <Route path="/manutencao" element={<Maintenance />} />
+                  <Route path="/anotacoes" element={<Notes />} />
+                  <Route path="/projetos" element={<Projects />} />
+                  <Route path="/projetos/:id" element={<ProjectDetail />} />
+                  <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
+                  <Route path="/departments" element={<Navigate to="/settings" replace />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </AuthProvider>
           } />
         </Routes>

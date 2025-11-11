@@ -21,6 +21,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { TableSkeleton } from '@/components/loading/TableSkeleton';
 
 export default function Tickets() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -392,9 +393,7 @@ export default function Tickets() {
 
         {/* Content */}
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Carregando tickets...</p>
-          </div>
+          <TableSkeleton rows={10} columns={8} />
         ) : (
           <>
             <TicketTable

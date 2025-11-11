@@ -16,6 +16,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyTickets } from '@/components/illustrations/EmptyTickets';
 
 interface TicketTableProps {
   tickets: any[];
@@ -84,12 +86,13 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
 
   if (tickets.length === 0) {
     return (
-      <Card className="card-elevated p-12 text-center">
-        <TicketIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Nenhum ticket encontrado</h3>
-        <p className="text-muted-foreground">
-          Não há tickets correspondentes aos filtros selecionados
-        </p>
+      <Card className="card-elevated">
+        <EmptyState
+          icon={TicketIcon}
+          title="Nenhum ticket encontrado"
+          description="Não há tickets correspondentes aos filtros selecionados. Tente ajustar os filtros ou crie um novo ticket."
+          illustration={<EmptyTickets />}
+        />
       </Card>
     );
   }

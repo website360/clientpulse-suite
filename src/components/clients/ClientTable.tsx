@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, User, MoreVertical, UserX, UserCheck } from 'lucide-react';
+import { Eye, Pencil, Trash2, User, MoreVertical, UserX, UserCheck, Users } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,8 @@ import { Card } from '@/components/ui/card';
 import { formatPhone, formatCpfCnpj } from '@/lib/masks';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { TablePagination } from '@/components/ui/table-pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyClients } from '@/components/illustrations/EmptyClients';
 
 interface ClientTableProps {
   clients: any[];
@@ -58,11 +60,12 @@ export function ClientTable({
   if (clients.length === 0) {
     return (
       <Card className="card-elevated p-12 text-center">
-        <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Nenhum cliente encontrado</h3>
-        <p className="text-muted-foreground">
-          Comece adicionando seu primeiro cliente
-        </p>
+        <EmptyState
+          icon={Users}
+          title="Nenhum cliente encontrado"
+          description="Comece adicionando seu primeiro cliente para começar a gerenciar relacionamentos."
+          illustration={<EmptyClients />}
+        />
       </Card>
     );
   }

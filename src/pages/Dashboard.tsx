@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play, Wrench, FolderKanban, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -362,13 +363,9 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        )}
+        {loading && <DashboardSkeleton />}
 
-        {userRole === 'admin' && (
+        {userRole === 'admin' && !loading && (
           <>
             {/* Financial Indicators - Contas a Receber */}
             <div>
