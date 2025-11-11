@@ -20,11 +20,12 @@ import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { TicketSLASettingsTab } from '@/components/settings/TicketSLASettingsTab';
+import { TicketMacrosSettingsTab } from '@/components/settings/TicketMacrosSettingsTab';
 import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
 import { AuthenticationTab } from '@/components/settings/AuthenticationTab';
 // Removed ClicksignSettingsTab and DocumentTemplatesTab
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -282,6 +283,10 @@ export default function Settings() {
                     <Timer className="h-4 w-4 mr-2" />
                     SLA Tickets
                   </TabsTrigger>
+                  <TabsTrigger value="ticket-macros">
+                    <Zap className="h-4 w-4 mr-2" />
+                    Macros Tickets
+                  </TabsTrigger>
                   <TabsTrigger value="maintenance">
                     <Wrench className="h-4 w-4 mr-2" />
                     Manutenção
@@ -482,6 +487,10 @@ export default function Settings() {
 
                   <TabsContent value="ticket-sla">
                     <TicketSLASettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="ticket-macros">
+                    <TicketMacrosSettingsTab />
                   </TabsContent>
 
                   <TabsContent value="maintenance">
