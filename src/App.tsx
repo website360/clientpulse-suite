@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
-import { PerformanceMonitor } from "@/components/dev/PerformanceMonitor";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -55,7 +54,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <PerformanceMonitor />
       <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
