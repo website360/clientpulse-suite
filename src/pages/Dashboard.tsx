@@ -97,6 +97,8 @@ export default function Dashboard() {
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
   const [activeProjects, setActiveProjects] = useState<ProjectProgress[]>([]);
+  const [financialTrendData, setFinancialTrendData] = useState<{ date: string; receivable: number; received: number; payable: number; paid: number; }[]>([]);
+  const [ticketTrendData, setTicketTrendData] = useState<{ date: string; created: number; resolved: number; closed: number; }[]>([]);
   const [showReceivableValues, setShowReceivableValues] = useState(() => {
     const saved = localStorage.getItem('showReceivableValues');
     return saved !== null ? JSON.parse(saved) : true;
@@ -108,7 +110,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dateRange.startDate, dateRange.endDate]);
 
   useEffect(() => {
     localStorage.setItem('showReceivableValues', JSON.stringify(showReceivableValues));
@@ -147,8 +149,8 @@ export default function Dashboard() {
       // Fetch clients count (admin only)
       if (userRole === 'admin') {
         const today = new Date();
-        const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
-        const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
+        const rangeStart = format(dateRange.startDate, 'yyyy-MM-dd');
+        const rangeEnd = format(dateRange.endDate, 'yyyy-MM-dd');
         const todayFormatted = format(today, 'yyyy-MM-dd');
         const threeDaysFromNow = format(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
@@ -166,21 +168,23 @@ export default function Dashboard() {
           { data: overduePayableData },
           { data: tasksData },
           { data: overdueData },
-          { data: maintenancePlans }
+          { data: maintenancePlans },
+          { data: ticketsCreatedData }
         ] = await Promise.all([
           supabase.from('clients').select('*', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('client_contacts').select('*', { count: 'exact', head: true }),
-          supabase.from('accounts_receivable').select('amount').gte('due_date', monthStart).lte('due_date', monthEnd).eq('status', 'pending'),
-          supabase.from('accounts_receivable').select('amount').gte('payment_date', monthStart).lte('payment_date', monthEnd).in('status', ['received']),
-          supabase.from('accounts_receivable').select('amount').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
-          supabase.from('accounts_receivable').select('amount').lt('due_date', todayFormatted).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount').gte('due_date', monthStart).lte('due_date', monthEnd).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount').gte('payment_date', monthStart).lte('payment_date', monthEnd).in('status', ['paid']),
-          supabase.from('accounts_payable').select('amount').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount').lt('due_date', todayFormatted).eq('status', 'pending'),
+          supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending'),
+          supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received']),
+          supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
+          supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid']),
+          supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
+          supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending'),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').order('created_at', { ascending: false }).limit(5),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').eq('priority', 'high').neq('status', 'done').order('created_at', { ascending: false }),
-          supabase.from('client_maintenance_plans').select('*, maintenance_executions (executed_at)').eq('is_active', true).order('executed_at', { foreignTable: 'maintenance_executions', ascending: false })
+          supabase.from('client_maintenance_plans').select('*, maintenance_executions (executed_at)').eq('is_active', true).order('executed_at', { foreignTable: 'maintenance_executions', ascending: false }),
+          supabase.from('tickets').select('created_at').gte('created_at', rangeStart).lte('created_at', rangeEnd)
         ]);
 
         const totalReceivable = receivableData?.reduce((sum, acc) => sum + Number(acc.amount), 0) || 0;
@@ -259,6 +263,27 @@ export default function Dashboard() {
           maintenancePending,
           maintenanceOverdue,
         }));
+
+        // Construir séries de tendência (financeiro e tickets)
+        const days = eachDayOfInterval({ start: dateRange.startDate, end: dateRange.endDate });
+        const sumAmounts = (arr: any[] | null | undefined) => (arr || []).reduce((s: number, a: any) => s + Number(a.amount || 0), 0);
+
+        const finTrend = days.map((d) => {
+          const key = format(d, 'yyyy-MM-dd');
+          const receivableDay = sumAmounts((receivableData || []).filter((a: any) => (a.due_date || '').slice(0, 10) === key));
+          const receivedDay = sumAmounts((receivedData || []).filter((a: any) => (a.payment_date || '').slice(0, 10) === key));
+          const payableDay = sumAmounts((payableData || []).filter((a: any) => (a.due_date || '').slice(0, 10) === key));
+          const paidDay = sumAmounts((paidData || []).filter((a: any) => (a.payment_date || '').slice(0, 10) === key));
+          return { date: d.toISOString(), receivable: receivableDay, received: receivedDay, payable: payableDay, paid: paidDay };
+        });
+        setFinancialTrendData(finTrend);
+
+        const ticketTrend = days.map((d) => {
+          const key = format(d, 'yyyy-MM-dd');
+          const created = (ticketsCreatedData || []).filter((t: any) => (t.created_at || '').slice(0, 10) === key).length;
+          return { date: d.toISOString(), created, resolved: 0, closed: 0 };
+        });
+        setTicketTrendData(ticketTrend);
 
         // Buscar projetos ativos individuais
         try {
@@ -365,10 +390,18 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Visão geral do sistema de gerenciamento
-          </p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">Dashboard</h1>
+              <p className="text-sm text-muted-foreground mt-1">Visão geral do sistema de gerenciamento</p>
+            </div>
+            <DateRangeFilter
+              preset={preset}
+              onPresetChange={setPreset}
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+            />
+          </div>
         </div>
 
         {loading && <DashboardSkeleton />}
@@ -544,6 +577,13 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {userRole === 'admin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TicketTrendChart data={ticketTrendData} />
+            <FinancialTrendChart data={financialTrendData} />
+          </div>
+        )}
 
         {userRole === 'admin' && (
           <>
