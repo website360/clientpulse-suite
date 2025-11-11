@@ -2093,26 +2093,141 @@ export type Database = {
           },
         ]
       }
+      ticket_auto_close_config: {
+        Row: {
+          created_at: string | null
+          days_after_resolved: number
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_after_resolved?: number
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_after_resolved?: number
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ticket_escalation_rules: {
+        Row: {
+          created_at: string | null
+          department_id: string | null
+          escalate_to_user_id: string | null
+          hours_without_response: number
+          id: string
+          is_active: boolean | null
+          priority: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          escalate_to_user_id?: string | null
+          hours_without_response: number
+          id?: string
+          is_active?: boolean | null
+          priority: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string | null
+          escalate_to_user_id?: string | null
+          hours_without_response?: number
+          id?: string
+          is_active?: boolean | null
+          priority?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_escalation_rules_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_macros: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string
+          department_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          shortcut: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by: string
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          shortcut?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          shortcut?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_macros_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_messages: {
         Row: {
+          attachments: Json | null
           created_at: string
           id: string
+          is_important: boolean | null
           is_internal: boolean | null
           message: string
           ticket_id: string
           user_id: string
         }
         Insert: {
+          attachments?: Json | null
           created_at?: string
           id?: string
+          is_important?: boolean | null
           is_internal?: boolean | null
           message: string
           ticket_id: string
           user_id: string
         }
         Update: {
+          attachments?: Json | null
           created_at?: string
           id?: string
+          is_important?: boolean | null
           is_internal?: boolean | null
           message?: string
           ticket_id?: string
@@ -2123,6 +2238,139 @@ export type Database = {
             foreignKeyName: "ticket_messages_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rated_by: string
+          rating: number
+          ticket_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rated_by: string
+          rating: number
+          ticket_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rated_by?: string
+          rating?: number
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_ratings_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_sla_configs: {
+        Row: {
+          created_at: string | null
+          department_id: string | null
+          first_response_minutes: number
+          id: string
+          is_active: boolean | null
+          priority: string
+          resolution_minutes: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          first_response_minutes: number
+          id?: string
+          is_active?: boolean | null
+          priority: string
+          resolution_minutes: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string | null
+          first_response_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          priority?: string
+          resolution_minutes?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_sla_configs_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_sla_tracking: {
+        Row: {
+          created_at: string | null
+          first_response_at: string | null
+          first_response_breached: boolean | null
+          first_response_due_at: string | null
+          id: string
+          resolution_at: string | null
+          resolution_breached: boolean | null
+          resolution_due_at: string | null
+          sla_config_id: string | null
+          ticket_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_response_at?: string | null
+          first_response_breached?: boolean | null
+          first_response_due_at?: string | null
+          id?: string
+          resolution_at?: string | null
+          resolution_breached?: boolean | null
+          resolution_due_at?: string | null
+          sla_config_id?: string | null
+          ticket_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_response_at?: string | null
+          first_response_breached?: boolean | null
+          first_response_due_at?: string | null
+          id?: string
+          resolution_at?: string | null
+          resolution_breached?: boolean | null
+          resolution_due_at?: string | null
+          sla_config_id?: string | null
+          ticket_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_sla_tracking_sla_config_id_fkey"
+            columns: ["sla_config_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_sla_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_sla_tracking_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
             referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
@@ -2200,12 +2448,17 @@ export type Database = {
         Row: {
           assigned_to: string | null
           client_id: string
+          closed_at: string | null
           created_at: string
           created_by: string
           department_id: string
           description: string
           id: string
+          last_response_at: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_time_minutes: number | null
+          resolved_at: string | null
+          response_time_minutes: number | null
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number: number
@@ -2214,12 +2467,17 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id: string
+          closed_at?: string | null
           created_at?: string
           created_by: string
           department_id: string
           description: string
           id?: string
+          last_response_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_time_minutes?: number | null
+          resolved_at?: string | null
+          response_time_minutes?: number | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number?: number
@@ -2228,12 +2486,17 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string
+          closed_at?: string | null
           created_at?: string
           created_by?: string
           department_id?: string
           description?: string
           id?: string
+          last_response_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_time_minutes?: number | null
+          resolved_at?: string | null
+          response_time_minutes?: number | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
           ticket_number?: number
@@ -2349,12 +2612,17 @@ export type Database = {
         Returns: {
           assigned_to: string | null
           client_id: string
+          closed_at: string | null
           created_at: string
           created_by: string
           department_id: string
           description: string
           id: string
+          last_response_at: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_time_minutes: number | null
+          resolved_at: string | null
+          response_time_minutes: number | null
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number: number
