@@ -3,19 +3,24 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Ticket, CheckCircle, Clock, Users, XCircle, TrendingUp, TrendingDown, AlertCircle, Eye, EyeOff, Play, Wrench, FolderKanban, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Progress } from '@/components/ui/progress';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
+import { TicketTrendChart } from '@/components/charts/TicketTrendChart';
+import { FinancialTrendChart } from '@/components/charts/FinancialTrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
+import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { DashboardAlerts } from '@/components/dashboard/DashboardAlerts';
+import { useDateRangeFilter } from '@/hooks/useDateRangeFilter';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -66,7 +71,10 @@ interface ProjectProgress {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const { preset, setPreset, dateRange } = useDateRangeFilter('month');
+  
   const [stats, setStats] = useState<DashboardStats>({
     inProgressTickets: 0,
     waitingTickets: 0,

@@ -1,19 +1,21 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface MetricCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
+  variant?: 'default' | 'success' | 'destructive';
+  className?: string;
+  onClick?: () => void;
   trend?: {
     value: string;
     isPositive: boolean;
   };
-  className?: string;
-  variant?: 'default' | 'success' | 'destructive';
 }
 
-export function MetricCard({ title, value, icon: Icon, trend, className, variant = 'default' }: MetricCardProps) {
+export function MetricCard({ title, value, icon: Icon, trend, className, variant = 'default', onClick }: MetricCardProps) {
   const getIconColor = () => {
     if (variant === 'success') return 'text-emerald-600 dark:text-emerald-400';
     if (variant === 'destructive') return 'text-rose-600 dark:text-rose-400';
@@ -27,7 +29,14 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
   };
 
   return (
-    <Card className={`group overflow-hidden border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${className || ''}`}>
+    <Card 
+      className={cn(
+        "group overflow-hidden border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
+        onClick && "cursor-pointer hover:border-primary/50 active:scale-95",
+        className
+      )}
+      onClick={onClick}
+    >
       <CardContent className="p-5">
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
@@ -41,6 +50,7 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
           </div>
           {trend && (
             <p className={`text-xs font-medium flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {trend.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {trend.value}
             </p>
           )}
