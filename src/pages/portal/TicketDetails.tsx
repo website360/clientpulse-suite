@@ -21,6 +21,10 @@ import {
   Paperclip
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
+import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
+import { TicketRatingModal } from '@/components/tickets/TicketRatingModal';
+import { TypingIndicator } from '@/components/tickets/TypingIndicator';
+import { useTypingStatus } from '@/hooks/useTypingStatus';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
@@ -38,15 +42,49 @@ export default function ClientTicketDetails() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isContact, setIsContact] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [slaTracking, setSlaTracking] = useState<any>(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const { typingUsers, setTyping } = useTypingStatus(id || '', user?.id);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        setCurrentUserProfile({ id: user.id, name: profile?.full_name || 'Cliente' });
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   useEffect(() => {
     if (id && user) {
       fetchTicketDetails();
       fetchMessages();
       fetchAttachments();
+      fetchSLATracking();
       markAsViewed();
     }
   }, [id, user]);
+
+  const fetchSLATracking = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ticket_sla_tracking')
+        .select('*')
+        .eq('ticket_id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setSlaTracking(data);
+    } catch (error: any) {
+      console.error('Error fetching SLA tracking:', error);
+    }
+  };
 
   const markAsViewed = async () => {
     if (!id || !user?.id) return;
@@ -449,9 +487,17 @@ export default function ClientTicketDetails() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
-            <p className="text-muted-foreground">{ticket.subject}</p>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
+              <TicketSLABadge slaTracking={slaTracking} status={ticket.status} />
+            </div>
+            <p className="text-muted-foreground mt-1">{ticket.subject}</p>
           </div>
+          {ticket.status === 'closed' && (
+            <Button onClick={() => setShowRatingModal(true)} variant="outline">
+              Avaliar Atendimento
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -548,13 +594,22 @@ export default function ClientTicketDetails() {
                    </div>
                  )}
 
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                  <TypingIndicator userName={typingUsers[0].userName} />
+                )}
+
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
                   <div className="min-h-[250px]">
                     <ReactQuill
                       theme="snow"
                       value={newMessageHtml}
-                      onChange={setNewMessageHtml}
+                      onChange={(content) => {
+                        setNewMessageHtml(content);
+                        const hasText = stripHtml(content).trim().length > 0;
+                        setTyping(hasText, currentUserProfile?.name);
+                      }}
                       placeholder="Escreva sua mensagem..."
                       style={{ height: '200px' }}
                     />
@@ -680,6 +735,20 @@ export default function ClientTicketDetails() {
           </div>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      <TicketRatingModal
+        open={showRatingModal}
+        onOpenChange={setShowRatingModal}
+        ticketId={id || ''}
+        ticketNumber={ticket?.ticket_number || 0}
+        onRatingSubmitted={() => {
+          toast({
+            title: 'Avaliação registrada',
+            description: 'Obrigado pelo seu feedback!',
+          });
+        }}
+      />
     </DashboardLayout>
   );
 }

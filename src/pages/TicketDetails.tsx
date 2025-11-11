@@ -29,6 +29,10 @@ import {
   File
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
+import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
+import { MacroSelector } from '@/components/tickets/MacroSelector';
+import { TypingIndicator } from '@/components/tickets/TypingIndicator';
+import { useTypingStatus } from '@/hooks/useTypingStatus';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
@@ -44,16 +48,50 @@ export default function TicketDetails() {
   const [newMessageHtml, setNewMessageHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [slaTracking, setSlaTracking] = useState<any>(null);
+  const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        setCurrentUser({ id: user.id, name: profile?.full_name || 'Usuário' });
+      }
+    };
+    loadUser();
+  }, []);
 
   useEffect(() => {
     if (id) {
       fetchTicketDetails();
       fetchMessages();
       fetchAttachments();
+      fetchSLATracking();
       markTicketAsViewed();
       markNotificationsAsRead();
     }
   }, [id]);
+
+  const fetchSLATracking = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ticket_sla_tracking')
+        .select('*')
+        .eq('ticket_id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setSlaTracking(data);
+    } catch (error: any) {
+      console.error('Error fetching SLA tracking:', error);
+    }
+  };
 
   const markTicketAsViewed = async () => {
     try {
@@ -482,9 +520,12 @@ export default function TicketDetails() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
-            <p className="text-muted-foreground">{ticket.subject}</p>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
+              <TicketSLABadge slaTracking={slaTracking} status={ticket.status} />
+            </div>
+            <p className="text-muted-foreground mt-1">{ticket.subject}</p>
           </div>
         </div>
 
@@ -582,13 +623,28 @@ export default function TicketDetails() {
                   </div>
                 )}
 
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                  <TypingIndicator userName={typingUsers[0].userName} />
+                )}
+
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MacroSelector 
+                      onSelectMacro={(content) => setNewMessageHtml(content)} 
+                      departmentId={ticket.department_id}
+                    />
+                  </div>
                   <div className="min-h-[250px]">
                     <ReactQuill
                       theme="snow"
                       value={newMessageHtml}
-                      onChange={setNewMessageHtml}
+                      onChange={(content) => {
+                        setNewMessageHtml(content);
+                        const hasText = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length > 0;
+                        setTyping(hasText, currentUser?.name);
+                      }}
                       placeholder="Escreva sua mensagem..."
                       style={{ height: '200px' }}
                     />
