@@ -365,6 +365,9 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
+        {/* Welcome Banner */}
+        <WelcomeBanner />
+
         {/* Header */}
         <div>
           <div className="flex items-center justify-between gap-4">
@@ -380,9 +383,6 @@ export default function Dashboard() {
             />
           </div>
         </div>
-
-        {/* Welcome Banner */}
-        <WelcomeBanner />
 
         {loading && <DashboardSkeleton />}
 
