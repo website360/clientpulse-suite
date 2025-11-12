@@ -10,6 +10,8 @@ import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
 import { OnboardingTour } from "@/components/shared/OnboardingTour";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -18,6 +20,7 @@ import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
 import ClientRegistration from "./pages/public/ClientRegistration";
 import ProjectApproval from "./pages/public/ProjectApproval";
 import ApprovalSuccess from "./pages/public/ApprovalSuccess";
+import Install from "./pages/Install";
 
 // Lazy loading for main application pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -63,9 +66,11 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <InstallPrompt />
           <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
+          <Route path="/install" element={<Install />} />
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
           <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
@@ -77,6 +82,7 @@ const App = () => (
             <AuthProvider>
               <KeyboardShortcutsProvider>
                 <OnboardingTour />
+                <BottomNavigation />
                 <Suspense fallback={<PageLoadingFallback />}>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />

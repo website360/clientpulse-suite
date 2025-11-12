@@ -559,4 +559,35 @@ All colors MUST be HSL.
   .badge-status-closed {
     @apply bg-gray-500/20 text-gray-600 border border-gray-500/40 px-2 py-1 rounded-md text-xs font-medium;
   }
+
+  /* PWA & Mobile Styles */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Pull to refresh indicator */
+  @keyframes pull-refresh {
+    0% { transform: translateY(-100%) rotate(0deg); }
+    100% { transform: translateY(0) rotate(360deg); }
+  }
+
+  /* Touch feedback */
+  .touch-feedback:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+
+  /* Prevent text selection on mobile gestures */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Bottom navigation spacing */
+  .with-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
 }

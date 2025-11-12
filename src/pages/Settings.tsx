@@ -28,8 +28,9 @@ import { RolesPermissionsTab } from '@/components/settings/RolesPermissionsTab';
 import { SessionsTab } from '@/components/settings/SessionsTab';
 import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { ToastDemo } from '@/components/demo/ToastDemo';
+import { NotificationManager } from '@/components/pwa/NotificationManager';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Maximize2 } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Maximize2, Smartphone } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
 import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
@@ -330,6 +331,10 @@ export default function Settings() {
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
+                  <TabsTrigger value="pwa">
+                    <Smartphone className="h-4 w-4 mr-2" />
+                    PWA & Mobile
+                  </TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -572,6 +577,24 @@ export default function Settings() {
                         <NotificationSettingsTab />
                       </TabsContent>
                     </Tabs>
+                  </TabsContent>
+
+                  <TabsContent value="pwa">
+                    <div className="space-y-6">
+                      <NotificationManager />
+                      
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Instalação PWA</CardTitle>
+                          <CardDescription>Configure o app como aplicativo instalável</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button onClick={() => window.location.href = '/install'}>
+                            Abrir Página de Instalação
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </TabsContent>
 
                   {/* Removed Clicksign and Document Templates content */}

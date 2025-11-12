@@ -92,7 +92,7 @@ export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutPr
         <AppSidebar />
         <div className="flex-1 flex flex-col w-full overflow-hidden">
           <AppHeader breadcrumbLabel={breadcrumbLabel} />
-          <main className="flex-1 p-6 bg-background-secondary overflow-y-auto">
+          <main className="flex-1 p-6 bg-background-secondary overflow-y-auto pb-20 md:pb-6">
             <div className="max-w-full">
               {children}
             </div>
