@@ -11,6 +11,8 @@ export function WelcomeBanner() {
   const [visible, setVisible] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [pendingTasks, setPendingTasks] = useState<number>(0);
+  const [pendingTickets, setPendingTickets] = useState<number>(0);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -31,6 +33,7 @@ export function WelcomeBanner() {
     }
     
     fetchUserName();
+    fetchPendingStats();
   }, [user]);
 
   const fetchUserName = async () => {
@@ -50,6 +53,31 @@ export function WelcomeBanner() {
     } catch (error) {
       console.error('Error fetching user name:', error);
       setUserName(user.email?.split('@')[0] || 'Usuário');
+    }
+  };
+
+  const fetchPendingStats = async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch pending tasks
+      const { count: tasksCount } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['todo', 'in_progress'])
+        .or(`assigned_to.eq.${user.id},created_by.eq.${user.id}`);
+      
+      // Fetch pending tickets
+      const { count: ticketsCount } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['waiting', 'in_progress'])
+        .or(`assigned_to.eq.${user.id},created_by.eq.${user.id}`);
+      
+      setPendingTasks(tasksCount || 0);
+      setPendingTickets(ticketsCount || 0);
+    } catch (error) {
+      console.error('Error fetching pending stats:', error);
     }
   };
 
@@ -116,6 +144,27 @@ export function WelcomeBanner() {
             ? 'Estamos felizes em tê-lo conosco. Explore todas as funcionalidades disponíveis.'
             : 'Que bom ter você aqui novamente. Veja o que há de novo no seu dashboard.'}
         </p>
+        
+        {(pendingTasks > 0 || pendingTickets > 0) && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {pendingTasks > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-sm font-medium">
+                  {pendingTasks} {pendingTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'}
+                </span>
+              </div>
+            )}
+            {pendingTickets > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                <span className="text-sm font-medium">
+                  {pendingTickets} {pendingTickets === 1 ? 'ticket pendente' : 'tickets pendentes'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );
