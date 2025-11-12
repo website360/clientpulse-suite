@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Upload } from 'lucide-react';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 
 interface Category {
   id: string;
@@ -276,7 +277,12 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Conteúdo *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="content">Conteúdo *</Label>
+              <EmojiPicker 
+                onEmojiSelect={(emoji) => setFormData({ ...formData, content: formData.content + emoji })}
+              />
+            </div>
             <ReactQuill
               theme="snow"
               value={formData.content}
