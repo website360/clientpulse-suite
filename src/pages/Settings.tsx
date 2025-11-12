@@ -23,9 +23,12 @@ import { TicketSLASettingsTab } from '@/components/settings/TicketSLASettingsTab
 import { TicketMacrosSettingsTab } from '@/components/settings/TicketMacrosSettingsTab';
 import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
 import { AuthenticationTab } from '@/components/settings/AuthenticationTab';
-// Removed ClicksignSettingsTab and DocumentTemplatesTab
+import { AuditLogsTab } from '@/components/settings/AuditLogsTab';
+import { RolesPermissionsTab } from '@/components/settings/RolesPermissionsTab';
+import { SessionsTab } from '@/components/settings/SessionsTab';
+import { ApprovalsTab } from '@/components/settings/ApprovalsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle } from 'lucide-react';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -239,6 +242,22 @@ export default function Settings() {
               </TabsTrigger>
               {userRole === 'admin' && (
                 <>
+                  <TabsTrigger value="audit-logs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Auditoria
+                  </TabsTrigger>
+                  <TabsTrigger value="roles">
+                    <UserCog className="h-4 w-4 mr-2" />
+                    Roles
+                  </TabsTrigger>
+                  <TabsTrigger value="sessions">
+                    <Monitor className="h-4 w-4 mr-2" />
+                    Sessões
+                  </TabsTrigger>
+                  <TabsTrigger value="approvals">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Aprovações
+                  </TabsTrigger>
                   <TabsTrigger value="appearance">
                     <Palette className="h-4 w-4 mr-2" />
                     Aparência
@@ -445,6 +464,22 @@ export default function Settings() {
 
               {userRole === 'admin' && (
                 <>
+                  <TabsContent value="audit-logs">
+                    <AuditLogsTab />
+                  </TabsContent>
+
+                  <TabsContent value="roles">
+                    <RolesPermissionsTab />
+                  </TabsContent>
+
+                  <TabsContent value="sessions">
+                    <SessionsTab />
+                  </TabsContent>
+
+                  <TabsContent value="approvals">
+                    <ApprovalsTab />
+                  </TabsContent>
+
                   <TabsContent value="appearance">
                     <AppearanceTab />
                   </TabsContent>
