@@ -8,7 +8,8 @@ import FinancialReportTable from '@/components/reports/FinancialReportTable';
 import ProductivityReport from '@/components/reports/ProductivityReport';
 import TicketsReport from '@/components/reports/TicketsReport';
 import DefaultReport from '@/components/reports/DefaultReport';
-import { FileText, TrendingUp, Ticket, AlertTriangle } from 'lucide-react';
+import CustomDashboard from '@/components/dashboard/CustomDashboard';
+import { FileText, TrendingUp, Ticket, AlertTriangle, LayoutDashboard } from 'lucide-react';
 
 export type ReportType = 'payable' | 'receivable' | '';
 export type ReportStatus = 'pending' | 'paid' | 'overdue' | 'canceled';
@@ -51,9 +52,13 @@ export default function Reports() {
           </div>
         </div>
 
-        <Tabs defaultValue="financial" className="space-y-6">
+        <Tabs defaultValue="dashboard" className="space-y-6">
           <ScrollableTabs>
             <TabsList className="w-full justify-start">
+              <TabsTrigger value="dashboard" className="gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </TabsTrigger>
               <TabsTrigger value="financial" className="gap-2">
                 <FileText className="w-4 h-4" />
                 Financeiro
@@ -72,6 +77,10 @@ export default function Reports() {
               </TabsTrigger>
             </TabsList>
           </ScrollableTabs>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <CustomDashboard />
+          </TabsContent>
 
           <TabsContent value="financial" className="space-y-6">
             <Card>

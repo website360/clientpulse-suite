@@ -688,6 +688,42 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_configs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          is_shared: boolean | null
+          layout: Json
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          layout?: Json
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          layout?: Json
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           color: string | null
