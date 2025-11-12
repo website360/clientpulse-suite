@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { DashboardAlerts } from '@/components/dashboard/DashboardAlerts';
+import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
 import { useDateRangeFilter } from '@/hooks/useDateRangeFilter';
 
 interface DashboardStats {
@@ -379,6 +380,9 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {/* Welcome Banner */}
+        <WelcomeBanner />
 
         {loading && <DashboardSkeleton />}
 

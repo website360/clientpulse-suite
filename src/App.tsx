@@ -9,7 +9,6 @@ import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
-import { WelcomeModal } from "@/components/shared/WelcomeModal";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 
@@ -81,7 +80,6 @@ const App = () => (
           <Route path="/*" element={
             <AuthProvider>
               <KeyboardShortcutsProvider>
-                <WelcomeModal />
                 <BottomNavigation />
                 <Suspense fallback={<PageLoadingFallback />}>
                   <Routes>
