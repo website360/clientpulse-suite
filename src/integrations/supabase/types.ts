@@ -3529,6 +3529,7 @@ export type Database = {
       check_expiring_contracts: { Args: never; Returns: undefined }
       check_expiring_domains: { Args: never; Returns: undefined }
       close_ticket: { Args: { p_ticket_id: string }; Returns: undefined }
+      format_timestamp_br: { Args: { ts: string }; Returns: string }
       get_receivable_parent_id: {
         Args: { receivable_id: string }
         Returns: string
