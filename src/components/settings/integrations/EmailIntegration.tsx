@@ -329,7 +329,17 @@ export function EmailIntegration() {
               )}
               {smtpPort === '587' && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Porta 587 (STARTTLS) - Teste de conexão limitado. Use o teste de envio de email para validação completa.
+                  Porta 587 (STARTTLS) - Teste básico de conectividade. Use o teste de envio de email para validação completa.
+                </p>
+              )}
+              {smtpPort === '465' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Porta 465 (SSL/TLS) - Conexão criptografada direta.
+                </p>
+              )}
+              {smtpPort === '25' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Porta 25 - Conexão sem criptografia (não recomendado para produção).
                 </p>
               )}
             </div>
