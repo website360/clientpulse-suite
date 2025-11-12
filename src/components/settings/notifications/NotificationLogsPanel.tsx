@@ -4,13 +4,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { History, Search, Calendar, Filter } from 'lucide-react';
+import { History, Search, Calendar, Filter, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   ticket_created: 'Ticket Criado',
@@ -63,12 +74,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function NotificationLogsPanel() {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const { data: logs, isLoading } = useQuery({
     queryKey: ['notification-logs', channelFilter, statusFilter, eventFilter, dateFrom, dateTo],
@@ -131,6 +144,25 @@ export function NotificationLogsPanel() {
   const hasActiveFilters = channelFilter !== 'all' || statusFilter !== 'all' || 
                           eventFilter !== 'all' || dateFrom || dateTo || searchTerm;
 
+  const handleClearHistory = async () => {
+    try {
+      const { error } = await supabase
+        .from('notification_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+
+      if (error) throw error;
+
+      toastSuccess('Histórico limpo', 'Todos os logs de notificação foram removidos.');
+      queryClient.invalidateQueries({ queryKey: ['notification-logs'] });
+    } catch (error) {
+      console.error('Erro ao limpar histórico:', error);
+      toastError('Erro ao limpar', 'Não foi possível limpar o histórico de notificações.');
+    } finally {
+      setClearDialogOpen(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -144,11 +176,22 @@ export function NotificationLogsPanel() {
               </CardDescription>
             </div>
           </div>
-          {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              Limpar Filtros
+          <div className="flex gap-2">
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Limpar Filtros
+              </Button>
+            )}
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={() => setClearDialogOpen(true)}
+              disabled={!logs || logs.length === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Limpar Histórico
             </Button>
-          )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -308,6 +351,23 @@ export function NotificationLogsPanel() {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpar todo o histórico?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá remover permanentemente todos os logs de notificação. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearHistory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Limpar Tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

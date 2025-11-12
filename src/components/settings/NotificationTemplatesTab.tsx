@@ -79,7 +79,17 @@ export function NotificationTemplatesTab() {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return data;
+      
+      // Remove duplicates based on id
+      const uniqueTemplates = data?.reduce((acc: any[], current) => {
+        const exists = acc.find(item => item.id === current.id);
+        if (!exists) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      return uniqueTemplates || [];
     },
   });
 
