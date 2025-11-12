@@ -22,6 +22,8 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[], enabled = true) {
         activeElement?.hasAttribute('contenteditable');
 
       shortcuts.forEach((shortcut) => {
+        if (!shortcut?.key) return;
+        
         const keyMatch = event.key.toLowerCase() === shortcut.key.toLowerCase();
         const ctrlMatch = shortcut.ctrl ? event.ctrlKey || event.metaKey : true;
         const shiftMatch = shortcut.shift ? event.shiftKey : !event.shiftKey;
