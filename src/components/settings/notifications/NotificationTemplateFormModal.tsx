@@ -12,9 +12,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Info, Eye, EyeOff, AlertCircle, CheckCircle2, Palette } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HtmlSnippets } from './HtmlSnippets';
+import { VisualEmailEditor } from './visual-editor/VisualEmailEditor';
+import { BlockData } from './visual-editor/types';
 
 interface NotificationTemplateFormModalProps {
   open: boolean;
@@ -71,6 +73,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
   const [sendToAssigned, setSendToAssigned] = useState(false);
   const [showHtmlPreview, setShowHtmlPreview] = useState(false);
   const [htmlErrors, setHtmlErrors] = useState<string[]>([]);
+  const [showVisualEditor, setShowVisualEditor] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -172,6 +175,12 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
       textarea.selectionStart = textarea.selectionEnd = start + code.length;
       textarea.focus();
     }, 0);
+  };
+
+  const handleSaveFromVisualEditor = (blocks: BlockData[], html: string) => {
+    setTemplateHtml(html);
+    handleHtmlChange(html);
+    setShowVisualEditor(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -400,6 +409,16 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="template_html">Template HTML (Email - Opcional)</Label>
                 <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVisualEditor(true)}
+                    className="h-8"
+                  >
+                    <Palette className="h-4 w-4 mr-2" />
+                    Editor Visual
+                  </Button>
                   <HtmlSnippets onInsert={handleInsertSnippet} />
                   {templateHtml && (
                     <Button
@@ -500,6 +519,22 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
           </div>
         </form>
       </DialogContent>
+
+      {/* Visual Editor Dialog */}
+      <Dialog open={showVisualEditor} onOpenChange={setShowVisualEditor}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-6">
+          <DialogHeader>
+            <DialogTitle>Editor Visual de Email</DialogTitle>
+            <DialogDescription>
+              Arraste blocos da biblioteca e personalize seu template
+            </DialogDescription>
+          </DialogHeader>
+          <VisualEmailEditor
+            onSave={handleSaveFromVisualEditor}
+            onCancel={() => setShowVisualEditor(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
