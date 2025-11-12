@@ -26,7 +26,8 @@ import {
   Send,
   AlertCircle,
   Download,
-  File
+  File,
+  Eye
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
@@ -55,6 +56,13 @@ export default function TicketDetails() {
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
+
+  const canPreviewFile = (fileType: string) => {
+    return fileType.startsWith('image/') || 
+           fileType === 'application/pdf' || 
+           fileType.startsWith('video/') || 
+           fileType.startsWith('audio/');
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -783,6 +791,12 @@ export default function TicketDetails() {
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {(attachment.file_size / 1024).toFixed(1)} KB
+                            {canPreviewFile(attachment.file_type) && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-primary">
+                                <Eye className="h-3 w-3" />
+                                Preview disponível
+                              </span>
+                            )}
                           </p>
                         </div>
                       </button>
