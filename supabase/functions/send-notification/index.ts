@@ -213,11 +213,18 @@ async function getNotificationSettings(
 function isQuietHours(settings: any): boolean {
   if (!settings.quiet_hours_enabled) return false;
 
+  const startRaw = settings.quiet_hours_start?.slice?.(0, 5);
+  const endRaw = settings.quiet_hours_end?.slice?.(0, 5);
+
+  // Se horários não estão configurados, não aplicar horário de silêncio
+  if (!startRaw || !endRaw) return false;
+
+  // Usa horário local do servidor (UTC) por simplicidade; se necessário, adicionar suporte a timezone nas settings
   const now = new Date();
   const currentTime = now.toTimeString().slice(0, 5); // HH:MM
-  
-  const start = settings.quiet_hours_start?.slice(0, 5) || '22:00';
-  const end = settings.quiet_hours_end?.slice(0, 5) || '08:00';
+
+  const start = startRaw;
+  const end = endRaw;
 
   // Se o horário de fim é menor que início, significa que cruza a meia-noite
   if (end < start) {
