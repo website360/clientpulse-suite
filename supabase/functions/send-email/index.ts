@@ -59,13 +59,18 @@ async function getEmailSettings(supabase: any): Promise<EmailSettings | null> {
 }
 
 async function sendEmail(settings: EmailSettings, request: EmailRequest): Promise<any> {
-  console.log(`Sending email to ${request.to}`);
+  console.log(`Sending email to ${request.to} using port ${settings.smtp_port}`);
 
-  // Conectar ao servidor SMTP
-  const conn = await Deno.connect({
-    hostname: settings.smtp_host,
-    port: settings.smtp_port,
-  });
+  // Conectar ao servidor SMTP com SSL/TLS para porta 465
+  const conn = settings.smtp_port === 465
+    ? await Deno.connectTls({
+        hostname: settings.smtp_host,
+        port: settings.smtp_port,
+      })
+    : await Deno.connect({
+        hostname: settings.smtp_host,
+        port: settings.smtp_port,
+      });
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
