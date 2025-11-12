@@ -325,16 +325,17 @@ export default function TicketDetails() {
       fetchMessages();
       fetchAttachments();
       
-      if (isAdmin) {
-        supabase.functions.invoke('send-whatsapp', {
-          body: {
-            action: 'send_ticket_notification',
-            ticket_id: id,
-            message_id: messageData.id,
-            event_type: 'admin_response',
-          },
-        }).catch(err => console.error('Error sending WhatsApp:', err));
-      }
+      // Envio antigo de WhatsApp removido (centralizado via send-notification)
+      // if (isAdmin) {
+      //   supabase.functions.invoke('send-whatsapp', {
+      //     body: {
+      //       action: 'send_ticket_notification',
+      //       ticket_id: id,
+      //       message_id: messageData.id,
+      //       event_type: 'admin_response',
+      //     },
+      //   }).catch(err => console.error('Error sending WhatsApp:', err));
+      // }
       
       toast({
         title: 'Mensagem enviada',
