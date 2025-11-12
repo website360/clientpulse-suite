@@ -11,8 +11,6 @@ import { Progress } from '@/components/ui/progress';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
-import { TicketTrendChart } from '@/components/charts/TicketTrendChart';
-import { FinancialTrendChart } from '@/components/charts/FinancialTrendChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -97,8 +95,6 @@ export default function Dashboard() {
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
   const [activeProjects, setActiveProjects] = useState<ProjectProgress[]>([]);
-  const [financialTrendData, setFinancialTrendData] = useState<{ date: string; receivable: number; received: number; payable: number; paid: number; }[]>([]);
-  const [ticketTrendData, setTicketTrendData] = useState<{ date: string; created: number; resolved: number; closed: number; }[]>([]);
   const [showReceivableValues, setShowReceivableValues] = useState(() => {
     const saved = localStorage.getItem('showReceivableValues');
     return saved !== null ? JSON.parse(saved) : true;
@@ -264,26 +260,6 @@ export default function Dashboard() {
           maintenanceOverdue,
         }));
 
-        // Construir séries de tendência (financeiro e tickets)
-        const days = eachDayOfInterval({ start: dateRange.startDate, end: dateRange.endDate });
-        const sumAmounts = (arr: any[] | null | undefined) => (arr || []).reduce((s: number, a: any) => s + Number(a.amount || 0), 0);
-
-        const finTrend = days.map((d) => {
-          const key = format(d, 'yyyy-MM-dd');
-          const receivableDay = sumAmounts((receivableData || []).filter((a: any) => (a.due_date || '').slice(0, 10) === key));
-          const receivedDay = sumAmounts((receivedData || []).filter((a: any) => (a.payment_date || '').slice(0, 10) === key));
-          const payableDay = sumAmounts((payableData || []).filter((a: any) => (a.due_date || '').slice(0, 10) === key));
-          const paidDay = sumAmounts((paidData || []).filter((a: any) => (a.payment_date || '').slice(0, 10) === key));
-          return { date: d.toISOString(), receivable: receivableDay, received: receivedDay, payable: payableDay, paid: paidDay };
-        });
-        setFinancialTrendData(finTrend);
-
-        const ticketTrend = days.map((d) => {
-          const key = format(d, 'yyyy-MM-dd');
-          const created = (ticketsCreatedData || []).filter((t: any) => (t.created_at || '').slice(0, 10) === key).length;
-          return { date: d.toISOString(), created, resolved: 0, closed: 0 };
-        });
-        setTicketTrendData(ticketTrend);
 
         // Buscar projetos ativos individuais
         try {
@@ -578,12 +554,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {userRole === 'admin' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TicketTrendChart data={ticketTrendData} />
-            <FinancialTrendChart data={financialTrendData} />
-          </div>
-        )}
 
         {userRole === 'admin' && (
           <>
