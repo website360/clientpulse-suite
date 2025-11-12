@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectTable } from '@/components/projects/ProjectTable';
 import { ProjectFormModal } from '@/components/projects/ProjectFormModal';
 import { ProjectFilters } from '@/components/projects/ProjectFilters';
+import { ApprovalsTab } from '@/components/projects/ApprovalsTab';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -81,14 +83,27 @@ export default function Projects() {
           </Button>
         </div>
 
-        <ProjectFilters filters={filters} onFiltersChange={setFilters} />
+        <Tabs defaultValue="projects" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="projects">Projetos</TabsTrigger>
+            <TabsTrigger value="approvals">Aprovações</TabsTrigger>
+          </TabsList>
 
-        <ProjectTable
-          projects={projects || []}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onRefresh={refetch}
-        />
+          <TabsContent value="projects" className="space-y-4">
+            <ProjectFilters filters={filters} onFiltersChange={setFilters} />
+
+            <ProjectTable
+              projects={projects || []}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onRefresh={refetch}
+            />
+          </TabsContent>
+
+          <TabsContent value="approvals">
+            <ApprovalsTab />
+          </TabsContent>
+        </Tabs>
 
         <ProjectFormModal
           open={isModalOpen}

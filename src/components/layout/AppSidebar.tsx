@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight, TrendingUp, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -171,7 +171,6 @@ export function AppSidebar() {
     { title: 'Tickets', url: '/tickets', icon: Ticket },
     { title: 'Domínios', url: '/domains', icon: Globe },
     { title: 'Projetos', url: '/projetos', icon: FolderKanban },
-    { title: 'Aprovações', url: '/aprovacoes', icon: CheckCircle },
     { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
     { title: 'Contratos', url: '/contracts', icon: FileText },
     { title: 'Relatórios', url: '/reports', icon: BarChart3 },
