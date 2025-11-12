@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
+import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -71,36 +72,38 @@ const App = () => (
           {/* Rotas protegidas - COM AuthProvider */}
           <Route path="/*" element={
             <AuthProvider>
-              <Suspense fallback={<PageLoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/portal" element={<ClientDashboard />} />
-                  <Route path="/portal/tickets" element={<ClientTickets />} />
-                  <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
-                  <Route path="/portal/contracts" element={<ClientContracts />} />
-                  <Route path="/clients" element={<Clients />} />
-                  <Route path="/clients/:id" element={<ClientDetail />} />
-                  <Route path="/tickets" element={<Tickets />} />
-                  <Route path="/tickets/:id" element={<TicketDetails />} />
-                  <Route path="/ticket-metrics" element={<TicketMetrics />} />
-                  <Route path="/domains" element={<Domains />} />
-                  <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
-                  <Route path="/financeiro/pagar" element={<AccountsPayable />} />
-                  <Route path="/financeiro/receber" element={<AccountsReceivable />} />
-                  <Route path="/contracts" element={<Contracts />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/manutencao" element={<Maintenance />} />
-                  <Route path="/anotacoes" element={<Notes />} />
-                  <Route path="/projetos" element={<Projects />} />
-                  <Route path="/projetos/:id" element={<ProjectDetail />} />
-                  <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
-                  <Route path="/departments" element={<Navigate to="/settings" replace />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              <KeyboardShortcutsProvider>
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/portal" element={<ClientDashboard />} />
+                    <Route path="/portal/tickets" element={<ClientTickets />} />
+                    <Route path="/portal/tickets/:id" element={<ClientTicketDetails />} />
+                    <Route path="/portal/contracts" element={<ClientContracts />} />
+                    <Route path="/clients" element={<Clients />} />
+                    <Route path="/clients/:id" element={<ClientDetail />} />
+                    <Route path="/tickets" element={<Tickets />} />
+                    <Route path="/tickets/:id" element={<TicketDetails />} />
+                    <Route path="/ticket-metrics" element={<TicketMetrics />} />
+                    <Route path="/domains" element={<Domains />} />
+                    <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
+                    <Route path="/financeiro/pagar" element={<AccountsPayable />} />
+                    <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+                    <Route path="/contracts" element={<Contracts />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/manutencao" element={<Maintenance />} />
+                    <Route path="/anotacoes" element={<Notes />} />
+                    <Route path="/projetos" element={<Projects />} />
+                    <Route path="/projetos/:id" element={<ProjectDetail />} />
+                    <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
+                    <Route path="/departments" element={<Navigate to="/settings" replace />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </KeyboardShortcutsProvider>
             </AuthProvider>
           } />
         </Routes>
