@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HtmlSnippets } from './HtmlSnippets';
 import { VisualEmailEditor } from './visual-editor/VisualEmailEditor';
 import { BlockData } from './visual-editor/types';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 
 interface NotificationTemplateFormModalProps {
   open: boolean;
@@ -380,7 +381,12 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
           </div>
 
           <div>
-            <Label htmlFor="template_body">Mensagem *</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="template_body">Mensagem *</Label>
+              <EmojiPicker
+                onEmojiSelect={(emoji) => setTemplateBody(prev => prev + emoji)}
+              />
+            </div>
             <Textarea
               id="template_body"
               value={templateBody}

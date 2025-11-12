@@ -8,6 +8,7 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -24,6 +25,23 @@ import { ThemeSelector } from './ThemeSelector';
 import { BlockData } from './types';
 import { BLOCK_TEMPLATES } from './blockTemplates';
 import { EMAIL_THEMES, EmailTheme, applyThemeToBlock } from './themes';
+
+function DroppableCanvas({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'canvas-droppable',
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[400px] transition-colors ${
+        isOver ? 'bg-primary/5' : ''
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface VisualEmailEditorProps {
   initialBlocks?: BlockData[];
@@ -186,32 +204,34 @@ ${htmlParts.join('\n')}
           </div>
 
           <ScrollArea className="flex-1 p-4">
-            {blocks.length === 0 ? (
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center max-w-sm">
-                  <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    Arraste blocos da biblioteca para começar a construir seu template
-                  </p>
+            <DroppableCanvas>
+              {blocks.length === 0 ? (
+                <div className="h-full min-h-[400px] flex items-center justify-center">
+                  <div className="text-center max-w-sm">
+                    <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      Arraste blocos da biblioteca para começar a construir seu template
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <SortableContext
-                items={blocks.map((b) => b.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3 max-w-2xl mx-auto">
-                  {blocks.map((block) => (
-                    <EmailBlock
-                      key={block.id}
-                      block={block}
-                      isSelected={selectedBlockId === block.id}
-                      onSelect={() => setSelectedBlockId(block.id)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            )}
+              ) : (
+                <SortableContext
+                  items={blocks.map((b) => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3 max-w-2xl mx-auto">
+                    {blocks.map((block) => (
+                      <EmailBlock
+                        key={block.id}
+                        block={block}
+                        isSelected={selectedBlockId === block.id}
+                        onSelect={() => setSelectedBlockId(block.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              )}
+            </DroppableCanvas>
           </ScrollArea>
         </div>
 
