@@ -85,7 +85,7 @@ export function WelcomeModal() {
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            Bem-vindo ao ClientPulse Suite! 👋
+            Bem-vindo! 👋
           </DialogTitle>
           <DialogDescription className="text-base">
             {userRole === 'admin' 
