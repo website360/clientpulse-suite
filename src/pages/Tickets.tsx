@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, PlayCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Clock, PlayCircle, CheckCircle2, XCircle, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
 import { NewTicketModal } from '@/components/tickets/NewTicketModal';
@@ -40,6 +41,7 @@ export default function Tickets() {
   });
   const { toast } = useToast();
   const { userRole } = useAuth();
+  const navigate = useNavigate();
 
   // Apply sorting to filtered tickets
   const sortedTickets = [...filteredTickets].sort((a, b) => {
@@ -347,10 +349,21 @@ export default function Tickets() {
             </p>
           </div>
           {userRole === 'admin' && (
-            <Button onClick={() => setNewTicketModalOpen(true)} size="lg" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Ticket
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => navigate('/ticket-metrics')} 
+                size="lg" 
+                variant="outline" 
+                className="gap-2"
+              >
+                <TrendingUp className="h-4 w-4" />
+                Métricas
+              </Button>
+              <Button onClick={() => setNewTicketModalOpen(true)} size="lg" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Ticket
+              </Button>
+            </div>
           )}
         </div>
 
