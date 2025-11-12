@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Breadcrumbs } from './Breadcrumbs';
 import { NotificationCenter } from './NotificationCenter';
+import { GlobalSearch } from './GlobalSearch';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -94,11 +95,17 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
         <Breadcrumbs customLabel={breadcrumbLabel} />
 
         <div className="flex-1 flex items-center justify-end gap-4">
-          <NotificationCenter />
+          <div data-tour="global-search">
+            <GlobalSearch />
+          </div>
+          
+          <div data-tour="notifications">
+            <NotificationCenter />
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-tour="user-menu">
                 <Avatar>
                   <AvatarImage src={avatarUrl} />
                   <AvatarFallback className="bg-primary text-primary-foreground">

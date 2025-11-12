@@ -424,7 +424,7 @@ export default function Dashboard() {
                   )}
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4" data-tour="dashboard-metrics">
                 <MetricCard
                   title="Total a Receber"
                   value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {

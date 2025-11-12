@@ -166,30 +166,30 @@ export function AppSidebar() {
   };
 
   const adminItems = [
-    { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-    { title: 'Clientes', url: '/clients', icon: Users },
-    { title: 'Tickets', url: '/tickets', icon: Ticket },
-    { title: 'Domínios', url: '/domains', icon: Globe },
-    { title: 'Projetos', url: '/projetos', icon: FolderKanban },
-    { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
-    { title: 'Contratos', url: '/contracts', icon: FileText },
-    { title: 'Relatórios', url: '/reports', icon: BarChart3 },
-    { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
-    { title: 'Manutenção', url: '/manutencao', icon: Wrench },
-    { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote },
-    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen },
-    { title: 'Configurações', url: '/settings', icon: Settings },
+    { title: 'Dashboard', url: '/', icon: LayoutDashboard, dataTour: 'sidebar-dashboard' },
+    { title: 'Clientes', url: '/clients', icon: Users, dataTour: 'sidebar-clients' },
+    { title: 'Tickets', url: '/tickets', icon: Ticket, dataTour: 'sidebar-tickets' },
+    { title: 'Domínios', url: '/domains', icon: Globe, dataTour: 'sidebar-domains' },
+    { title: 'Projetos', url: '/projetos', icon: FolderKanban, dataTour: 'sidebar-projects' },
+    { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign, dataTour: 'sidebar-financial' },
+    { title: 'Contratos', url: '/contracts', icon: FileText, dataTour: 'sidebar-contracts' },
+    { title: 'Relatórios', url: '/reports', icon: BarChart3, dataTour: 'sidebar-reports' },
+    { title: 'Tarefas', url: '/tasks', icon: CheckSquare, dataTour: 'sidebar-tasks' },
+    { title: 'Manutenção', url: '/manutencao', icon: Wrench, dataTour: 'sidebar-maintenance' },
+    { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote, dataTour: 'sidebar-notes' },
+    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen, dataTour: 'sidebar-knowledge' },
+    { title: 'Configurações', url: '/settings', icon: Settings, dataTour: 'sidebar-settings' },
   ];
 
   const clientItems = [
-    { title: 'Dashboard', url: '/portal', icon: LayoutDashboard },
-    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
-    { title: 'Contratos', url: '/portal/contracts', icon: FileText },
+    { title: 'Dashboard', url: '/portal', icon: LayoutDashboard, dataTour: 'sidebar-dashboard' },
+    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket, dataTour: 'sidebar-tickets' },
+    { title: 'Contratos', url: '/portal/contracts', icon: FileText, dataTour: 'sidebar-contracts' },
   ];
 
   const contatoItems = [
-    { title: 'Dashboard', url: '/portal', icon: LayoutDashboard },
-    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
+    { title: 'Dashboard', url: '/portal', icon: LayoutDashboard, dataTour: 'sidebar-dashboard' },
+    { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket, dataTour: 'sidebar-tickets' },
   ];
 
   // Usar userRole diretamente para evitar flickering no menu
@@ -250,6 +250,7 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
+                      data-tour={item.dataTour}
                       className={({ isActive }) =>
                         cn(
                           isActive
