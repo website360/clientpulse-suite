@@ -283,20 +283,23 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
                 onEmojiSelect={(emoji) => setFormData({ ...formData, content: formData.content + emoji })}
               />
             </div>
-            <ReactQuill
-              theme="snow"
-              value={formData.content}
-              onChange={(value) => setFormData({ ...formData, content: value })}
-              modules={{
-                toolbar: [
-                  [{ header: [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  ['link', 'image', 'video'],
-                  ['clean'],
-                ],
-              }}
-            />
+            <div className="min-h-[500px]">
+              <ReactQuill
+                theme="snow"
+                value={formData.content}
+                onChange={(value) => setFormData({ ...formData, content: value })}
+                style={{ height: '450px' }}
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['link', 'image', 'video'],
+                    ['clean'],
+                  ],
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
