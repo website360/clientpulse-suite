@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, Globe } from 'lucide-react';
 import { DomainTable } from '@/components/domains/DomainTable';
 import { DomainFormModal } from '@/components/domains/DomainFormModal';
 import { TablePagination } from '@/components/ui/table-pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyDomains } from '@/components/illustrations/EmptyDomains';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Domains() {
@@ -66,30 +68,45 @@ export default function Domains() {
             <CardTitle>Lista de Domínios</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <DomainTable 
-              key={refreshTrigger} 
-              onEdit={() => {
-                setRefreshTrigger(prev => prev + 1);
-                fetchCount();
-              }}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <TablePagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(totalCount / pageSize)}
-              pageSize={pageSize}
-              totalItems={totalCount}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-                setRefreshTrigger(prev => prev + 1);
-              }}
-            />
+            {totalCount === 0 ? (
+              <EmptyState
+                icon={Globe}
+                title="Nenhum domínio cadastrado"
+                description="Adicione domínios dos seus clientes para gerenciar renovações e evitar expirações."
+                illustration={<EmptyDomains />}
+                action={{
+                  label: "Novo Domínio",
+                  onClick: () => setIsModalOpen(true)
+                }}
+              />
+            ) : (
+              <>
+                <DomainTable 
+                  key={refreshTrigger} 
+                  onEdit={() => {
+                    setRefreshTrigger(prev => prev + 1);
+                    fetchCount();
+                  }}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(totalCount / pageSize)}
+                  pageSize={pageSize}
+                  totalItems={totalCount}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                    setRefreshTrigger(prev => prev + 1);
+                  }}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -1,13 +1,15 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { Plus, LayoutGrid, Table as TableIcon, Wrench } from "lucide-react";
 import { MaintenanceFormModal } from "@/components/maintenance/MaintenanceFormModal";
 import { MaintenancePlanFormModal } from "@/components/maintenance/MaintenancePlanFormModal";
 import { MaintenanceHistory } from "@/components/maintenance/MaintenanceHistory";
 import { MaintenanceFilters } from "@/components/maintenance/MaintenanceFilters";
 import { MaintenanceCards } from "@/components/maintenance/MaintenanceCards";
 import { MaintenanceTable } from "@/components/maintenance/MaintenanceTable";
+import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyMaintenance } from "@/components/illustrations/EmptyMaintenance";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -256,6 +258,17 @@ export default function Maintenance() {
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Carregando planos...</p>
               </div>
+            ) : filteredPlans.length === 0 ? (
+              <EmptyState
+                icon={Wrench}
+                title="Nenhum plano de manutenção"
+                description="Configure planos de manutenção preventiva para seus clientes e receba alertas automáticos."
+                illustration={<EmptyMaintenance />}
+                action={{
+                  label: "Nova Manutenção",
+                  onClick: () => setIsPlanFormOpen(true)
+                }}
+              />
             ) : viewMode === 'table' ? (
               <MaintenanceTable 
                 plans={paginatedPlans} 

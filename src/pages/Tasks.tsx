@@ -2,11 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, CheckSquare } from "lucide-react";
 import { TaskTable } from "@/components/tasks/TaskTable";
 import TaskKanban from "@/components/tasks/TaskKanban";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
 import TaskFilters from "@/components/tasks/TaskFilters";
+import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyTasks } from "@/components/illustrations/EmptyTasks";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -112,19 +114,45 @@ const Tasks = () => {
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
-            <TaskTable
-              tasks={tasks}
-              onEditTask={handleEditTask}
-              onRefetch={refetch}
-            />
+            {tasks.length === 0 ? (
+              <EmptyState
+                icon={CheckSquare}
+                title="Nenhuma tarefa cadastrada"
+                description="Crie sua primeira tarefa para organizar seu trabalho e sincronizar com Google Calendar."
+                illustration={<EmptyTasks />}
+                action={{
+                  label: "Nova Tarefa",
+                  onClick: () => setIsFormOpen(true)
+                }}
+              />
+            ) : (
+              <TaskTable
+                tasks={tasks}
+                onEditTask={handleEditTask}
+                onRefetch={refetch}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="kanban" className="space-y-4">
-            <TaskKanban
-              tasks={tasks}
-              onStatusChange={handleStatusChange}
-              onEditTask={handleEditTask}
-            />
+            {tasks.length === 0 ? (
+              <EmptyState
+                icon={CheckSquare}
+                title="Nenhuma tarefa cadastrada"
+                description="Crie sua primeira tarefa para organizar seu trabalho e sincronizar com Google Calendar."
+                illustration={<EmptyTasks />}
+                action={{
+                  label: "Nova Tarefa",
+                  onClick: () => setIsFormOpen(true)
+                }}
+              />
+            ) : (
+              <TaskKanban
+                tasks={tasks}
+                onStatusChange={handleStatusChange}
+                onEditTask={handleEditTask}
+              />
+            )}
           </TabsContent>
         </Tabs>
 

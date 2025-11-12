@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { NoteCard } from '@/components/notes/NoteCard';
 import { NoteFormModal } from '@/components/notes/NoteFormModal';
 import { NoteFilters } from '@/components/notes/NoteFilters';
+import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyNotes } from '@/components/illustrations/EmptyNotes';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Notes() {
@@ -189,19 +191,24 @@ export default function Notes() {
             <div className="text-muted-foreground">Carregando anotações...</div>
           </div>
         ) : filteredNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || selectedTagIds.length > 0
-                ? 'Nenhuma anotação encontrada com os filtros aplicados'
-                : 'Você ainda não tem anotações'}
-            </p>
-            {!searchQuery && selectedTagIds.length === 0 && (
-              <Button onClick={() => setModalOpen(true)} variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Criar primeira anotação
-              </Button>
-            )}
-          </div>
+          searchQuery || selectedTagIds.length > 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-muted-foreground mb-4">
+                Nenhuma anotação encontrada com os filtros aplicados
+              </p>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Lightbulb}
+              title="Nenhuma anotação criada"
+              description="Organize suas ideias com texto, links, imagens e tags personalizadas."
+              illustration={<EmptyNotes />}
+              action={{
+                label: "Nova Anotação",
+                onClick: () => setModalOpen(true)
+              }}
+            />
+          )
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredNotes.map((note) => (

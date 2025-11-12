@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ContractTable } from '@/components/contracts/ContractTable';
 import { TablePagination } from '@/components/ui/table-pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyContracts } from '@/components/illustrations/EmptyContracts';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Contracts() {
@@ -109,25 +111,40 @@ export default function Contracts() {
             <CardTitle>Lista de Contratos</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ContractTable
-              contracts={contracts}
-              onEdit={handleEdit}
-              onRefresh={fetchContracts}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <TablePagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(totalCount / pageSize)}
-              pageSize={pageSize}
-              totalItems={totalCount}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
+            {contracts.length === 0 ? (
+              <EmptyState
+                icon={FileText}
+                title="Nenhum contrato cadastrado"
+                description="Comece criando seu primeiro contrato para gerenciar os serviços prestados aos clientes."
+                illustration={<EmptyContracts />}
+                action={{
+                  label: "Novo Contrato",
+                  onClick: () => setIsFormOpen(true)
+                }}
+              />
+            ) : (
+              <>
+                <ContractTable
+                  contracts={contracts}
+                  onEdit={handleEdit}
+                  onRefresh={fetchContracts}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(totalCount / pageSize)}
+                  pageSize={pageSize}
+                  totalItems={totalCount}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
 
