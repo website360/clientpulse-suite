@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Phone, CheckCircle, XCircle } from 'lucide-react';
+import { Phone, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export function SMSIntegration() {
   const { toast } = useToast();
@@ -18,6 +19,8 @@ export function SMSIntegration() {
   const [accountSid, setAccountSid] = useState('');
   const [authToken, setAuthToken] = useState('');
   const [fromNumber, setFromNumber] = useState('');
+  const [testPhone, setTestPhone] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['sms-settings'],
@@ -86,6 +89,42 @@ export function SMSIntegration() {
       });
     }
   });
+
+  const handleTestSMS = async () => {
+    if (!testPhone) {
+      toast({
+        title: 'Telefone obrigatório',
+        description: 'Digite um telefone para teste.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-sms', {
+        body: {
+          to: testPhone,
+          message: 'Teste de Integração - SMS: Se você recebeu esta mensagem, a integração está funcionando corretamente!',
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'SMS enviado',
+        description: 'Verifique o telefone informado.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar',
+        description: 'Verifique as configurações e tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   return (
     <Card>
@@ -174,6 +213,30 @@ export function SMSIntegration() {
         >
           {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
+
+        {isActive && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <Label>Testar Integração</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="+5511999999999"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                />
+                <Button
+                  onClick={handleTestSMS}
+                  disabled={isTesting}
+                  variant="outline"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isTesting ? 'Enviando...' : 'Testar'}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

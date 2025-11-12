@@ -7,7 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export function EmailIntegration() {
   const { toast } = useToast();
@@ -19,6 +20,8 @@ export function EmailIntegration() {
   const [smtpPassword, setSmtpPassword] = useState('');
   const [fromEmail, setFromEmail] = useState('');
   const [fromName, setFromName] = useState('');
+  const [testEmail, setTestEmail] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['email-settings'],
@@ -91,6 +94,44 @@ export function EmailIntegration() {
       });
     }
   });
+
+  const handleTestEmail = async () => {
+    if (!testEmail) {
+      toast({
+        title: 'Email obrigatório',
+        description: 'Digite um email para teste.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: testEmail,
+          subject: 'Teste de Integração - Email',
+          html: '<h1>Teste de Email</h1><p>Se você recebeu este email, a integração está funcionando corretamente!</p>',
+          text: 'Teste de Email - Se você recebeu este email, a integração está funcionando corretamente!',
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Email enviado',
+        description: 'Verifique a caixa de entrada do email informado.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar',
+        description: 'Verifique as configurações e tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   return (
     <Card>
@@ -197,6 +238,31 @@ export function EmailIntegration() {
         >
           {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
+
+        {isActive && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <Label>Testar Integração</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="email@teste.com"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                />
+                <Button
+                  onClick={handleTestEmail}
+                  disabled={isTesting}
+                  variant="outline"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isTesting ? 'Enviando...' : 'Testar'}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

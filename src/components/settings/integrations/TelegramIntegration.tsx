@@ -7,7 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import { MessageSquare, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export function TelegramIntegration() {
   const { toast } = useToast();
@@ -15,6 +16,8 @@ export function TelegramIntegration() {
   const [isActive, setIsActive] = useState(false);
   const [botToken, setBotToken] = useState('');
   const [chatId, setChatId] = useState('');
+  const [testChatId, setTestChatId] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['telegram-settings'],
@@ -79,6 +82,45 @@ export function TelegramIntegration() {
       });
     }
   });
+
+  const handleTestTelegram = async () => {
+    const targetChatId = testChatId || chatId;
+    
+    if (!targetChatId) {
+      toast({
+        title: 'Chat ID obrigatório',
+        description: 'Configure um Chat ID padrão ou digite um para teste.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-telegram', {
+        body: {
+          chat_id: targetChatId,
+          message: '🔔 *Teste de Integração - Telegram*\n\nSe você recebeu esta mensagem, a integração está funcionando corretamente!',
+          parse_mode: 'Markdown',
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Mensagem enviada',
+        description: 'Verifique o Telegram.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar',
+        description: 'Verifique as configurações e tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   return (
     <Card>
@@ -148,6 +190,30 @@ export function TelegramIntegration() {
         >
           {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
+
+        {isActive && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <Label>Testar Integração</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder={chatId ? "Usar Chat ID padrão" : "Digite o Chat ID"}
+                  value={testChatId}
+                  onChange={(e) => setTestChatId(e.target.value)}
+                />
+                <Button
+                  onClick={handleTestTelegram}
+                  disabled={isTesting}
+                  variant="outline"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isTesting ? 'Enviando...' : 'Testar'}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
