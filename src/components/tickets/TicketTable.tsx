@@ -113,8 +113,12 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tickets.map((ticket) => (
-            <TableRow key={ticket.id} className="hover:bg-accent/50">
+          {tickets.map((ticket, index) => (
+            <TableRow 
+              key={ticket.id} 
+              className="table-row-interactive hover:bg-accent/50 animate-fade-in-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
               <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
               {!hideClientColumn && (
                 <TableCell>
@@ -130,7 +134,7 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
                     </p>
                   </div>
                   {ticket.hasUnread && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 animate-pulse-subtle">
                       <span className="flex h-2 w-2 rounded-full bg-blue-600" title="Mensagens não lidas" />
                     </div>
                   )}

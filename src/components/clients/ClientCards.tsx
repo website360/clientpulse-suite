@@ -28,16 +28,20 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {clients.map((client) => (
-        <Card key={client.id} className="card-elevated hover-lift group">
+      {clients.map((client, index) => (
+        <Card 
+          key={client.id} 
+          className="card-elevated card-interactive group animate-fade-in-up"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   {client.client_type === 'company' ? (
-                    <Building2 className="h-6 w-6 text-primary" />
+                    <Building2 className="h-6 w-6 text-primary transition-transform group-hover:scale-110" />
                   ) : (
-                    <User className="h-6 w-6 text-primary" />
+                    <User className="h-6 w-6 text-primary transition-transform group-hover:scale-110" />
                   )}
                 </div>
                 <div>
@@ -107,7 +111,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="flex-1 hover:scale-105 transition-transform"
               onClick={() => onView(client)}
             >
               <Eye className="h-4 w-4 mr-2" />
@@ -116,7 +120,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="flex-1 hover:scale-105 transition-transform"
               onClick={() => onEdit(client)}
             >
               <Pencil className="h-4 w-4 mr-2" />
@@ -126,6 +130,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
               variant="ghost"
               size="icon"
               onClick={() => onDelete(client.id)}
+              className="hover:scale-110 hover:text-destructive transition-all"
             >
               <Trash2 className="h-4 w-4 text-error" />
             </Button>

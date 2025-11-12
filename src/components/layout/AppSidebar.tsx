@@ -253,16 +253,17 @@ export function AppSidebar() {
                       data-tour={item.dataTour}
                       className={({ isActive }) =>
                         cn(
+                          "transition-all duration-200",
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'hover:bg-sidebar-accent/50',
-                          isCollapsed && 'flex items-center justify-center px-0'
+                            : 'hover:bg-sidebar-accent/50 hover:translate-x-1',
+                          isCollapsed && 'flex items-center justify-center px-0 hover:translate-x-0 hover:scale-110'
                         )
                       }
                       title={isCollapsed ? item.title : undefined}
                     >
                       <item.icon className={cn(
-                        "flex-shrink-0 transition-all",
+                        "flex-shrink-0 transition-all duration-200",
                         isCollapsed ? "!h-5 !w-5 mx-auto" : "h-5 w-5"
                       )} />
                       {!isCollapsed && (

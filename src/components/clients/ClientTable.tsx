@@ -129,8 +129,12 @@ export function ClientTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {clients.map((client) => (
-              <TableRow key={client.id} className="hover:bg-accent/50">
+            {clients.map((client, index) => (
+              <TableRow 
+                key={client.id} 
+                className="hover:bg-accent/50 table-row-interactive animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <TableCell>
                   <ClientNameCell 
                     client={client} 
@@ -161,6 +165,7 @@ export function ClientTable({
                       variant="ghost"
                       size="icon"
                       onClick={() => onView(client)}
+                      className="hover:scale-110 transition-transform"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -168,6 +173,7 @@ export function ClientTable({
                       variant="ghost"
                       size="icon"
                       onClick={() => onEdit(client)}
+                      className="hover:scale-110 transition-transform"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>

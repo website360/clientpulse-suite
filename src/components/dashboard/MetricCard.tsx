@@ -31,8 +31,8 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
   return (
     <Card 
       className={cn(
-        "group overflow-hidden border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
-        onClick && "cursor-pointer hover:border-primary/50 active:scale-95",
+        "group overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30",
+        onClick && "cursor-pointer hover:border-primary/50 active:scale-[0.98]",
         className
       )}
       onClick={onClick}
@@ -44,8 +44,8 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
             <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
               {value}
             </h3>
-            <div className={`icon-wrapper h-12 w-12 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm flex-shrink-0`}>
-              <Icon className={`lucide h-6 w-6 ${getIconColor()} transition-transform duration-300`} strokeWidth={2} />
+            <div className={`icon-wrapper h-12 w-12 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:rotate-3 shadow-sm flex-shrink-0`}>
+              <Icon className={`lucide h-6 w-6 ${getIconColor()} transition-all duration-300 group-hover:scale-110`} strokeWidth={2} />
             </div>
           </div>
           {trend && (

@@ -2,13 +2,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function PageLoadingFallback() {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background animate-fade-in">
       {/* Sidebar skeleton */}
       <div className="w-64 border-r border-border bg-card p-4 space-y-4">
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full animate-shimmer" />
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton 
+              key={i} 
+              className="h-10 w-full animate-shimmer" 
+              style={{ animationDelay: `${i * 100}ms` }}
+            />
           ))}
         </div>
       </div>
@@ -18,20 +22,24 @@ export function PageLoadingFallback() {
         {/* Header skeleton */}
         <div className="border-b border-border bg-card p-4">
           <div className="flex items-center justify-between">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-8 w-48 animate-shimmer" />
+            <Skeleton className="h-10 w-32 animate-shimmer" />
           </div>
         </div>
 
         {/* Content skeleton */}
         <div className="flex-1 p-6 space-y-6">
-          <Skeleton className="h-12 w-64" />
+          <Skeleton className="h-12 w-64 animate-shimmer" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
+              <Skeleton 
+                key={i} 
+                className="h-32 w-full animate-shimmer" 
+                style={{ animationDelay: `${i * 100}ms` }}
+              />
             ))}
           </div>
-          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-96 w-full animate-shimmer" />
         </div>
       </div>
     </div>
