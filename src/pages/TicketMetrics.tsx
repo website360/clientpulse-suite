@@ -291,14 +291,14 @@ export default function TicketMetrics() {
 
         {/* Charts Grid */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Daily Metrics Line Chart */}
+          {/* Daily Metrics Bar Chart */}
           <Card className="col-span-2">
             <CardHeader>
-              <CardTitle>Tendência de Tempo de Resposta e Resolução</CardTitle>
+              <CardTitle>Tempo de Resposta e Resolução por Dia</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={metrics?.dailyMetrics || []}>
+                <BarChart data={metrics?.dailyMetrics || []}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="date"
@@ -316,35 +316,31 @@ export default function TicketMetrics() {
                     }}
                   />
                   <Legend />
-                  <Line
-                    type="monotone"
+                  <Bar
                     dataKey="responseTime"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
+                    fill="hsl(var(--primary))"
                     name="Tempo de Resposta"
-                    dot={{ fill: 'hsl(var(--primary))' }}
+                    radius={[4, 4, 0, 0]}
                   />
-                  <Line
-                    type="monotone"
+                  <Bar
                     dataKey="resolutionTime"
-                    stroke="hsl(var(--secondary))"
-                    strokeWidth={2}
+                    fill="hsl(var(--secondary))"
                     name="Tempo de Resolução"
-                    dot={{ fill: 'hsl(var(--secondary))' }}
+                    radius={[4, 4, 0, 0]}
                   />
-                </LineChart>
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* SLA Compliance Trend */}
+          {/* SLA Compliance Bar Chart */}
           <Card>
             <CardHeader>
               <CardTitle>Taxa de Cumprimento SLA por Dia</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={metrics?.dailyMetrics || []}>
+                <BarChart data={metrics?.dailyMetrics || []}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="date"
@@ -362,15 +358,13 @@ export default function TicketMetrics() {
                     }}
                   />
                   <Legend />
-                  <Line
-                    type="monotone"
+                  <Bar
                     dataKey="slaCompliance"
-                    stroke="hsl(142 76% 36%)"
-                    strokeWidth={2}
+                    fill="hsl(142 76% 36%)"
                     name="SLA Cumprido (%)"
-                    dot={{ fill: 'hsl(142 76% 36%)' }}
+                    radius={[4, 4, 0, 0]}
                   />
-                </LineChart>
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
