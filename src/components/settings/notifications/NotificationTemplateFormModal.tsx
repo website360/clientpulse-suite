@@ -11,7 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { Info } from 'lucide-react';
+import { Info, Eye, EyeOff } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface NotificationTemplateFormModalProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
   const [sendToClient, setSendToClient] = useState(true);
   const [sendToAdmins, setSendToAdmins] = useState(false);
   const [sendToAssigned, setSendToAssigned] = useState(false);
+  const [showHtmlPreview, setShowHtmlPreview] = useState(false);
 
   useEffect(() => {
     if (template) {
@@ -314,17 +316,66 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
 
           {channels.includes('email') && (
             <div>
-              <Label htmlFor="template_html">Template HTML (Email - Opcional)</Label>
-              <Textarea
-                id="template_html"
-                value={templateHtml}
-                onChange={(e) => setTemplateHtml(e.target.value)}
-                placeholder="<html><body><h1>{{ticket_number}}</h1><p>{{client_name}}</p></body></html>"
-                className="min-h-[200px] font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                HTML customizado para emails. Se não preenchido, será usado o corpo de mensagem acima com formatação básica.
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="template_html">Template HTML (Email - Opcional)</Label>
+                {templateHtml && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHtmlPreview(!showHtmlPreview)}
+                    className="h-8"
+                  >
+                    {showHtmlPreview ? (
+                      <>
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Ocultar Preview
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Preview
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+              
+              <Tabs value={showHtmlPreview ? "preview" : "editor"} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="editor" onClick={() => setShowHtmlPreview(false)}>
+                    Editor
+                  </TabsTrigger>
+                  <TabsTrigger value="preview" onClick={() => setShowHtmlPreview(true)} disabled={!templateHtml}>
+                    Preview
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="editor" className="mt-2">
+                  <Textarea
+                    id="template_html"
+                    value={templateHtml}
+                    onChange={(e) => setTemplateHtml(e.target.value)}
+                    placeholder="<html><body><h1>{{ticket_number}}</h1><p>{{client_name}}</p></body></html>"
+                    className="min-h-[200px] font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    HTML customizado para emails. Se não preenchido, será usado o corpo de mensagem acima com formatação básica.
+                  </p>
+                </TabsContent>
+                
+                <TabsContent value="preview" className="mt-2">
+                  <div className="border rounded-lg p-4 bg-background min-h-[200px] overflow-auto">
+                    <div 
+                      className="prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ __html: templateHtml || '<p className="text-muted-foreground">Nenhum HTML para visualizar</p>' }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Preview do template HTML. Variáveis como {'{{'} não serão substituídas na visualização.
+                  </p>
+                </TabsContent>
+              </Tabs>
             </div>
           )}
 
