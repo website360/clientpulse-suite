@@ -104,7 +104,9 @@ export function WelcomeBanner() {
         </Button>
 
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{greeting.emoji}</span>
+          <span className="text-2xl animate-[bounce_1s_ease-in-out_3] inline-block">
+            {greeting.emoji}
+          </span>
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             {greeting.text}, {userName}!
           </h2>
