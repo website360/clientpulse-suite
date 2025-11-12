@@ -5,16 +5,16 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
+import { DailyPendenciesModal } from './DailyPendenciesModal';
+import { addDays, format } from 'date-fns';
 
 export function WelcomeBanner() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const [pendingTasks, setPendingTasks] = useState<number>(0);
-  const [pendingTickets, setPendingTickets] = useState<number>(0);
+  const [totalPendencies, setTotalPendencies] = useState<number>(0);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -62,22 +62,66 @@ export function WelcomeBanner() {
     if (!user) return;
     
     try {
-      // Fetch pending tasks
+      const today = new Date();
+      const nextWeek = addDays(today, 7);
+      const nextMonth = addDays(today, 30);
+
+      let total = 0;
+
+      // Tarefas pendentes
       const { count: tasksCount } = await supabase
         .from('tasks')
         .select('*', { count: 'exact', head: true })
         .in('status', ['todo', 'in_progress'])
         .or(`assigned_to.eq.${user.id},created_by.eq.${user.id}`);
-      
-      // Fetch pending tickets
+      total += tasksCount || 0;
+
+      // Tickets pendentes
       const { count: ticketsCount } = await supabase
         .from('tickets')
         .select('*', { count: 'exact', head: true })
         .in('status', ['waiting', 'in_progress'])
         .or(`assigned_to.eq.${user.id},created_by.eq.${user.id}`);
-      
-      setPendingTasks(tasksCount || 0);
-      setPendingTickets(ticketsCount || 0);
+      total += ticketsCount || 0;
+
+      // Contratos próximos ao vencimento (30 dias)
+      const { count: contractsCount } = await supabase
+        .from('contracts')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .not('end_date', 'is', null)
+        .gte('end_date', format(today, 'yyyy-MM-dd'))
+        .lte('end_date', format(nextMonth, 'yyyy-MM-dd'));
+      total += contractsCount || 0;
+
+      // Contas a receber (7 dias)
+      const { count: receivablesCount } = await supabase
+        .from('accounts_receivable')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .gte('due_date', format(today, 'yyyy-MM-dd'))
+        .lte('due_date', format(nextWeek, 'yyyy-MM-dd'));
+      total += receivablesCount || 0;
+
+      // Contas a pagar (7 dias)
+      const { count: payablesCount } = await supabase
+        .from('accounts_payable')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .gte('due_date', format(today, 'yyyy-MM-dd'))
+        .lte('due_date', format(nextWeek, 'yyyy-MM-dd'));
+      total += payablesCount || 0;
+
+      // Domínios próximos ao vencimento (30 dias)
+      const { count: domainsCount } = await supabase
+        .from('domains')
+        .select('*', { count: 'exact', head: true })
+        .not('expire_date', 'is', null)
+        .gte('expire_date', format(today, 'yyyy-MM-dd'))
+        .lte('expire_date', format(nextMonth, 'yyyy-MM-dd'));
+      total += domainsCount || 0;
+
+      setTotalPendencies(total);
     } catch (error) {
       console.error('Error fetching pending stats:', error);
     }
@@ -147,33 +191,22 @@ export function WelcomeBanner() {
             : 'Que bom ter você aqui novamente. Veja o que há de novo no seu dashboard.'}
         </p>
         
-        {(pendingTasks > 0 || pendingTickets > 0) && (
+        {totalPendencies > 0 && (
           <div className="flex flex-wrap gap-3 mt-4">
-            {pendingTasks > 0 && (
-              <button
-                onClick={() => navigate('/tasks')}
-                className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 hover:bg-background/80 hover:border-primary/50 transition-all duration-200 cursor-pointer hover:scale-105"
-              >
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-medium">
-                  {pendingTasks} {pendingTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'}
-                </span>
-              </button>
-            )}
-            {pendingTickets > 0 && (
-              <button
-                onClick={() => navigate('/tickets')}
-                className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 hover:bg-background/80 hover:border-accent/50 transition-all duration-200 cursor-pointer hover:scale-105"
-              >
-                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-sm font-medium">
-                  {pendingTickets} {pendingTickets === 1 ? 'ticket pendente' : 'tickets pendentes'}
-                </span>
-              </button>
-            )}
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-sm rounded-lg border border-primary/30 hover:border-primary/50 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-sm font-medium">
+                {totalPendencies} {totalPendencies === 1 ? 'pendência' : 'pendências'} para revisar
+              </span>
+            </button>
           </div>
         )}
       </div>
+
+      <DailyPendenciesModal open={modalOpen} onOpenChange={setModalOpen} />
     </Card>
   );
 }
