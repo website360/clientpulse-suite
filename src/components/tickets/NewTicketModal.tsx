@@ -193,38 +193,63 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
       form.reset();
       setAttachments([]);
       
-      // Send email notification
+      // Send notification using configured templates
       if (ticketData) {
         try {
-          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email', {
+          // Get client and department names for template variables
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('full_name, company_name, email, responsible_name, client_type')
+            .eq('id', ticketData.client_id)
+            .single();
+
+          const { data: departmentData } = await supabase
+            .from('departments')
+            .select('name')
+            .eq('id', ticketData.department_id)
+            .single();
+
+          const priorityLabels = {
+            low: 'Baixa',
+            medium: 'Média',
+            high: 'Alta',
+            urgent: 'Urgente'
+          };
+
+          const priorityEmojis = {
+            low: '🟢',
+            medium: '🟡',
+            high: '🟠',
+            urgent: '🔴'
+          };
+
+          const clientName = getClientDisplayName(clientData);
+          const priorityLabel = priorityLabels[ticketData.priority as keyof typeof priorityLabels];
+          const priorityEmoji = priorityEmojis[ticketData.priority as keyof typeof priorityEmojis];
+
+          // Call send-notification with all template variables
+          await supabase.functions.invoke('send-notification', {
             body: {
-              template_key: 'ticket_created',
-              ticket_id: ticketData.id,
+              event_type: 'ticket_created',
+              data: {
+                ticket_number: ticketData.ticket_number,
+                ticket_id: ticketData.id,
+                client_name: clientName,
+                department_name: departmentData?.name || 'N/A',
+                subject: ticketData.subject,
+                priority: priorityLabel,
+                priority_emoji: priorityEmoji,
+                description: ticketData.description,
+                created_at: new Date().toLocaleString('pt-BR'),
+              },
+              reference_type: 'ticket',
+              reference_id: ticketData.id,
             },
           });
-          
-          if (emailError) {
-            console.error('Error sending email:', emailError);
-          } else {
-            console.log('Email sent successfully:', emailResult);
-          }
-        } catch (err) {
-          console.error('Error invoking send-email function:', err);
-        }
 
-        // Send WhatsApp notification to admin if client opened the ticket
-        if (isContact || userRole === 'client') {
-          try {
-            await supabase.functions.invoke('send-whatsapp', {
-              body: {
-                action: 'send_ticket_notification',
-                ticket_id: ticketData.id,
-                event_type: 'ticket_created',
-              },
-            });
-          } catch (err) {
-            console.error('Error sending WhatsApp notification:', err);
-          }
+          console.log('Notification sent via configured templates');
+        } catch (err) {
+          console.error('Error sending notification:', err);
         }
       }
       
