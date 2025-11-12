@@ -36,6 +36,7 @@ import { TypingIndicator } from '@/components/tickets/TypingIndicator';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
 import { AttachmentPreviewModal } from '@/components/tickets/AttachmentPreviewModal';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
+import { useConfetti } from '@/hooks/useConfetti';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
@@ -56,6 +57,7 @@ export default function TicketDetails() {
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
+  const { fireMultipleConfetti } = useConfetti();
 
   const canPreviewFile = (fileType: string) => {
     return fileType.startsWith('image/') || 
@@ -457,6 +459,12 @@ export default function TicketDetails() {
 
       fetchTicketDetails();
       fetchMessages();
+      
+      // Dispara confetti ao concluir ou resolver ticket
+      if (newStatus === 'closed' || newStatus === 'resolved') {
+        setTimeout(() => fireMultipleConfetti(), 300);
+      }
+      
       toast({
         title: 'Status atualizado',
         description: 'O status do ticket foi alterado com sucesso.',

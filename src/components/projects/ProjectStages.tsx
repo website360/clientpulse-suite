@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useConfetti } from '@/hooks/useConfetti';
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { fireMultipleConfetti } = useConfetti();
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const [selectedStageForApproval, setSelectedStageForApproval] = useState<any>(null);
@@ -116,10 +118,30 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project-stages', projectId] });
       queryClient.invalidateQueries({ queryKey: ['project-progress', projectId] });
       onUpdate();
+      
+      // Verifica se completou 100% da etapa e dispara confetti
+      if (!variables.isCompleted) {
+        // Buscar a stage deste item
+        const stageWithThisItem = stages?.find(stage => 
+          stage.project_checklist_items?.some((item: any) => item.id === variables.itemId)
+        );
+        
+        if (stageWithThisItem) {
+          const items = stageWithThisItem.project_checklist_items || [];
+          const completedCount = items.filter((item: any) => 
+            item.id === variables.itemId || item.is_completed
+          ).length;
+          
+          if (completedCount === items.length && items.length > 0) {
+            setTimeout(() => fireMultipleConfetti(), 300);
+          }
+        }
+      }
+      
       toast({
         title: 'Item atualizado',
         description: 'O status do item foi atualizado com sucesso.',

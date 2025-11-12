@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useConfetti } from '@/hooks/useConfetti';
 import { CheckCircle, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -33,6 +34,7 @@ export function StageApprovalModal({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { fireConfetti } = useConfetti();
   const [notes, setNotes] = useState('');
   const [approvalToken, setApprovalToken] = useState<string | null>(null);
 
@@ -54,6 +56,7 @@ export function StageApprovalModal({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['stage-approvals', stageId] });
       setApprovalToken(data.approval_token);
+      setTimeout(() => fireConfetti({ particleCount: 80, spread: 60 }), 300);
       toast({
         title: 'Solicitação criada',
         description: 'Link de aprovação gerado com sucesso.',
