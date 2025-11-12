@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AttachmentPreviewModalProps {
   open: boolean;
@@ -16,11 +17,6 @@ interface AttachmentPreviewModalProps {
   onDownload: () => void;
 }
 
-const getPublicUrl = (filePath: string) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  return `${supabaseUrl}/storage/v1/object/public/ticket-attachments/${filePath}`;
-};
-
 export function AttachmentPreviewModal({ 
   open, 
   onOpenChange, 
@@ -28,10 +24,27 @@ export function AttachmentPreviewModal({
   onDownload 
 }: AttachmentPreviewModalProps) {
   const [imageError, setImageError] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (attachment) {
+      // Reset error state when attachment changes
+      setImageError(false);
+      
+      // Generate public URL using Supabase client
+      const { data } = supabase.storage
+        .from('ticket-attachments')
+        .getPublicUrl(attachment.file_path);
+      
+      if (data?.publicUrl) {
+        setFileUrl(data.publicUrl);
+        console.log('Generated URL:', data.publicUrl);
+      }
+    }
+  }, [attachment]);
 
   if (!attachment) return null;
 
-  const fileUrl = getPublicUrl(attachment.file_path);
   const isImage = attachment.file_type.startsWith('image/');
   const isPDF = attachment.file_type === 'application/pdf';
   const isVideo = attachment.file_type.startsWith('video/');
@@ -71,7 +84,11 @@ export function AttachmentPreviewModal({
                   src={fileUrl} 
                   alt={attachment.file_name}
                   className="max-w-full max-h-[70vh] object-contain rounded"
-                  onError={() => setImageError(true)}
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                    console.error('Failed URL:', fileUrl);
+                    setImageError(true);
+                  }}
                 />
               )}
               
