@@ -31,6 +31,7 @@ const Notes = lazy(() => import("./pages/Notes"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
 
 // Client Portal
 const ClientDashboard = lazy(() => import('./pages/portal/Dashboard'));
@@ -75,6 +76,7 @@ const App = () => (
                   <Route path="/clients/:id" element={<ClientDetail />} />
                   <Route path="/tickets" element={<Tickets />} />
                   <Route path="/tickets/:id" element={<TicketDetails />} />
+                  <Route path="/ticket-metrics" element={<TicketMetrics />} />
                   <Route path="/domains" element={<Domains />} />
                   <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
                   <Route path="/financeiro/pagar" element={<AccountsPayable />} />
