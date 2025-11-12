@@ -1,15 +1,20 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollableTabs } from '@/components/ui/ScrollableTabs';
 import { ReceivableStats } from '@/components/financial/receivable/ReceivableStats';
 import { ReceivableFilters } from '@/components/financial/receivable/ReceivableFilters';
 import { ReceivableTable } from '@/components/financial/receivable/ReceivableTable';
 import { ReceivableFormModal } from '@/components/financial/receivable/ReceivableFormModal';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, TrendingUp, AlertTriangle, FileText, Users, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
+import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
+import { DelinquencyReport } from '@/components/financial/DelinquencyReport';
+import { DREReport } from '@/components/financial/DREReport';
+import { ClientProfitability } from '@/components/financial/ClientProfitability';
 
 const AccountsReceivable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,13 +68,38 @@ const AccountsReceivable = () => {
         </div>
 
         <Tabs defaultValue="receivable" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="payable" onClick={() => navigate('/financeiro/pagar')}>
-              Contas a Pagar
-            </TabsTrigger>
-            <TabsTrigger value="receivable">Contas a Receber</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+          <ScrollableTabs>
+            <TabsList>
+              <TabsTrigger value="payable" onClick={() => navigate('/financeiro/pagar')}>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Contas a Pagar
+              </TabsTrigger>
+              <TabsTrigger value="receivable">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Contas a Receber
+              </TabsTrigger>
+              <TabsTrigger value="cashflow">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Fluxo de Caixa
+              </TabsTrigger>
+              <TabsTrigger value="delinquency">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Inadimplência
+              </TabsTrigger>
+              <TabsTrigger value="dre">
+                <FileText className="h-4 w-4 mr-2" />
+                DRE
+              </TabsTrigger>
+              <TabsTrigger value="profitability">
+                <Users className="h-4 w-4 mr-2" />
+                Lucratividade
+              </TabsTrigger>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </ScrollableTabs>
 
           <TabsContent value="receivable" className="space-y-6">
             <ReceivableStats filters={filters} />
@@ -104,6 +134,22 @@ const AccountsReceivable = () => {
                 }}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="cashflow" className="space-y-6">
+            <CashFlowProjection />
+          </TabsContent>
+
+          <TabsContent value="delinquency" className="space-y-6">
+            <DelinquencyReport />
+          </TabsContent>
+
+          <TabsContent value="dre" className="space-y-6">
+            <DREReport />
+          </TabsContent>
+
+          <TabsContent value="profitability" className="space-y-6">
+            <ClientProfitability />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

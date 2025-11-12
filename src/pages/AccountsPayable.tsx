@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollableTabs } from '@/components/ui/ScrollableTabs';
 import { PayableStats } from '@/components/financial/payable/PayableStats';
 import { PayableFilters } from '@/components/financial/payable/PayableFilters';
 import { PayableTable } from '@/components/financial/payable/PayableTable';
 import { PayableFormModal } from '@/components/financial/payable/PayableFormModal';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, TrendingUp, FileText, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
+import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
+import { DREReport } from '@/components/financial/DREReport';
 
 const AccountsPayable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,13 +66,30 @@ const AccountsPayable = () => {
         </div>
 
         <Tabs defaultValue="payable" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="payable">Contas a Pagar</TabsTrigger>
-            <TabsTrigger value="receivable" onClick={() => navigate('/financeiro/receber')}>
-              Contas a Receber
-            </TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+          <ScrollableTabs>
+            <TabsList>
+              <TabsTrigger value="payable">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Contas a Pagar
+              </TabsTrigger>
+              <TabsTrigger value="receivable" onClick={() => navigate('/financeiro/receber')}>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Contas a Receber
+              </TabsTrigger>
+              <TabsTrigger value="cashflow">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Fluxo de Caixa
+              </TabsTrigger>
+              <TabsTrigger value="dre">
+                <FileText className="h-4 w-4 mr-2" />
+                DRE
+              </TabsTrigger>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </ScrollableTabs>
 
           <TabsContent value="payable" className="space-y-6">
             <PayableStats filters={filters} />
@@ -104,6 +124,14 @@ const AccountsPayable = () => {
                 }}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="cashflow" className="space-y-6">
+            <CashFlowProjection />
+          </TabsContent>
+
+          <TabsContent value="dre" className="space-y-6">
+            <DREReport />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

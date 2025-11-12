@@ -4,15 +4,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, QrCode } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { ReceivableFormModal } from './ReceivableFormModal';
 import { ReceiveConfirmModal } from './ReceiveConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AsaasPaymentDetailsModal } from './AsaasPaymentDetailsModal';
+import { PixQRCode } from '../PixQRCode';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -44,6 +45,10 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     account: any;
   }>({ open: false, account: null });
   const [asaasDetailsModal, setAsaasDetailsModal] = useState<{
+    open: boolean;
+    account: any;
+  }>({ open: false, account: null });
+  const [pixQRCodeModal, setPixQRCodeModal] = useState<{
     open: boolean;
     account: any;
   }>({ open: false, account: null });
@@ -609,6 +614,11 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                               <ExternalLink className="h-4 w-4 mr-2" />
                               Detalhes Asaas
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPixQRCodeModal({ open: true, account })}>
+                              <QrCode className="h-4 w-4 mr-2" />
+                              QR Code PIX
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                           </>
                         )}
                         <DropdownMenuItem 
@@ -680,6 +690,16 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         onOpenChange={(open) => setAsaasDetailsModal({ ...asaasDetailsModal, open })}
         account={asaasDetailsModal.account}
       />
+
+      {pixQRCodeModal.account && (
+        <PixQRCode
+          open={pixQRCodeModal.open}
+          onOpenChange={(open) => setPixQRCodeModal({ ...pixQRCodeModal, open })}
+          receivableId={pixQRCodeModal.account.id}
+          amount={pixQRCodeModal.account.amount}
+          clientName={pixQRCodeModal.account.client?.company_name || pixQRCodeModal.account.client?.full_name || ''}
+        />
+      )}
     </>
   );
 }
