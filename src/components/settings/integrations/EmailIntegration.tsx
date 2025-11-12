@@ -7,8 +7,25 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Send, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { z } from 'zod';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+const emailSettingsSchema = z.object({
+  smtpHost: z.string().trim().min(1, 'Host SMTP é obrigatório').max(255),
+  smtpPort: z.string().trim().regex(/^\d+$/, 'Porta deve ser um número').refine(
+    (val) => {
+      const port = parseInt(val);
+      return port > 0 && port <= 65535;
+    },
+    'Porta deve estar entre 1 e 65535'
+  ),
+  smtpUser: z.string().trim().min(1, 'Usuário SMTP é obrigatório').max(255),
+  smtpPassword: z.string().min(1, 'Senha SMTP é obrigatória'),
+  fromEmail: z.string().trim().email('Email inválido').max(255),
+  fromName: z.string().trim().min(1, 'Nome do remetente é obrigatório').max(100),
+});
 
 export function EmailIntegration() {
   const { toast } = useToast();
@@ -22,6 +39,7 @@ export function EmailIntegration() {
   const [fromName, setFromName] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['email-settings'],
@@ -50,16 +68,56 @@ export function EmailIntegration() {
     }
   });
 
+  const validateSettings = () => {
+    setValidationErrors({});
+    
+    if (!isActive) {
+      return true;
+    }
+
+    try {
+      emailSettingsSchema.parse({
+        smtpHost,
+        smtpPort,
+        smtpUser,
+        smtpPassword,
+        fromEmail,
+        fromName,
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+        toast({
+          title: 'Campos obrigatórios',
+          description: 'Preencha todos os campos obrigatórios corretamente.',
+          variant: 'destructive',
+        });
+      }
+      return false;
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!validateSettings()) {
+        throw new Error('Validação falhou');
+      }
+
       const settingsToSave = [
         { key: 'email_enabled', value: isActive.toString(), is_active: isActive },
-        { key: 'email_smtp_host', value: smtpHost, is_active: isActive },
-        { key: 'email_smtp_port', value: smtpPort, is_active: isActive },
-        { key: 'email_smtp_user', value: smtpUser, is_active: isActive },
+        { key: 'email_smtp_host', value: smtpHost.trim(), is_active: isActive },
+        { key: 'email_smtp_port', value: smtpPort.trim(), is_active: isActive },
+        { key: 'email_smtp_user', value: smtpUser.trim(), is_active: isActive },
         { key: 'email_smtp_password', value: smtpPassword, is_active: isActive },
-        { key: 'email_from', value: fromEmail, is_active: isActive },
-        { key: 'email_from_name', value: fromName, is_active: isActive },
+        { key: 'email_from', value: fromEmail.trim(), is_active: isActive },
+        { key: 'email_from_name', value: fromName.trim(), is_active: isActive },
       ];
 
       for (const setting of settingsToSave) {
@@ -80,6 +138,7 @@ export function EmailIntegration() {
       }
     },
     onSuccess: async () => {
+      setValidationErrors({});
       await queryClient.invalidateQueries({ queryKey: ['email-settings'] });
       toast({
         title: 'Configurações salvas',
@@ -88,12 +147,14 @@ export function EmailIntegration() {
           : 'A integração de email foi desativada.',
       });
     },
-    onError: () => {
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar as configurações.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      if (error.message !== 'Validação falhou') {
+        toast({
+          title: 'Erro ao salvar',
+          description: 'Não foi possível salvar as configurações.',
+          variant: 'destructive',
+        });
+      }
     }
   });
 
@@ -169,67 +230,118 @@ export function EmailIntegration() {
 
         {isActive && (
           <>
+            {Object.keys(validationErrors).length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Corrija os erros nos campos destacados abaixo.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="smtp-host">Host SMTP</Label>
+                <Label htmlFor="smtp-host">Host SMTP *</Label>
                 <Input
                   id="smtp-host"
                   value={smtpHost}
-                  onChange={(e) => setSmtpHost(e.target.value)}
+                  onChange={(e) => {
+                    setSmtpHost(e.target.value);
+                    setValidationErrors(prev => ({ ...prev, smtpHost: '' }));
+                  }}
                   placeholder="smtp.gmail.com"
+                  className={validationErrors.smtpHost ? 'border-destructive' : ''}
                 />
+                {validationErrors.smtpHost && (
+                  <p className="text-sm text-destructive mt-1">{validationErrors.smtpHost}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="smtp-port">Porta</Label>
+                <Label htmlFor="smtp-port">Porta *</Label>
                 <Input
                   id="smtp-port"
                   value={smtpPort}
-                  onChange={(e) => setSmtpPort(e.target.value)}
+                  onChange={(e) => {
+                    setSmtpPort(e.target.value);
+                    setValidationErrors(prev => ({ ...prev, smtpPort: '' }));
+                  }}
                   placeholder="587"
+                  className={validationErrors.smtpPort ? 'border-destructive' : ''}
                 />
+                {validationErrors.smtpPort && (
+                  <p className="text-sm text-destructive mt-1">{validationErrors.smtpPort}</p>
+                )}
               </div>
             </div>
 
             <div>
-              <Label htmlFor="smtp-user">Usuário SMTP</Label>
+              <Label htmlFor="smtp-user">Usuário SMTP *</Label>
               <Input
                 id="smtp-user"
                 value={smtpUser}
-                onChange={(e) => setSmtpUser(e.target.value)}
+                onChange={(e) => {
+                  setSmtpUser(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, smtpUser: '' }));
+                }}
                 placeholder="seu@email.com"
+                className={validationErrors.smtpUser ? 'border-destructive' : ''}
               />
+              {validationErrors.smtpUser && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.smtpUser}</p>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="smtp-password">Senha SMTP</Label>
+              <Label htmlFor="smtp-password">Senha SMTP *</Label>
               <Input
                 id="smtp-password"
                 type="password"
                 value={smtpPassword}
-                onChange={(e) => setSmtpPassword(e.target.value)}
+                onChange={(e) => {
+                  setSmtpPassword(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, smtpPassword: '' }));
+                }}
                 placeholder="••••••••"
+                className={validationErrors.smtpPassword ? 'border-destructive' : ''}
               />
+              {validationErrors.smtpPassword && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.smtpPassword}</p>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="from-email">Email de envio</Label>
+              <Label htmlFor="from-email">Email de envio *</Label>
               <Input
                 id="from-email"
                 type="email"
                 value={fromEmail}
-                onChange={(e) => setFromEmail(e.target.value)}
+                onChange={(e) => {
+                  setFromEmail(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, fromEmail: '' }));
+                }}
                 placeholder="noreply@suaempresa.com"
+                className={validationErrors.fromEmail ? 'border-destructive' : ''}
               />
+              {validationErrors.fromEmail && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.fromEmail}</p>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="from-name">Nome do remetente</Label>
+              <Label htmlFor="from-name">Nome do remetente *</Label>
               <Input
                 id="from-name"
                 value={fromName}
-                onChange={(e) => setFromName(e.target.value)}
+                onChange={(e) => {
+                  setFromName(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, fromName: '' }));
+                }}
                 placeholder="Sua Empresa"
+                className={validationErrors.fromName ? 'border-destructive' : ''}
               />
+              {validationErrors.fromName && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.fromName}</p>
+              )}
             </div>
           </>
         )}
