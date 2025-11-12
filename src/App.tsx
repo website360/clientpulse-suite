@@ -33,6 +33,7 @@ const Maintenance = lazy(() => import("./pages/Maintenance"));
 const Notes = lazy(() => import("./pages/Notes"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const Approvals = lazy(() => import("./pages/Approvals"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
 
@@ -94,6 +95,7 @@ const App = () => (
                   <Route path="/anotacoes" element={<Notes />} />
                   <Route path="/projetos" element={<Projects />} />
                   <Route path="/projetos/:id" element={<ProjectDetail />} />
+                  <Route path="/aprovacoes" element={<Approvals />} />
                   <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
                   <Route path="/departments" element={<Navigate to="/settings" replace />} />
                   <Route path="/settings" element={<Settings />} />
