@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, Zap } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, Search } from 'lucide-react';
 import { useCachedDepartments } from '@/hooks/useCachedDepartments';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -42,6 +42,7 @@ export function TicketMacrosSettingsTab() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingMacro, setEditingMacro] = useState<Macro | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState<MacroFormData>({
     name: '',
     shortcut: '',
@@ -185,29 +186,39 @@ export function TicketMacrosSettingsTab() {
     return dept?.name || 'N/A';
   };
 
+  const filteredMacros = macros.filter((macro) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      macro.name.toLowerCase().includes(search) ||
+      macro.shortcut?.toLowerCase().includes(search) ||
+      macro.content.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Macros de Tickets
-            </CardTitle>
-            <CardDescription>
-              Configure templates de resposta rápida com atalhos de teclado
-            </CardDescription>
-          </div>
-          <Dialog open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen);
-            if (!isOpen) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Macro
-              </Button>
-            </DialogTrigger>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Macros de Tickets
+              </CardTitle>
+              <CardDescription>
+                Configure templates de resposta rápida com atalhos de teclado
+              </CardDescription>
+            </div>
+            <Dialog open={open} onOpenChange={(isOpen) => {
+              setOpen(isOpen);
+              if (!isOpen) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Macro
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
@@ -294,6 +305,16 @@ export function TicketMacrosSettingsTab() {
             </DialogContent>
           </Dialog>
         </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, atalho ou conteúdo..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -303,6 +324,10 @@ export function TicketMacrosSettingsTab() {
         ) : macros.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             Nenhum macro configurado ainda
+          </div>
+        ) : filteredMacros.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum macro encontrado com os filtros aplicados
           </div>
         ) : (
           <div className="border rounded-lg">
@@ -318,7 +343,7 @@ export function TicketMacrosSettingsTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {macros.map((macro) => (
+                {filteredMacros.map((macro) => (
                   <TableRow key={macro.id}>
                     <TableCell className="font-medium">{macro.name}</TableCell>
                     <TableCell>
