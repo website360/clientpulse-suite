@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { FileUpload } from './FileUpload';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
@@ -185,10 +185,10 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
         await uploadAttachments(ticketData.id, attachments);
       }
 
-      toast({
-        title: 'Ticket criado',
-        description: 'Ticket criado com sucesso.',
-      });
+      toastSuccess(
+        'Ticket criado com sucesso',
+        `Ticket criado e notificações enviadas.`
+      );
 
       form.reset();
       setAttachments([]);
