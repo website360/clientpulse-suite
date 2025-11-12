@@ -13,6 +13,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
 import ClientRegistration from "./pages/public/ClientRegistration";
+import ProjectApproval from "./pages/public/ProjectApproval";
+import ApprovalSuccess from "./pages/public/ApprovalSuccess";
 
 // Lazy loading for main application pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -63,6 +65,8 @@ const App = () => (
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
           <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
+          <Route path="/approval/:token" element={<ProjectApproval />} />
+          <Route path="/approval-success" element={<ApprovalSuccess />} />
           
           {/* Rotas protegidas - COM AuthProvider */}
           <Route path="/*" element={

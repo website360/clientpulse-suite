@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProjectStages } from '@/components/projects/ProjectStages';
 import { ProjectLinks } from '@/components/projects/ProjectLinks';
 import { ProjectCredentials } from '@/components/projects/ProjectCredentials';
+import { ProjectGanttTimeline } from '@/components/projects/ProjectGanttTimeline';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
@@ -177,12 +178,17 @@ export default function ProjectDetail() {
         <Tabs defaultValue="stages" className="w-full">
           <TabsList>
             <TabsTrigger value="stages">Etapas</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="links">Links & Recursos</TabsTrigger>
             <TabsTrigger value="credentials">Credenciais</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stages" className="mt-6">
             <ProjectStages projectId={id!} onUpdate={refetch} />
+          </TabsContent>
+
+          <TabsContent value="timeline" className="mt-6">
+            <ProjectGanttTimeline projectId={id!} />
           </TabsContent>
 
           <TabsContent value="links" className="mt-6">

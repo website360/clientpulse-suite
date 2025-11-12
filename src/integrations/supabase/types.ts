@@ -1785,6 +1785,44 @@ export type Database = {
         }
         Relationships: []
       }
+      project_approval_changes: {
+        Row: {
+          approval_id: string
+          change_description: string
+          created_at: string | null
+          id: string
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          approval_id: string
+          change_description: string
+          created_at?: string | null
+          id?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          approval_id?: string
+          change_description?: string
+          created_at?: string | null
+          id?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_approval_changes_approval_id_fkey"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "project_stage_approvals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_checklist_items: {
         Row: {
           approval_link: string | null
@@ -1796,6 +1834,7 @@ export type Database = {
           completed_at: string | null
           completed_by: string | null
           created_at: string
+          depends_on_item_id: string | null
           description: string
           id: string
           is_completed: boolean | null
@@ -1815,6 +1854,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          depends_on_item_id?: string | null
           description: string
           id?: string
           is_completed?: boolean | null
@@ -1834,6 +1874,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          depends_on_item_id?: string | null
           description?: string
           id?: string
           is_completed?: boolean | null
@@ -1863,6 +1904,13 @@ export type Database = {
             columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_checklist_items_depends_on_item_id_fkey"
+            columns: ["depends_on_item_id"]
+            isOneToOne: false
+            referencedRelation: "project_checklist_items"
             referencedColumns: ["id"]
           },
           {
@@ -1914,6 +1962,35 @@ export type Database = {
             columns: ["stage_template_id"]
             isOneToOne: false
             referencedRelation: "project_stage_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_comment_mentions: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          id: string
+          mentioned_user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          mentioned_user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          mentioned_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_comment_mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "project_stage_comments"
             referencedColumns: ["id"]
           },
         ]
@@ -2085,6 +2162,154 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_stage_approvals: {
+        Row: {
+          approval_token: string | null
+          approved_at: string | null
+          approved_by_email: string | null
+          approved_by_name: string | null
+          client_message: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          project_stage_id: string
+          requested_by: string
+          signature_data: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by_email?: string | null
+          approved_by_name?: string | null
+          client_message?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_stage_id: string
+          requested_by: string
+          signature_data?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by_email?: string | null
+          approved_by_name?: string | null
+          client_message?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_stage_id?: string
+          requested_by?: string
+          signature_data?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stage_approvals_project_stage_id_fkey"
+            columns: ["project_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_stage_attachments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          project_stage_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          project_stage_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          project_stage_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stage_attachments_project_stage_id_fkey"
+            columns: ["project_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_stage_comments: {
+        Row: {
+          comment: string
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          parent_comment_id: string | null
+          project_stage_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          parent_comment_id?: string | null
+          project_stage_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          parent_comment_id?: string | null
+          project_stage_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stage_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "project_stage_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_stage_comments_project_stage_id_fkey"
+            columns: ["project_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
             referencedColumns: ["id"]
           },
         ]
