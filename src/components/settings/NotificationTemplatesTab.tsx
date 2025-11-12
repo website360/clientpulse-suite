@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { NotificationTemplateFormModal } from './notifications/NotificationTemplateFormModal';
 import { TestNotificationModal } from './notifications/TestNotificationModal';
+import { NotificationLogsPanel } from './notifications/NotificationLogsPanel';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -156,7 +157,7 @@ export function NotificationTemplatesTab() {
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -316,6 +317,8 @@ export function NotificationTemplatesTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+
+      <NotificationLogsPanel />
+    </div>
   );
 }
