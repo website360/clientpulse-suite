@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -194,6 +195,13 @@ export function TestNotificationModal({ open, onClose, template }: TestNotificat
       )
     : '';
 
+  const previewHtml = template?.template_html
+    ? Object.entries(mockData).reduce(
+        (text, [key, value]) => text.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value),
+        template.template_html
+      )
+    : '';
+
   const handleSendTest = async () => {
     if (!selectedChannel || !recipient) {
       toast({
@@ -304,12 +312,38 @@ export function TestNotificationModal({ open, onClose, template }: TestNotificat
                 </div>
               )}
               
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Mensagem</Label>
-                <div className="rounded-md bg-muted p-4 whitespace-pre-wrap text-sm">
-                  {previewMessage}
+              {selectedChannel === 'email' && previewHtml ? (
+                <Tabs defaultValue="text" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="text">Texto</TabsTrigger>
+                    <TabsTrigger value="html">HTML</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="text" className="space-y-1 mt-4">
+                    <Label className="text-xs text-muted-foreground">Mensagem (Texto)</Label>
+                    <div className="rounded-md bg-muted p-4 whitespace-pre-wrap text-sm">
+                      {previewMessage}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="html" className="space-y-1 mt-4">
+                    <Label className="text-xs text-muted-foreground">Mensagem (HTML)</Label>
+                    <div className="rounded-md border p-4 bg-background">
+                      <div 
+                        className="prose prose-sm max-w-none dark:prose-invert"
+                        dangerouslySetInnerHTML={{ __html: previewHtml }}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Mensagem</Label>
+                  <div className="rounded-md bg-muted p-4 whitespace-pre-wrap text-sm">
+                    {previewMessage}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Variáveis Disponíveis</Label>
