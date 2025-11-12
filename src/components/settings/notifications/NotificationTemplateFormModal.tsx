@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HtmlSnippets } from './HtmlSnippets';
 
 interface NotificationTemplateFormModalProps {
   open: boolean;
@@ -70,6 +71,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
   const [sendToAssigned, setSendToAssigned] = useState(false);
   const [showHtmlPreview, setShowHtmlPreview] = useState(false);
   const [htmlErrors, setHtmlErrors] = useState<string[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (template) {
@@ -146,6 +148,30 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
     } else {
       setHtmlErrors([]);
     }
+  };
+
+  const handleInsertSnippet = (code: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setTemplateHtml(prev => prev + '\n' + code);
+      handleHtmlChange(templateHtml + '\n' + code);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentValue = templateHtml;
+    
+    // Insert snippet at cursor position
+    const newValue = currentValue.substring(0, start) + code + currentValue.substring(end);
+    setTemplateHtml(newValue);
+    handleHtmlChange(newValue);
+
+    // Set cursor position after inserted snippet
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + code.length;
+      textarea.focus();
+    }, 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -373,27 +399,30 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="template_html">Template HTML (Email - Opcional)</Label>
-                {templateHtml && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowHtmlPreview(!showHtmlPreview)}
-                    className="h-8"
-                  >
-                    {showHtmlPreview ? (
-                      <>
-                        <EyeOff className="h-4 w-4 mr-2" />
-                        Ocultar Preview
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Preview
-                      </>
-                    )}
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  <HtmlSnippets onInsert={handleInsertSnippet} />
+                  {templateHtml && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowHtmlPreview(!showHtmlPreview)}
+                      className="h-8"
+                    >
+                      {showHtmlPreview ? (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-2" />
+                          Ocultar Preview
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Preview
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
               
               <Tabs value={showHtmlPreview ? "preview" : "editor"} className="w-full">
@@ -408,6 +437,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
                 
                 <TabsContent value="editor" className="mt-2 space-y-2">
                   <Textarea
+                    ref={textareaRef}
                     id="template_html"
                     value={templateHtml}
                     onChange={(e) => handleHtmlChange(e.target.value)}
