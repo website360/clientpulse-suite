@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess, toastError } from '@/hooks/use-toast';
 
 interface ContactFormModalProps {
   open: boolean;
@@ -95,10 +95,7 @@ export function ContactFormModal({
 
         if (error) throw error;
 
-        toast({
-          title: 'Contato atualizado',
-          description: 'O contato foi atualizado com sucesso.',
-        });
+        toastSuccess('Contato atualizado', 'O contato foi atualizado com sucesso.');
       } else {
         // Create new contact
         const { error } = await supabase
@@ -107,21 +104,14 @@ export function ContactFormModal({
 
         if (error) throw error;
 
-        toast({
-          title: 'Contato criado',
-          description: 'O contato foi criado com sucesso.',
-        });
+        toastSuccess('Contato criado', 'O contato foi criado com sucesso.');
       }
 
       onSuccess();
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving contact:', error);
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o contato.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao salvar', 'Não foi possível salvar o contato.');
     } finally {
       setLoading(false);
     }

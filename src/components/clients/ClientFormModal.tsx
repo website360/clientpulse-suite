@@ -22,7 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess, toastError } from '@/hooks/use-toast';
 import { maskPhone, maskCEP, maskCPF, maskCNPJ, maskDate, parseDateBR, formatDateBR } from '@/lib/masks';
 
 const clientSchema = z.object({
@@ -193,29 +193,19 @@ export function ClientFormModal({ open, onOpenChange, client, onSuccess }: Clien
 
         if (error) throw error;
 
-        toast({
-          title: 'Cliente atualizado',
-          description: 'Cliente atualizado com sucesso.',
-        });
+        toastSuccess('Cliente atualizado', 'Cliente atualizado com sucesso.');
       } else {
         const { error } = await supabase.from('clients').insert([payload]);
 
         if (error) throw error;
 
-        toast({
-          title: 'Cliente cadastrado',
-          description: 'Cliente cadastrado com sucesso.',
-        });
+        toastSuccess('Cliente cadastrado', 'Cliente cadastrado com sucesso.');
       }
 
       onSuccess();
     } catch (error) {
       console.error('Error saving client:', error);
-      toast({
-        title: 'Erro ao salvar cliente',
-        description: 'Não foi possível salvar o cliente.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao salvar cliente', 'Não foi possível salvar o cliente.');
     } finally {
       setLoading(false);
     }

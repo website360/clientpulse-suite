@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, parse } from 'date-fns';
 import { maskDate, parseDateBR, formatDateBR } from '@/lib/masks';
@@ -80,7 +80,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
       setClients(data || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
-      toast.error('Erro ao carregar clientes');
+      toastError('Erro ao carregar clientes', 'Não foi possível carregar a lista de clientes');
     }
   };
 
@@ -90,13 +90,13 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
     // Validar data
     const parsedDate = parseDateBR(formData.expires_at);
     if (!parsedDate) {
-      toast.error('Data de vencimento inválida. Use o formato DD/MM/AAAA');
+      toastError('Data inválida', 'Use o formato DD/MM/AAAA');
       return;
     }
 
     // Validar client_id
     if (!formData.client_id) {
-      toast.error('Selecione um cliente');
+      toastError('Cliente obrigatório', 'Selecione um cliente');
       return;
     }
 
@@ -118,20 +118,20 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           .eq('id', domain.id);
 
         if (error) throw error;
-        toast.success('Domínio atualizado com sucesso!');
+        toastSuccess('Domínio atualizado', 'Domínio atualizado com sucesso!');
       } else {
         const { error } = await supabase
           .from('domains')
           .insert([{ ...domainData, created_by: user?.id }]);
 
         if (error) throw error;
-        toast.success('Domínio cadastrado com sucesso!');
+        toastSuccess('Domínio cadastrado', 'Domínio cadastrado com sucesso!');
       }
 
       onSuccess();
     } catch (error) {
       console.error('Error saving domain:', error);
-      toast.error('Erro ao salvar domínio');
+      toastError('Erro ao salvar', 'Não foi possível salvar o domínio');
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toastSuccess, toastError } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -89,7 +89,7 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
     } = await supabase.auth.getUser();
 
     if (!user) {
-      toast.error("Usuário não autenticado");
+      toastError('Não autenticado', 'Usuário não autenticado');
       return;
     }
 
@@ -112,18 +112,18 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
         .eq("id", task.id);
 
       if (error) {
-        toast.error("Erro ao atualizar tarefa");
+        toastError('Erro ao atualizar', 'Não foi possível atualizar a tarefa');
         return;
       }
-      toast.success("Tarefa atualizada com sucesso");
+      toastSuccess('Tarefa atualizada', 'Tarefa atualizada com sucesso');
     } else {
       const { error } = await supabase.from("tasks").insert([taskData]);
 
       if (error) {
-        toast.error("Erro ao criar tarefa");
+        toastError('Erro ao criar', 'Não foi possível criar a tarefa');
         return;
       }
-      toast.success("Tarefa criada com sucesso");
+      toastSuccess('Tarefa criada', 'Tarefa criada com sucesso');
     }
 
     onSuccess();
@@ -244,10 +244,10 @@ const TaskFormModal = ({ open, onClose, task, onSuccess }: TaskFormModalProps) =
                       .eq("id", task.id);
 
                     if (error) {
-                      toast.error("Erro ao excluir tarefa");
+                      toastError('Erro ao excluir', 'Não foi possível excluir a tarefa');
                       return;
                     }
-                    toast.success("Tarefa excluída com sucesso");
+                    toastSuccess('Tarefa excluída', 'Tarefa excluída com sucesso');
                     onSuccess();
                     onClose();
                   }

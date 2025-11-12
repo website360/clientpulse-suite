@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { Upload } from 'lucide-react';
 
 interface ContractFormModalProps {
@@ -222,21 +222,21 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
           .eq('id', contract.id);
 
         if (error) throw error;
-        toast.success('Contrato atualizado com sucesso');
+        toastSuccess('Contrato atualizado', 'Contrato atualizado com sucesso');
       } else {
         const { error } = await supabase
           .from('contracts')
           .insert(payload);
 
         if (error) throw error;
-        toast.success('Contrato criado com sucesso');
+        toastSuccess('Contrato criado', 'Contrato criado com sucesso');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Erro ao salvar contrato');
+      toastError('Erro ao salvar', 'Não foi possível salvar o contrato');
     } finally {
       setUploading(false);
     }
