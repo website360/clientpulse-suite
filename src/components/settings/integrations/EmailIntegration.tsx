@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -164,12 +165,22 @@ export function EmailIntegration() {
       return;
     }
 
+    const port = parseInt(smtpPort.trim());
+    
+    // Aviso sobre porta 587
+    if (port === 587) {
+      toast({
+        title: 'Aviso sobre porta 587',
+        description: 'A porta 587 (STARTTLS) tem suporte limitado no teste de conexão. Recomendamos usar o teste de envio de email completo para validar.',
+      });
+    }
+
     setIsTestingConnection(true);
     try {
       const { data, error } = await supabase.functions.invoke('test-smtp-connection', {
         body: {
           smtpHost: smtpHost.trim(),
-          smtpPort: parseInt(smtpPort.trim()),
+          smtpPort: port,
           smtpUser: smtpUser.trim(),
           smtpPassword: smtpPassword,
         }
@@ -188,7 +199,7 @@ export function EmailIntegration() {
     } catch (error: any) {
       toast({
         title: 'Erro na conexão',
-        description: error.message || 'Não foi possível conectar ao servidor SMTP.',
+        description: error.message || 'Não foi possível conectar ao servidor SMTP. Tente usar o teste de envio de email.',
         variant: 'destructive',
       });
     } finally {
@@ -294,22 +305,34 @@ export function EmailIntegration() {
                   <p className="text-sm text-destructive mt-1">{validationErrors.smtpHost}</p>
                 )}
               </div>
-              <div>
+            <div>
+              <div className="flex items-center gap-2">
                 <Label htmlFor="smtp-port">Porta *</Label>
-                <Input
-                  id="smtp-port"
-                  value={smtpPort}
-                  onChange={(e) => {
-                    setSmtpPort(e.target.value);
-                    setValidationErrors(prev => ({ ...prev, smtpPort: '' }));
-                  }}
-                  placeholder="587"
-                  className={validationErrors.smtpPort ? 'border-destructive' : ''}
-                />
-                {validationErrors.smtpPort && (
-                  <p className="text-sm text-destructive mt-1">{validationErrors.smtpPort}</p>
+                {smtpPort === '587' && (
+                  <Badge variant="outline" className="text-xs">
+                    STARTTLS - teste limitado
+                  </Badge>
                 )}
               </div>
+              <Input
+                id="smtp-port"
+                value={smtpPort}
+                onChange={(e) => {
+                  setSmtpPort(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, smtpPort: '' }));
+                }}
+                placeholder="587"
+                className={validationErrors.smtpPort ? 'border-destructive' : ''}
+              />
+              {validationErrors.smtpPort && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.smtpPort}</p>
+              )}
+              {smtpPort === '587' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Porta 587 (STARTTLS) - Teste de conexão limitado. Use o teste de envio de email para validação completa.
+                </p>
+              )}
+            </div>
             </div>
 
             <div>
