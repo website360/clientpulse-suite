@@ -167,19 +167,26 @@ async function getRecipients(
 
   // Admins
   if (template.send_to_admins) {
-    const { data: adminProfiles, error: adminError } = await supabase
-      .from('profiles')
-      .select('email, phone')
-      .in('id', 
-        supabase.from('user_roles')
-          .select('user_id')
-          .eq('role', 'admin')
-      );
+    // First get admin user IDs
+    const { data: adminRoles } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
 
-    if (!adminError && adminProfiles) {
-      adminProfiles.forEach((admin: any) => {
-        if (admin.email) recipients.push({ type: 'admin', email: admin.email, phone: admin.phone });
-      });
+    const adminIds = adminRoles?.map((r: any) => r.user_id) || [];
+
+    // Then get admin profiles if we have IDs
+    if (adminIds.length > 0) {
+      const { data: adminProfiles, error: adminError } = await supabase
+        .from('profiles')
+        .select('email, phone')
+        .in('id', adminIds);
+
+      if (!adminError && adminProfiles) {
+        adminProfiles.forEach((admin: any) => {
+          if (admin.email) recipients.push({ type: 'admin', email: admin.email, phone: admin.phone });
+        });
+      }
     }
   }
 
