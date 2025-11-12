@@ -684,6 +684,24 @@ export default function TicketDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Timeline */}
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Criado em</p>
+                  <p className="font-medium">
+                    {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Priority */}
             <Card className="card-elevated">
               <CardHeader>
@@ -833,24 +851,6 @@ export default function TicketDetails() {
                 </CardContent>
               </Card>
             )}
-
-            {/* Timeline */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Timeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Criado em</p>
-                  <p className="font-medium">
-                    {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
