@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollableTabs } from '@/components/ui/ScrollableTabs';
 import FinancialReportFilters from '@/components/reports/FinancialReportFilters';
 import FinancialReportTable from '@/components/reports/FinancialReportTable';
-import { FileText } from 'lucide-react';
+import ProductivityReport from '@/components/reports/ProductivityReport';
+import TicketsReport from '@/components/reports/TicketsReport';
+import DefaultReport from '@/components/reports/DefaultReport';
+import { FileText, TrendingUp, Ticket, AlertTriangle } from 'lucide-react';
 
 export type ReportType = 'payable' | 'receivable' | '';
 export type ReportStatus = 'pending' | 'paid' | 'overdue' | 'canceled';
@@ -48,9 +52,26 @@ export default function Reports() {
         </div>
 
         <Tabs defaultValue="financial" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="financial">Relatório Financeiro</TabsTrigger>
-          </TabsList>
+          <ScrollableTabs>
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="financial" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Financeiro
+              </TabsTrigger>
+              <TabsTrigger value="productivity" className="gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Produtividade
+              </TabsTrigger>
+              <TabsTrigger value="tickets" className="gap-2">
+                <Ticket className="w-4 h-4" />
+                Tickets
+              </TabsTrigger>
+              <TabsTrigger value="default" className="gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Inadimplência
+              </TabsTrigger>
+            </TabsList>
+          </ScrollableTabs>
 
           <TabsContent value="financial" className="space-y-6">
             <Card>
@@ -65,6 +86,18 @@ export default function Reports() {
                 <FinancialReportTable filters={filters} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="productivity" className="space-y-6">
+            <ProductivityReport />
+          </TabsContent>
+
+          <TabsContent value="tickets" className="space-y-6">
+            <TicketsReport />
+          </TabsContent>
+
+          <TabsContent value="default" className="space-y-6">
+            <DefaultReport />
           </TabsContent>
         </Tabs>
       </div>
