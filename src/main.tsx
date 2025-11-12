@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { useEffect } from "react";
 import App from "./App.tsx";
-import { OnboardingTour } from "./components/shared/OnboardingTour";
 import "./index.css";
 
 // Função para atualizar o favicon dinamicamente do Storage
@@ -50,9 +49,4 @@ window.addEventListener('logoUpdated', (event: Event) => {
   }
 });
 
-createRoot(document.getElementById("root")!).render(
-  <>
-    <App />
-    <OnboardingTour />
-  </>
-);
+createRoot(document.getElementById("root")!).render(<App />);

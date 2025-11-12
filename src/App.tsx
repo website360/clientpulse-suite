@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
+import { OnboardingTour } from "@/components/shared/OnboardingTour";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/*" element={
             <AuthProvider>
               <KeyboardShortcutsProvider>
+                <OnboardingTour />
                 <Suspense fallback={<PageLoadingFallback />}>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
