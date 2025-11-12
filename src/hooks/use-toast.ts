@@ -163,6 +163,39 @@ function toast({ ...props }: Toast) {
   };
 }
 
+// Helper functions for different toast types
+function success(title: string, description?: string) {
+  return toast({
+    title,
+    description,
+    variant: "success",
+  });
+}
+
+function error(title: string, description?: string) {
+  return toast({
+    title,
+    description,
+    variant: "destructive",
+  });
+}
+
+function warning(title: string, description?: string) {
+  return toast({
+    title,
+    description,
+    variant: "warning",
+  });
+}
+
+function info(title: string, description?: string) {
+  return toast({
+    title,
+    description,
+    variant: "info",
+  });
+}
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
@@ -184,3 +217,9 @@ function useToast() {
 }
 
 export { useToast, toast };
+
+// Export helper functions
+export const toastSuccess = success;
+export const toastError = error;
+export const toastWarning = warning;
+export const toastInfo = info;
