@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, List } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, List, UserCheck } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ export function StageTemplatesSection() {
     name: '',
     description: '',
     order: 0,
+    requires_client_approval: false,
   });
   const [checklistFormData, setChecklistFormData] = useState({
     description: '',
@@ -151,6 +153,7 @@ export function StageTemplatesSection() {
         name: stage.name || '',
         description: stage.description || '',
         order: stage.order || 0,
+        requires_client_approval: stage.requires_client_approval || false,
       });
     }
     setIsStageModalOpen(true);
@@ -159,7 +162,7 @@ export function StageTemplatesSection() {
   const handleCloseStageModal = () => {
     setIsStageModalOpen(false);
     setSelectedStage(null);
-    setStageFormData({ name: '', description: '', order: 0 });
+    setStageFormData({ name: '', description: '', order: 0, requires_client_approval: false });
   };
 
   const handleOpenChecklistModal = (stageId: string, checklist?: any) => {
@@ -242,7 +245,15 @@ export function StageTemplatesSection() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="text-lg">{stage.name}</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {stage.name}
+                          {stage.requires_client_approval && (
+                            <Badge variant="outline" className="text-xs">
+                              <UserCheck className="h-3 w-3 mr-1" />
+                              Requer aprovação
+                            </Badge>
+                          )}
+                        </CardTitle>
                         <CardDescription>{stage.description}</CardDescription>
                       </div>
                       <div className="flex gap-2">
@@ -368,6 +379,21 @@ export function StageTemplatesSection() {
                 type="number"
                 value={stageFormData.order}
                 onChange={(e) => setStageFormData({ ...stageFormData, order: parseInt(e.target.value) })}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="requires_approval">Requer aprovação do cliente</Label>
+                <p className="text-sm text-muted-foreground">
+                  Projetos criados com esta etapa vão requerer aprovação formal do cliente
+                </p>
+              </div>
+              <Switch
+                id="requires_approval"
+                checked={stageFormData.requires_client_approval}
+                onCheckedChange={(checked) =>
+                  setStageFormData({ ...stageFormData, requires_client_approval: checked })
+                }
               />
             </div>
             <div className="flex justify-end gap-2">
