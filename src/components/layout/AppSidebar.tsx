@@ -246,18 +246,18 @@ export function AppSidebar() {
             <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-2.5", isCollapsed && "justify-center items-center px-0 mx-auto")}>
+                  <SidebarMenuButton asChild className={cn("py-2.5 px-3", isCollapsed && "justify-center items-center px-2 mx-auto")}>
                     <NavLink
                       to={item.url}
                       end
                       data-tour={item.dataTour}
                       className={({ isActive }) =>
                         cn(
-                          "transition-all duration-200",
+                          "transition-all duration-200 w-full",
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                             : 'hover:bg-sidebar-accent/50',
-                          !isCollapsed && 'hover:translate-x-1',
+                          !isCollapsed && 'hover:translate-x-1 px-3',
                           isCollapsed && 'flex items-center justify-center px-0 hover:translate-x-0 hover:scale-110'
                         )
                       }
