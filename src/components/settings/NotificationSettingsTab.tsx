@@ -7,65 +7,64 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Bell, Mail, MessageCircle, MessageSquare, Smartphone, Clock, Ticket, FolderKanban, DollarSign, FileText, Wrench, CheckSquare } from 'lucide-react';
+import { Bell, Mail, MessageCircle, MessageSquare, Smartphone, Clock } from 'lucide-react';
 
-const EVENT_CATEGORIES = {
-  tickets: {
-    label: 'Tickets',
-    icon: 'Ticket',
-    events: {
-      ticket_created: 'Novo Ticket Criado',
-      ticket_assigned: 'Ticket Atribuído',
-      ticket_response_admin: 'Resposta do Admin no Ticket',
-      ticket_response_client: 'Resposta do Cliente no Ticket',
-      ticket_response_contact: 'Resposta do Contato no Ticket',
-      ticket_resolved: 'Ticket Resolvido',
-      ticket_closed: 'Ticket Fechado',
-      ticket_reopened: 'Ticket Reaberto',
-    }
-  },
-  projects: {
-    label: 'Projetos',
-    icon: 'FolderKanban',
-    events: {
-      approval_reminder_normal: 'Lembrete de Aprovação (Normal)',
-      approval_reminder_medium: 'Lembrete de Aprovação (Média)',
-      approval_reminder_high: 'Lembrete de Aprovação (Alta)',
-    }
-  },
-  financial: {
-    label: 'Financeiro',
-    icon: 'DollarSign',
-    events: {
-      payment_received: 'Pagamento Recebido',
-      payment_due: 'Pagamento Próximo do Vencimento',
-      payment_overdue: 'Pagamento Vencido',
-    }
-  },
-  contracts: {
-    label: 'Contratos & Domínios',
-    icon: 'FileText',
-    events: {
-      contract_expiring: 'Contrato Próximo do Vencimento',
-      domain_expiring: 'Domínio Próximo do Vencimento',
-    }
-  },
-  maintenance: {
-    label: 'Manutenção',
-    icon: 'Wrench',
-    events: {
-      maintenance_scheduled: 'Manutenção Agendada',
-      maintenance_completed: 'Manutenção Concluída',
-    }
-  },
-  tasks: {
-    label: 'Tarefas',
-    icon: 'CheckSquare',
-    events: {
-      task_assigned: 'Tarefa Atribuída',
-      task_due: 'Tarefa Próxima do Prazo',
-    }
-  },
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  ticket_created: 'Novo Ticket Criado',
+  ticket_assigned: 'Ticket Atribuído',
+  ticket_response_admin: 'Resposta do Admin no Ticket',
+  ticket_response_client: 'Resposta do Cliente no Ticket',
+  ticket_response_contact: 'Resposta do Contato no Ticket',
+  ticket_resolved: 'Ticket Resolvido',
+  ticket_closed: 'Ticket Fechado',
+  ticket_reopened: 'Ticket Reaberto',
+  payment_received: 'Pagamento Recebido',
+  payment_due: 'Pagamento Próximo do Vencimento',
+  payment_overdue: 'Pagamento Vencido',
+  contract_expiring: 'Contrato Próximo do Vencimento',
+  domain_expiring: 'Domínio Próximo do Vencimento',
+  maintenance_scheduled: 'Manutenção Agendada',
+  maintenance_completed: 'Manutenção Concluída',
+  task_assigned: 'Tarefa Atribuída',
+  task_due: 'Tarefa Próxima do Prazo',
+  approval_reminder_normal: '🔔 Lembrete de Aprovação - Normal',
+  approval_reminder_medium: '⚠️ Lembrete de Aprovação - Média Urgência',
+  approval_reminder_high: '🚨 Lembrete de Aprovação - Alta Urgência',
+};
+
+const EVENT_CATEGORIES: Record<string, string[]> = {
+  'Tickets': [
+    'ticket_created',
+    'ticket_assigned',
+    'ticket_response_admin',
+    'ticket_response_client',
+    'ticket_response_contact',
+    'ticket_resolved',
+    'ticket_closed',
+    'ticket_reopened',
+  ],
+  'Financeiro': [
+    'payment_received',
+    'payment_due',
+    'payment_overdue',
+  ],
+  'Contratos e Domínios': [
+    'contract_expiring',
+    'domain_expiring',
+  ],
+  'Manutenção': [
+    'maintenance_scheduled',
+    'maintenance_completed',
+  ],
+  'Tarefas': [
+    'task_assigned',
+    'task_due',
+  ],
+  'Aprovações de Projetos': [
+    'approval_reminder_normal',
+    'approval_reminder_medium',
+    'approval_reminder_high',
+  ],
 };
 
 interface NotificationSetting {
@@ -219,119 +218,113 @@ export function NotificationSettingsTab() {
         </CardContent>
       </Card>
 
-      <div className="space-y-6">
-        {Object.entries(EVENT_CATEGORIES).map(([categoryKey, category]) => {
-          const categorySettings = settings?.filter(s => 
-            Object.keys(category.events).includes(s.event_type)
-          );
-          
-          if (!categorySettings || categorySettings.length === 0) return null;
-          
-          const IconComponent = {
-            Ticket,
-            FolderKanban,
-            DollarSign,
-            FileText,
-            Wrench,
-            CheckSquare,
-          }[category.icon] || Bell;
-          
-          return (
-            <Card key={categoryKey}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <IconComponent className="h-5 w-5" />
-                  {category.label}
-                </CardTitle>
-                <CardDescription>
-                  Configure as notificações para eventos de {category.label.toLowerCase()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {categorySettings.map((setting) => (
-                    <div key={setting.id} className="border rounded-lg p-4 space-y-4">
-                      <h3 className="font-medium">
-                        {category.events[setting.event_type] || setting.event_type}
-                      </h3>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <Switch
-                            id={`${setting.id}-email`}
-                            checked={setting.email_enabled}
-                            onCheckedChange={(checked) =>
-                              updateSettingMutation.mutate({
-                                id: setting.id,
-                                updates: { email_enabled: checked },
-                              })
-                            }
-                          />
-                          <Label htmlFor={`${setting.id}-email`} className="text-sm">
-                            Email
-                          </Label>
-                        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Configurações por Evento
+          </CardTitle>
+          <CardDescription>
+            Controle quais canais de notificação devem ser usados para cada tipo de evento
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-8">
+            {Object.entries(EVENT_CATEGORIES).map(([category, eventTypes]) => {
+              const categorySettings = settings?.filter(s => eventTypes.includes(s.event_type));
+              if (!categorySettings || categorySettings.length === 0) return null;
 
-                        <div className="flex items-center space-x-2">
-                          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                          <Switch
-                            id={`${setting.id}-telegram`}
-                            checked={setting.telegram_enabled}
-                            onCheckedChange={(checked) =>
-                              updateSettingMutation.mutate({
-                                id: setting.id,
-                                updates: { telegram_enabled: checked },
-                              })
-                            }
-                          />
-                          <Label htmlFor={`${setting.id}-telegram`} className="text-sm">
-                            Telegram
-                          </Label>
-                        </div>
+              return (
+                <div key={category} className="space-y-4">
+                  <div className="border-b pb-2">
+                    <h3 className="text-lg font-semibold text-foreground">{category}</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {categorySettings.map((setting) => (
+                      <div key={setting.id} className="border rounded-lg p-4 space-y-4 bg-card">
+                        <h4 className="font-medium text-sm">
+                          {EVENT_TYPE_LABELS[setting.event_type] || setting.event_type}
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="flex items-center space-x-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <Switch
+                              id={`${setting.id}-email`}
+                              checked={setting.email_enabled}
+                              onCheckedChange={(checked) =>
+                                updateSettingMutation.mutate({
+                                  id: setting.id,
+                                  updates: { email_enabled: checked },
+                                })
+                              }
+                            />
+                            <Label htmlFor={`${setting.id}-email`} className="text-sm">
+                              Email
+                            </Label>
+                          </div>
 
-                        <div className="flex items-center space-x-2">
-                          <Smartphone className="h-4 w-4 text-muted-foreground" />
-                          <Switch
-                            id={`${setting.id}-sms`}
-                            checked={setting.sms_enabled}
-                            onCheckedChange={(checked) =>
-                              updateSettingMutation.mutate({
-                                id: setting.id,
-                                updates: { sms_enabled: checked },
-                              })
-                            }
-                          />
-                          <Label htmlFor={`${setting.id}-sms`} className="text-sm">
-                            SMS
-                          </Label>
-                        </div>
+                          <div className="flex items-center space-x-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                            <Switch
+                              id={`${setting.id}-telegram`}
+                              checked={setting.telegram_enabled}
+                              onCheckedChange={(checked) =>
+                                updateSettingMutation.mutate({
+                                  id: setting.id,
+                                  updates: { telegram_enabled: checked },
+                                })
+                              }
+                            />
+                            <Label htmlFor={`${setting.id}-telegram`} className="text-sm">
+                              Telegram
+                            </Label>
+                          </div>
 
-                        <div className="flex items-center space-x-2">
-                          <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                          <Switch
-                            id={`${setting.id}-whatsapp`}
-                            checked={setting.whatsapp_enabled}
-                            onCheckedChange={(checked) =>
-                              updateSettingMutation.mutate({
-                                id: setting.id,
-                                updates: { whatsapp_enabled: checked },
-                              })
-                            }
-                          />
-                          <Label htmlFor={`${setting.id}-whatsapp`} className="text-sm">
-                            WhatsApp
-                          </Label>
+                          <div className="flex items-center space-x-2">
+                            <Smartphone className="h-4 w-4 text-muted-foreground" />
+                            <Switch
+                              id={`${setting.id}-sms`}
+                              checked={setting.sms_enabled}
+                              onCheckedChange={(checked) =>
+                                updateSettingMutation.mutate({
+                                  id: setting.id,
+                                  updates: { sms_enabled: checked },
+                                })
+                              }
+                            />
+                            <Label htmlFor={`${setting.id}-sms`} className="text-sm">
+                              SMS
+                            </Label>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                            <Switch
+                              id={`${setting.id}-whatsapp`}
+                              checked={setting.whatsapp_enabled}
+                              onCheckedChange={(checked) =>
+                                updateSettingMutation.mutate({
+                                  id: setting.id,
+                                  updates: { whatsapp_enabled: checked },
+                                })
+                              }
+                            />
+                            <Label htmlFor={`${setting.id}-whatsapp`} className="text-sm">
+                              WhatsApp
+                            </Label>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
