@@ -52,9 +52,30 @@ export function WelcomeBanner() {
     localStorage.setItem('welcome-banner-seen', 'true');
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    
+    if (hour >= 5 && hour < 12) {
+      return {
+        emoji: '☀️',
+        text: isFirstVisit ? 'Bom dia' : 'Bom dia de volta'
+      };
+    } else if (hour >= 12 && hour < 18) {
+      return {
+        emoji: '🌤️',
+        text: isFirstVisit ? 'Boa tarde' : 'Boa tarde de volta'
+      };
+    } else {
+      return {
+        emoji: '🌙',
+        text: isFirstVisit ? 'Boa noite' : 'Boa noite de volta'
+      };
+    }
+  };
+
   if (!visible) return null;
 
-  const greeting = isFirstVisit ? 'Bem-vindo' : 'Bem-vindo de volta';
+  const greeting = getGreeting();
 
   return (
     <Card className={cn(
@@ -76,9 +97,9 @@ export function WelcomeBanner() {
         </Button>
 
         <div className="flex items-center gap-2">
-          <span className="text-2xl">👋</span>
+          <span className="text-2xl">{greeting.emoji}</span>
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            {greeting}, {userName}!
+            {greeting.text}, {userName}!
           </h2>
         </div>
         <p className="text-muted-foreground text-sm md:text-base mt-2">
