@@ -53,13 +53,13 @@ export function EmailIntegration() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       const settingsToSave = [
-        { key: 'email_enabled', value: isActive.toString(), is_active: true },
-        { key: 'email_smtp_host', value: smtpHost, is_active: true },
-        { key: 'email_smtp_port', value: smtpPort, is_active: true },
-        { key: 'email_smtp_user', value: smtpUser, is_active: true },
-        { key: 'email_smtp_password', value: smtpPassword, is_active: true },
-        { key: 'email_from', value: fromEmail, is_active: true },
-        { key: 'email_from_name', value: fromName, is_active: true },
+        { key: 'email_enabled', value: isActive.toString(), is_active: isActive },
+        { key: 'email_smtp_host', value: smtpHost, is_active: isActive },
+        { key: 'email_smtp_port', value: smtpPort, is_active: isActive },
+        { key: 'email_smtp_user', value: smtpUser, is_active: isActive },
+        { key: 'email_smtp_password', value: smtpPassword, is_active: isActive },
+        { key: 'email_from', value: fromEmail, is_active: isActive },
+        { key: 'email_from_name', value: fromName, is_active: isActive },
       ];
 
       for (const setting of settingsToSave) {
@@ -79,11 +79,13 @@ export function EmailIntegration() {
         }
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['email-settings'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['email-settings'] });
       toast({
         title: 'Configurações salvas',
-        description: 'As configurações de email foram atualizadas.',
+        description: isActive 
+          ? 'A integração de email foi ativada com sucesso.' 
+          : 'A integração de email foi desativada.',
       });
     },
     onError: () => {
