@@ -387,7 +387,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
         {/* Header */}
         <div>
           <div className="flex items-center justify-between gap-4">
@@ -410,7 +410,7 @@ export default function Dashboard() {
           <>
             {/* Financial Indicators - Contas a Receber */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-4" style={{ gap: 'var(--spacing-md)' }}>
                 <h2 className="text-lg font-bold">Contas a Receber</h2>
                 <Button
                   variant="ghost"
@@ -424,7 +424,7 @@ export default function Dashboard() {
                   )}
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4" data-tour="dashboard-metrics">
+              <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: 'var(--gap-default)' }} data-tour="dashboard-metrics">
                 <MetricCard
                   title="Total a Receber"
                   value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
@@ -466,7 +466,7 @@ export default function Dashboard() {
 
             {/* Financial Indicators - Contas a Pagar */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3" style={{ marginBottom: 'var(--spacing-md)', gap: 'var(--spacing-md)' }}>
                 <h2 className="text-lg font-bold">Contas a Pagar</h2>
                 <Button
                   variant="ghost"
@@ -480,7 +480,7 @@ export default function Dashboard() {
                   )}
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: 'var(--gap-default)' }}>
                 <MetricCard
                   title="Total a Pagar"
                   value={showPayableValues ? new Intl.NumberFormat('pt-BR', {
@@ -522,8 +522,8 @@ export default function Dashboard() {
 
             {/* Maintenance Indicators */}
             <div>
-              <h2 className="text-lg font-bold mb-4">Indicadores de Manutenção</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h2 className="text-lg font-bold" style={{ marginBottom: 'var(--spacing-md)' }}>Indicadores de Manutenção</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 'var(--gap-default)' }}>
                 <MetricCard
                   title="Realizadas"
                   value={stats.maintenanceDone}
@@ -549,8 +549,8 @@ export default function Dashboard() {
 
         {/* Ticket Indicators */}
         <div>
-          <h2 className="text-lg font-bold mb-4">Indicadores de Tickets</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h2 className="text-lg font-bold" style={{ marginBottom: 'var(--spacing-md)' }}>Indicadores de Tickets</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 'var(--gap-default)' }}>
             <MetricCard
               title="Aguardando"
               value={stats.waitingTickets}

@@ -79,6 +79,64 @@ All colors MUST be HSL.
     /* Transitions */
     --transition-base: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Density Variables - Default (Normal) */
+    --spacing-xs: 0.25rem;    /* 4px */
+    --spacing-sm: 0.5rem;     /* 8px */
+    --spacing-md: 1rem;       /* 16px */
+    --spacing-lg: 1.5rem;     /* 24px */
+    --spacing-xl: 2rem;       /* 32px */
+    
+    --card-padding: 1.5rem;   /* 24px */
+    --button-height: 2.5rem;  /* 40px */
+    --input-height: 2.5rem;   /* 40px */
+    --table-row-height: 3rem; /* 48px */
+    --gap-default: 1rem;      /* 16px */
+  }
+  
+  /* Compact Density */
+  .density-compact {
+    --spacing-xs: 0.125rem;   /* 2px */
+    --spacing-sm: 0.25rem;    /* 4px */
+    --spacing-md: 0.5rem;     /* 8px */
+    --spacing-lg: 0.75rem;    /* 12px */
+    --spacing-xl: 1rem;       /* 16px */
+    
+    --card-padding: 0.75rem;  /* 12px */
+    --button-height: 2rem;    /* 32px */
+    --input-height: 2rem;     /* 32px */
+    --table-row-height: 2.25rem; /* 36px */
+    --gap-default: 0.5rem;    /* 8px */
+  }
+  
+  /* Normal Density (default values, redundant but explicit) */
+  .density-normal {
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    --card-padding: 1.5rem;
+    --button-height: 2.5rem;
+    --input-height: 2.5rem;
+    --table-row-height: 3rem;
+    --gap-default: 1rem;
+  }
+  
+  /* Comfortable Density */
+  .density-comfortable {
+    --spacing-xs: 0.375rem;   /* 6px */
+    --spacing-sm: 0.75rem;    /* 12px */
+    --spacing-md: 1.5rem;     /* 24px */
+    --spacing-lg: 2rem;       /* 32px */
+    --spacing-xl: 3rem;       /* 48px */
+    
+    --card-padding: 2rem;     /* 32px */
+    --button-height: 3rem;    /* 48px */
+    --input-height: 3rem;     /* 48px */
+    --table-row-height: 4rem; /* 64px */
+    --gap-default: 1.5rem;    /* 24px */
   }
 
   .dark {
@@ -169,9 +227,31 @@ All colors MUST be HSL.
 }
 
 @layer components {
+  /* Density-aware spacing utilities */
+  .space-density-xs { @apply space-y-[var(--spacing-xs)]; }
+  .space-density-sm { @apply space-y-[var(--spacing-sm)]; }
+  .space-density-md { @apply space-y-[var(--spacing-md)]; }
+  .space-density-lg { @apply space-y-[var(--spacing-lg)]; }
+  .space-density-xl { @apply space-y-[var(--spacing-xl)]; }
+  
+  .gap-density { gap: var(--gap-default); }
+  .p-density-card { padding: var(--card-padding); }
+  
+  /* Button density */
+  .btn-density { 
+    height: var(--button-height);
+    @apply px-[var(--spacing-md)];
+  }
+  
+  /* Input density */
+  .input-density { 
+    height: var(--input-height);
+  }
+  
   /* Card with elevation */
   .card-elevated {
     @apply bg-card rounded-xl border border-border shadow-md hover:shadow-lg transition-shadow duration-300;
+    padding: var(--card-padding);
   }
   
   /* KPI Metric Card */

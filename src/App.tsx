@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DensityProvider } from "@/contexts/DensityContext";
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
@@ -58,10 +59,11 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <DensityProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
@@ -111,6 +113,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </DensityProvider>
     </HelmetProvider>
   </QueryClientProvider>
 );

@@ -37,8 +37,8 @@ export function MetricCard({ title, value, icon: Icon, trend, className, variant
       )}
       onClick={onClick}
     >
-      <CardContent className="p-5">
-        <div className="space-y-2">
+      <CardContent style={{ padding: 'var(--card-padding)' }}>
+        <div style={{ gap: 'var(--spacing-sm)' }} className="flex flex-col">
           <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
