@@ -8,21 +8,30 @@ const corsHeaders = {
 
 interface NotificationRequest {
   event_type: string;
-  data: Record<string, any>;
+  data?: Record<string, any>;
   reference_type?: string;
   reference_id?: string;
+  // Modo de teste
+  is_test?: boolean;
+  template_id?: string;
+  channel?: string;
+  recipient?: string;
+  variables?: Record<string, any>;
 }
 
 function replaceVariables(template: string, data: Record<string, any>): string {
   let result = template;
   
   for (const [key, value] of Object.entries(data)) {
-    const regex = new RegExp(`{{${key}}}`, 'g');
-    result = result.replace(regex, String(value || ''));
+    // Suporta tanto {variable} quanto {{variable}}
+    const regex1 = new RegExp(`\\{${key}\\}`, 'g');
+    const regex2 = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    result = result.replace(regex1, String(value || ''));
+    result = result.replace(regex2, String(value || ''));
   }
   
   // Remove variáveis não substituídas
-  result = result.replace(/{{[^}]+}}/g, '');
+  result = result.replace(/\{\{?[^}]+\}\}?/g, '');
   
   return result;
 }
@@ -148,8 +157,81 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { event_type, data, reference_type, reference_id }: NotificationRequest = await req.json();
+    const { 
+      event_type, 
+      data, 
+      reference_type, 
+      reference_id,
+      is_test,
+      template_id,
+      channel: testChannel,
+      recipient: testRecipient,
+      variables: testVariables
+    }: NotificationRequest = await req.json();
 
+    // Modo de teste
+    if (is_test) {
+      if (!template_id || !testChannel || !testRecipient) {
+        return new Response(
+          JSON.stringify({ error: 'Test mode requires: template_id, channel, recipient' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`Test mode: sending via ${testChannel} to ${testRecipient}`);
+
+      // Buscar template específico
+      const { data: template, error: templateError } = await supabaseClient
+        .from('notification_templates')
+        .select('*')
+        .eq('id', template_id)
+        .single();
+
+      if (templateError || !template) {
+        return new Response(
+          JSON.stringify({ error: 'Template not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Usar variáveis de teste
+      const testData = testVariables || {};
+      const subject = template.template_subject 
+        ? replaceVariables(template.template_subject, testData)
+        : null;
+      const message = replaceVariables(template.template_body, testData);
+
+      try {
+        // Enviar notificação de teste
+        await sendChannelNotification(
+          supabaseClient,
+          testChannel,
+          testRecipient,
+          subject,
+          message
+        );
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'Test notification sent successfully',
+            preview: { subject, message }
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Test notification failed:', error);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to send test notification',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Modo normal
     if (!event_type || !data) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: event_type, data' }),

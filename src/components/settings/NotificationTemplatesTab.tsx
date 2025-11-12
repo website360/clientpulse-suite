@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, Bell, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bell, ToggleLeft, ToggleRight, TestTube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { NotificationTemplateFormModal } from './notifications/NotificationTemplateFormModal';
+import { TestNotificationModal } from './notifications/TestNotificationModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +65,8 @@ export function NotificationTemplatesTab() {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [templateToTest, setTemplateToTest] = useState<any>(null);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['notification-templates'],
@@ -92,6 +95,11 @@ export function NotificationTemplatesTab() {
   const handleDelete = async (id: string) => {
     setTemplateToDelete(id);
     setDeleteDialogOpen(true);
+  };
+
+  const handleTest = (template: any) => {
+    setTemplateToTest(template);
+    setTestModalOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -236,6 +244,14 @@ export function NotificationTemplatesTab() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => handleTest(template)}
+                        title="Testar template"
+                      >
+                        <TestTube className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleToggleActive(template)}
                         title={template.is_active ? 'Desativar' : 'Ativar'}
                       >
@@ -275,6 +291,15 @@ export function NotificationTemplatesTab() {
           setSelectedTemplate(null);
         }}
         template={selectedTemplate}
+      />
+
+      <TestNotificationModal
+        open={testModalOpen}
+        onClose={() => {
+          setTestModalOpen(false);
+          setTemplateToTest(null);
+        }}
+        template={templateToTest}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
