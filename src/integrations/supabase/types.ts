@@ -3505,6 +3505,9 @@ export type Database = {
         | "ticket_response_admin"
         | "ticket_response_client"
         | "ticket_response_contact"
+        | "approval_reminder_normal"
+        | "approval_reminder_medium"
+        | "approval_reminder_high"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       project_credential_category:
         | "hosting"
@@ -3692,6 +3695,9 @@ export const Constants = {
         "ticket_response_admin",
         "ticket_response_client",
         "ticket_response_contact",
+        "approval_reminder_normal",
+        "approval_reminder_medium",
+        "approval_reminder_high",
       ],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       project_credential_category: [
