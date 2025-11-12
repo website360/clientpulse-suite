@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast, toastSuccess } from '@/hooks/use-toast';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { FileUpload } from './FileUpload';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
@@ -59,7 +59,6 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
   const [isContact, setIsContact] = useState(false);
   const [contactClientId, setContactClientId] = useState<string | null>(null);
   const [selectedClientName, setSelectedClientName] = useState<string>('');
-  const { toast } = useToast();
   const { user, userRole } = useAuth();
 
   const form = useForm<TicketFormData>({
@@ -256,11 +255,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
       onSuccess?.();
     } catch (error) {
       console.error('Error creating ticket:', error);
-      toast({
-        title: 'Erro ao criar ticket',
-        description: 'Não foi possível criar o ticket.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao criar ticket', 'Não foi possível criar o ticket.');
     } finally {
       setLoading(false);
     }
@@ -293,11 +288,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
       }
     } catch (error) {
       console.error('Error uploading attachments:', error);
-      toast({
-        title: 'Erro ao enviar anexos',
-        description: 'Alguns arquivos não puderam ser enviados.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao enviar anexos', 'Alguns arquivos não puderam ser enviados.');
     }
   };
 
