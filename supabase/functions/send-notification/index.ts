@@ -290,12 +290,22 @@ serve(async (req) => {
         );
       } catch (error) {
         console.error('Test notification failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        
+        // Check if it's a validation error (invalid phone number)
+        const isValidationError = errorMessage.includes('não possui WhatsApp') || 
+                                  errorMessage.includes('inválido') ||
+                                  errorMessage.includes('exists":false');
+        
         return new Response(
           JSON.stringify({ 
             error: 'Failed to send test notification',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
           }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { 
+            status: isValidationError ? 400 : 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
         );
       }
     }

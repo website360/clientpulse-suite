@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { toastSuccess, toastError, toastWarning } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
@@ -174,7 +174,6 @@ const CHANNEL_PLACEHOLDERS: Record<string, string> = {
 };
 
 export function TestNotificationModal({ open, onClose, template }: TestNotificationModalProps) {
-  const { toast } = useToast();
   const [selectedChannel, setSelectedChannel] = useState<string>('');
   const [recipient, setRecipient] = useState('');
   const [sending, setSending] = useState(false);
@@ -204,18 +203,14 @@ export function TestNotificationModal({ open, onClose, template }: TestNotificat
 
   const handleSendTest = async () => {
     if (!selectedChannel || !recipient) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Selecione um canal e informe o destinatário.',
-        variant: 'destructive',
-      });
+      toastWarning('Campos obrigatórios', 'Selecione um canal e informe o destinatário.');
       return;
     }
 
     setSending(true);
 
     try {
-      const { error } = await supabase.functions.invoke('send-notification', {
+      const { data, error } = await supabase.functions.invoke('send-notification', {
         body: {
           template_id: template.id,
           event_type: template.event_type,
@@ -228,19 +223,30 @@ export function TestNotificationModal({ open, onClose, template }: TestNotificat
 
       if (error) throw error;
 
-      toast({
-        title: 'Teste enviado!',
-        description: `Notificação de teste enviada via ${CHANNEL_LABELS[selectedChannel]} para ${recipient}`,
-      });
+      toastSuccess(
+        'Teste enviado!', 
+        `Notificação de teste enviada via ${CHANNEL_LABELS[selectedChannel]} para ${recipient}`
+      );
 
       onClose();
     } catch (error: any) {
       console.error('Erro ao enviar teste:', error);
-      toast({
-        title: 'Erro ao enviar teste',
-        description: error.message || 'Não foi possível enviar a notificação de teste.',
-        variant: 'destructive',
-      });
+      
+      // Extract error message from various possible formats
+      const errorMessage = error?.message || 
+                          error?.details || 
+                          error?.error?.message || 
+                          'Não foi possível enviar a notificação de teste.';
+      
+      // Check if it's a WhatsApp number validation error
+      if (errorMessage.includes('não possui WhatsApp') || errorMessage.includes('exists":false')) {
+        toastError(
+          'Número sem WhatsApp',
+          'O número informado não possui WhatsApp ativo. Verifique o número e tente novamente.'
+        );
+      } else {
+        toastError('Erro ao enviar teste', errorMessage);
+      }
     } finally {
       setSending(false);
     }

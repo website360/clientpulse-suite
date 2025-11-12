@@ -97,6 +97,12 @@ async function sendTextMessage(settings: WhatsAppSettings, phone: string, messag
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Send message failed: ${response.status} - ${errorText}`);
+      
+      // Check if number doesn't exist on WhatsApp
+      if (errorText.includes('"exists":false')) {
+        throw new Error(`Número ${cleanPhone} não possui WhatsApp ativo`);
+      }
+      
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
