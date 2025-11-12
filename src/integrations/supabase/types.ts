@@ -3183,6 +3183,7 @@ export type Database = {
         | "ticket_reopened"
         | "ticket_response_admin"
         | "ticket_response_client"
+        | "ticket_response_contact"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       project_credential_category:
         | "hosting"
@@ -3369,6 +3370,7 @@ export const Constants = {
         "ticket_reopened",
         "ticket_response_admin",
         "ticket_response_client",
+        "ticket_response_contact",
       ],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       project_credential_category: [
