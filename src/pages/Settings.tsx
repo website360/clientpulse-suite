@@ -18,7 +18,6 @@ import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
 import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
-import { TicketWhatsAppSettingsTab } from '@/components/settings/TicketWhatsAppSettingsTab';
 import { TicketSLASettingsTab } from '@/components/settings/TicketSLASettingsTab';
 import { TicketMacrosSettingsTab } from '@/components/settings/TicketMacrosSettingsTab';
 import { ProjectsSettingsTab } from '@/components/settings/ProjectsSettingsTab';
@@ -296,10 +295,6 @@ export default function Settings() {
                     <MessageCircle className="h-4 w-4 mr-2" />
                     WhatsApp
                   </TabsTrigger>
-                  <TabsTrigger value="ticket-whatsapp">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Templates Tickets
-                  </TabsTrigger>
                   <TabsTrigger value="ticket-sla">
                     <Timer className="h-4 w-4 mr-2" />
                     SLA Tickets
@@ -521,15 +516,11 @@ export default function Settings() {
                     <AsaasSettingsTab />
                   </TabsContent>
 
-                  <TabsContent value="whatsapp">
-                    <WhatsAppSettingsTab />
-                  </TabsContent>
+          <TabsContent value="whatsapp">
+            <WhatsAppSettingsTab />
+          </TabsContent>
 
-                  <TabsContent value="ticket-whatsapp">
-                    <TicketWhatsAppSettingsTab />
-                  </TabsContent>
-
-                  <TabsContent value="ticket-sla">
+          <TabsContent value="ticket-sla">
                     <TicketSLASettingsTab />
                   </TabsContent>
 

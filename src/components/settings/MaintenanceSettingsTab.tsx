@@ -186,27 +186,54 @@ export function MaintenanceSettingsTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Template da Mensagem WhatsApp</CardTitle>
+          <CardTitle>Configurações Gerais</CardTitle>
           <CardDescription>
-            Variáveis disponíveis: {"{cliente_nome}"}, {"{site_url}"}, {"{checklist}"}, {"{assinatura}"}
+            Configure dia padrão e dias de antecedência para notificações
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Mensagem</Label>
-            <Textarea
-              rows={15}
-              value={settings?.whatsapp_template || ""}
-              onChange={(e) => updateSettingsMutation.mutate({ whatsapp_template: e.target.value })}
+            <Label>Dia do Mês Padrão</Label>
+            <Input
+              type="number"
+              min="1"
+              max="31"
+              value={settings?.default_monthly_day || 1}
+              onChange={(e) => updateSettingsMutation.mutate({ default_monthly_day: parseInt(e.target.value) })}
             />
+            <p className="text-xs text-muted-foreground">
+              Dia do mês para execução de manutenções recorrentes
+            </p>
           </div>
           <div className="space-y-2">
-            <Label>Assinatura</Label>
+            <Label>Dias de Antecedência para Notificação</Label>
             <Input
-              value={settings?.message_signature || ""}
-              onChange={(e) => updateSettingsMutation.mutate({ message_signature: e.target.value })}
+              type="number"
+              min="1"
+              max="30"
+              value={settings?.notification_days_advance || 3}
+              onChange={(e) => updateSettingsMutation.mutate({ notification_days_advance: parseInt(e.target.value) })}
             />
+            <p className="text-xs text-muted-foreground">
+              Quantos dias antes enviar notificações de manutenção pendente
+            </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Templates de Notificação</CardTitle>
+          <CardDescription>
+            Configure os templates de notificação de manutenções na aba Notificações
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Os templates de WhatsApp, Email, Telegram e SMS para eventos de manutenção (agendada, concluída, pendente) 
+            agora são gerenciados centralmente na aba <strong>Notificações</strong>. 
+            Lá você pode personalizar as mensagens e escolher os canais de envio.
+          </p>
         </CardContent>
       </Card>
 
