@@ -25,6 +25,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   ticket_message: 'Nova Mensagem no Ticket',
   ticket_response_admin: 'Ticket Respondido por Admin',
   ticket_response_client: 'Ticket Respondido por Cliente',
+  ticket_response_contact: 'Ticket Respondido por Contato',
   ticket_resolved: 'Ticket Resolvido',
   ticket_closed: 'Ticket Fechado',
   ticket_reopened: 'Ticket Reaberto',
