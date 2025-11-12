@@ -5,9 +5,11 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export function WelcomeBanner() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
@@ -148,20 +150,26 @@ export function WelcomeBanner() {
         {(pendingTasks > 0 || pendingTickets > 0) && (
           <div className="flex flex-wrap gap-3 mt-4">
             {pendingTasks > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50">
+              <button
+                onClick={() => navigate('/tasks')}
+                className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 hover:bg-background/80 hover:border-primary/50 transition-all duration-200 cursor-pointer hover:scale-105"
+              >
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-sm font-medium">
                   {pendingTasks} {pendingTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'}
                 </span>
-              </div>
+              </button>
             )}
             {pendingTickets > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50">
+              <button
+                onClick={() => navigate('/tickets')}
+                className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 hover:bg-background/80 hover:border-accent/50 transition-all duration-200 cursor-pointer hover:scale-105"
+              >
                 <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                 <span className="text-sm font-medium">
                   {pendingTickets} {pendingTickets === 1 ? 'ticket pendente' : 'tickets pendentes'}
                 </span>
-              </div>
+              </button>
             )}
           </div>
         )}
