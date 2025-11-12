@@ -95,17 +95,13 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
         <Breadcrumbs customLabel={breadcrumbLabel} />
 
         <div className="flex-1 flex items-center justify-end gap-4">
-          <div data-tour="global-search">
-            <GlobalSearch />
-          </div>
+          <GlobalSearch />
           
-          <div data-tour="notifications">
-            <NotificationCenter />
-          </div>
+          <NotificationCenter />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-tour="user-menu">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar>
                   <AvatarImage src={avatarUrl} />
                   <AvatarFallback className="bg-primary text-primary-foreground">

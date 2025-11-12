@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
-import { TourButton } from '@/components/shared/TourButton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -98,7 +97,6 @@ export function DashboardLayout({ children, breadcrumbLabel }: DashboardLayoutPr
             </div>
           </main>
         </div>
-        <TourButton />
       </div>
     </SidebarProvider>
   );

@@ -400,7 +400,7 @@ export default function Dashboard() {
                   )}
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: 'var(--gap-default)' }} data-tour="dashboard-metrics">
+              <div className="grid grid-cols-1 md:grid-cols-4" style={{ gap: 'var(--gap-default)' }}>
                 <MetricCard
                   title="Total a Receber"
                   value={showReceivableValues ? new Intl.NumberFormat('pt-BR', {
