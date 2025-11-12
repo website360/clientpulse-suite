@@ -82,14 +82,14 @@ export function TicketMacrosSettingsTab() {
     if (!user) return;
 
     try {
-      const payload = {
-        name: formData.name,
-        shortcut: formData.shortcut || null,
-        content: formData.content,
-        department_id: formData.department_id || null,
-        is_active: formData.is_active,
-        created_by: user.id,
-      };
+  const payload = {
+    name: formData.name,
+    shortcut: formData.shortcut || null,
+    content: formData.content,
+    department_id: formData.department_id === 'all' ? null : formData.department_id || null,
+    is_active: formData.is_active,
+    created_by: user.id,
+  };
 
       if (editingMacro) {
         const { error } = await supabase
@@ -135,7 +135,7 @@ export function TicketMacrosSettingsTab() {
       name: macro.name,
       shortcut: macro.shortcut || '',
       content: macro.content,
-      department_id: macro.department_id || '',
+      department_id: macro.department_id || 'all',
       is_active: macro.is_active,
     });
     setOpen(true);
@@ -173,7 +173,7 @@ export function TicketMacrosSettingsTab() {
       name: '',
       shortcut: '',
       content: '',
-      department_id: '',
+      department_id: 'all',
       is_active: true,
     });
     setEditingMacro(null);
@@ -250,7 +250,7 @@ export function TicketMacrosSettingsTab() {
                         <SelectValue placeholder="Todos os departamentos" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos os departamentos</SelectItem>
+                        <SelectItem value="all">Todos os departamentos</SelectItem>
                         {departments.map((dept) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}
