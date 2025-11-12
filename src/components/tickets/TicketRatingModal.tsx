@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 
 interface TicketRatingModalProps {
   open: boolean;
@@ -102,10 +103,27 @@ export function TicketRatingModal({ open, onOpenChange, ticketId, ticketNumber, 
 
           {/* Comment */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Comentário (opcional)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">
+                Comentário (opcional)
+              </label>
+              <EmojiPicker 
+                onEmojiSelect={(emoji) => {
+                  const textarea = document.getElementById('rating-comment') as HTMLTextAreaElement;
+                  const start = textarea.selectionStart;
+                  const end = textarea.selectionEnd;
+                  const newComment = comment.substring(0, start) + emoji + comment.substring(end);
+                  setComment(newComment);
+                  // Restore cursor position after emoji insertion
+                  setTimeout(() => {
+                    textarea.focus();
+                    textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+                  }, 0);
+                }}
+              />
+            </div>
             <Textarea
+              id="rating-comment"
               placeholder="Conte-nos mais sobre sua experiência..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}

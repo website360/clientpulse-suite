@@ -24,6 +24,7 @@ import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
 import { TicketRatingModal } from '@/components/tickets/TicketRatingModal';
 import { TypingIndicator } from '@/components/tickets/TypingIndicator';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -601,6 +602,11 @@ export default function ClientTicketDetails() {
 
                 {/* New Message */}
                 <div className="space-y-2 pt-4 border-t">
+                  <div className="flex items-center gap-2 mb-2">
+                    <EmojiPicker 
+                      onEmojiSelect={(emoji) => setNewMessageHtml(newMessageHtml + emoji)}
+                    />
+                  </div>
                   <div className="min-h-[250px]">
                     <ReactQuill
                       theme="snow"

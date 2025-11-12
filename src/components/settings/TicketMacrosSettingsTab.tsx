@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2, Zap, Search } from 'lucide-react';
 import { useCachedDepartments } from '@/hooks/useCachedDepartments';
 import { useAuth } from '@/contexts/AuthContext';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 
 interface Macro {
   id: string;
@@ -278,7 +279,23 @@ export function TicketMacrosSettingsTab() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="content">Conteúdo da Resposta *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="content">Conteúdo da Resposta *</Label>
+                      <EmojiPicker 
+                        onEmojiSelect={(emoji) => {
+                          const textarea = document.getElementById('content') as HTMLTextAreaElement;
+                          const start = textarea.selectionStart;
+                          const end = textarea.selectionEnd;
+                          const newContent = formData.content.substring(0, start) + emoji + formData.content.substring(end);
+                          setFormData({ ...formData, content: newContent });
+                          // Restore cursor position after emoji insertion
+                          setTimeout(() => {
+                            textarea.focus();
+                            textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+                          }, 0);
+                        }}
+                      />
+                    </div>
                     <Textarea
                       id="content"
                       value={formData.content}
@@ -288,7 +305,7 @@ export function TicketMacrosSettingsTab() {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Você pode usar variáveis como {'{cliente}'}, {'{ticket}'}, {'{usuario}'} no texto
+                      Você pode usar variáveis como {'{cliente}'}, {'{cliente}'}, {'{usuario}'} no texto
                     </p>
                   </div>
                   {formData.content && (

@@ -32,6 +32,7 @@ import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
 import { MacroSelector } from '@/components/tickets/MacroSelector';
 import { TypingIndicator } from '@/components/tickets/TypingIndicator';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -634,6 +635,9 @@ export default function TicketDetails() {
                     <MacroSelector 
                       onSelectMacro={(content) => setNewMessageHtml(content)} 
                       departmentId={ticket.department_id}
+                    />
+                    <EmojiPicker 
+                      onEmojiSelect={(emoji) => setNewMessageHtml(newMessageHtml + emoji)}
                     />
                   </div>
                   <div className="min-h-[250px]">

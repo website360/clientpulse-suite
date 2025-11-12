@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { FileUpload } from './FileUpload';
+import { EmojiPicker } from '@/components/shared/EmojiPicker';
 
 const ticketSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -378,7 +379,24 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
 
           {/* Description */}
           <div>
-            <Label htmlFor="description">Descrição *</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="description">Descrição *</Label>
+              <EmojiPicker 
+                onEmojiSelect={(emoji) => {
+                  const textarea = document.getElementById('description') as HTMLTextAreaElement;
+                  const currentValue = form.getValues('description') || '';
+                  const start = textarea.selectionStart;
+                  const end = textarea.selectionEnd;
+                  const newValue = currentValue.substring(0, start) + emoji + currentValue.substring(end);
+                  form.setValue('description', newValue);
+                  // Restore cursor position after emoji insertion
+                  setTimeout(() => {
+                    textarea.focus();
+                    textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+                  }, 0);
+                }}
+              />
+            </div>
             <Textarea
               id="description"
               {...form.register('description')}
