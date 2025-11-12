@@ -113,12 +113,11 @@ export function DailyPendenciesModal({ open, onOpenChange }: DailyPendenciesModa
         .order('due_date', { ascending: true })
         .limit(10);
 
-      // Domínios próximos ao vencimento (próximos 30 dias)
+      // Domínios vencidos ou próximos ao vencimento (já vencidos + próximos 30 dias)
       const { data: domains } = await supabase
         .from('domains')
         .select('*, client:clients(company_name, full_name)')
         .not('expire_date', 'is', null)
-        .gte('expire_date', format(today, 'yyyy-MM-dd'))
         .lte('expire_date', format(addDays(today, 30), 'yyyy-MM-dd'))
         .order('expire_date', { ascending: true });
 
@@ -366,7 +365,7 @@ export function DailyPendenciesModal({ open, onOpenChange }: DailyPendenciesModa
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Globe className="h-5 w-5 text-blue-500" />
-                    <h3 className="font-semibold">Domínios Próximos ao Vencimento</h3>
+                    <h3 className="font-semibold">Domínios Vencidos ou Próximos ao Vencimento</h3>
                     <Badge variant="secondary">{data.domains.length}</Badge>
                   </div>
                   <button

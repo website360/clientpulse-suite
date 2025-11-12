@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +8,6 @@ import { addDays, format } from 'date-fns';
 
 export function WelcomeBanner() {
   const { user } = useAuth();
-  const [visible, setVisible] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [totalPendencies, setTotalPendencies] = useState<number>(0);
@@ -18,16 +15,10 @@ export function WelcomeBanner() {
 
   useEffect(() => {
     const today = new Date().toDateString();
-    const lastDismissed = localStorage.getItem('welcome-banner-dismissed');
     const lastVisit = localStorage.getItem('last-visit-date');
     
-    // Primeira visita se nunca foi fechado
-    setIsFirstVisit(!lastDismissed);
-    
-    // Mostra se nunca foi fechado OU se foi fechado em um dia diferente
-    if (!lastDismissed || lastDismissed !== today) {
-      setVisible(true);
-    }
+    // Primeira visita se nunca visitou antes
+    setIsFirstVisit(!lastVisit);
     
     // Atualiza última visita
     if (lastVisit !== today) {
@@ -112,12 +103,11 @@ export function WelcomeBanner() {
         .lte('due_date', format(nextWeek, 'yyyy-MM-dd'));
       total += payablesCount || 0;
 
-      // Domínios próximos ao vencimento (30 dias)
+      // Domínios vencidos ou próximos ao vencimento (30 dias)
       const { count: domainsCount } = await supabase
         .from('domains')
         .select('*', { count: 'exact', head: true })
         .not('expire_date', 'is', null)
-        .gte('expire_date', format(today, 'yyyy-MM-dd'))
         .lte('expire_date', format(nextMonth, 'yyyy-MM-dd'));
       total += domainsCount || 0;
 
@@ -125,12 +115,6 @@ export function WelcomeBanner() {
     } catch (error) {
       console.error('Error fetching pending stats:', error);
     }
-  };
-
-  const handleDismiss = () => {
-    const today = new Date().toDateString();
-    setVisible(false);
-    localStorage.setItem('welcome-banner-dismissed', today);
   };
 
   const getGreeting = () => {
@@ -154,7 +138,7 @@ export function WelcomeBanner() {
     }
   };
 
-  if (!visible) return null;
+  if (!user) return null;
 
   const greeting = getGreeting();
 
@@ -168,15 +152,6 @@ export function WelcomeBanner() {
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       
       <div className="relative p-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 right-4 h-8 w-8 rounded-full hover:bg-background/80"
-          onClick={handleDismiss}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-
         <div className="flex items-center gap-2">
           <span className="text-2xl animate-[bounce_1s_ease-in-out_3] inline-block">
             {greeting.emoji}
@@ -195,7 +170,7 @@ export function WelcomeBanner() {
           <div className="flex flex-wrap gap-3 mt-4">
             <button
               onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-sm rounded-lg border border-primary/30 hover:border-primary/50 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg"
+              className="flex items-center gap-2 px-4 py-2.5 bg-background/60 backdrop-blur-sm rounded-lg border border-primary/30 hover:bg-background/80 hover:border-primary/50 transition-all duration-200 cursor-pointer hover:scale-105"
             >
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <span className="text-sm font-medium">
