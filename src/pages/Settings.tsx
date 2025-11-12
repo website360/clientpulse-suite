@@ -25,7 +25,7 @@ import { AuthenticationTab } from '@/components/settings/AuthenticationTab';
 import { AuditLogsTab } from '@/components/settings/AuditLogsTab';
 import { RolesPermissionsTab } from '@/components/settings/RolesPermissionsTab';
 import { SessionsTab } from '@/components/settings/SessionsTab';
-import { ApprovalsTab } from '@/components/settings/ApprovalsTab';
+import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
@@ -482,7 +482,7 @@ export default function Settings() {
                   </TabsContent>
 
                   <TabsContent value="approvals">
-                    <ApprovalsTab />
+                    <ApprovalSettingsTab />
                   </TabsContent>
 
                   <TabsContent value="appearance">

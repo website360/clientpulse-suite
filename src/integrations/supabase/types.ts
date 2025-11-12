@@ -233,6 +233,36 @@ export type Database = {
           },
         ]
       }
+      approval_settings: {
+        Row: {
+          created_at: string
+          days_before_notification: number
+          email_enabled: boolean
+          id: string
+          notification_frequency_days: number
+          updated_at: string
+          whatsapp_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          days_before_notification?: number
+          email_enabled?: boolean
+          id?: string
+          notification_frequency_days?: number
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          days_before_notification?: number
+          email_enabled?: boolean
+          id?: string
+          notification_frequency_days?: number
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Relationships: []
+      }
       asaas_customers: {
         Row: {
           asaas_customer_id: string
@@ -2175,7 +2205,9 @@ export type Database = {
           client_message: string | null
           created_at: string | null
           id: string
+          last_notification_sent_at: string | null
           notes: string | null
+          notification_count: number | null
           project_stage_id: string
           requested_by: string
           signature_data: string | null
@@ -2190,7 +2222,9 @@ export type Database = {
           client_message?: string | null
           created_at?: string | null
           id?: string
+          last_notification_sent_at?: string | null
           notes?: string | null
+          notification_count?: number | null
           project_stage_id: string
           requested_by: string
           signature_data?: string | null
@@ -2205,7 +2239,9 @@ export type Database = {
           client_message?: string | null
           created_at?: string | null
           id?: string
+          last_notification_sent_at?: string | null
           notes?: string | null
+          notification_count?: number | null
           project_stage_id?: string
           requested_by?: string
           signature_data?: string | null
