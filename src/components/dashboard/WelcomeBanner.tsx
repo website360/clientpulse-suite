@@ -72,7 +72,6 @@ export function WelcomeBanner() {
   return (
     <Card className={cn(
       "relative overflow-hidden border-2 animate-fade-in",
-      "bg-gradient-to-br from-primary/5 via-background to-primary/10",
       "hover:shadow-lg transition-shadow duration-300"
     )}>
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
