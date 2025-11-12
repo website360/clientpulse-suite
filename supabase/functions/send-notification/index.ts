@@ -19,6 +19,23 @@ interface NotificationRequest {
   variables?: Record<string, any>;
 }
 
+function normalizePhone(input: string): string {
+  if (!input) return '';
+  
+  // Remove tudo exceto dígitos
+  let phone = String(input).replace(/\D/g, '');
+  
+  // Remove zeros à esquerda
+  phone = phone.replace(/^0+/, '');
+  
+  // Se não começar com 55 e tiver 10-11 dígitos (formato nacional brasileiro), adicionar prefixo 55
+  if (!phone.startsWith('55') && (phone.length === 10 || phone.length === 11)) {
+    phone = '55' + phone;
+  }
+  
+  return phone;
+}
+
 function replaceVariables(template: string, data: Record<string, any>): string {
   let result = template;
   
@@ -184,27 +201,34 @@ async function getRecipients(
 
       if (!adminError && adminProfiles) {
         adminProfiles.forEach((admin: any) => {
-          if (admin.email) recipients.push({ type: 'admin', email: admin.email, phone: admin.phone });
+          // Incluir admin se tiver email OU phone
+          if (admin.email || admin.phone) {
+            recipients.push({ 
+              type: 'admin', 
+              email: admin.email || undefined, 
+              phone: admin.phone || undefined 
+            });
+          }
         });
       }
     }
   }
 
-  // Cliente
-  if (template.send_to_client && data.client_email) {
+  // Cliente - incluir se tiver email OU phone
+  if (template.send_to_client && (data.client_email || data.client_phone)) {
     recipients.push({
       type: 'client',
-      email: data.client_email,
-      phone: data.client_phone,
+      email: data.client_email || undefined,
+      phone: data.client_phone || undefined,
     });
   }
 
-  // Atribuído
-  if (template.send_to_assigned && data.assigned_email) {
+  // Atribuído - incluir se tiver email OU phone
+  if (template.send_to_assigned && (data.assigned_email || data.assigned_phone)) {
     recipients.push({
       type: 'assigned',
-      email: data.assigned_email,
-      phone: data.assigned_phone,
+      email: data.assigned_email || undefined,
+      phone: data.assigned_phone || undefined,
     });
   }
 
@@ -270,11 +294,28 @@ serve(async (req) => {
         : null;
 
       try {
+        // Normalizar telefone para WhatsApp e SMS
+        let finalRecipient = testRecipient;
+        if (testChannel === 'whatsapp' || testChannel === 'sms') {
+          finalRecipient = normalizePhone(testRecipient);
+          console.log(`Test ${testChannel} - Original: ${testRecipient}, Normalized: ${finalRecipient}`);
+          
+          if (!finalRecipient || finalRecipient.length < 12) {
+            return new Response(
+              JSON.stringify({ 
+                error: 'Número de telefone inválido',
+                details: 'Use o formato internacional (E.164) sem +. Ex.: 5511999999999'
+              }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+
         // Enviar notificação de teste
         await sendChannelNotification(
           supabaseClient,
           testChannel,
-          testRecipient,
+          finalRecipient,
           subject,
           message,
           htmlMessage
@@ -399,6 +440,19 @@ serve(async (req) => {
           if (!recipientAddress) {
             console.log(`No ${channel} address for recipient ${recipient.type}`);
             continue;
+          }
+
+          // Normalizar telefone para WhatsApp e SMS
+          if (channel === 'whatsapp' || channel === 'sms') {
+            const originalPhone = recipientAddress;
+            recipientAddress = normalizePhone(recipientAddress);
+            console.log(`Recipient ${channel} ${recipient.type} - Original: ${originalPhone}, Normalized: ${recipientAddress}`);
+            
+            // Validar número normalizado
+            if (!recipientAddress || recipientAddress.length < 12) {
+              console.log(`Invalid ${channel} number after normalization for ${recipient.type}, skipping`);
+              continue;
+            }
           }
 
           // Criar log de notificação

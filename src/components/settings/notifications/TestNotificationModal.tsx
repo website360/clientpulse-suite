@@ -300,6 +300,11 @@ export function TestNotificationModal({ open, onClose, template }: TestNotificat
                 onChange={(e) => setRecipient(e.target.value)}
                 placeholder={CHANNEL_PLACEHOLDERS[selectedChannel]}
               />
+              {(selectedChannel === 'whatsapp' || selectedChannel === 'sms') && (
+                <p className="text-xs text-muted-foreground">
+                  Use formato internacional (E.164) sem o símbolo +. Ex.: 5511999999999
+                </p>
+              )}
             </div>
           )}
 
