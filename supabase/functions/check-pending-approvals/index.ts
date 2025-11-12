@@ -172,18 +172,31 @@ async function sendApprovalReminder(
 
   const approvalUrl = `${Deno.env.get('SUPABASE_URL')?.replace('https://pjnbsuwkxzxcfaetywjs.supabase.co', window.location?.origin || 'https://sistema.com')}/approval/${approval.approval_token}`;
 
+  // Determinar nível de urgência baseado nos dias pendentes
+  let eventType = 'approval_reminder_normal';
+  let notificationType = 'info';
+  
+  if (daysPending >= 10) {
+    eventType = 'approval_reminder_high';
+    notificationType = 'error';
+  } else if (daysPending >= 7) {
+    eventType = 'approval_reminder_medium';
+    notificationType = 'warning';
+  }
+
+  console.log(`Using event type: ${eventType} for ${daysPending} days pending`);
+
   const notificationData = {
-    event_type: 'approval_reminder',
+    event_type: eventType,
     data: {
       project_name: project.name,
       stage_name: stage.title,
       client_name: clientName,
       client_email: client.email,
       client_phone: client.phone,
-      days_pending: daysPending,
+      days_pending: daysPending.toString(),
       notification_count: (approval.notification_count || 0) + 1,
       approval_url: approvalUrl,
-      urgency_level: daysPending > 7 ? 'high' : daysPending > 5 ? 'medium' : 'normal',
     },
     reference_type: 'project',
     reference_id: project.id,
@@ -201,26 +214,28 @@ async function sendApprovalReminder(
     throw notificationError;
   }
 
-  console.log(`Notification sent successfully for approval ${approval.id}`);
+  console.log(`Notification sent successfully for approval ${approval.id} with urgency ${eventType}`);
 
-  // Criar notificação interna para admins
-  const { data: admins } = await supabase
-    .from('user_roles')
-    .select('user_id')
-    .eq('role', 'admin');
+  // Criar notificação interna para admins (apenas para urgência média e alta)
+  if (daysPending >= 7) {
+    const { data: admins } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
 
-  if (admins && admins.length > 0) {
-    const urgencyText = daysPending > 7 ? 'URGENTE: ' : '';
-    const notifications = admins.map((admin: any) => ({
-      user_id: admin.user_id,
-      title: `${urgencyText}Aprovação pendente há ${daysPending} dias`,
-      description: `O cliente ${clientName} ainda não aprovou a etapa "${stage.title}" do projeto "${project.name}"`,
-      type: daysPending > 7 ? 'error' : daysPending > 5 ? 'warning' : 'info',
-      reference_type: 'project',
-      reference_id: project.id,
-    }));
+    if (admins && admins.length > 0) {
+      const urgencyText = daysPending >= 10 ? '🚨 URGENTE: ' : '⚠️ ';
+      const notifications = admins.map((admin: any) => ({
+        user_id: admin.user_id,
+        title: `${urgencyText}Aprovação pendente há ${daysPending} dias`,
+        description: `O cliente ${clientName} ainda não aprovou a etapa "${stage.title}" do projeto "${project.name}"`,
+        type: notificationType,
+        reference_type: 'project',
+        reference_id: project.id,
+      }));
 
-    await supabase.from('notifications').insert(notifications);
-    console.log(`Created ${notifications.length} internal notifications for admins`);
+      await supabase.from('notifications').insert(notifications);
+      console.log(`Created ${notifications.length} internal notifications for admins`);
+    }
   }
 }
