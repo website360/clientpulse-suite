@@ -36,21 +36,88 @@ function normalizePhone(input: string): string {
   return phone;
 }
 
-function replaceVariables(template: string, data: Record<string, any>): string {
-  let result = template;
-  
-  for (const [key, value] of Object.entries(data)) {
-    // Suporta tanto {variable} quanto {{variable}}
-    const regex1 = new RegExp(`\\{${key}\\}`, 'g');
-    const regex2 = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-    result = result.replace(regex1, String(value || ''));
-    result = result.replace(regex2, String(value || ''));
+function buildAliasMap(eventType: string): Record<string, string> {
+  const aliases: Record<string, string> = {
+    // Common aliases (portuguese/english)
+    'nome': 'client_name',
+    'nome_cliente': 'client_name',
+    'cliente': 'client_name',
+    'cliente_nome': 'client_name',
+    'customer_name': 'client_name',
+
+    'numero': 'ticket_number',
+    'número': 'ticket_number',
+    'num_ticket': 'ticket_number',
+    'ticket_no': 'ticket_number',
+    'ticket': 'ticket_number',
+
+    'assunto': 'subject',
+
+    'descricao': 'description',
+    'descrição': 'description',
+
+    'departamento': 'department',
+
+    'prioridade': 'priority',
+
+    'criado_em': 'created_at',
+    'data_criacao': 'created_at',
+    'data_criação': 'created_at',
+
+    'url_ticket': 'ticket_url',
+    'link_ticket': 'ticket_url',
+    'link': 'ticket_url',
+  };
+
+  // Event-specific aliases (extend when needed)
+  if (eventType === 'payment_due' || eventType === 'payment_overdue' || eventType === 'payment_received') {
+    aliases['valor'] = 'amount';
+    aliases['valor_total'] = 'amount';
+    aliases['data_vencimento'] = 'due_date';
+    aliases['vencimento'] = 'due_date';
   }
-  
-  // Remove variáveis não substituídas
-  result = result.replace(/\{\{?[^}]+\}\}?/g, '');
-  
-  return result;
+
+  return aliases;
+}
+
+function normalizeKey(key: string): string {
+  return key
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, '_');
+}
+
+function enrichData(eventType: string, data: Record<string, any>): Record<string, any> {
+  const enriched: Record<string, any> = {};
+  const aliases = buildAliasMap(eventType);
+
+  // Original keys (normalized)
+  for (const [k, v] of Object.entries(data || {})) {
+    enriched[normalizeKey(k)] = v;
+  }
+
+  // Alias copies
+  for (const [alias, canonical] of Object.entries(aliases)) {
+    const nAlias = normalizeKey(alias);
+    const nCanonical = normalizeKey(canonical);
+    if (enriched[nAlias] !== undefined && enriched[nCanonical] === undefined) {
+      enriched[nCanonical] = enriched[nAlias];
+    }
+  }
+
+  return enriched;
+}
+
+function replaceVariablesFlexible(template: string, eventType: string, data: Record<string, any>): string {
+  if (!template) return '';
+  const enriched = enrichData(eventType, data || {});
+  return template.replace(/\{\{\s*([^}]+?)\s*\}\}|\{\s*([^}]+?)\s*\}/g, (_m, p1, p2) => {
+    const rawKey = (p1 || p2 || '').trim();
+    const key = normalizeKey(rawKey);
+    const val = enriched[key];
+    return val === undefined || val === null ? '' : String(val);
+  });
 }
 
 async function sendChannelNotification(
@@ -286,11 +353,11 @@ serve(async (req) => {
       // Usar variáveis de teste
       const testData = testVariables || {};
       const subject = template.template_subject 
-        ? replaceVariables(template.template_subject, testData)
+        ? replaceVariablesFlexible(template.template_subject, template.event_type, testData)
         : null;
-      const message = replaceVariables(template.template_body, testData);
+      const message = replaceVariablesFlexible(template.template_body, template.event_type, testData);
       const htmlMessage = template.template_html 
-        ? replaceVariables(template.template_html, testData)
+        ? replaceVariablesFlexible(template.template_html, template.event_type, testData)
         : null;
 
       try {
@@ -397,15 +464,16 @@ serve(async (req) => {
 
       // Substituir variáveis no subject e body
       const subject = template.template_subject 
-        ? replaceVariables(template.template_subject, data)
+        ? replaceVariablesFlexible(template.template_subject, event_type, data)
         : null;
-      const message = replaceVariables(template.template_body, data);
+      const message = replaceVariablesFlexible(template.template_body, event_type, data);
       const htmlMessage = template.template_html 
-        ? replaceVariables(template.template_html, data)
+        ? replaceVariablesFlexible(template.template_html, event_type, data)
         : null;
 
       // Obter destinatários
       const recipients = await getRecipients(supabaseClient, template, data);
+      const sentSet = new Set<string>();
 
       if (recipients.length === 0) {
         console.log(`No recipients found for template: ${template.name}`);
@@ -451,6 +519,47 @@ serve(async (req) => {
             // Validar número normalizado
             if (!recipientAddress || recipientAddress.length < 12) {
               console.log(`Invalid ${channel} number after normalization for ${recipient.type}, skipping`);
+              continue;
+            }
+          }
+
+          // Deduplicar por canal+destinatário durante a execução
+          const dedupKey = `${channel}:${recipientAddress}`;
+          if (sentSet.has(dedupKey)) {
+            console.log(`Duplicate in-memory ${dedupKey}, skipping`);
+            continue;
+          }
+          sentSet.add(dedupKey);
+
+          // Evitar duplicação recente no banco (últimos 30s)
+          let recent: any[] | null = null;
+          if (reference_id) {
+            const { data: r } = await supabaseClient
+              .from('notification_logs')
+              .select('id, sent_at')
+              .eq('event_type', event_type)
+              .eq('channel', channel)
+              .eq('recipient', recipientAddress)
+              .eq('reference_id', reference_id)
+              .order('sent_at', { ascending: false })
+              .limit(1);
+            recent = r;
+          } else {
+            const { data: r } = await supabaseClient
+              .from('notification_logs')
+              .select('id, sent_at')
+              .eq('event_type', event_type)
+              .eq('channel', channel)
+              .eq('recipient', recipientAddress)
+              .is('reference_id', null)
+              .order('sent_at', { ascending: false })
+              .limit(1);
+            recent = r;
+          }
+          if (recent && recent.length) {
+            const lastTs = new Date(recent[0].sent_at as string).getTime();
+            if (Date.now() - lastTs < 30000) {
+              console.log(`Recently sent (30s) to ${recipientAddress} on ${channel}, skipping`);
               continue;
             }
           }
