@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess } from '@/hooks/use-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Upload } from 'lucide-react';
@@ -126,7 +126,7 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, featured_image_url: publicUrl });
-      toast({ title: 'Imagem enviada com sucesso!' });
+      toastSuccess('Imagem enviada', 'Imagem enviada com sucesso!');
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
@@ -165,7 +165,7 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
           .eq('id', post.id);
 
         if (error) throw error;
-        toast({ title: 'Post atualizado com sucesso!' });
+        toastSuccess('Post atualizado', 'Post atualizado com sucesso!');
       } else {
         const { error } = await supabase
           .from('knowledge_base_posts')
@@ -175,7 +175,7 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
           });
 
         if (error) throw error;
-        toast({ title: 'Post criado com sucesso!' });
+        toastSuccess('Post criado', 'Post criado com sucesso!');
       }
 
       onSuccess();

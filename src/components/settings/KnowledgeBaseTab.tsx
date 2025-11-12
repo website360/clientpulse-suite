@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 interface Category {
@@ -99,7 +99,7 @@ export function KnowledgeBaseTab() {
           .eq('id', editingCategory.id);
 
         if (error) throw error;
-        toast({ title: 'Categoria atualizada com sucesso!' });
+        toastSuccess('Categoria atualizada', 'Categoria atualizada com sucesso!');
       } else {
         const { error } = await supabase
           .from('knowledge_base_categories')
@@ -112,7 +112,7 @@ export function KnowledgeBaseTab() {
           });
 
         if (error) throw error;
-        toast({ title: 'Categoria criada com sucesso!' });
+        toastSuccess('Categoria criada', 'Categoria criada com sucesso!');
       }
 
       setIsDialogOpen(false);
@@ -137,7 +137,7 @@ export function KnowledgeBaseTab() {
         .eq('id', id);
 
       if (error) throw error;
-      toast({ title: 'Categoria excluída com sucesso!' });
+      toastSuccess('Categoria excluída', 'Categoria excluída com sucesso!');
       fetchCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -156,7 +156,7 @@ export function KnowledgeBaseTab() {
         .eq('id', id);
 
       if (error) throw error;
-      toast({ title: 'Status atualizado com sucesso!' });
+      toastSuccess('Status atualizado', 'Status atualizado com sucesso!');
       fetchCategories();
     } catch (error) {
       console.error('Error toggling category status:', error);

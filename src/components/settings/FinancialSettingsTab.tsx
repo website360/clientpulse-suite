@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Copy, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toastSuccess, toastError } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function FinancialSettingsTab() {
@@ -67,11 +67,11 @@ export function FinancialSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-categories"] });
-      toast({ title: "Categoria adicionada com sucesso" });
+      toastSuccess("Categoria adicionada", "Categoria adicionada com sucesso");
       setNewCategoryName("");
     },
     onError: () => {
-      toast({ title: "Erro ao adicionar categoria", variant: "destructive" });
+      toastError("Erro", "Erro ao adicionar categoria");
     },
   });
 
@@ -86,11 +86,11 @@ export function FinancialSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
-      toast({ title: "Forma de pagamento adicionada com sucesso" });
+      toastSuccess("Forma de pagamento adicionada", "Forma de pagamento adicionada com sucesso");
       setNewMethodName("");
     },
     onError: () => {
-      toast({ title: "Erro ao adicionar forma de pagamento", variant: "destructive" });
+      toastError("Erro", "Erro ao adicionar forma de pagamento");
     },
   });
 
@@ -106,10 +106,10 @@ export function FinancialSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-categories"] });
-      toast({ title: "Categoria excluída com sucesso" });
+      toastSuccess("Categoria excluída", "Categoria excluída com sucesso");
     },
     onError: () => {
-      toast({ title: "Erro ao excluir categoria", variant: "destructive" });
+      toastError("Erro", "Erro ao excluir categoria");
     },
   });
 
@@ -125,10 +125,10 @@ export function FinancialSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
-      toast({ title: "Forma de pagamento excluída com sucesso" });
+      toastSuccess("Forma de pagamento excluída", "Forma de pagamento excluída com sucesso");
     },
     onError: () => {
-      toast({ title: "Erro ao excluir forma de pagamento", variant: "destructive" });
+      toastError("Erro", "Erro ao excluir forma de pagamento");
     },
   });
 
@@ -145,10 +145,10 @@ export function FinancialSettingsTab() {
     onSuccess: (_, variables) => {
       const queryKey = variables.table === "payment_categories" ? "payment-categories" : "payment-methods";
       queryClient.invalidateQueries({ queryKey: [queryKey] });
-      toast({ title: "Status atualizado com sucesso" });
+      toastSuccess("Status atualizado", "Status atualizado com sucesso");
     },
     onError: () => {
-      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+      toastError("Erro", "Erro ao atualizar status");
     },
   });
 

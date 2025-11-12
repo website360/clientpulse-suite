@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toastSuccess } from "@/hooks/use-toast";
 import { Loader2, Trash2, GripVertical } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -75,7 +75,7 @@ export function MaintenanceSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance-settings"] });
-      toast({ title: "Configurações salvas com sucesso" });
+      toastSuccess("Configurações salvas", "Configurações salvas com sucesso");
     },
   });
 
@@ -91,7 +91,7 @@ export function MaintenanceSettingsTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance-checklist-items"] });
       setNewItemName("");
-      toast({ title: "Item adicionado com sucesso" });
+      toastSuccess("Item adicionado", "Item adicionado com sucesso");
     },
   });
 
@@ -106,7 +106,7 @@ export function MaintenanceSettingsTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance-checklist-items"] });
-      toast({ title: "Item removido com sucesso" });
+      toastSuccess("Item removido", "Item removido com sucesso");
     },
   });
 

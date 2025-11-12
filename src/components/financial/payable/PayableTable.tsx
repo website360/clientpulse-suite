@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2, Calendar } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess, toastError } from '@/hooks/use-toast';
 import { PayableFormModal } from './PayableFormModal';
 import { PayConfirmModal } from './PayConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
@@ -239,10 +239,10 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
         }
       }
 
-      toast({ title: 'Sucesso', description: 'Conta(s) excluída(s) com sucesso' });
+      toastSuccess('Sucesso', 'Conta(s) excluída(s) com sucesso');
       fetchAccounts();
     } catch (error: any) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toastError('Erro', error.message);
     }
   };
 
@@ -310,11 +310,11 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
         if (error) throw error;
       }
 
-      toast({ title: 'Sucesso', description: 'Conta atualizada com sucesso' });
+      toastSuccess('Sucesso', 'Conta atualizada com sucesso');
       setEditingAccount(null);
       fetchAccounts();
     } catch (error: any) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toastError('Erro', error.message);
     }
   };
 

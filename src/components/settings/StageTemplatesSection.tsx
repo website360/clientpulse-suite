@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, List, UserCheck } from 'lucide-react';
@@ -91,7 +91,7 @@ export function StageTemplatesSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-stage-templates'] });
-      toast({ title: 'Etapa salva com sucesso' });
+      toastSuccess('Etapa salva', 'Etapa salva com sucesso');
       handleCloseStageModal();
     },
   });
@@ -113,7 +113,7 @@ export function StageTemplatesSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-stage-templates'] });
-      toast({ title: 'Item de checklist salvo com sucesso' });
+      toastSuccess('Item salvo', 'Item de checklist salvo com sucesso');
       handleCloseChecklistModal();
     },
   });
@@ -128,7 +128,7 @@ export function StageTemplatesSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-stage-templates'] });
-      toast({ title: 'Etapa desativada' });
+      toastSuccess('Etapa desativada', 'Etapa desativada');
     },
   });
 
@@ -142,7 +142,7 @@ export function StageTemplatesSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-stage-templates'] });
-      toast({ title: 'Item desativado' });
+      toastSuccess('Item desativado', 'Item desativado');
     },
   });
 

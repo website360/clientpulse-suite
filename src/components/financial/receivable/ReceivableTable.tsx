@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, QrCode } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess, toastError, toastWarning } from '@/hooks/use-toast';
 import { ReceivableFormModal } from './ReceivableFormModal';
 import { ReceiveConfirmModal } from './ReceiveConfirmModal';
 import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
@@ -277,11 +277,11 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         }
       }
 
-      toast({ title: 'Sucesso', description: 'Conta(s) excluída(s) com sucesso' });
+      toastSuccess('Sucesso', 'Conta(s) excluída(s) com sucesso');
       fetchAccounts();
     } catch (error: any) {
       console.error('[Receivable Delete] error', error);
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toastError('Erro', error.message);
     }
   };
 
@@ -372,15 +372,15 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
           childrenCount: childrenUpdated?.length || 0,
         });
         if ((parentUpdated?.length || 0) + (childrenUpdated?.length || 0) === 0) {
-          toast({ title: 'Aviso', description: 'Nenhuma cobrança foi atualizada.', variant: 'destructive' });
+          toastWarning('Aviso', 'Nenhuma cobrança foi atualizada.');
         }
       }
 
-      toast({ title: 'Sucesso', description: 'Conta atualizada com sucesso' });
+      toastSuccess('Sucesso', 'Conta atualizada com sucesso');
       setEditingAccount(null);
       fetchAccounts();
     } catch (error: any) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toastError('Erro', error.message);
     }
   };
 

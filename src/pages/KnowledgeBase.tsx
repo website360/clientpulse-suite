@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toastSuccess } from '@/hooks/use-toast';
 import { Plus, Search, Edit, Trash2, Filter, Copy } from 'lucide-react';
 import {
   Select,
@@ -143,7 +143,7 @@ export default function KnowledgeBase() {
         .eq('id', postToDelete);
 
       if (error) throw error;
-      toast({ title: 'Post excluído com sucesso!' });
+      toastSuccess('Post excluído', 'Post excluído com sucesso!');
       fetchPosts();
     } catch (error) {
       console.error('Error deleting post:', error);
