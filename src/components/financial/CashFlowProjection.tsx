@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
-import { FinancialTrendChart } from "@/components/charts/FinancialTrendChart";
+import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { format, addDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -191,7 +191,7 @@ export function CashFlowProjection() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <FinancialTrendChart data={chartData} />
+          <CashFlowChart data={chartData} />
         </CardContent>
       </Card>
 
