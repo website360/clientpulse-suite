@@ -3122,6 +3122,15 @@ export type Database = {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
+      notify_event: {
+        Args: {
+          p_data: Json
+          p_event_type: string
+          p_reference_id?: string
+          p_reference_type?: string
+        }
+        Returns: undefined
+      }
       set_ticket_status: {
         Args: { p_new_status: string; p_ticket_id: string }
         Returns: {
