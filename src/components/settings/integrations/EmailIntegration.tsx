@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,18 +58,24 @@ export function EmailIntegration() {
         return acc;
       }, {});
 
-      setIsActive(settingsMap?.email_enabled?.value === 'true');
-      setSmtpHost(settingsMap?.email_smtp_host?.value || '');
-      setSmtpPort(settingsMap?.email_smtp_port?.value || '');
-      setSmtpUser(settingsMap?.email_smtp_user?.value || '');
-      setSmtpPassword(settingsMap?.email_smtp_password?.value || '');
-      setFromEmail(settingsMap?.email_from?.value || '');
-      setFromName(settingsMap?.email_from_name?.value || '');
-
       return settingsMap;
     }
   });
 
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (!settings || initialized.current) return;
+
+    setIsActive(settings?.email_enabled?.value === 'true');
+    setSmtpHost(settings?.email_smtp_host?.value || '');
+    setSmtpPort(settings?.email_smtp_port?.value || '');
+    setSmtpUser(settings?.email_smtp_user?.value || '');
+    setSmtpPassword(settings?.email_smtp_password?.value || '');
+    setFromEmail(settings?.email_from?.value || '');
+    setFromName(settings?.email_from_name?.value || '');
+
+    initialized.current = true;
+  }, [settings]);
   const validateSettings = () => {
     setValidationErrors({});
     
@@ -142,6 +148,7 @@ export function EmailIntegration() {
     onSuccess: async () => {
       setValidationErrors({});
       await queryClient.invalidateQueries({ queryKey: ['email-settings'] });
+      initialized.current = false;
       toast({
         title: 'Configurações salvas',
         description: isActive 
