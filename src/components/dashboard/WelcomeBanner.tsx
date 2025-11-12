@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,7 +76,7 @@ export function WelcomeBanner() {
         </Button>
 
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+          <span className="text-2xl">👋</span>
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             {greeting}, {userName}!
           </h2>
