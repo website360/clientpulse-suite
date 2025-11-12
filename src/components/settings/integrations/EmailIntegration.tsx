@@ -39,6 +39,7 @@ export function EmailIntegration() {
   const [fromName, setFromName] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { data: settings, isLoading } = useQuery({
@@ -157,6 +158,43 @@ export function EmailIntegration() {
       }
     }
   });
+
+  const handleTestConnection = async () => {
+    if (!validateSettings()) {
+      return;
+    }
+
+    setIsTestingConnection(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-smtp-connection', {
+        body: {
+          smtpHost: smtpHost.trim(),
+          smtpPort: parseInt(smtpPort.trim()),
+          smtpUser: smtpUser.trim(),
+          smtpPassword: smtpPassword,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: 'Conexão bem-sucedida',
+          description: data.message || 'As credenciais SMTP estão corretas.',
+        });
+      } else {
+        throw new Error(data?.error || 'Erro desconhecido');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro na conexão',
+        description: error.message || 'Não foi possível conectar ao servidor SMTP.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
 
   const handleTestEmail = async () => {
     if (!testEmail) {
@@ -346,12 +384,23 @@ export function EmailIntegration() {
           </>
         )}
 
-        <Button 
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || isLoading}
-        >
-          {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
-        </Button>
+        <div className="flex gap-2">
+          {isActive && (
+            <Button 
+              onClick={handleTestConnection}
+              disabled={isTestingConnection || saveMutation.isPending || isLoading}
+              variant="outline"
+            >
+              {isTestingConnection ? 'Testando conexão...' : 'Testar Conexão'}
+            </Button>
+          )}
+          <Button 
+            onClick={() => saveMutation.mutate()}
+            disabled={saveMutation.isPending || isLoading}
+          >
+            {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+          </Button>
+        </div>
 
         {isActive && (
           <>

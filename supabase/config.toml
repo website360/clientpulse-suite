@@ -3,6 +3,9 @@ project_id = "pjnbsuwkxzxcfaetywjs"
 [functions.register-client]
 verify_jwt = false
 
+[functions.test-smtp-connection]
+verify_jwt = true
+
 [functions.send-payment-reminders]
 verify_jwt = false
 
