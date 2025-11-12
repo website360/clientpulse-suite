@@ -100,6 +100,63 @@ async function sendChannelNotification(
   }
 }
 
+async function getNotificationSettings(
+  supabase: any,
+  eventType: string
+): Promise<any> {
+  const { data, error } = await supabase
+    .from('notification_settings')
+    .select('*')
+    .eq('event_type', eventType)
+    .is('user_id', null)
+    .single();
+
+  if (error) {
+    console.log('No settings found, using defaults');
+    return {
+      email_enabled: true,
+      telegram_enabled: true,
+      sms_enabled: true,
+      whatsapp_enabled: true,
+      quiet_hours_enabled: false,
+    };
+  }
+
+  return data;
+}
+
+function isQuietHours(settings: any): boolean {
+  if (!settings.quiet_hours_enabled) return false;
+
+  const now = new Date();
+  const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+  
+  const start = settings.quiet_hours_start?.slice(0, 5) || '22:00';
+  const end = settings.quiet_hours_end?.slice(0, 5) || '08:00';
+
+  // Se o horário de fim é menor que início, significa que cruza a meia-noite
+  if (end < start) {
+    return currentTime >= start || currentTime < end;
+  }
+  
+  return currentTime >= start && currentTime < end;
+}
+
+function isChannelEnabled(settings: any, channel: string): boolean {
+  switch (channel) {
+    case 'email':
+      return settings.email_enabled ?? true;
+    case 'telegram':
+      return settings.telegram_enabled ?? true;
+    case 'sms':
+      return settings.sms_enabled ?? true;
+    case 'whatsapp':
+      return settings.whatsapp_enabled ?? true;
+    default:
+      return true;
+  }
+}
+
 async function getRecipients(
   supabase: any,
   template: any,
@@ -241,6 +298,18 @@ serve(async (req) => {
 
     console.log(`Processing notification for event: ${event_type}`);
 
+    // Buscar configurações de notificação
+    const settings = await getNotificationSettings(supabaseClient, event_type);
+    
+    // Verificar horário de silêncio
+    if (isQuietHours(settings)) {
+      console.log('Currently in quiet hours, skipping notification');
+      return new Response(
+        JSON.stringify({ message: 'Notification skipped due to quiet hours' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Buscar templates ativos para este evento
     const { data: templates, error: templatesError } = await supabaseClient
       .from('notification_templates')
@@ -279,6 +348,12 @@ serve(async (req) => {
 
       // Enviar para cada canal configurado
       for (const channel of template.channels) {
+        // Verificar se o canal está habilitado
+        if (!isChannelEnabled(settings, channel)) {
+          console.log(`Channel ${channel} is disabled for event ${event_type}`);
+          continue;
+        }
+
         for (const recipient of recipients) {
           let recipientAddress: string | null = null;
 

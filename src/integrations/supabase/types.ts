@@ -1486,6 +1486,51 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          created_at: string | null
+          email_enabled: boolean | null
+          event_type: string
+          id: string
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sms_enabled: boolean | null
+          telegram_enabled: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          whatsapp_enabled: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          event_type: string
+          id?: string
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean | null
+          telegram_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          whatsapp_enabled?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          event_type?: string
+          id?: string
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean | null
+          telegram_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          whatsapp_enabled?: boolean | null
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           channels: Database["public"]["Enums"]["notification_channel"][]

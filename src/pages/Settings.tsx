@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
+import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -541,7 +542,18 @@ export default function Settings() {
                   </TabsContent>
 
                   <TabsContent value="notifications">
-                    <NotificationTemplatesTab />
+                    <Tabs defaultValue="templates" className="space-y-4">
+                      <TabsList>
+                        <TabsTrigger value="templates">Templates</TabsTrigger>
+                        <TabsTrigger value="settings">Configurações</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="templates">
+                        <NotificationTemplatesTab />
+                      </TabsContent>
+                      <TabsContent value="settings">
+                        <NotificationSettingsTab />
+                      </TabsContent>
+                    </Tabs>
                   </TabsContent>
 
                   {/* Removed Clicksign and Document Templates content */}
