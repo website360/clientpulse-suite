@@ -20,8 +20,10 @@ import { Code2, Eye } from 'lucide-react';
 import { BlockLibrary } from './BlockLibrary';
 import { BlockProperties } from './BlockProperties';
 import { EmailBlock } from './EmailBlock';
+import { ThemeSelector } from './ThemeSelector';
 import { BlockData } from './types';
 import { BLOCK_TEMPLATES } from './blockTemplates';
+import { EMAIL_THEMES, EmailTheme, applyThemeToBlock } from './themes';
 
 interface VisualEmailEditorProps {
   initialBlocks?: BlockData[];
@@ -33,6 +35,7 @@ export function VisualEmailEditor({ initialBlocks = [], onSave, onCancel }: Visu
   const [blocks, setBlocks] = useState<BlockData[]>(initialBlocks);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<EmailTheme>(EMAIL_THEMES[0]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,7 +69,11 @@ export function VisualEmailEditor({ initialBlocks = [], onSave, onCancel }: Visu
         type: template.type,
         name: template.name,
         content: template.defaultContent,
-        properties: { ...template.defaultProperties },
+        properties: applyThemeToBlock(
+          template.type,
+          { ...template.defaultProperties },
+          currentTheme
+        ),
       };
 
       setBlocks((prev) => [...prev, newBlock]);
@@ -97,6 +104,18 @@ export function VisualEmailEditor({ initialBlocks = [], onSave, onCancel }: Visu
     if (selectedBlockId === blockId) {
       setSelectedBlockId(null);
     }
+  };
+
+  const handleThemeChange = (theme: EmailTheme) => {
+    setCurrentTheme(theme);
+    
+    // Apply theme to all existing blocks
+    setBlocks((prev) =>
+      prev.map((block) => ({
+        ...block,
+        properties: applyThemeToBlock(block.type, block.properties, theme),
+      }))
+    );
   };
 
   const generateHtml = (): string => {
@@ -143,11 +162,17 @@ ${htmlParts.join('\n')}
 
         <div className="flex-1 flex flex-col bg-background">
           <div className="p-4 border-b flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Canvas</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {blocks.length} bloco{blocks.length !== 1 ? 's' : ''}
-              </p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="font-semibold">Canvas</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {blocks.length} bloco{blocks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <ThemeSelector
+                selectedThemeId={currentTheme.id}
+                onThemeChange={handleThemeChange}
+              />
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={onCancel}>
