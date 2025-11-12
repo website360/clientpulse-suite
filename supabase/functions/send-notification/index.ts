@@ -41,7 +41,8 @@ async function sendChannelNotification(
   channel: string,
   recipient: string,
   subject: string | null,
-  message: string
+  message: string,
+  htmlMessage?: string | null
 ): Promise<any> {
   console.log(`Sending notification via ${channel} to ${recipient}`);
 
@@ -52,7 +53,7 @@ async function sendChannelNotification(
           body: {
             to: recipient,
             subject: subject || 'Notificação',
-            html: message.replace(/\n/g, '<br>'),
+            html: htmlMessage || message.replace(/\n/g, '<br>'),
             text: message,
           }
         });
@@ -257,6 +258,9 @@ serve(async (req) => {
         ? replaceVariables(template.template_subject, testData)
         : null;
       const message = replaceVariables(template.template_body, testData);
+      const htmlMessage = template.template_html 
+        ? replaceVariables(template.template_html, testData)
+        : null;
 
       try {
         // Enviar notificação de teste
@@ -265,7 +269,8 @@ serve(async (req) => {
           testChannel,
           testRecipient,
           subject,
-          message
+          message,
+          htmlMessage
         );
 
         return new Response(
@@ -337,6 +342,9 @@ serve(async (req) => {
         ? replaceVariables(template.template_subject, data)
         : null;
       const message = replaceVariables(template.template_body, data);
+      const htmlMessage = template.template_html 
+        ? replaceVariables(template.template_html, data)
+        : null;
 
       // Obter destinatários
       const recipients = await getRecipients(supabaseClient, template, data);
@@ -396,7 +404,8 @@ serve(async (req) => {
               channel,
               recipientAddress,
               subject,
-              message
+              message,
+              channel === 'email' ? htmlMessage : null
             );
 
             // Atualizar log como enviado

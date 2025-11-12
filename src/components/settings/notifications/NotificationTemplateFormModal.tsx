@@ -62,6 +62,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
   const [channels, setChannels] = useState<string[]>([]);
   const [templateSubject, setTemplateSubject] = useState('');
   const [templateBody, setTemplateBody] = useState('');
+  const [templateHtml, setTemplateHtml] = useState('');
   const [sendToClient, setSendToClient] = useState(true);
   const [sendToAdmins, setSendToAdmins] = useState(false);
   const [sendToAssigned, setSendToAssigned] = useState(false);
@@ -74,6 +75,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
       setChannels(template.channels || []);
       setTemplateSubject(template.template_subject || '');
       setTemplateBody(template.template_body || '');
+      setTemplateHtml(template.template_html || '');
       setSendToClient(template.send_to_client ?? true);
       setSendToAdmins(template.send_to_admins ?? false);
       setSendToAssigned(template.send_to_assigned ?? false);
@@ -84,6 +86,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
       setChannels([]);
       setTemplateSubject('');
       setTemplateBody('');
+      setTemplateHtml('');
       setSendToClient(true);
       setSendToAdmins(false);
       setSendToAssigned(false);
@@ -120,6 +123,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
         channels: channels as any,
         template_subject: templateSubject,
         template_body: templateBody,
+        template_html: templateHtml || null,
         send_to_client: sendToClient,
         send_to_admins: sendToAdmins,
         send_to_assigned: sendToAssigned,
@@ -307,6 +311,22 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
               </div>
             </div>
           </div>
+
+          {channels.includes('email') && (
+            <div>
+              <Label htmlFor="template_html">Template HTML (Email - Opcional)</Label>
+              <Textarea
+                id="template_html"
+                value={templateHtml}
+                onChange={(e) => setTemplateHtml(e.target.value)}
+                placeholder="<html><body><h1>{{ticket_number}}</h1><p>{{client_name}}</p></body></html>"
+                className="min-h-[200px] font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                HTML customizado para emails. Se não preenchido, será usado o corpo de mensagem acima com formatação básica.
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>

@@ -1575,6 +1575,7 @@ export type Database = {
           send_to_assigned: boolean | null
           send_to_client: boolean | null
           template_body: string
+          template_html: string | null
           template_subject: string | null
           updated_at: string
           variables: Json | null
@@ -1592,6 +1593,7 @@ export type Database = {
           send_to_assigned?: boolean | null
           send_to_client?: boolean | null
           template_body: string
+          template_html?: string | null
           template_subject?: string | null
           updated_at?: string
           variables?: Json | null
@@ -1609,6 +1611,7 @@ export type Database = {
           send_to_assigned?: boolean | null
           send_to_client?: boolean | null
           template_body?: string
+          template_html?: string | null
           template_subject?: string | null
           updated_at?: string
           variables?: Json | null
