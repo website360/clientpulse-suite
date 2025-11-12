@@ -15,6 +15,7 @@ import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
 import { DelinquencyReport } from '@/components/financial/DelinquencyReport';
 import { DREReport } from '@/components/financial/DREReport';
 import { ClientProfitability } from '@/components/financial/ClientProfitability';
+import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
 
 const AccountsReceivable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,12 +95,16 @@ const AccountsReceivable = () => {
                 <Users className="h-4 w-4 mr-2" />
                 Lucratividade
               </TabsTrigger>
-              <TabsTrigger value="analytics">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
-              </TabsTrigger>
-            </TabsList>
-          </ScrollableTabs>
+                <TabsTrigger value="analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="asaas">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Reconciliação Asaas
+                </TabsTrigger>
+              </TabsList>
+            </ScrollableTabs>
 
           <TabsContent value="receivable" className="space-y-6">
             <ReceivableStats filters={filters} />
@@ -152,10 +157,14 @@ const AccountsReceivable = () => {
             <ClientProfitability />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <FinancialAnalytics />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="analytics" className="space-y-6">
+              <FinancialAnalytics />
+            </TabsContent>
+
+            <TabsContent value="asaas" className="space-y-6">
+              <AsaasReconciliation />
+            </TabsContent>
+          </Tabs>
 
         <ReceivableFormModal 
           open={isModalOpen} 

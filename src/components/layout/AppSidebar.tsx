@@ -246,7 +246,7 @@ export function AppSidebar() {
             <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-4", isCollapsed && "justify-center items-center px-0 mx-auto")}>
+                  <SidebarMenuButton asChild className={cn("py-2.5", isCollapsed && "justify-center items-center px-0 mx-auto")}>
                     <NavLink
                       to={item.url}
                       end
@@ -256,7 +256,8 @@ export function AppSidebar() {
                           "transition-all duration-200",
                           isActive
                             ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'hover:bg-sidebar-accent/50 hover:translate-x-1',
+                            : 'hover:bg-sidebar-accent/50',
+                          !isCollapsed && 'hover:translate-x-1',
                           isCollapsed && 'flex items-center justify-center px-0 hover:translate-x-0 hover:scale-110'
                         )
                       }

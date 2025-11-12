@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
 import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
 import { DREReport } from '@/components/financial/DREReport';
+import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
 
 const AccountsPayable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,6 +89,10 @@ const AccountsPayable = () => {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Analytics
               </TabsTrigger>
+              <TabsTrigger value="asaas">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Reconciliação Asaas
+              </TabsTrigger>
             </TabsList>
           </ScrollableTabs>
 
@@ -136,6 +141,10 @@ const AccountsPayable = () => {
 
           <TabsContent value="analytics" className="space-y-6">
             <FinancialAnalytics />
+          </TabsContent>
+
+          <TabsContent value="asaas" className="space-y-6">
+            <AsaasReconciliation />
           </TabsContent>
         </Tabs>
 
