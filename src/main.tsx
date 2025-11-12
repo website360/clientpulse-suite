@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { useEffect } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -49,4 +50,8 @@ window.addEventListener('logoUpdated', (event: Event) => {
   }
 });
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>
+);

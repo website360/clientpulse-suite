@@ -918,6 +918,50 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_base_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          is_approved: boolean
+          post_id: string
+          updated_at: string
+          user_email: string | null
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          post_id: string
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          post_id?: string
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_base_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_base_posts: {
         Row: {
           category_id: string | null
@@ -928,6 +972,9 @@ export type Database = {
           featured_image_url: string | null
           id: string
           is_published: boolean | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          meta_title: string | null
           published_at: string | null
           slug: string
           title: string
@@ -943,6 +990,9 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
           published_at?: string | null
           slug: string
           title: string
@@ -958,6 +1008,9 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
           published_at?: string | null
           slug?: string
           title?: string
@@ -970,6 +1023,38 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "knowledge_base_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_base_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          is_helpful: boolean
+          post_id: string
+          user_ip: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_helpful: boolean
+          post_id: string
+          user_ip: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_helpful?: boolean
+          post_id?: string
+          user_ip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_ratings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_base_posts"
             referencedColumns: ["id"]
           },
         ]
