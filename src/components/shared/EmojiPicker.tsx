@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Smile, Users, Coffee, Palmtree, Award, Lightbulb, Flag } from 'lucide-react';
+import { Smile, Users, Coffee, Palmtree, Award, Lightbulb, Flag, Clock } from 'lucide-react';
 
 const emojiCategories = {
   people: {
@@ -151,7 +152,49 @@ interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void;
 }
 
+const RECENT_EMOJIS_KEY = 'recentEmojis';
+const MAX_RECENT_EMOJIS = 24;
+
 export function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('people');
+
+  useEffect(() => {
+    // Load recent emojis from localStorage
+    const stored = localStorage.getItem(RECENT_EMOJIS_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setRecentEmojis(Array.isArray(parsed) ? parsed : []);
+        if (parsed.length > 0) {
+          setActiveTab('recent');
+        }
+      } catch (e) {
+        console.error('Error loading recent emojis:', e);
+      }
+    }
+  }, []);
+
+  const handleEmojiSelect = (emoji: string) => {
+    // Update recent emojis
+    const updated = [emoji, ...recentEmojis.filter(e => e !== emoji)].slice(0, MAX_RECENT_EMOJIS);
+    setRecentEmojis(updated);
+    localStorage.setItem(RECENT_EMOJIS_KEY, JSON.stringify(updated));
+    
+    // Call the parent callback
+    onEmojiSelect(emoji);
+  };
+
+  const allCategories = {
+    ...(recentEmojis.length > 0 ? {
+      recent: {
+        label: 'Usados recentemente',
+        icon: Clock,
+        emojis: recentEmojis,
+      }
+    } : {}),
+    ...emojiCategories,
+  };
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -160,9 +203,9 @@ export function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[420px] p-0" align="start">
-        <Tabs defaultValue="people" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <ScrollArea className="h-[320px]">
-            {Object.entries(emojiCategories).map(([key, category]) => (
+            {Object.entries(allCategories).map(([key, category]) => (
               <TabsContent key={key} value={key} className="p-3 m-0 mt-0">
                 <div className="text-xs font-medium text-muted-foreground mb-3 px-1">
                   {category.label}
@@ -172,7 +215,7 @@ export function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
                     <button
                       key={index}
                       type="button"
-                      onClick={() => onEmojiSelect(emoji)}
+                      onClick={() => handleEmojiSelect(emoji)}
                       className="h-10 w-10 flex items-center justify-center hover:bg-accent rounded transition-colors text-xl"
                       title={emoji}
                     >
@@ -184,7 +227,7 @@ export function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
             ))}
           </ScrollArea>
           <TabsList className="w-full justify-start rounded-none border-t bg-muted/50 p-1 h-auto">
-            {Object.entries(emojiCategories).map(([key, category]) => {
+            {Object.entries(allCategories).map(([key, category]) => {
               const Icon = category.icon;
               return (
                 <TabsTrigger
