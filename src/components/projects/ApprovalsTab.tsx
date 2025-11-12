@@ -38,9 +38,10 @@ export function ApprovalsTab() {
         .from('project_stage_approvals')
         .select(`
           *,
-          project_stages (
+          project_stages!inner (
             id,
             title,
+            requires_client_approval,
             projects (
               id,
               name,
@@ -56,6 +57,7 @@ export function ApprovalsTab() {
             full_name
           )
         `)
+        .eq('project_stages.requires_client_approval', true)
         .order(sortColumn || 'created_at', { ascending: sortDirection === 'asc' })
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
@@ -80,7 +82,15 @@ export function ApprovalsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_stage_approvals')
-        .select('status, approved_at, created_at');
+        .select(`
+          status,
+          approved_at,
+          created_at,
+          project_stages!inner (
+            requires_client_approval
+          )
+        `)
+        .eq('project_stages.requires_client_approval', true);
 
       if (error) throw error;
 

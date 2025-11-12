@@ -7,8 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { StageApprovalModal } from './StageApprovalModal';
 
 interface ProjectStagesProps {
   projectId: string;
@@ -20,6 +24,8 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
+  const [selectedStageForApproval, setSelectedStageForApproval] = useState<any>(null);
 
   const { data: stages, isLoading } = useQuery({
     queryKey: ['project-stages', projectId],
@@ -35,6 +41,12 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
             completed_at,
             order,
             notes
+          ),
+          project_stage_approvals (
+            id,
+            status,
+            approved_at,
+            created_at
           )
         `)
         .eq('project_id', projectId)
@@ -66,6 +78,31 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
     }));
   };
 
+  const toggleApprovalMutation = useMutation({
+    mutationFn: async ({ stageId, requiresApproval }: { stageId: string; requiresApproval: boolean }) => {
+      const { error } = await supabase
+        .from('project_stages')
+        .update({ requires_client_approval: !requiresApproval })
+        .eq('id', stageId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-stages', projectId] });
+      toast({
+        title: 'Configuração atualizada',
+        description: 'A necessidade de aprovação foi atualizada.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar a configuração.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const toggleItemMutation = useMutation({
     mutationFn: async ({ itemId, isCompleted }: { itemId: string; isCompleted: boolean }) => {
       const { error } = await supabase
@@ -96,6 +133,17 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
       });
     },
   });
+
+  const handleRequestApproval = (stage: any) => {
+    setSelectedStageForApproval(stage);
+    setApprovalModalOpen(true);
+  };
+
+  const handleApprovalSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['project-stages', projectId] });
+    setApprovalModalOpen(false);
+    setSelectedStageForApproval(null);
+  };
 
   const getStageProgress = (stage: any) => {
     if (!stage.project_checklist_items?.length) return 0;
@@ -192,7 +240,70 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
               </CollapsibleTrigger>
               
               <CollapsibleContent>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {/* Configuração e Status de Aprovação */}
+                  <div className="pb-4 border-b space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id={`approval-${stage.id}`}
+                          checked={stage.requires_client_approval}
+                          onCheckedChange={() =>
+                            toggleApprovalMutation.mutate({
+                              stageId: stage.id,
+                              requiresApproval: stage.requires_client_approval,
+                            })
+                          }
+                        />
+                        <Label htmlFor={`approval-${stage.id}`} className="cursor-pointer">
+                          Requer aprovação do cliente
+                        </Label>
+                      </div>
+
+                      {stage.requires_client_approval && (
+                        <>
+                          {stage.project_stage_approvals?.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              {stage.project_stage_approvals[0].status === 'pending' && (
+                                <Badge variant="outline" className="text-yellow-600">
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Aguardando aprovação
+                                </Badge>
+                              )}
+                              {stage.project_stage_approvals[0].status === 'approved' && (
+                                <Badge variant="outline" className="text-green-600">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Aprovado
+                                </Badge>
+                              )}
+                              {stage.project_stage_approvals[0].status === 'rejected' && (
+                                <Badge variant="outline" className="text-red-600">
+                                  Rejeitado - Revisar
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handleRequestApproval(stage)}
+                              disabled={!allCompleted}
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Solicitar Aprovação
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    
+                    {stage.requires_client_approval && !allCompleted && (
+                      <p className="text-xs text-muted-foreground">
+                        Complete todos os itens antes de solicitar aprovação
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Lista de Itens */}
                   {items.length > 0 ? (
                     <div className="space-y-3">
                       {items
@@ -245,6 +356,17 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
           </Collapsible>
         );
       })}
+
+      {/* Modal de Solicitação de Aprovação */}
+      {selectedStageForApproval && (
+        <StageApprovalModal
+          open={approvalModalOpen}
+          onOpenChange={setApprovalModalOpen}
+          stageId={selectedStageForApproval.id}
+          stageName={selectedStageForApproval.name}
+          onSuccess={handleApprovalSuccess}
+        />
+      )}
     </div>
   );
 }

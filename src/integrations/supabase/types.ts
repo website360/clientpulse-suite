@@ -2359,6 +2359,7 @@ export type Database = {
           name: string
           order: number
           project_type_id: string
+          requires_client_approval: boolean
           updated_at: string
         }
         Insert: {
@@ -2369,6 +2370,7 @@ export type Database = {
           name: string
           order?: number
           project_type_id: string
+          requires_client_approval?: boolean
           updated_at?: string
         }
         Update: {
@@ -2379,6 +2381,7 @@ export type Database = {
           name?: string
           order?: number
           project_type_id?: string
+          requires_client_approval?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -2400,6 +2403,7 @@ export type Database = {
           name: string
           order: number
           project_id: string
+          requires_client_approval: boolean
           stage_template_id: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["project_stage_status"]
@@ -2413,6 +2417,7 @@ export type Database = {
           name: string
           order?: number
           project_id: string
+          requires_client_approval?: boolean
           stage_template_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["project_stage_status"]
@@ -2426,6 +2431,7 @@ export type Database = {
           name?: string
           order?: number
           project_id?: string
+          requires_client_approval?: boolean
           stage_template_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["project_stage_status"]

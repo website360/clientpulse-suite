@@ -69,14 +69,15 @@ async function processApprovals(supabase: any, settings: ApprovalSettings) {
   console.log(`Checking approvals older than ${settings.days_before_notification} days...`);
   console.log('Cutoff date:', cutoffDate.toISOString());
 
-  // Buscar aprovações pendentes antigas
+  // Buscar aprovações pendentes antigas que requerem aprovação
   const { data: pendingApprovals, error: approvalsError } = await supabase
     .from('project_stage_approvals')
     .select(`
       *,
-      project_stages (
+      project_stages!inner (
         id,
         title,
+        requires_client_approval,
         projects (
           id,
           name,
@@ -97,6 +98,7 @@ async function processApprovals(supabase: any, settings: ApprovalSettings) {
       )
     `)
     .eq('status', 'pending')
+    .eq('project_stages.requires_client_approval', true)
     .lt('created_at', cutoffDate.toISOString());
 
   if (approvalsError) {

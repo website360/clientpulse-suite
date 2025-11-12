@@ -20,6 +20,7 @@ interface StageApprovalModalProps {
   onOpenChange: (open: boolean) => void;
   stageId: string;
   stageName: string;
+  onSuccess?: () => void;
 }
 
 export function StageApprovalModal({
@@ -27,6 +28,7 @@ export function StageApprovalModal({
   onOpenChange,
   stageId,
   stageName,
+  onSuccess,
 }: StageApprovalModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -56,6 +58,7 @@ export function StageApprovalModal({
         title: 'Solicitação criada',
         description: 'Link de aprovação gerado com sucesso.',
       });
+      onSuccess?.();
     },
     onError: (error) => {
       console.error('Error creating approval:', error);
