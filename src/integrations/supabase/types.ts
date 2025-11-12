@@ -1708,6 +1708,117 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_reminder_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          days_overdue: number
+          error_message: string | null
+          id: string
+          payment_link: string | null
+          receivable_id: string
+          recipient: string
+          sent_at: string
+          status: string
+          template_id: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          days_overdue: number
+          error_message?: string | null
+          id?: string
+          payment_link?: string | null
+          receivable_id: string
+          recipient: string
+          sent_at?: string
+          status?: string
+          template_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          days_overdue?: number
+          error_message?: string | null
+          id?: string
+          payment_link?: string | null
+          receivable_id?: string
+          recipient?: string
+          sent_at?: string
+          status?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminder_logs_receivable_id_fkey"
+            columns: ["receivable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_receivable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminder_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "payment_reminder_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminder_templates: {
+        Row: {
+          channels: string[]
+          created_at: string
+          days_overdue: number
+          description: string | null
+          id: string
+          include_payment_link: boolean
+          is_active: boolean
+          name: string
+          send_to_client: boolean
+          send_to_contacts: boolean
+          template_body: string
+          template_html: string | null
+          template_subject: string | null
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          channels?: string[]
+          created_at?: string
+          days_overdue: number
+          description?: string | null
+          id?: string
+          include_payment_link?: boolean
+          is_active?: boolean
+          name: string
+          send_to_client?: boolean
+          send_to_contacts?: boolean
+          template_body: string
+          template_html?: string | null
+          template_subject?: string | null
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          channels?: string[]
+          created_at?: string
+          days_overdue?: number
+          description?: string | null
+          id?: string
+          include_payment_link?: boolean
+          is_active?: boolean
+          name?: string
+          send_to_client?: boolean
+          send_to_contacts?: boolean
+          template_body?: string
+          template_html?: string | null
+          template_subject?: string | null
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pending_approvals: {
         Row: {
           action: string
