@@ -195,6 +195,13 @@ export function TicketMacrosSettingsTab() {
     );
   });
 
+  const getPreviewContent = (content: string) => {
+    return content
+      .replace(/{cliente}/g, 'João Silva')
+      .replace(/{ticket}/g, '#12345')
+      .replace(/{usuario}/g, user?.user_metadata?.full_name || 'Técnico');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -284,6 +291,19 @@ export function TicketMacrosSettingsTab() {
                       Você pode usar variáveis como {'{cliente}'}, {'{ticket}'}, {'{usuario}'} no texto
                     </p>
                   </div>
+                  {formData.content && (
+                    <div className="space-y-2">
+                      <Label>Preview da Mensagem</Label>
+                      <div className="border rounded-lg p-4 bg-muted/50">
+                        <p className="text-sm whitespace-pre-wrap">
+                          {getPreviewContent(formData.content)}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Este é um exemplo de como o macro ficará ao ser usado
+                      </p>
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="is_active"
