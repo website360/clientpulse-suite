@@ -28,7 +28,8 @@ import { RolesPermissionsTab } from '@/components/settings/RolesPermissionsTab';
 import { SessionsTab } from '@/components/settings/SessionsTab';
 import { ApprovalsTab } from '@/components/settings/ApprovalsTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug } from 'lucide-react';
+import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -314,7 +315,10 @@ export default function Settings() {
                     <FolderKanban className="h-4 w-4 mr-2" />
                     Projetos
                   </TabsTrigger>
-                  {/* Removed Clicksign and Document Templates tabs */}
+                  <TabsTrigger value="integrations">
+                    <Plug className="h-4 w-4 mr-2" />
+                    Integrações
+                  </TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -534,6 +538,10 @@ export default function Settings() {
 
                   <TabsContent value="projects">
                     <ProjectsSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="integrations">
+                    <IntegrationsTab />
                   </TabsContent>
 
                   {/* Removed Clicksign and Document Templates content */}
