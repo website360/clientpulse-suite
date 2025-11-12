@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
+import { HelmetProvider } from "react-helmet-async";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -52,10 +53,11 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <HelmetProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
@@ -100,6 +102,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
