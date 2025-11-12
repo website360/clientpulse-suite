@@ -13,14 +13,20 @@ export function WelcomeBanner() {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('welcome-banner-seen');
     const today = new Date().toDateString();
+    const lastDismissed = localStorage.getItem('welcome-banner-dismissed');
     const lastVisit = localStorage.getItem('last-visit-date');
     
-    setIsFirstVisit(!hasSeenWelcome);
+    // Primeira visita se nunca foi fechado
+    setIsFirstVisit(!lastDismissed);
     
-    if (!hasSeenWelcome || lastVisit !== today) {
+    // Mostra se nunca foi fechado OU se foi fechado em um dia diferente
+    if (!lastDismissed || lastDismissed !== today) {
       setVisible(true);
+    }
+    
+    // Atualiza última visita
+    if (lastVisit !== today) {
       localStorage.setItem('last-visit-date', today);
     }
     
@@ -48,8 +54,9 @@ export function WelcomeBanner() {
   };
 
   const handleDismiss = () => {
+    const today = new Date().toDateString();
     setVisible(false);
-    localStorage.setItem('welcome-banner-seen', 'true');
+    localStorage.setItem('welcome-banner-dismissed', today);
   };
 
   const getGreeting = () => {
