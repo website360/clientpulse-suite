@@ -92,7 +92,7 @@ O formato do cron é: `minuto hora dia mês dia_da_semana`
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
 | `{{client_name}}` | Nome do cliente | João Silva |
-| `{{company_name}}` | Nome da empresa | ClientPulse Suite |
+| `{{company_name}}` | Nome da empresa | Agência May |
 | `{{amount}}` | Valor formatado | R$ 1.500,00 |
 | `{{amount_number}}` | Valor numérico | 1500.00 |
 | `{{description}}` | Descrição da cobrança | Mensalidade Janeiro |

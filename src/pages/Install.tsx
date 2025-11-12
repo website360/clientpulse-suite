@@ -60,7 +60,7 @@ const Install = () => {
               <Download className="h-12 w-12 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold">Instale o ClientPulse</h1>
+          <h1 className="text-4xl font-bold">Instale a Agência May</h1>
           <p className="text-muted-foreground text-lg">
             Tenha o app sempre à mão na tela do seu dispositivo
           </p>
@@ -86,7 +86,7 @@ const Install = () => {
             <CardContent className="pt-6">
               <Button onClick={handleInstall} size="lg" className="w-full">
                 <Download className="h-5 w-5 mr-2" />
-                Instalar ClientPulse
+                Instalar Agência May
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-4">
                 O app ficará disponível na tela inicial do seu dispositivo

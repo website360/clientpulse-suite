@@ -164,8 +164,8 @@ serve(async (req) => {
       const clientName = receivable.client.company_name || receivable.client.full_name || 'Cliente';
       const variables = {
         client_name: clientName,
-        company_name: 'ClientPulse Suite',
-        amount: new Intl.NumberFormat('pt-BR', { 
+        company_name: 'Agência May',
+        amount: new Intl.NumberFormat('pt-BR', {
           style: 'currency', 
           currency: 'BRL' 
         }).format(receivable.amount),

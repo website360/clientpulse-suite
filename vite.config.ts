@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'prompt',
       includeAssets: ['favicon.png', 'robots.txt'],
       manifest: {
-        name: 'ClientPulse Suite',
-        short_name: 'ClientPulse',
+        name: 'Agência May',
+        short_name: 'Agência May',
         description: 'Sistema completo de gestão de clientes, projetos e financeiro',
         theme_color: '#1E40AF',
         background_color: '#ffffff',

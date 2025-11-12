@@ -212,7 +212,7 @@ export function PaymentReminderTemplates() {
     let message = previewTemplate.template_body;
     const mockVariables = {
       client_name: 'João Silva',
-      company_name: 'ClientPulse Suite',
+      company_name: 'Agência May',
       amount: 'R$ 1.500,00',
       description: 'Mensalidade de serviços - Janeiro/2025',
       due_date: '15/01/2025',

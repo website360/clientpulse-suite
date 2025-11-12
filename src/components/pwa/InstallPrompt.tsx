@@ -46,7 +46,7 @@ export function InstallPrompt() {
       
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          Instale o ClientPulse na tela inicial do seu dispositivo para acesso rápido e uso offline.
+          Instale a Agência May na tela inicial do seu dispositivo para acesso rápido e uso offline.
         </p>
         
         <Button onClick={handleInstall} className="w-full">
