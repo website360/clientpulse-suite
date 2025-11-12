@@ -15,9 +15,7 @@ import { DensityTab } from '@/components/settings/DensityTab';
 import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab';
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
-import { AsaasSettingsTab } from '@/components/settings/AsaasSettingsTab';
 import { KnowledgeBaseTab } from '@/components/settings/KnowledgeBaseTab';
-import { WhatsAppSettingsTab } from '@/components/settings/WhatsAppSettingsTab';
 import { MaintenanceSettingsTab } from '@/components/settings/MaintenanceSettingsTab';
 import { TicketSLASettingsTab } from '@/components/settings/TicketSLASettingsTab';
 import { TicketMacrosSettingsTab } from '@/components/settings/TicketMacrosSettingsTab';
@@ -30,7 +28,7 @@ import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { ToastDemo } from '@/components/demo/ToastDemo';
 import { NotificationManager } from '@/components/pwa/NotificationManager';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, CreditCard, MessageCircle, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Maximize2, Smartphone, Receipt } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Maximize2, Smartphone, Receipt } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
 import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
@@ -300,14 +298,6 @@ export default function Settings() {
                     <BookOpen className="h-4 w-4 mr-2" />
                     Base de Conhecimento
                   </TabsTrigger>
-                  <TabsTrigger value="asaas">
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Asaas
-                  </TabsTrigger>
-                  <TabsTrigger value="whatsapp">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    WhatsApp
-                  </TabsTrigger>
                   <TabsTrigger value="ticket-sla">
                     <Timer className="h-4 w-4 mr-2" />
                     SLA Tickets
@@ -540,14 +530,6 @@ export default function Settings() {
                   <TabsContent value="knowledge-base">
                     <KnowledgeBaseTab />
                   </TabsContent>
-
-                  <TabsContent value="asaas">
-                    <AsaasSettingsTab />
-                  </TabsContent>
-
-          <TabsContent value="whatsapp">
-            <WhatsAppSettingsTab />
-          </TabsContent>
 
           <TabsContent value="ticket-sla">
                     <TicketSLASettingsTab />

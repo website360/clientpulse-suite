@@ -12,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, Key } from "lucide-react";
 
-export function AsaasSettingsTab() {
+export function AsaasIntegration() {
   const queryClient = useQueryClient();
   const [isActive, setIsActive] = useState(false);
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");

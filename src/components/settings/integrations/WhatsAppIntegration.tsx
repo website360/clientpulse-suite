@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw } from "lucide-react";
 import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
 
-export function WhatsAppSettingsTab() {
+export function WhatsAppIntegration() {
   const queryClient = useQueryClient();
   const [isActive, setIsActive] = useState(false);
   const [apiUrl, setApiUrl] = useState("");
