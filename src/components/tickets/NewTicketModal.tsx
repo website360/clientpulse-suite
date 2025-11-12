@@ -198,7 +198,7 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
           // Get client and department names for template variables
           const { data: clientData } = await supabase
             .from('clients')
-            .select('full_name, company_name, email, responsible_name, client_type')
+            .select('full_name, company_name, email, phone, responsible_name, client_type')
             .eq('id', ticketData.client_id)
             .single();
 
@@ -234,6 +234,8 @@ export function NewTicketModal({ open, onOpenChange, onSuccess, preSelectedClien
                 ticket_number: ticketData.ticket_number,
                 ticket_id: ticketData.id,
                 client_name: clientName,
+                client_email: clientData?.email || undefined,
+                client_phone: clientData?.phone || undefined,
                 department_name: departmentData?.name || 'N/A',
                 subject: ticketData.subject,
                 priority: priorityLabel,
