@@ -11,7 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { Info, Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface NotificationTemplateFormModalProps {
@@ -68,6 +69,7 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
   const [sendToAdmins, setSendToAdmins] = useState(false);
   const [sendToAssigned, setSendToAssigned] = useState(false);
   const [showHtmlPreview, setShowHtmlPreview] = useState(false);
+  const [htmlErrors, setHtmlErrors] = useState<string[]>([]);
 
   useEffect(() => {
     if (template) {
@@ -95,12 +97,55 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
     }
   }, [template, open]);
 
+  const validateHtml = (html: string): string[] => {
+    if (!html.trim()) return [];
+    
+    const errors: string[] = [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Check for parser errors
+    const parserError = doc.querySelector('parsererror');
+    if (parserError) {
+      errors.push('HTML contém erros de sintaxe');
+    }
+    
+    // Check for unclosed tags
+    const openTags = html.match(/<(\w+)[^>]*>/g) || [];
+    const closeTags = html.match(/<\/(\w+)>/g) || [];
+    const selfClosingTags = ['img', 'br', 'hr', 'input', 'meta', 'link'];
+    
+    openTags.forEach(tag => {
+      const tagName = tag.match(/<(\w+)/)?.[1].toLowerCase();
+      if (tagName && !selfClosingTags.includes(tagName)) {
+        const openCount = (html.match(new RegExp(`<${tagName}[^>]*>`, 'gi')) || []).length;
+        const closeCount = (html.match(new RegExp(`</${tagName}>`, 'gi')) || []).length;
+        
+        if (openCount !== closeCount) {
+          errors.push(`Tag <${tagName}> pode estar sem fechamento`);
+        }
+      }
+    });
+    
+    return [...new Set(errors)]; // Remove duplicates
+  };
+
   const handleChannelToggle = (channel: string) => {
     setChannels(prev =>
       prev.includes(channel)
         ? prev.filter(c => c !== channel)
         : [...prev, channel]
     );
+  };
+
+  const handleHtmlChange = (value: string) => {
+    setTemplateHtml(value);
+    if (value.trim()) {
+      const errors = validateHtml(value);
+      setHtmlErrors(errors);
+    } else {
+      setHtmlErrors([]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,6 +155,16 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
       toast({
         title: 'Campos obrigatórios',
         description: 'Preencha todos os campos obrigatórios.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate HTML if provided
+    if (templateHtml && htmlErrors.length > 0) {
+      toast({
+        title: 'Erros no HTML',
+        description: 'Corrija os erros de sintaxe no template HTML antes de salvar.',
         variant: 'destructive',
       });
       return;
@@ -351,15 +406,41 @@ export function NotificationTemplateFormModal({ open, onClose, template }: Notif
                   </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="editor" className="mt-2">
+                <TabsContent value="editor" className="mt-2 space-y-2">
                   <Textarea
                     id="template_html"
                     value={templateHtml}
-                    onChange={(e) => setTemplateHtml(e.target.value)}
+                    onChange={(e) => handleHtmlChange(e.target.value)}
                     placeholder="<html><body><h1>{{ticket_number}}</h1><p>{{client_name}}</p></body></html>"
                     className="min-h-[200px] font-mono text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  
+                  {templateHtml && (
+                    <Alert variant={htmlErrors.length > 0 ? "destructive" : "default"} className="py-2">
+                      {htmlErrors.length > 0 ? (
+                        <>
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-sm">
+                            <strong>Erros encontrados:</strong>
+                            <ul className="mt-1 ml-4 list-disc">
+                              {htmlErrors.map((error, index) => (
+                                <li key={index}>{error}</li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <AlertDescription className="text-sm">
+                            HTML válido - nenhum erro de sintaxe detectado
+                          </AlertDescription>
+                        </>
+                      )}
+                    </Alert>
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground">
                     HTML customizado para emails. Se não preenchido, será usado o corpo de mensagem acima com formatação básica.
                   </p>
                 </TabsContent>
