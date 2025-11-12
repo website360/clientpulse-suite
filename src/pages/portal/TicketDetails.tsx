@@ -25,6 +25,7 @@ import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
 import { TicketRatingModal } from '@/components/tickets/TicketRatingModal';
 import { TypingIndicator } from '@/components/tickets/TypingIndicator';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
+import { AttachmentPreviewModal } from '@/components/tickets/AttachmentPreviewModal';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -46,6 +47,8 @@ export default function ClientTicketDetails() {
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   const [slaTracking, setSlaTracking] = useState<any>(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<any>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', user?.id);
 
   useEffect(() => {
@@ -655,7 +658,13 @@ export default function ClientTicketDetails() {
                       key={attachment.id}
                       className="flex items-center justify-between p-2 rounded-md bg-muted hover:bg-muted/70 transition-colors"
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <button
+                        onClick={() => {
+                          setPreviewAttachment(attachment);
+                          setPreviewOpen(true);
+                        }}
+                        className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                      >
                         <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
@@ -665,7 +674,7 @@ export default function ClientTicketDetails() {
                             {(attachment.file_size / 1024).toFixed(1)} KB
                           </p>
                         </div>
-                      </div>
+                      </button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -754,6 +763,13 @@ export default function ClientTicketDetails() {
             description: 'Obrigado pelo seu feedback!',
           });
         }}
+      />
+
+      <AttachmentPreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        attachment={previewAttachment}
+        onDownload={() => previewAttachment && downloadAttachment(previewAttachment)}
       />
     </DashboardLayout>
   );
