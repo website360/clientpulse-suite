@@ -51,6 +51,9 @@ verify_jwt = true
 [functions.send-sms]
 verify_jwt = true
 
+[functions.send-notification]
+verify_jwt = true
+
 [functions.send-maintenance-whatsapp]
 verify_jwt = true
 

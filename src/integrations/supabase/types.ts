@@ -1430,6 +1430,116 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          error_message: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id: string
+          message: string
+          recipient: string
+          reference_id: string | null
+          reference_type: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_id: string | null
+        }
+        Insert: {
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          error_message?: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          message: string
+          recipient: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          error_message?: string | null
+          event_type?: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          message?: string
+          recipient?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_templates: {
+        Row: {
+          channels: Database["public"]["Enums"]["notification_channel"][]
+          created_at: string
+          created_by: string
+          description: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id: string
+          is_active: boolean | null
+          name: string
+          send_to_admins: boolean | null
+          send_to_assigned: boolean | null
+          send_to_client: boolean | null
+          template_body: string
+          template_subject: string | null
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          channels?: Database["public"]["Enums"]["notification_channel"][]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          is_active?: boolean | null
+          name: string
+          send_to_admins?: boolean | null
+          send_to_assigned?: boolean | null
+          send_to_client?: boolean | null
+          template_body: string
+          template_subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          channels?: Database["public"]["Enums"]["notification_channel"][]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_type?: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          send_to_admins?: boolean | null
+          send_to_assigned?: boolean | null
+          send_to_client?: boolean | null
+          template_body?: string
+          template_subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -3050,6 +3160,24 @@ export type Database = {
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       maintenance_item_status: "done" | "not_needed" | "skipped"
       note_type: "text" | "link" | "image"
+      notification_channel: "email" | "telegram" | "sms" | "whatsapp"
+      notification_event_type:
+        | "ticket_created"
+        | "ticket_assigned"
+        | "ticket_status_changed"
+        | "ticket_message"
+        | "payment_due"
+        | "payment_overdue"
+        | "payment_received"
+        | "contract_expiring"
+        | "contract_expired"
+        | "domain_expiring"
+        | "domain_expired"
+        | "maintenance_scheduled"
+        | "maintenance_completed"
+        | "task_assigned"
+        | "task_due"
+        | "custom"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       project_credential_category:
         | "hosting"
@@ -3213,6 +3341,25 @@ export const Constants = {
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       maintenance_item_status: ["done", "not_needed", "skipped"],
       note_type: ["text", "link", "image"],
+      notification_channel: ["email", "telegram", "sms", "whatsapp"],
+      notification_event_type: [
+        "ticket_created",
+        "ticket_assigned",
+        "ticket_status_changed",
+        "ticket_message",
+        "payment_due",
+        "payment_overdue",
+        "payment_received",
+        "contract_expiring",
+        "contract_expired",
+        "domain_expiring",
+        "domain_expired",
+        "maintenance_scheduled",
+        "maintenance_completed",
+        "task_assigned",
+        "task_due",
+        "custom",
+      ],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       project_credential_category: [
         "hosting",
