@@ -224,20 +224,48 @@ serve(async (req) => {
           priority,
           client_id,
           created_by,
-          clients!inner (
+          clients (
             full_name,
             company_name,
             phone,
             user_id
           ),
-          departments!inner (
+          departments (
             name
           )
         `)
         .eq('id', ticket_id)
-        .single();
+        .maybeSingle();
 
-      if (ticketError) throw ticketError;
+      if (ticketError) {
+        console.error('Error fetching ticket:', ticketError);
+        throw ticketError;
+      }
+
+      if (!ticket) {
+        console.log(`Ticket ${ticket_id} not found`);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Ticket not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Validate required data
+      if (!ticket.clients) {
+        console.error('Ticket has no client associated');
+        return new Response(
+          JSON.stringify({ success: false, error: 'Ticket has no client associated' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!ticket.departments) {
+        console.error('Ticket has no department associated');
+        return new Response(
+          JSON.stringify({ success: false, error: 'Ticket has no department associated' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       // Check for duplicate notification (debounce 5 minutes)
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -279,14 +307,14 @@ serve(async (req) => {
           .select('user_id')
           .eq('role', 'admin')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (adminUsers) {
           const { data: adminProfile } = await supabase
             .from('profiles')
             .select('phone')
             .eq('id', adminUsers.user_id)
-            .single();
+            .maybeSingle();
 
           if (adminProfile?.phone) {
             const adminMessageText = `🎫 *Novo Ticket Aberto por Contato*\n\n` +
@@ -412,14 +440,14 @@ serve(async (req) => {
           .select('user_id')
           .eq('role', 'admin')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (adminUsers) {
           const { data: adminProfile } = await supabase
             .from('profiles')
             .select('phone')
             .eq('id', adminUsers.user_id)
-            .single();
+            .maybeSingle();
 
           if (adminProfile?.phone) {
             const adminMessageText = `💬 *Nova Mensagem no Ticket #${ticket.ticket_number}*\n\n` +
@@ -463,7 +491,7 @@ serve(async (req) => {
           .select('user_id')
           .eq('role', 'admin')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (!adminUsers) {
           return new Response(
@@ -476,7 +504,7 @@ serve(async (req) => {
           .from('profiles')
           .select('phone')
           .eq('id', adminUsers.user_id)
-          .single();
+          .maybeSingle();
 
         if (!adminProfile?.phone) {
           return new Response(
@@ -564,10 +592,19 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("Error in send-whatsapp function:", error);
+    
+    // Log more details for Supabase errors
+    if (error.code) {
+      console.error("Supabase error code:", error.code);
+      console.error("Supabase error details:", error.details);
+      console.error("Supabase error hint:", error.hint);
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Internal server error" 
+        error: error.message || "Internal server error",
+        ...(error.code && { code: error.code, details: error.details })
       }),
       { 
         status: 500, 
