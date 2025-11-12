@@ -10,7 +10,7 @@ interface AttachmentPreviewModalProps {
   attachment: {
     id: string;
     file_name: string;
-    file_path: string;
+    file_url: string;
     file_type: string;
     file_size: number;
   } | null;
@@ -27,18 +27,17 @@ export function AttachmentPreviewModal({
   const [fileUrl, setFileUrl] = useState<string>('');
 
   useEffect(() => {
-    if (attachment) {
+    if (attachment?.file_url) {
       // Reset error state when attachment changes
       setImageError(false);
       
       // Generate public URL using Supabase client
       const { data } = supabase.storage
         .from('ticket-attachments')
-        .getPublicUrl(attachment.file_path);
+        .getPublicUrl(attachment.file_url);
       
       if (data?.publicUrl) {
         setFileUrl(data.publicUrl);
-        console.log('Generated URL:', data.publicUrl);
       }
     }
   }, [attachment]);
