@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { Loader2, X, Download, Upload } from 'lucide-react';
 import { TagSelector } from './TagSelector';
 import { Card } from '@/components/ui/card';
@@ -42,7 +42,6 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const [recentTags, setRecentTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -161,16 +160,9 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
       const newUrls = await Promise.all(uploadPromises);
       setImageUrls([...imageUrls, ...newUrls]);
 
-      toast({
-        title: 'Imagens enviadas!',
-        description: `${newUrls.length} imagem(ns) adicionada(s) com sucesso.`,
-      });
+      toastSuccess('Imagens enviadas!', `${newUrls.length} imagem(ns) adicionada(s) com sucesso.`);
     } catch (error: any) {
-      toast({
-        title: 'Erro ao fazer upload',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toastError('Erro ao fazer upload', error.message);
     } finally {
       setUploading(false);
     }
@@ -193,11 +185,7 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      toast({
-        title: 'Erro ao baixar imagem',
-        description: 'Não foi possível baixar a imagem',
-        variant: 'destructive',
-      });
+      toastError('Erro ao baixar imagem', 'Não foi possível baixar a imagem');
     }
   };
 
@@ -256,19 +244,15 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
         }
       }
 
-      toast({
-        title: note ? 'Anotação atualizada!' : 'Anotação criada!',
-        description: note ? 'Sua anotação foi atualizada com sucesso.' : 'Sua anotação foi criada com sucesso.',
-      });
+      toastSuccess(
+        note ? 'Anotação atualizada!' : 'Anotação criada!',
+        note ? 'Sua anotação foi atualizada com sucesso.' : 'Sua anotação foi criada com sucesso.'
+      );
 
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toastError('Erro', error.message);
     } finally {
       setLoading(false);
     }

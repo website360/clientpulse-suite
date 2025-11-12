@@ -12,7 +12,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 
 interface MaintenancePlanFormModalProps {
   open: boolean;
@@ -159,7 +159,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
       }
     },
     onSuccess: () => {
-      toast.success(plan ? 'Plano atualizado com sucesso' : 'Plano criado com sucesso');
+      toastSuccess(plan ? 'Plano atualizado' : 'Plano criado', plan ? 'Plano atualizado com sucesso' : 'Plano criado com sucesso');
       queryClient.invalidateQueries({ queryKey: ['client-maintenance-plans', clientId] });
       queryClient.invalidateQueries({ queryKey: ['maintenance-plans'] });
       onOpenChange(false);
@@ -173,7 +173,7 @@ export function MaintenancePlanFormModal({ open, onOpenChange, clientId: propCli
         startDate,
         isActive,
       });
-      toast.error('Erro ao salvar plano: ' + error.message);
+      toastError('Erro ao salvar plano', error.message);
     },
   });
 

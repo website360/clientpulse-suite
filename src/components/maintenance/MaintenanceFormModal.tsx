@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toastSuccess, toastError } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { addMonths } from "date-fns";
 
@@ -31,7 +31,6 @@ interface MaintenanceFormModalProps {
 type ItemStatus = "done" | "not_needed" | "skipped";
 
 export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSelectedPlan }: MaintenanceFormModalProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState("");
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
@@ -108,11 +107,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
 
         if (whatsappError) {
           console.error("Erro ao enviar WhatsApp:", whatsappError);
-          toast({
-            title: "Manutenção salva com avisos",
-            description: "A manutenção foi salva, mas houve erro ao enviar o WhatsApp.",
-            variant: "destructive",
-          });
+          toastError("Manutenção salva com avisos", "A manutenção foi salva, mas houve erro ao enviar o WhatsApp.");
           return;
         }
       }
@@ -120,10 +115,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       return execution;
     },
     onSuccess: () => {
-      toast({
-        title: "Manutenção registrada",
-        description: "A manutenção foi registrada com sucesso.",
-      });
+      toastSuccess("Manutenção registrada", "A manutenção foi registrada com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["maintenance-plans"] });
       queryClient.invalidateQueries({ queryKey: ["maintenance-history"] });
       onOpenChange(false);
@@ -131,11 +123,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
     },
     onError: (error) => {
       console.error(error);
-      toast({
-        title: "Erro ao registrar manutenção",
-        description: "Ocorreu um erro ao registrar a manutenção.",
-        variant: "destructive",
-      });
+      toastError("Erro ao registrar manutenção", "Ocorreu um erro ao registrar a manutenção.");
     },
   });
 

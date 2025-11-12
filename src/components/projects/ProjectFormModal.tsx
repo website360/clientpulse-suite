@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +19,6 @@ interface ProjectFormModalProps {
 }
 
 export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }: ProjectFormModalProps) {
-  const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -112,10 +111,7 @@ export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }
 
         if (error) throw error;
 
-        toast({
-          title: 'Projeto atualizado',
-          description: 'O projeto foi atualizado com sucesso.',
-        });
+        toastSuccess('Projeto atualizado', 'O projeto foi atualizado com sucesso.');
       } else {
         const { error } = await supabase
           .from('projects')
@@ -123,20 +119,13 @@ export function ProjectFormModal({ open, onClose, project, onSuccess, clientId }
 
         if (error) throw error;
 
-        toast({
-          title: 'Projeto criado',
-          description: 'O projeto foi criado com sucesso. As etapas foram criadas automaticamente.',
-        });
+        toastSuccess('Projeto criado', 'O projeto foi criado com sucesso. As etapas foram criadas automaticamente.');
       }
 
       onSuccess();
     } catch (error) {
       console.error('Error saving project:', error);
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o projeto.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao salvar', 'Não foi possível salvar o projeto.');
     } finally {
       setLoading(false);
     }

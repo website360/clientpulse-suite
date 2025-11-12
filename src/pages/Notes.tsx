@@ -9,11 +9,10 @@ import { NoteFormModal } from '@/components/notes/NoteFormModal';
 import { NoteFilters } from '@/components/notes/NoteFilters';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EmptyNotes } from '@/components/illustrations/EmptyNotes';
-import { useToast } from '@/hooks/use-toast';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 
 export default function Notes() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [notes, setNotes] = useState<any[]>([]);
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,11 +50,7 @@ export default function Notes() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast({
-        title: 'Erro ao carregar anotações',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toastError('Erro ao carregar anotações', error.message);
     } else {
       const notesWithTags = (data || []).map(note => ({
         ...note,
@@ -126,16 +121,9 @@ export default function Notes() {
       .eq('id', id);
 
     if (error) {
-      toast({
-        title: 'Erro ao excluir',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toastError('Erro ao excluir', error.message);
     } else {
-      toast({
-        title: 'Anotação excluída',
-        description: 'Anotação excluída com sucesso',
-      });
+      toastSuccess('Anotação excluída', 'Anotação excluída com sucesso');
       fetchNotes();
     }
   };
@@ -147,11 +135,7 @@ export default function Notes() {
       .eq('id', id);
 
     if (error) {
-      toast({
-        title: 'Erro ao atualizar cor',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toastError('Erro ao atualizar cor', error.message);
     } else {
       fetchNotes();
     }
