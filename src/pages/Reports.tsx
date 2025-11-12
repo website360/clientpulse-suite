@@ -8,8 +8,7 @@ import FinancialReportTable from '@/components/reports/FinancialReportTable';
 import ProductivityReport from '@/components/reports/ProductivityReport';
 import TicketsReport from '@/components/reports/TicketsReport';
 import DefaultReport from '@/components/reports/DefaultReport';
-import CustomDashboard from '@/components/dashboard/CustomDashboard';
-import { FileText, TrendingUp, Ticket, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { FileText, TrendingUp, Ticket, AlertTriangle } from 'lucide-react';
 
 export type ReportType = 'payable' | 'receivable' | '';
 export type ReportStatus = 'pending' | 'paid' | 'overdue' | 'canceled';
@@ -26,6 +25,7 @@ export interface FinancialReportFilters {
 }
 
 export default function Reports() {
+  const [activeTab, setActiveTab] = useState('financial');
   const [filters, setFilters] = useState<FinancialReportFilters>({
     reportType: '',
     status: [],
@@ -52,35 +52,27 @@ export default function Reports() {
           </div>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="financial" className="space-y-6">
           <ScrollableTabs>
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="dashboard" className="gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="financial" className="gap-2">
+            <TabsList>
+              <TabsTrigger value="financial" className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 Financeiro
               </TabsTrigger>
-              <TabsTrigger value="productivity" className="gap-2">
+              <TabsTrigger value="productivity" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Produtividade
               </TabsTrigger>
-              <TabsTrigger value="tickets" className="gap-2">
+              <TabsTrigger value="tickets" className="flex items-center gap-2">
                 <Ticket className="w-4 h-4" />
                 Tickets
               </TabsTrigger>
-              <TabsTrigger value="default" className="gap-2">
+              <TabsTrigger value="defaults" className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
                 Inadimplência
               </TabsTrigger>
             </TabsList>
           </ScrollableTabs>
-
-          <TabsContent value="dashboard" className="space-y-6">
-            <CustomDashboard />
-          </TabsContent>
 
           <TabsContent value="financial" className="space-y-6">
             <Card>
@@ -105,7 +97,7 @@ export default function Reports() {
             <TicketsReport />
           </TabsContent>
 
-          <TabsContent value="default" className="space-y-6">
+          <TabsContent value="defaults" className="space-y-6">
             <DefaultReport />
           </TabsContent>
         </Tabs>
