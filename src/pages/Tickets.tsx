@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { TableSkeleton } from '@/components/loading/TableSkeleton';
 
@@ -39,7 +39,6 @@ export default function Tickets() {
     department: 'all',
     status: 'all',
   });
-  const { toast } = useToast();
   const { userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -153,11 +152,7 @@ export default function Tickets() {
       }
     } catch (error) {
       console.error('Error fetching tickets:', error);
-      toast({
-        title: 'Erro ao carregar tickets',
-        description: 'Não foi possível carregar a lista de tickets.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao carregar tickets', 'Não foi possível carregar a lista de tickets.');
     } finally {
       setLoading(false);
     }
@@ -218,18 +213,11 @@ export default function Tickets() {
 
       if (error) throw error;
 
-      toast({
-        title: 'Prioridade atualizada',
-        description: 'Prioridade do ticket atualizada com sucesso.',
-      });
+      toastSuccess('Prioridade atualizada', 'Prioridade do ticket atualizada com sucesso.');
       fetchTickets();
     } catch (error) {
       console.error('Error updating priority:', error);
-      toast({
-        title: 'Erro ao atualizar prioridade',
-        description: 'Não foi possível atualizar a prioridade do ticket.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao atualizar prioridade', 'Não foi possível atualizar a prioridade do ticket.');
     }
   };
 
@@ -268,18 +256,11 @@ export default function Tickets() {
         }
       }
 
-      toast({
-        title: 'Status atualizado',
-        description: 'Status do ticket atualizado com sucesso.',
-      });
+      toastSuccess('Status atualizado', 'Status do ticket atualizado com sucesso.');
       fetchTickets();
     } catch (error) {
       console.error('Error updating status:', error);
-      toast({
-        title: 'Erro ao atualizar status',
-        description: 'Não foi possível atualizar o status do ticket.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao atualizar status', 'Não foi possível atualizar o status do ticket.');
     }
   };
 
@@ -319,18 +300,11 @@ export default function Tickets() {
 
       if (error) throw error;
 
-      toast({
-        title: 'Ticket excluído',
-        description: 'Ticket excluído com sucesso.',
-      });
+      toastSuccess('Ticket excluído', 'Ticket excluído com sucesso.');
       fetchTickets();
     } catch (error) {
       console.error('Error deleting ticket:', error);
-      toast({
-        title: 'Erro ao excluir ticket',
-        description: 'Não foi possível excluir o ticket.',
-        variant: 'destructive',
-      });
+      toastError('Erro ao excluir ticket', 'Não foi possível excluir o ticket.');
     } finally {
       setDeleteDialogOpen(false);
       setTicketToDelete(null);
