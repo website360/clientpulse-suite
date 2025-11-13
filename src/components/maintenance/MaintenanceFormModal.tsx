@@ -107,21 +107,8 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
 
       if (rpcError) throw rpcError;
 
-      // Enviar WhatsApp se solicitado
-      if (sendWhatsApp) {
-        const { error: whatsappError } = await supabase.functions.invoke(
-          "send-maintenance-whatsapp",
-          {
-            body: { maintenance_execution_id: executionId },
-          }
-        );
-
-        if (whatsappError) {
-          console.error("Erro ao enviar WhatsApp:", whatsappError);
-          toastError("Manutenção salva com avisos", "A manutenção foi salva, mas houve erro ao enviar o WhatsApp.");
-          return executionId;
-        }
-      }
+      // O WhatsApp é enviado automaticamente pelo trigger trigger_maintenance_completed
+      // via sistema de notificações quando o usuário marca a opção
 
       return executionId;
     },
