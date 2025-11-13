@@ -79,28 +79,36 @@ function buildAliasMap(eventType: string): Record<string, string> {
 
   // Maintenance events aliases
   if (eventType === 'maintenance_completed' || eventType === 'maintenance_scheduled') {
-    // Site/domain
+    // Site/domain (PT + EN)
+    aliases['domain'] = 'site_url';
     aliases['dominio'] = 'site_url';
     aliases['domínio'] = 'site_url';
     aliases['site'] = 'site_url';
     aliases['url_site'] = 'site_url';
+    aliases['url'] = 'site_url';
 
-    // Dates
+    // Dates (PT + EN)
     if (eventType === 'maintenance_completed') {
+      aliases['execution_date'] = 'completed_date';
       aliases['data'] = 'completed_date';
       aliases['data_execucao'] = 'completed_date';
       aliases['data_execução'] = 'completed_date';
+      aliases['date'] = 'completed_date';
     } else {
+      aliases['execution_date'] = 'scheduled_date';
       aliases['data'] = 'scheduled_date';
       aliases['data_programada'] = 'scheduled_date';
       aliases['horario'] = 'scheduled_time';
+      aliases['date'] = 'scheduled_date';
     }
 
-    // Executor
+    // Executor (PT + EN)
+    aliases['executed_by'] = 'executed_by_name';
     aliases['executado_por'] = 'executed_by_name';
     aliases['executor'] = 'executed_by_name';
     aliases['tecnico'] = 'executed_by_name';
     aliases['técnico'] = 'executed_by_name';
+    aliases['technician'] = 'executed_by_name';
 
     // Signature
     aliases['assinatura'] = 'signature';
@@ -134,12 +142,19 @@ function enrichData(eventType: string, data: Record<string, any>): Record<string
     enriched[normalizeKey(k)] = v;
   }
 
-  // Alias copies
+  // Alias copies (bidirectional: alias <-> canonical)
   for (const [alias, canonical] of Object.entries(aliases)) {
     const nAlias = normalizeKey(alias);
     const nCanonical = normalizeKey(canonical);
+    
+    // Copy alias -> canonical
     if (enriched[nAlias] !== undefined && enriched[nCanonical] === undefined) {
       enriched[nCanonical] = enriched[nAlias];
+    }
+    
+    // Copy canonical -> alias (this is critical for templates using English keys)
+    if (enriched[nAlias] === undefined && enriched[nCanonical] !== undefined) {
+      enriched[nAlias] = enriched[nCanonical];
     }
   }
 
@@ -581,6 +596,18 @@ serve(async (req) => {
         ? replaceVariablesFlexible(template.template_html, event_type, enrichedData)
         : null;
 
+      // Debug: Log variables for troubleshooting
+      const templateVars = (template.template_body || '').match(/\{\{\s*([^}]+?)\s*\}\}|\{\s*([^}]+?)\s*\}/g);
+      if (templateVars) {
+        console.log('=== Template Variables Debug ===');
+        console.log('Template:', template.name);
+        console.log('Event Type:', event_type);
+        console.log('Detected template variables:', templateVars);
+        console.log('Available enriched keys:', Object.keys(enrichData(event_type, enrichedData)));
+        console.log('Sample enriched data:', JSON.stringify(enrichData(event_type, enrichedData), null, 2).substring(0, 500));
+        console.log('================================');
+      }
+
       // Obter destinatários
       const recipients = await getRecipients(supabaseClient, template, data);
       const sentSet = new Set<string>();
@@ -630,6 +657,14 @@ serve(async (req) => {
             if (!recipientAddress || recipientAddress.length < 12) {
               console.log(`Invalid ${channel} number after normalization for ${recipient.type}, skipping`);
               continue;
+            }
+
+            // Debug WhatsApp message content
+            if (channel === 'whatsapp') {
+              console.log('=== WhatsApp Message Debug ===');
+              console.log('Final message length:', message.length);
+              console.log('Message preview:', message.substring(0, 300));
+              console.log('==============================');
             }
           }
 
