@@ -40,6 +40,22 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
   const [itemsStatus, setItemsStatus] = useState<Record<string, ItemStatus>>({});
   const [itemsNotes, setItemsNotes] = useState<Record<string, string>>({});
 
+  // Normalização de status: garante apenas valores válidos do enum
+  const mapStatus = (status: string): ItemStatus => {
+    const normalized = status.toLowerCase().trim();
+    if (normalized === "done" || normalized === "completed" || normalized === "concluido") {
+      return "done";
+    }
+    if (normalized === "not_needed") {
+      return "not_needed";
+    }
+    if (normalized === "skipped") {
+      return "skipped";
+    }
+    // Fallback: se inválido, usar "done"
+    return "done";
+  };
+
 
   const { data: checklistItems } = useQuery({
     queryKey: ["checklist-items"],
@@ -64,10 +80,10 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       const nextMonth = addMonths(today, 1);
       const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
-      // Preparar itens do checklist
+      // Preparar itens do checklist com normalização de status
       const items = Object.entries(itemsStatus).map(([itemId, status]) => ({
         checklist_item_id: itemId,
-        status,
+        status: mapStatus(status), // Normaliza para evitar erro 22P02
         notes: itemsNotes[itemId] || null,
       }));
 
@@ -75,6 +91,8 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       if (items.length === 0) {
         throw new Error('Selecione o status de pelo menos um item do checklist');
       }
+
+      console.log("📤 Enviando items para RPC:", items); // Debug em DEV
 
       // Chamar RPC
       const { data: executionId, error: rpcError } = await supabase.rpc(
@@ -116,7 +134,14 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
     },
     onError: (error: any) => {
       console.error("Erro ao registrar manutenção:", error);
-      toastError("Erro ao registrar manutenção", error?.message || "Ocorreu um erro ao registrar a manutenção.");
+      
+      // Mensagem específica para erro de enum
+      const isEnumError = error?.code === "22P02" || error?.message?.includes("maintenance_item_status");
+      const description = isEnumError 
+        ? "Houve um valor de status inválido. Tente novamente."
+        : error?.message || "Ocorreu um erro ao registrar a manutenção.";
+      
+      toastError("Erro ao registrar manutenção", description);
     },
   });
 
