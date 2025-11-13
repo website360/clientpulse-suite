@@ -29,13 +29,13 @@ serve(async (req) => {
       throw new Error("maintenance_execution_id é obrigatório");
     }
 
-    // Buscar dados da execução
+    // Buscar dados da execução COM TODOS OS CAMPOS NECESSÁRIOS
     const { data: execution, error: execError } = await supabase
       .from("maintenance_executions")
       .select(`
         *,
         plan:client_maintenance_plans(
-          client:clients(id, full_name, nickname, company_name, phone),
+          client:clients(id, full_name, nickname, company_name, phone, email),
           domain:domains(domain)
         )
       `)
@@ -61,16 +61,8 @@ serve(async (req) => {
       return (a.item?.order || 0) - (b.item?.order || 0);
     });
 
-    // Buscar configurações
-    const { data: settings, error: settingsError } = await supabase
-      .from("maintenance_settings")
-      .select("*")
-      .single();
-
-    if (settingsError) throw settingsError;
-
-    // Montar checklist formatado com MESMA LÓGICA DA RPC
-    let checklistText = "\n";
+    // Montar checklist formatado NA ORDEM CORRETA
+    let checklistText = "";
     sortedItems?.forEach((item: any) => {
       let icon = "";
       let statusText = "";
@@ -92,46 +84,35 @@ serve(async (req) => {
       checklistText += `${icon} ${item.item.name}${statusText ? ": " + statusText : ""}\n`;
     });
 
-    // Preparar variáveis do template
-    const clientName = execution.plan?.client?.nickname || 
-                      execution.plan?.client?.company_name || 
-                      execution.plan?.client?.full_name;
-    const siteUrl = execution.plan?.domain?.domain || "seu site";
+    // Preparar dados para o sistema de notificações (MESMA ESTRUTURA DA RPC)
+    const clientData = {
+      client_name: execution.plan?.client?.nickname || 
+                   execution.plan?.client?.company_name || 
+                   execution.plan?.client?.full_name,
+      client_email: execution.plan?.client?.email,
+      client_phone: execution.plan?.client?.phone,
+      site_url: execution.plan?.domain?.domain || "N/A",
+      completed_date: new Date(execution.executed_at).toLocaleDateString('pt-BR'),
+      checklist: checklistText || "Nenhum item registrado",
+      notes: execution.notes || ""
+    };
 
-    // Substituir variáveis no template
-    let message = settings.whatsapp_template
-      .replace(/{cliente_nome}/g, clientName)
-      .replace(/{site_url}/g, siteUrl)
-      .replace(/{checklist}/g, checklistText)
-      .replace(/{assinatura}/g, settings.message_signature);
+    console.log("Reenviando notificação via sistema de templates:", clientData);
 
-    // Enviar WhatsApp
-    const clientPhone = execution.plan?.client?.phone;
-    if (!clientPhone) {
-      throw new Error("Cliente não possui telefone cadastrado");
-    }
-
-    // Normalizar telefone: remover não-dígitos, remover zeros à esquerda, adicionar DDI 55 se necessário
-    let normalizedPhone = clientPhone.replace(/\D/g, '');
-    normalizedPhone = normalizedPhone.replace(/^0+/, '');
-    if (!normalizedPhone.startsWith('55')) {
-      normalizedPhone = '55' + normalizedPhone;
-    }
-
-    console.log(`Enviando WhatsApp para: ${normalizedPhone}`);
-
-    const { error: whatsappError } = await supabase.functions.invoke(
-      "send-whatsapp",
+    // USAR O SISTEMA DE NOTIFICAÇÕES ao invés do template antigo
+    const { error: notifyError } = await supabase.functions.invoke(
+      "send-notification",
       {
         body: {
-          action: "send_message",
-          phone: normalizedPhone,
-          message: message,
+          event_type: "maintenance_completed",
+          data: clientData,
+          reference_type: "maintenance",
+          reference_id: maintenance_execution_id
         },
       }
     );
 
-    if (whatsappError) throw whatsappError;
+    if (notifyError) throw notifyError;
 
     // Atualizar execução como enviada
     const { error: updateError } = await supabase
