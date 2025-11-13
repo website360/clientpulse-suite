@@ -1,8 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, SkipForward } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, XCircle, SkipForward, Send } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MaintenanceExecutionViewModalProps {
   open: boolean;
@@ -15,6 +19,27 @@ export function MaintenanceExecutionViewModal({
   onOpenChange,
   execution,
 }: MaintenanceExecutionViewModalProps) {
+  const queryClient = useQueryClient();
+
+  const resendWhatsAppMutation = useMutation({
+    mutationFn: async (executionId: string) => {
+      const { data, error } = await supabase.functions.invoke("send-maintenance-whatsapp", {
+        body: { maintenance_execution_id: executionId }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || "Erro ao enviar mensagem");
+    },
+    onSuccess: () => {
+      toast.success("Mensagem WhatsApp enviada com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["client-maintenance-history"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance-executions"] });
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar mensagem: " + error.message);
+    },
+  });
+
   if (!execution) return null;
 
   return (
@@ -90,6 +115,22 @@ export function MaintenanceExecutionViewModal({
             </div>
           )}
         </div>
+
+        <DialogFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Fechar
+          </Button>
+          <Button
+            onClick={() => resendWhatsAppMutation.mutate(execution.id)}
+            disabled={resendWhatsAppMutation.isPending}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {execution.whatsapp_sent ? "Reenviar WhatsApp" : "Enviar WhatsApp"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

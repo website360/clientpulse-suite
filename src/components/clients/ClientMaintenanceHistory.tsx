@@ -193,17 +193,15 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
                       <Eye className="h-4 w-4 mr-2" />
                       Visualizar
                     </Button>
-                    {!execution.whatsapp_sent && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => resendWhatsAppMutation.mutate(execution.id)}
-                        disabled={resendWhatsAppMutation.isPending}
-                        title="Reenviar mensagem WhatsApp"
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => resendWhatsAppMutation.mutate(execution.id)}
+                      disabled={resendWhatsAppMutation.isPending}
+                      title={execution.whatsapp_sent ? "Reenviar WhatsApp" : "Enviar WhatsApp"}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
