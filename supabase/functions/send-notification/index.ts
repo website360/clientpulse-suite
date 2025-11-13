@@ -104,6 +104,13 @@ function buildAliasMap(eventType: string): Record<string, string> {
 
     // Signature
     aliases['assinatura'] = 'signature';
+
+    // Checklist common typos and variants
+    aliases['checklist'] = 'checklist';
+    aliases['check_list'] = 'checklist';
+    aliases['lista_de_checagem'] = 'checklist';
+    aliases['chaklist'] = 'checklist';
+    aliases['cheklist'] = 'checklist';
   }
 
   return aliases;
@@ -114,7 +121,8 @@ function normalizeKey(key: string): string {
     .toLowerCase()
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
-    .replace(/\s+/g, '_');
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
 }
 
 function enrichData(eventType: string, data: Record<string, any>): Record<string, any> {
