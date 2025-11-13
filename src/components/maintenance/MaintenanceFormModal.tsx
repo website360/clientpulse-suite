@@ -19,8 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toastSuccess, toastError } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { addMonths } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MaintenanceFormModalProps {
   open: boolean;
@@ -32,6 +34,7 @@ type ItemStatus = "done" | "not_needed" | "skipped";
 
 export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSelectedPlan }: MaintenanceFormModalProps) {
   const queryClient = useQueryClient();
+  const { userRole } = useAuth();
   const [notes, setNotes] = useState("");
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [itemsStatus, setItemsStatus] = useState<Record<string, ItemStatus>>({});
@@ -54,65 +57,51 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
 
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
       if (!propSelectedPlan?.id) throw new Error("Plano não encontrado");
 
       // Calcular a próxima data de manutenção baseada no dia do mês configurado
       const today = new Date();
       const nextMonth = addMonths(today, 1);
-      // Garantir que usamos o dia correto do plano
       const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
-      // Criar execução
-      const { data: execution, error: execError } = await supabase
-        .from("maintenance_executions")
-        .insert({
-          maintenance_plan_id: propSelectedPlan.id,
-          executed_by: user.id,
-          next_scheduled_date: nextScheduledDate.toISOString().split('T')[0],
-          notes,
-        })
-        .select()
-        .single();
+      // Preparar itens para a RPC
+      const items = Object.entries(itemsStatus).map(([itemId, status]) => ({
+        checklist_item_id: itemId,
+        status,
+        notes: itemsNotes[itemId] || null,
+      }));
 
-      if (execError) throw execError;
+      // Chamar função RPC para criar execução
+      const { data: executionId, error: rpcError } = await supabase.rpc(
+        'create_maintenance_execution',
+        {
+          p_plan_id: propSelectedPlan.id,
+          p_next_date: nextScheduledDate.toISOString().split('T')[0],
+          p_notes: notes || null,
+          p_items: items,
+        }
+      );
 
-      // Criar itens da execução
-      const executionItems = Object.entries(itemsStatus)
-        .map(([itemId, status]) => ({
-          maintenance_execution_id: execution.id,
-          checklist_item_id: itemId,
-          status,
-          notes: itemsNotes[itemId] || null,
-        }));
-
-      if (executionItems.length > 0) {
-        const { error: itemsError } = await supabase
-          .from("maintenance_execution_items")
-          .insert(executionItems);
-
-        if (itemsError) throw itemsError;
-      }
+      if (rpcError) throw rpcError;
+      if (!executionId) throw new Error("Falha ao criar execução");
 
       // Enviar WhatsApp se solicitado
       if (sendWhatsApp) {
         const { error: whatsappError } = await supabase.functions.invoke(
           "send-maintenance-whatsapp",
           {
-            body: { maintenance_execution_id: execution.id },
+            body: { maintenance_execution_id: executionId },
           }
         );
 
         if (whatsappError) {
           console.error("Erro ao enviar WhatsApp:", whatsappError);
           toastError("Manutenção salva com avisos", "A manutenção foi salva, mas houve erro ao enviar o WhatsApp.");
-          return;
+          return executionId;
         }
       }
 
-      return execution;
+      return executionId;
     },
     onSuccess: () => {
       toastSuccess("Manutenção registrada", "A manutenção foi registrada com sucesso.");
@@ -121,9 +110,11 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       onOpenChange(false);
       resetForm();
     },
-    onError: (error) => {
-      console.error(error);
-      toastError("Erro ao registrar manutenção", "Ocorreu um erro ao registrar a manutenção.");
+    onError: (error: any) => {
+      console.error("Erro ao registrar manutenção:", error);
+      const errorMessage = error?.message || "Ocorreu um erro ao registrar a manutenção.";
+      const errorCode = error?.code ? ` (Código: ${error.code})` : "";
+      toastError("Erro ao registrar manutenção", `${errorMessage}${errorCode}`);
     },
   });
 
@@ -152,6 +143,15 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
         </DialogHeader>
 
         <div className="space-y-6">
+          {userRole !== 'admin' && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Apenas administradores podem registrar manutenções. Papel atual: {userRole || 'não definido'}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {propSelectedPlan && (
             <div className="p-4 bg-muted rounded-lg">
               <div className="text-sm font-medium">
@@ -231,12 +231,16 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
                 </Button>
                 <Button
                   onClick={() => createMaintenanceMutation.mutate()}
-                  disabled={createMaintenanceMutation.isPending || Object.keys(itemsStatus).length === 0}
+                  disabled={
+                    createMaintenanceMutation.isPending || 
+                    Object.keys(itemsStatus).length === 0 ||
+                    userRole !== 'admin'
+                  }
                 >
                   {createMaintenanceMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Salvar e {sendWhatsApp ? "Enviar" : "Concluir"}
+                  Salvar Manutenção
                 </Button>
               </div>
             </>
