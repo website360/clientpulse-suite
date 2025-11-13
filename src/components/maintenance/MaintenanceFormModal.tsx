@@ -65,11 +65,28 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
       // Preparar itens para a RPC
-      const items = Object.entries(itemsStatus).map(([itemId, status]) => ({
-        checklist_item_id: itemId,
-        status,
-        notes: itemsNotes[itemId] || null,
-      }));
+      const items = Object.entries(itemsStatus)
+        .filter(([_, status]) => status !== null)
+        .map(([itemId, status]) => ({
+          checklist_item_id: itemId,
+          status: status as ItemStatus,
+          notes: itemsNotes[itemId] || null,
+        }));
+
+      if (items.length === 0) {
+        throw new Error('Selecione o status de pelo menos um item do checklist');
+      }
+
+      // Validar status antes de enviar
+      const validStatuses: ItemStatus[] = ['done', 'not_needed', 'skipped'];
+      const invalidItems = items.filter(item => !validStatuses.includes(item.status));
+      if (invalidItems.length > 0) {
+        console.error('Invalid items:', invalidItems);
+        throw new Error(`Status inválido detectado: ${invalidItems.map(i => i.status).join(', ')}`);
+      }
+
+      // Log temporário para debug
+      console.log('Items being sent to RPC:', JSON.stringify(items, null, 2));
 
       // Chamar função RPC para criar execução
       const { data: executionId, error: rpcError } = await supabase.rpc(
