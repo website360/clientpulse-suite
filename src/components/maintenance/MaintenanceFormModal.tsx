@@ -94,9 +94,9 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
 
       console.log("📤 Enviando items para RPC:", items); // Debug em DEV
 
-      // Chamar RPC
-      const { data: executionId, error: rpcError } = await supabase.rpc(
-        'create_maintenance_execution',
+      // Chamar RPC (tipagem flexível)
+      const { data: executionId, error: rpcError } = await (supabase as any).rpc(
+        'create_maintenance_execution' as any,
         {
           p_plan_id: propSelectedPlan.id,
           p_next_date: nextScheduledDate.toISOString().split('T')[0],
