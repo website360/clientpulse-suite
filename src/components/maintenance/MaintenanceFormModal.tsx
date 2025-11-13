@@ -113,7 +113,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       });
 
       // Chamar função RPC para criar execução
-      const { data: executionId, error: rpcError } = await supabase.rpc(
+      const { data: executionId, error: rpcError } = await (supabase.rpc as any)(
         'create_maintenance_execution',
         {
           p_plan_id: propSelectedPlan.id,
