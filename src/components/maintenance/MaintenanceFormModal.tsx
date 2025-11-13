@@ -64,29 +64,53 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       const nextMonth = addMonths(today, 1);
       const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
-      // Preparar itens para a RPC
+      // Preparar itens com validação robusta
       const items = Object.entries(itemsStatus)
-        .filter(([_, status]) => status !== null)
+        .filter(([itemId, status]) => {
+          // Filtrar explicitamente NULL ou undefined
+          if (status === null || status === undefined) {
+            console.warn(`⚠️ Item ${itemId} sem status - será ignorado`);
+            return false;
+          }
+          return true;
+        })
         .map(([itemId, status]) => ({
           checklist_item_id: itemId,
           status: status as ItemStatus,
           notes: itemsNotes[itemId] || null,
         }));
 
+      // Validação: deve ter pelo menos um item
       if (items.length === 0) {
         throw new Error('Selecione o status de pelo menos um item do checklist');
       }
 
-      // Validar status antes de enviar
+      // Validação adicional: verificar se todos os status são válidos
       const validStatuses: ItemStatus[] = ['done', 'not_needed', 'skipped'];
       const invalidItems = items.filter(item => !validStatuses.includes(item.status));
+      
       if (invalidItems.length > 0) {
-        console.error('Invalid items:', invalidItems);
-        throw new Error(`Status inválido detectado: ${invalidItems.map(i => i.status).join(', ')}`);
+        console.error('❌ Items com status inválido detectados:', invalidItems);
+        throw new Error(`Status inválido: ${invalidItems.map(i => i.status).join(', ')}`);
       }
 
-      // Log temporário para debug
-      console.log('Items being sent to RPC:', JSON.stringify(items, null, 2));
+      // Log detalhado para debug (verificar se algum item tem status null)
+      console.log('✅ Items validados sendo enviados:', {
+        total: items.length,
+        items: items.map(i => ({
+          id: i.checklist_item_id,
+          status: i.status,
+          hasNotes: !!i.notes
+        }))
+      });
+      
+      // Verificação final antes do envio
+      items.forEach((item, index) => {
+        if (!item.status || item.status === null) {
+          console.error(`❌ CRÍTICO: Item ${index} tem status NULL:`, item);
+          throw new Error(`Item ${index} sem status válido`);
+        }
+      });
 
       // Chamar função RPC para criar execução
       const { data: executionId, error: rpcError } = await supabase.rpc(
