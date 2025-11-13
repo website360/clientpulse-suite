@@ -77,6 +77,35 @@ function buildAliasMap(eventType: string): Record<string, string> {
     aliases['vencimento'] = 'due_date';
   }
 
+  // Maintenance events aliases
+  if (eventType === 'maintenance_completed' || eventType === 'maintenance_scheduled') {
+    // Site/domain
+    aliases['dominio'] = 'site_url';
+    aliases['domínio'] = 'site_url';
+    aliases['site'] = 'site_url';
+    aliases['url_site'] = 'site_url';
+
+    // Dates
+    if (eventType === 'maintenance_completed') {
+      aliases['data'] = 'completed_date';
+      aliases['data_execucao'] = 'completed_date';
+      aliases['data_execução'] = 'completed_date';
+    } else {
+      aliases['data'] = 'scheduled_date';
+      aliases['data_programada'] = 'scheduled_date';
+      aliases['horario'] = 'scheduled_time';
+    }
+
+    // Executor
+    aliases['executado_por'] = 'executed_by_name';
+    aliases['executor'] = 'executed_by_name';
+    aliases['tecnico'] = 'executed_by_name';
+    aliases['técnico'] = 'executed_by_name';
+
+    // Signature
+    aliases['assinatura'] = 'signature';
+  }
+
   return aliases;
 }
 
@@ -118,9 +147,66 @@ function replaceVariablesFlexible(template: string, eventType: string, data: Rec
     const val = enriched[key];
     return val === undefined || val === null ? '' : String(val);
   });
+
+// Enriquecer dados com variáveis específicas por evento (ex.: manutenção)
+async function getEventExtras(
+  supabase: any,
+  eventType: string,
+  data: Record<string, any>,
+  referenceType?: string | null,
+  referenceId?: string | null
+): Promise<Record<string, any>> {
+  const extras: Record<string, any> = {};
+
+  try {
+    // Assinatura comum em manutenção
+    if (eventType.startsWith('maintenance_')) {
+      const { data: mSettings } = await supabase
+        .from('maintenance_settings')
+        .select('message_signature')
+        .single();
+      if (mSettings?.message_signature) extras.signature = mSettings.message_signature;
+    }
+
+    // Complementos da execução de manutenção
+    if (eventType === 'maintenance_completed' && referenceType === 'maintenance' && referenceId) {
+      const { data: exec } = await supabase
+        .from('maintenance_executions')
+        .select('executed_by, executed_at, maintenance_plan_id')
+        .eq('id', referenceId)
+        .single();
+
+      if (exec?.executed_by) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', exec.executed_by)
+          .single();
+        if (profile?.full_name) extras.executed_by_name = profile.full_name;
+      }
+
+      // Se não veio site_url, tentar obter pelo plano
+      if (!data?.site_url && exec?.maintenance_plan_id) {
+        const { data: plan } = await supabase
+          .from('client_maintenance_plans')
+          .select('domain:domains(domain)')
+          .eq('id', exec.maintenance_plan_id)
+          .single();
+        if (plan?.domain?.domain) extras.site_url = plan.domain.domain;
+      }
+
+      // Garantir completed_date formatado se não vier
+      if (!data?.completed_date && exec?.executed_at) {
+        extras.completed_date = new Date(exec.executed_at).toLocaleDateString('pt-BR');
+      }
+    }
+  } catch (_e) {
+    // Silenciar erros de enriquecimento para não quebrar envio
+  }
+
+  return extras;
 }
 
-async function sendChannelNotification(
   supabase: any,
   channel: string,
   recipient: string,
