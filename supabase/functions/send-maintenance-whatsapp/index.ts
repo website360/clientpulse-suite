@@ -44,15 +44,15 @@ serve(async (req) => {
 
     if (execError) throw execError;
 
-    // Buscar itens da execução
+    // Buscar itens da execução COM A ORDEM CORRETA
     const { data: items, error: itemsError } = await supabase
       .from("maintenance_execution_items")
       .select(`
         *,
-        item:maintenance_checklist_items(name)
+        item:maintenance_checklist_items(name, order)
       `)
       .eq("maintenance_execution_id", maintenance_execution_id)
-      .neq("status", "skipped");
+      .order("created_at", { ascending: true });
 
     if (itemsError) throw itemsError;
 
@@ -64,12 +64,27 @@ serve(async (req) => {
 
     if (settingsError) throw settingsError;
 
-    // Montar checklist formatado
+    // Montar checklist formatado com MESMA LÓGICA DA RPC
     let checklistText = "\n";
     items?.forEach((item: any) => {
-      const icon = item.status === "done" ? "✅" : "☑️";
-      const statusText = item.status === "done" ? "Realizado" : "Não houve necessidade";
-      checklistText += `${icon} ${item.item.name}: ${statusText}\n`;
+      let icon = "";
+      let statusText = "";
+      
+      if (item.status === "done") {
+        icon = "✅";
+        statusText = "Realizado";
+      } else if (item.status === "not_needed") {
+        icon = "☑️";
+        statusText = "Não houve necessidade";
+      } else if (item.status === "skipped") {
+        icon = "⏭️";
+        statusText = "Pulado";
+      } else {
+        icon = "•";
+        statusText = "";
+      }
+      
+      checklistText += `${icon} ${item.item.name}${statusText ? ": " + statusText : ""}\n`;
     });
 
     // Preparar variáveis do template
