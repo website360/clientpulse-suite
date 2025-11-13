@@ -64,56 +64,20 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       const nextMonth = addMonths(today, 1);
       const nextScheduledDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), propSelectedPlan.monthly_day);
 
-      // Preparar itens com validação robusta
-      const items = Object.entries(itemsStatus)
-        .filter(([itemId, status]) => {
-          // Filtrar explicitamente NULL ou undefined
-          if (status === null || status === undefined) {
-            console.warn(`⚠️ Item ${itemId} sem status - será ignorado`);
-            return false;
-          }
-          return true;
-        })
-        .map(([itemId, status]) => ({
-          checklist_item_id: itemId,
-          status: status as ItemStatus,
-          notes: itemsNotes[itemId] || null,
-        }));
+      // Preparar itens do checklist
+      const items = Object.entries(itemsStatus).map(([itemId, status]) => ({
+        checklist_item_id: itemId,
+        status,
+        notes: itemsNotes[itemId] || null,
+      }));
 
       // Validação: deve ter pelo menos um item
       if (items.length === 0) {
         throw new Error('Selecione o status de pelo menos um item do checklist');
       }
 
-      // Validação adicional: verificar se todos os status são válidos
-      const validStatuses: ItemStatus[] = ['done', 'not_needed', 'skipped'];
-      const invalidItems = items.filter(item => !validStatuses.includes(item.status));
-      
-      if (invalidItems.length > 0) {
-        console.error('❌ Items com status inválido detectados:', invalidItems);
-        throw new Error(`Status inválido: ${invalidItems.map(i => i.status).join(', ')}`);
-      }
-
-      // Log detalhado para debug (verificar se algum item tem status null)
-      console.log('✅ Items validados sendo enviados:', {
-        total: items.length,
-        items: items.map(i => ({
-          id: i.checklist_item_id,
-          status: i.status,
-          hasNotes: !!i.notes
-        }))
-      });
-      
-      // Verificação final antes do envio
-      items.forEach((item, index) => {
-        if (!item.status || item.status === null) {
-          console.error(`❌ CRÍTICO: Item ${index} tem status NULL:`, item);
-          throw new Error(`Item ${index} sem status válido`);
-        }
-      });
-
-      // Chamar função RPC para criar execução
-      const { data: executionId, error: rpcError } = await (supabase.rpc as any)(
+      // Chamar RPC
+      const { data: executionId, error: rpcError } = await supabase.rpc(
         'create_maintenance_execution',
         {
           p_plan_id: propSelectedPlan.id,
@@ -124,7 +88,6 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       );
 
       if (rpcError) throw rpcError;
-      if (!executionId) throw new Error("Falha ao criar execução");
 
       // Enviar WhatsApp se solicitado
       if (sendWhatsApp) {
@@ -153,9 +116,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
     },
     onError: (error: any) => {
       console.error("Erro ao registrar manutenção:", error);
-      const errorMessage = error?.message || "Ocorreu um erro ao registrar a manutenção.";
-      const errorCode = error?.code ? ` (Código: ${error.code})` : "";
-      toastError("Erro ao registrar manutenção", `${errorMessage}${errorCode}`);
+      toastError("Erro ao registrar manutenção", error?.message || "Ocorreu um erro ao registrar a manutenção.");
     },
   });
 
