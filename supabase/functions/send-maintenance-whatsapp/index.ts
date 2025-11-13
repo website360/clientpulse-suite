@@ -56,6 +56,11 @@ serve(async (req) => {
 
     if (itemsError) throw itemsError;
 
+    // Ordenar items pela ordem do checklist
+    const sortedItems = items?.sort((a: any, b: any) => {
+      return (a.item?.order || 0) - (b.item?.order || 0);
+    });
+
     // Buscar configurações
     const { data: settings, error: settingsError } = await supabase
       .from("maintenance_settings")
@@ -66,7 +71,7 @@ serve(async (req) => {
 
     // Montar checklist formatado com MESMA LÓGICA DA RPC
     let checklistText = "\n";
-    items?.forEach((item: any) => {
+    sortedItems?.forEach((item: any) => {
       let icon = "";
       let statusText = "";
       
