@@ -147,6 +147,7 @@ function replaceVariablesFlexible(template: string, eventType: string, data: Rec
     const val = enriched[key];
     return val === undefined || val === null ? '' : String(val);
   });
+}
 
 // Enriquecer dados com variáveis específicas por evento (ex.: manutenção)
 async function getEventExtras(
@@ -207,6 +208,7 @@ async function getEventExtras(
   return extras;
 }
 
+async function sendChannelNotification(
   supabase: any,
   channel: string,
   recipient: string,
@@ -444,7 +446,10 @@ serve(async (req) => {
       }
 
       // Usar variáveis de teste
-      const testData = testVariables || {};
+      // Enriquecer dados com informações extras (ex.: assinatura, executor, etc.)
+      const extraData = await getEventExtras(supabaseClient, template.event_type, testVariables || {}, null, null);
+      const testData = { ...(testVariables || {}), ...extraData };
+      
       const subject = template.template_subject 
         ? replaceVariablesFlexible(template.template_subject, template.event_type, testData)
         : null;
@@ -555,13 +560,17 @@ serve(async (req) => {
     for (const template of templates) {
       console.log(`Processing template: ${template.name}`);
 
+      // Enriquecer dados com informações extras (ex.: assinatura, executor, etc.)
+      const extraData = await getEventExtras(supabaseClient, event_type, data, reference_type, reference_id);
+      const enrichedData = { ...data, ...extraData };
+
       // Substituir variáveis no subject e body
       const subject = template.template_subject 
-        ? replaceVariablesFlexible(template.template_subject, event_type, data)
+        ? replaceVariablesFlexible(template.template_subject, event_type, enrichedData)
         : null;
-      const message = replaceVariablesFlexible(template.template_body, event_type, data);
+      const message = replaceVariablesFlexible(template.template_body, event_type, enrichedData);
       const htmlMessage = template.template_html 
-        ? replaceVariablesFlexible(template.template_html, event_type, data)
+        ? replaceVariablesFlexible(template.template_html, event_type, enrichedData)
         : null;
 
       // Obter destinatários
