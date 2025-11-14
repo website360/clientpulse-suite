@@ -157,6 +157,23 @@ const MOCK_DATA: Record<string, Record<string, string>> = {
     days_until_due: '2',
     task_url: 'https://sistema.com/tarefas/456',
   },
+  project_approval_requested: {
+    client_name: 'Empresa Exemplo Ltda',
+    client_email: 'contato@exemplo.com.br',
+    client_phone: '+55 11 98765-4321',
+    project_name: 'Desenvolvimento do Site Institucional',
+    stage_name: 'Design da Interface',
+    approval_url: 'https://sistema.com/aprovacoes/abc123',
+    notes: 'Por favor, revise o layout proposto e aprove para continuarmos com o desenvolvimento.',
+  },
+  project_approval_confirmed: {
+    client_name: 'Empresa Exemplo Ltda',
+    client_email: 'contato@exemplo.com.br',
+    client_phone: '+55 11 98765-4321',
+    project_name: 'Desenvolvimento do Site Institucional',
+    stage_name: 'Design da Interface',
+    approved_by_name: 'João Silva',
+  },
 };
 
 const CHANNEL_LABELS: Record<string, string> = {
