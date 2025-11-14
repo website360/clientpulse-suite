@@ -250,6 +250,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
               <SortableTableHead column="service_id" label="Serviço" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Meio de Pagamento</TableHead>
+              <TableHead>Condições de Pagamento</TableHead>
               <SortableTableHead column="start_date" label="Início" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="end_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
@@ -259,7 +260,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
           <TableBody>
             {contracts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   Nenhum contrato encontrado
                 </TableCell>
               </TableRow>
@@ -274,6 +275,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                   <TableCell>{contract.services.name}</TableCell>
                   <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
                   <TableCell>{contract.payment_methods?.name || '-'}</TableCell>
+                  <TableCell>{contract.payment_terms || '-'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
