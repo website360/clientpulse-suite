@@ -9,9 +9,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { toastSuccess, toastError } from '@/hooks/use-toast';
-import { Loader2, X, Download, Upload } from 'lucide-react';
+import { Loader2, X, Download, Upload, Eye } from 'lucide-react';
 import { TagSelector } from './TagSelector';
 import { Card } from '@/components/ui/card';
+import { ImagePreviewModal } from './ImagePreviewModal';
 
 const NOTE_COLORS = [
   { value: '#fef08a', label: 'Amarelo' },
@@ -44,6 +45,8 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const [recentTags, setRecentTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -321,32 +324,47 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
               </label>
 
               {imageUrls.length > 0 && (
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {imageUrls.map((url, index) => (
-                    <Card key={url} className="p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-muted-foreground truncate flex-1">
-                          Imagem {index + 1}
-                        </span>
-                        <div className="flex gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadImage(url)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveImage(url)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                    <Card key={url} className="relative group overflow-hidden">
+                      <div className="aspect-square">
+                        <img
+                          src={url}
+                          alt={`Imagem ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedImageIndex(index);
+                            setShowImagePreview(true);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDownloadImage(url)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveImage(url)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </Card>
                   ))}
@@ -395,6 +413,15 @@ export function NoteFormModal({ open, onOpenChange, note, onSuccess }: NoteFormM
           </div>
         </form>
       </DialogContent>
+
+      {imageUrls.length > 0 && (
+        <ImagePreviewModal
+          images={imageUrls}
+          initialIndex={selectedImageIndex}
+          open={showImagePreview}
+          onOpenChange={setShowImagePreview}
+        />
+      )}
     </Dialog>
   );
 }

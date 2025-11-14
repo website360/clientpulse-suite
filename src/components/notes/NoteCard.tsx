@@ -1,5 +1,6 @@
-import { MoreVertical, Pencil, Trash2, Link as LinkIcon, Paperclip } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, Link as LinkIcon, Paperclip, Eye } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { ImagePreviewModal } from './ImagePreviewModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,9 +61,17 @@ const NOTE_COLORS = [
 
 export function NoteCard({ note, onEdit, onDelete, onColorChange }: NoteCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { toast } = useToast();
 
   const imageCount = note.image_urls?.length || 0;
+
+  const handleImageClick = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImageIndex(index);
+    setShowImagePreview(true);
+  };
 
   const renderContent = () => {
     return (
@@ -84,10 +93,35 @@ export function NoteCard({ note, onEdit, onDelete, onColorChange }: NoteCardProp
           </a>
         )}
         
-        {imageCount > 0 && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Paperclip className="h-3 w-3" />
-            <span>{imageCount} {imageCount === 1 ? 'imagem' : 'imagens'}</span>
+        {note.image_urls && note.image_urls.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Paperclip className="h-3 w-3" />
+              <span>{imageCount} {imageCount === 1 ? 'imagem' : 'imagens'}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {note.image_urls.slice(0, 3).map((url, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => handleImageClick(index, e)}
+                  className="relative aspect-square rounded overflow-hidden border border-foreground/10 hover:border-foreground/30 transition-all group"
+                >
+                  <img
+                    src={url}
+                    alt={`Imagem ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <Eye className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  {index === 2 && note.image_urls && note.image_urls.length > 3 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-sm font-medium">
+                      +{note.image_urls.length - 3}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -180,6 +214,15 @@ export function NoteCard({ note, onEdit, onDelete, onColorChange }: NoteCardProp
           </div>
         </div>
       </Card>
+
+      {note.image_urls && note.image_urls.length > 0 && (
+        <ImagePreviewModal
+          images={note.image_urls}
+          initialIndex={selectedImageIndex}
+          open={showImagePreview}
+          onOpenChange={setShowImagePreview}
+        />
+      )}
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
