@@ -44,6 +44,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   maintenance_completed: 'Manutenção Concluída',
   task_assigned: 'Tarefa Atribuída',
   task_due: 'Tarefa Vencendo',
+  project_approval_requested: 'Aprovação de Etapa Solicitada',
+  project_approval_confirmed: 'Aprovação Confirmada',
   custom: 'Personalizado',
 };
 
@@ -103,6 +105,11 @@ const TEMPLATE_CATEGORIES: Record<string, TemplateCategory> = {
     label: 'Tarefas',
     icon: CheckSquare,
     eventTypes: ['task_assigned', 'task_due'],
+  },
+  approvals: {
+    label: 'Aprovações',
+    icon: CheckSquare,
+    eventTypes: ['project_approval_requested', 'project_approval_confirmed'],
   },
   custom: {
     label: 'Personalizado',
