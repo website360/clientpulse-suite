@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 const STATUS_COLORS = {
   pending_signature: '#a78bfa', // roxo suave
   active: '#34d399', // verde
+  expiring_today: '#f97316', // laranja
   expiring: '#fbbf24', // amarelo
   expired: '#fb7185', // vermelho suave
   completed: '#60a5fa', // azul suave
@@ -13,6 +14,7 @@ const STATUS_COLORS = {
 const STATUS_LABELS = {
   pending_signature: 'Assinatura',
   active: 'Ativo',
+  expiring_today: 'Vence Hoje',
   expiring: 'A Vencer',
   expired: 'Vencido',
   completed: 'Concluído',
@@ -49,6 +51,7 @@ export function ContractsBarChart() {
       const statusCount: Record<string, number> = {
         pending_signature: 0,
         active: 0,
+        expiring_today: 0,
         expiring: 0,
         expired: 0,
         completed: 0,
@@ -86,6 +89,8 @@ export function ContractsBarChart() {
             
             if (daysUntilExpiry < 0) {
               statusCount.expired++;
+            } else if (daysUntilExpiry === 0) {
+              statusCount.expiring_today++;
             } else if (daysUntilExpiry <= 30) {
               statusCount.expiring++;
             } else {
