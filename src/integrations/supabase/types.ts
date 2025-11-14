@@ -3529,6 +3529,25 @@ export type Database = {
       check_expiring_contracts: { Args: never; Returns: undefined }
       check_expiring_domains: { Args: never; Returns: undefined }
       close_ticket: { Args: { p_ticket_id: string }; Returns: undefined }
+      create_maintenance_execution:
+        | {
+            Args: {
+              p_items: Json
+              p_next_date: string
+              p_notes: string
+              p_plan_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_executed_by: string
+              p_items?: Json
+              p_notes?: string
+              p_plan_id: string
+            }
+            Returns: string
+          }
       format_timestamp_br: { Args: { ts: string }; Returns: string }
       get_receivable_parent_id: {
         Args: { receivable_id: string }
@@ -3623,6 +3642,9 @@ export type Database = {
         | "approval_reminder_normal"
         | "approval_reminder_medium"
         | "approval_reminder_high"
+        | "project_approval_requested"
+        | "project_approval_confirmed"
+        | "project_mention"
       payment_status: "pending" | "paid" | "received" | "overdue" | "canceled"
       project_credential_category:
         | "hosting"
@@ -3813,6 +3835,9 @@ export const Constants = {
         "approval_reminder_normal",
         "approval_reminder_medium",
         "approval_reminder_high",
+        "project_approval_requested",
+        "project_approval_confirmed",
+        "project_mention",
       ],
       payment_status: ["pending", "paid", "received", "overdue", "canceled"],
       project_credential_category: [
