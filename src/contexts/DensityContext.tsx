@@ -12,7 +12,7 @@ const DensityContext = createContext<DensityContextType | undefined>(undefined);
 export function DensityProvider({ children }: { children: React.ReactNode }) {
   const [density, setDensityState] = useState<DensityMode>(() => {
     const saved = localStorage.getItem('ui-density');
-    return (saved as DensityMode) || 'normal';
+    return (saved as DensityMode) || 'compact';
   });
 
   useEffect(() => {

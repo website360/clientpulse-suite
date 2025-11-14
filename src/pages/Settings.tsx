@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { DepartmentsTab } from '@/components/settings/DepartmentsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
-import { DensityTab } from '@/components/settings/DensityTab';
 import { FinancialSettingsTab } from '@/components/settings/FinancialSettingsTab';
 import { SuppliersTab } from '@/components/settings/SuppliersTab';
 import { ServicesTab } from '@/components/settings/ServicesTab';
@@ -28,7 +27,7 @@ import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { ToastDemo } from '@/components/demo/ToastDemo';
 import { NotificationManager } from '@/components/pwa/NotificationManager';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Maximize2, Smartphone, Receipt } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Smartphone, Receipt } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
 import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
@@ -266,10 +265,6 @@ export default function Settings() {
                     <Palette className="h-4 w-4 mr-2" />
                     Aparência
                   </TabsTrigger>
-                  <TabsTrigger value="density">
-                    <Maximize2 className="h-4 w-4 mr-2" />
-                    Densidade
-                  </TabsTrigger>
                   <TabsTrigger value="notifications-demo">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Notificações Demo
@@ -497,10 +492,6 @@ export default function Settings() {
 
                   <TabsContent value="appearance">
                     <AppearanceTab />
-                  </TabsContent>
-
-                  <TabsContent value="density">
-                    <DensityTab />
                   </TabsContent>
 
                   <TabsContent value="notifications-demo">
