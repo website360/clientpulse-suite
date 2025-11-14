@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download, Calendar, Eye, RefreshCw } from 'lucide-react';
+import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -51,6 +52,12 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     isOpen: false,
     contract: null,
   });
+  const [pdfViewModal, setPdfViewModal] = useState<{ isOpen: boolean; url: string | null; filename: string | null; storagePath: string | null }>({
+    isOpen: false,
+    url: null,
+    filename: null,
+    storagePath: null,
+  });
 
   const handleDelete = (contract: Contract) => {
     setDeleteConfirmModal({ isOpen: true, contract });
@@ -94,19 +101,24 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
   const viewPdf = async (url: string) => {
     const { data, error } = await supabase.storage
       .from('contract-attachments')
-      .createSignedUrl(url, 3600);
+      .createSignedUrl(url, 3600); // URL válida por 1 hora
     
     if (error) {
       toast.error('Erro ao gerar link do PDF');
       return;
     }
     
-    // Abrir em nova aba para evitar bloqueio do Chrome
-    window.open(data.signedUrl, '_blank');
+    setPdfViewModal({
+      isOpen: true,
+      url: data.signedUrl,
+      filename: url.split('/').pop() || 'contrato',
+      storagePath: url,
+    });
   };
 
-  const downloadFromModal = async (attachment_url: string) => {
-    await downloadAttachment(attachment_url);
+  const downloadFromModal = async () => {
+    if (!pdfViewModal.storagePath) return;
+    await downloadAttachment(pdfViewModal.storagePath);
   };
 
   const handleRenew = async (contract: Contract) => {
@@ -333,6 +345,44 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null, storagePath: null })}>
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{pdfViewModal.filename}</DialogTitle>
+              <DialogDescription className="sr-only">Visualização do PDF do contrato</DialogDescription>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadFromModal}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setPdfViewModal({ isOpen: false, url: null, filename: null, storagePath: null })}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden bg-muted/50">
+            {pdfViewModal.url && (
+              <iframe
+                src={`${pdfViewModal.url}#toolbar=0&navpanes=0&scrollbar=1`}
+                className="w-full h-full border-0"
+                title="Visualização do PDF"
+                style={{ backgroundColor: '#525659' }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog
         open={deleteConfirmModal.isOpen}
