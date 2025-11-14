@@ -65,10 +65,8 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
     if (stages) {
       const initialExpanded: Record<string, boolean> = {};
       stages.forEach(stage => {
-        const items = stage.project_checklist_items || [];
-        const allCompleted = items.length > 0 && items.every((item: any) => item.is_completed);
-        // Expandido por padrão se não estiver 100% completo
-        initialExpanded[stage.id] = !allCompleted;
+        // Expandido por padrão apenas se estiver em andamento
+        initialExpanded[stage.id] = stage.status === 'em_andamento';
       });
       setExpandedStages(initialExpanded);
     }
