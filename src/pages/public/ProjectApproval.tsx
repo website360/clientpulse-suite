@@ -114,6 +114,32 @@ export default function ProjectApproval() {
             change_description: changeDescription,
           });
       }
+
+      // Se foi aprovado, enviar notificação de confirmação
+      if (status === 'approved' && approval) {
+        const stage = approval.project_stages as any;
+        const project = stage?.projects as any;
+        const client = project?.clients as any;
+
+        try {
+          await supabase.rpc('notify_event', {
+            p_event_type: 'project_approval_confirmed',
+            p_data: {
+              client_name: client?.company_name || client?.full_name || '',
+              client_email: client?.email || '',
+              client_phone: client?.phone || '',
+              project_name: project?.name || '',
+              stage_name: stage?.name || '',
+              approved_by_name: approverName,
+            },
+            p_reference_type: 'project',
+            p_reference_id: (project as any)?.id || null,
+          });
+        } catch (notifyError) {
+          console.error('Erro ao enviar notificação de confirmação:', notifyError);
+          // Não falhar se notificação falhar
+        }
+      }
     },
     onSuccess: () => {
       // Redirecionar para página de sucesso
