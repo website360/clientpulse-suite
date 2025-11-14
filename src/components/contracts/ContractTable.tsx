@@ -165,12 +165,13 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     const { status, end_date } = contract;
     
     // Apenas recalcular status baseado na data se o status for 'active'
-    // Status definidos manualmente prevalecem
     let displayStatus = status;
     
     if (status === 'active' && end_date) {
       if (isExpired(end_date)) {
         displayStatus = 'expired';
+      } else if (isExpiringToday(end_date)) {
+        displayStatus = 'expiring_today';
       } else if (isExpiringSoon(end_date)) {
         displayStatus = 'expiring';
       }
@@ -180,6 +181,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
       pending_signature: 'secondary',
       active: 'default',
       expiring: 'outline',
+      expiring_today: 'outline',
       expired: 'destructive',
       completed: 'secondary',
     };
@@ -188,6 +190,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
       pending_signature: 'Assinatura',
       active: 'Ativo',
       expiring: 'A Vencer',
+      expiring_today: 'Vence Hoje',
       expired: 'Vencido',
       completed: 'Concluído',
     };
@@ -195,7 +198,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     return (
       <Badge 
         variant={variants[displayStatus] || 'default'}
-        className={displayStatus === 'expiring' ? 'border-warning text-warning' : ''}
+        className={displayStatus === 'expiring' || displayStatus === 'expiring_today' ? 'border-warning text-warning' : ''}
       >
         {labels[displayStatus] || displayStatus}
       </Badge>
@@ -217,9 +220,12 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   };
 
-  const shouldShowRenewButton = (contract: Contract) => {
-    if (!contract.end_date) return false;
-    return isExpiringSoon(contract.end_date);
+  const isExpiringToday = (endDate: string) => {
+    const exp = parse(endDate, 'yyyy-MM-dd', new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    exp.setHours(0, 0, 0, 0);
+    return exp.getTime() === today.getTime();
   };
 
   const isExpired = (endDate: string) => {
@@ -227,6 +233,11 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return exp.getTime() < today.getTime();
+  };
+
+  const shouldShowRenewButton = (contract: Contract) => {
+    if (!contract.end_date) return false;
+    return isExpiringSoon(contract.end_date) || isExpiringToday(contract.end_date);
   };
 
   return (
