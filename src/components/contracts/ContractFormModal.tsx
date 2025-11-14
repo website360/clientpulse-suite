@@ -64,8 +64,12 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
       // Calcular o período baseado nas datas
       let period = '';
       if (contract.start_date && contract.end_date) {
-        const start = new Date(contract.start_date);
-        const end = new Date(contract.end_date);
+        // Parse das datas evitando problemas de timezone
+        const [startYear, startMonth, startDay] = contract.start_date.split('-').map(Number);
+        const [endYear, endMonth, endDay] = contract.end_date.split('-').map(Number);
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
+        
         const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
         
         if (months === 0) period = 'single';
@@ -184,7 +188,10 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
       // Calcular end_date baseado no período
       let end_date = null;
       if (formData.start_date && formData.contract_period) {
-        const start = new Date(formData.start_date);
+        // Parse da data evitando problemas de timezone
+        const [year, month, day] = formData.start_date.split('-').map(Number);
+        const start = new Date(year, month - 1, day);
+        
         const monthsToAdd = {
           single: 0,
           monthly: 1,
@@ -195,7 +202,11 @@ export function ContractFormModal({ isOpen, onClose, onSuccess, contract }: Cont
         if (monthsToAdd > 0) {
           const end = new Date(start);
           end.setMonth(end.getMonth() + monthsToAdd);
-          end_date = end.toISOString().split('T')[0];
+          // Formatar data no formato YYYY-MM-DD
+          const endYear = end.getFullYear();
+          const endMonth = String(end.getMonth() + 1).padStart(2, '0');
+          const endDay = String(end.getDate()).padStart(2, '0');
+          end_date = `${endYear}-${endMonth}-${endDay}`;
         } else {
           // Para pagamento único, end_date é igual a start_date
           end_date = formData.start_date;

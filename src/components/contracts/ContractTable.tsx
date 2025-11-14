@@ -128,15 +128,24 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     }
 
     try {
-      // Calcular nova data final (adicionar 1 ano)
-      const currentEndDate = new Date(contract.end_date);
+      // Parse da data evitando problemas de timezone
+      const [year, month, day] = contract.end_date.split('-').map(Number);
+      const currentEndDate = new Date(year, month - 1, day);
+      
+      // Adicionar 1 ano
       const newEndDate = new Date(currentEndDate);
       newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+      
+      // Formatar data no formato YYYY-MM-DD
+      const newYear = newEndDate.getFullYear();
+      const newMonth = String(newEndDate.getMonth() + 1).padStart(2, '0');
+      const newDay = String(newEndDate.getDate()).padStart(2, '0');
+      const formattedEndDate = `${newYear}-${newMonth}-${newDay}`;
 
       const { error } = await supabase
         .from('contracts')
         .update({
-          end_date: format(newEndDate, 'yyyy-MM-dd'),
+          end_date: formattedEndDate,
           status: 'active',
           updated_at: new Date().toISOString()
         })
