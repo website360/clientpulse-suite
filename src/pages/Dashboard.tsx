@@ -19,6 +19,7 @@ import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { DashboardAlerts } from '@/components/dashboard/DashboardAlerts';
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
+import { PendingApprovals } from '@/components/dashboard/PendingApprovals';
 import { useDateRangeFilter } from '@/hooks/useDateRangeFilter';
 
 interface DashboardStats {
@@ -630,6 +631,9 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+
+            {/* Aprovações Pendentes */}
+            <PendingApprovals />
           </>
         )}
 
