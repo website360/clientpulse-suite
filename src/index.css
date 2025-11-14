@@ -87,7 +87,7 @@ All colors MUST be HSL.
     --spacing-lg: 1.5rem;     /* 24px */
     --spacing-xl: 2rem;       /* 32px */
     
-    --card-padding: 1.5rem;   /* 24px */
+    --card-padding: 2rem;   /* 32px */
     --button-height: 2.5rem;  /* 40px */
     --input-height: 2.5rem;   /* 40px */
     --table-row-height: 3rem; /* 48px */
@@ -102,7 +102,7 @@ All colors MUST be HSL.
     --spacing-lg: 0.75rem;    /* 12px */
     --spacing-xl: 1rem;       /* 16px */
     
-    --card-padding: 0.75rem;  /* 12px */
+    --card-padding: 1rem;  /* 16px */
     --button-height: 2rem;    /* 32px */
     --input-height: 2rem;     /* 32px */
     --table-row-height: 2.25rem; /* 36px */
@@ -132,7 +132,7 @@ All colors MUST be HSL.
     --spacing-lg: 2rem;       /* 32px */
     --spacing-xl: 3rem;       /* 48px */
     
-    --card-padding: 2rem;     /* 32px */
+    --card-padding: 2.5rem;     /* 40px */
     --button-height: 3rem;    /* 48px */
     --input-height: 3rem;     /* 48px */
     --table-row-height: 4rem; /* 64px */
