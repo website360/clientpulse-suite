@@ -51,6 +51,52 @@ export function StageApprovalModal({
         .single();
       
       if (error) throw error;
+      
+      // Buscar dados completos do projeto e cliente para enviar notificação
+      const { data: stageData } = await supabase
+        .from('project_stages')
+        .select(`
+          name,
+          project_id,
+          projects (
+            name,
+            clients (
+              email,
+              phone,
+              company_name,
+              full_name
+            )
+          )
+        `)
+        .eq('id', stageId)
+        .single();
+
+      if (stageData && data.approval_token) {
+        const project = (stageData as any).projects;
+        const client = project?.clients;
+        
+        // Enviar notificação via sistema
+        try {
+          await supabase.rpc('notify_event', {
+            p_event_type: 'project_approval_requested',
+            p_data: {
+              client_name: client?.company_name || client?.full_name || '',
+              client_email: client?.email || '',
+              client_phone: client?.phone || '',
+              project_name: project?.name || '',
+              stage_name: stageData.name || '',
+              notes: notes || '',
+              approval_url: `${window.location.origin}/approval/${data.approval_token}`
+            },
+            p_reference_type: 'project',
+            p_reference_id: (stageData as any).project_id
+          });
+        } catch (notifyError) {
+          console.error('Erro ao enviar notificação:', notifyError);
+          // Não falhar se notificação falhar
+        }
+      }
+      
       return data;
     },
     onSuccess: (data) => {
