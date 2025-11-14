@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConfetti } from '@/hooks/useConfetti';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send, ChevronsDown, ChevronsUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -64,9 +64,11 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   useEffect(() => {
     if (stages) {
       const initialExpanded: Record<string, boolean> = {};
-      stages.forEach(stage => {
-        // Expandido por padrão apenas se estiver em andamento
-        initialExpanded[stage.id] = stage.status === 'em_andamento';
+      const currentStage = stages.find(s => s.status === 'em_andamento');
+      
+      stages.forEach((stage, index) => {
+        // Expandido por padrão se estiver em andamento, ou se for a primeira etapa e não houver nenhuma em andamento
+        initialExpanded[stage.id] = stage.status === 'em_andamento' || (!currentStage && index === 0);
       });
       setExpandedStages(initialExpanded);
     }
@@ -78,6 +80,28 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
       [stageId]: !prev[stageId]
     }));
   };
+
+  const expandAll = () => {
+    if (stages) {
+      const allExpanded: Record<string, boolean> = {};
+      stages.forEach(stage => {
+        allExpanded[stage.id] = true;
+      });
+      setExpandedStages(allExpanded);
+    }
+  };
+
+  const collapseAll = () => {
+    if (stages) {
+      const allCollapsed: Record<string, boolean> = {};
+      stages.forEach(stage => {
+        allCollapsed[stage.id] = false;
+      });
+      setExpandedStages(allCollapsed);
+    }
+  };
+
+  const areAllExpanded = stages?.every(stage => expandedStages[stage.id]) ?? false;
 
   const toggleApprovalMutation = useMutation({
     mutationFn: async ({ stageId, requiresApproval }: { stageId: string; requiresApproval: boolean }) => {
@@ -204,6 +228,26 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={areAllExpanded ? collapseAll : expandAll}
+        >
+          {areAllExpanded ? (
+            <>
+              <ChevronsUp className="h-4 w-4 mr-2" />
+              Recolher Todas
+            </>
+          ) : (
+            <>
+              <ChevronsDown className="h-4 w-4 mr-2" />
+              Expandir Todas
+            </>
+          )}
+        </Button>
+      </div>
+      
       {stages.map((stage) => {
         const progress = getStageProgress(stage);
         const items = stage.project_checklist_items || [];
