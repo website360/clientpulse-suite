@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -200,14 +200,14 @@ export default function ClientContracts() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                        {format(parse(contract.start_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         {contract.end_date
-                          ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
+                          ? format(parse(contract.end_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })
                           : 'Indeterminado'}
                       </div>
                     </TableCell>
