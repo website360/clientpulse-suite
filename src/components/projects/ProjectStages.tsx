@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConfetti } from '@/hooks/useConfetti';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send, ChevronsDown, ChevronsUp } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, UserCheck, Send, ChevronsDown, ChevronsUp, RefreshCw } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -228,6 +228,75 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
     setSelectedStageForApproval(null);
   };
 
+  const resendNotificationMutation = useMutation({
+    mutationFn: async (stage: any) => {
+      // Buscar dados completos do projeto e cliente
+      const { data: stageData } = await supabase
+        .from('project_stages')
+        .select(`
+          name,
+          project_id,
+          projects (
+            name,
+            clients (
+              email,
+              phone,
+              company_name,
+              full_name
+            )
+          ),
+          project_stage_approvals (
+            approval_token,
+            notes
+          )
+        `)
+        .eq('id', stage.id)
+        .single();
+
+      if (!stageData) throw new Error('Etapa não encontrada');
+
+      const project = (stageData as any).projects;
+      const client = project?.clients;
+      const approval = (stageData as any).project_stage_approvals?.[0];
+
+      if (!approval?.approval_token) {
+        throw new Error('Token de aprovação não encontrado');
+      }
+
+      // Enviar notificação via sistema
+      const { error } = await supabase.rpc('notify_event', {
+        p_event_type: 'project_approval_requested',
+        p_data: {
+          client_name: client?.company_name || client?.full_name || '',
+          client_email: client?.email || '',
+          client_phone: client?.phone || '',
+          project_name: project?.name || '',
+          stage_name: stageData.name || '',
+          notes: approval.notes || '',
+          approval_url: `${window.location.origin}/approval/${approval.approval_token}`
+        },
+        p_reference_type: 'project',
+        p_reference_id: (stageData as any).project_id
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Notificação reenviada',
+        description: 'A notificação de aprovação foi enviada novamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao reenviar notificação:', error);
+      toast({
+        title: 'Erro ao reenviar',
+        description: 'Não foi possível reenviar a notificação.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const getStageProgress = (stage: any) => {
     if (!stage.project_checklist_items?.length) return 0;
     const completed = stage.project_checklist_items.filter((item: any) => item.is_completed).length;
@@ -402,10 +471,21 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                           {stage.project_stage_approvals?.length > 0 ? (
                             <div className="flex items-center gap-2">
                               {stage.project_stage_approvals[0].status === 'pending' && (
-                                <Badge variant="outline" className="text-yellow-600">
-                                  <UserCheck className="h-3 w-3 mr-1" />
-                                  Aguardando aprovação
-                                </Badge>
+                                <>
+                                  <Badge variant="outline" className="text-yellow-600">
+                                    <UserCheck className="h-3 w-3 mr-1" />
+                                    Aguardando aprovação
+                                  </Badge>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => resendNotificationMutation.mutate(stage)}
+                                    disabled={resendNotificationMutation.isPending}
+                                    title="Reenviar notificação de aprovação"
+                                  >
+                                    <RefreshCw className={`h-4 w-4 ${resendNotificationMutation.isPending ? 'animate-spin' : ''}`} />
+                                  </Button>
+                                </>
                               )}
                               {stage.project_stage_approvals[0].status === 'approved' && (
                                 <Badge variant="outline" className="text-green-600">
