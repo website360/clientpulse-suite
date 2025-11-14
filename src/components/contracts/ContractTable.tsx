@@ -250,7 +250,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
               <SortableTableHead column="service_id" label="Serviço" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead>Meio de Pagamento</TableHead>
-              <TableHead>Condições de Pagamento</TableHead>
+              <TableHead>Pagamento</TableHead>
               <SortableTableHead column="start_date" label="Início" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="end_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
