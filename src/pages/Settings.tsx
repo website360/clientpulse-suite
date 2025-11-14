@@ -265,10 +265,6 @@ export default function Settings() {
                     <Palette className="h-4 w-4 mr-2" />
                     Aparência
                   </TabsTrigger>
-                  <TabsTrigger value="notifications-demo">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Notificações Demo
-                  </TabsTrigger>
                   <TabsTrigger value="authentication">
                     <LogIn className="h-4 w-4 mr-2" />
                     Autenticação
@@ -492,10 +488,6 @@ export default function Settings() {
 
                   <TabsContent value="appearance">
                     <AppearanceTab />
-                  </TabsContent>
-
-                  <TabsContent value="notifications-demo">
-                    <ToastDemo />
                   </TabsContent>
 
                   <TabsContent value="authentication">
