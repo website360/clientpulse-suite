@@ -64,12 +64,27 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   useEffect(() => {
     if (stages) {
       const initialExpanded: Record<string, boolean> = {};
-      const currentStage = stages.find(s => s.status === 'em_andamento');
       
       stages.forEach((stage, index) => {
-        // Expandido por padrão se estiver em andamento, ou se for a primeira etapa e não houver nenhuma em andamento
-        initialExpanded[stage.id] = stage.status === 'em_andamento' || (!currentStage && index === 0);
+        // Expandido por padrão apenas a primeira etapa não concluída ou a atual em andamento
+        const isComplete = getStageProgress(stage) === 100;
+        
+        if (stage.status === 'em_andamento') {
+          initialExpanded[stage.id] = true;
+        } else if (!isComplete) {
+          // Primeira etapa não concluída (se não há nenhuma em andamento)
+          const hasInProgress = stages.some(s => s.status === 'em_andamento');
+          if (!hasInProgress) {
+            const firstIncomplete = stages.find(s => getStageProgress(s) < 100);
+            initialExpanded[stage.id] = stage.id === firstIncomplete?.id;
+          } else {
+            initialExpanded[stage.id] = false;
+          }
+        } else {
+          initialExpanded[stage.id] = false; // Etapas concluídas ficam fechadas
+        }
       });
+      
       setExpandedStages(initialExpanded);
     }
   }, [stages]);
@@ -150,7 +165,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
       queryClient.invalidateQueries({ queryKey: ['project-progress', projectId] });
       onUpdate();
       
-      // Verifica se completou 100% da etapa e dispara confetti
+      // Verifica se completou 100% da etapa e dispara confetti + atualiza expansão
       if (!variables.isCompleted) {
         // Buscar a stage deste item
         const stageWithThisItem = stages?.find(stage => 
@@ -165,6 +180,25 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
           
           if (completedCount === items.length && items.length > 0) {
             setTimeout(() => fireMultipleConfetti(), 300);
+            
+            // Atualizar expansão: fechar a etapa atual e abrir a próxima
+            setTimeout(() => {
+              setExpandedStages(prev => {
+                const newExpanded = { ...prev };
+                
+                // Fechar a etapa concluída
+                newExpanded[stageWithThisItem.id] = false;
+                
+                // Abrir a próxima etapa (se houver)
+                const currentIndex = stages.findIndex(s => s.id === stageWithThisItem.id);
+                if (currentIndex < stages.length - 1) {
+                  const nextStage = stages[currentIndex + 1];
+                  newExpanded[nextStage.id] = true;
+                }
+                
+                return newExpanded;
+              });
+            }, 1500); // Aguarda o confetti
           }
         }
       }
@@ -198,6 +232,29 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
     if (!stage.project_checklist_items?.length) return 0;
     const completed = stage.project_checklist_items.filter((item: any) => item.is_completed).length;
     return Math.round((completed / stage.project_checklist_items.length) * 100);
+  };
+
+  // Função para verificar se uma etapa está bloqueada
+  const isStageBlocked = (stage: any, stageIndex: number): boolean => {
+    if (stageIndex === 0) return false; // Primeira etapa nunca está bloqueada
+    
+    const previousStage = stages?.[stageIndex - 1];
+    if (!previousStage) return false;
+    
+    // Verificar se a etapa anterior está 100% completa
+    const prevProgress = getStageProgress(previousStage);
+    if (prevProgress < 100) return true;
+    
+    // Se a etapa anterior requer aprovação, verificar se foi aprovada
+    if (previousStage.requires_client_approval) {
+      const hasApprovals = previousStage.project_stage_approvals?.length > 0;
+      if (!hasApprovals) return true; // Sem aprovação solicitada ainda
+      
+      const latestApproval = previousStage.project_stage_approvals[0];
+      return latestApproval.status !== 'approved';
+    }
+    
+    return false; // Não está bloqueada
   };
 
   const statusColors: Record<string, string> = {
@@ -248,11 +305,12 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
         </Button>
       </div>
       
-      {stages.map((stage) => {
+      {stages.map((stage, stageIndex) => {
         const progress = getStageProgress(stage);
         const items = stage.project_checklist_items || [];
         const isExpanded = expandedStages[stage.id] ?? true;
         const allCompleted = items.length > 0 && items.every((item: any) => item.is_completed);
+        const blocked = isStageBlocked(stage, stageIndex);
 
         return (
           <Collapsible
@@ -260,7 +318,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
             open={isExpanded}
             onOpenChange={() => toggleStage(stage.id)}
           >
-            <Card className={allCompleted ? 'border-green-500/50' : ''}>
+            <Card className={allCompleted ? 'border-green-500/50' : blocked ? 'border-red-300' : ''}>
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
                   <div className="flex items-start justify-between">
@@ -270,7 +328,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                         {allCompleted && (
                           <CheckCircle2 className="h-5 w-5 text-green-500" />
                         )}
-                        {(stage as any).is_blocked && (
+                        {blocked && (
                           <Badge variant="destructive" className="text-xs">
                             🔒 Bloqueada
                           </Badge>
@@ -279,9 +337,9 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                       {stage.description && (
                         <CardDescription>{stage.description}</CardDescription>
                       )}
-                      {(stage as any).is_blocked && (
+                      {blocked && (
                         <p className="text-xs text-destructive">
-                          Aguardando aprovação da etapa anterior
+                          Aguardando conclusão e aprovação da etapa anterior
                         </p>
                       )}
                     </div>
@@ -395,12 +453,12 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                             <Checkbox
                               id={item.id}
                               checked={item.is_completed}
-                              disabled={(stage as any).is_blocked}
+                              disabled={blocked}
                               onCheckedChange={() =>
                                 toggleItemMutation.mutate({
                                   itemId: item.id,
                                   isCompleted: item.is_completed,
-                                  stageBlocked: (stage as any).is_blocked,
+                                  stageBlocked: blocked,
                                 })
                               }
                               className="mt-0.5"
