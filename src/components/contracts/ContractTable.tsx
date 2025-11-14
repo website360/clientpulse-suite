@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download, Calendar, Eye, X } from 'lucide-react';
+import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -121,6 +121,37 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     await downloadAttachment(pdfViewModal.storagePath);
   };
 
+  const handleRenew = async (contract: Contract) => {
+    if (!contract.end_date) {
+      toast.error('Contrato sem data de vencimento');
+      return;
+    }
+
+    try {
+      // Calcular nova data final (adicionar 1 ano)
+      const currentEndDate = new Date(contract.end_date);
+      const newEndDate = new Date(currentEndDate);
+      newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+
+      const { error } = await supabase
+        .from('contracts')
+        .update({
+          end_date: format(newEndDate, 'yyyy-MM-dd'),
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', contract.id);
+
+      if (error) throw error;
+
+      toast.success('Contrato renovado com sucesso!');
+      onRefresh();
+    } catch (error) {
+      console.error('Erro ao renovar contrato:', error);
+      toast.error('Erro ao renovar contrato');
+    }
+  };
+
   const getStatusBadge = (contract: Contract) => {
     const { status, end_date } = contract;
     
@@ -175,6 +206,11 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     today.setHours(0, 0, 0, 0);
     const daysUntilExpiry = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+  };
+
+  const shouldShowRenewButton = (contract: Contract) => {
+    if (!contract.end_date) return false;
+    return isExpiringSoon(contract.end_date);
   };
 
   const isExpired = (endDate: string) => {
@@ -235,6 +271,18 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                   <TableCell>{getStatusBadge(contract)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {shouldShowRenewButton(contract) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRenew(contract)}
+                          title="Renovar contrato por mais 1 ano"
+                          className="text-xs"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Renovar
+                        </Button>
+                      )}
                       {contract.attachment_url && (
                         <>
                           <Button
@@ -302,12 +350,13 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
               </div>
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden bg-muted/50">
             {pdfViewModal.url && (
               <iframe
-                src={pdfViewModal.url}
+                src={`${pdfViewModal.url}#toolbar=0&navpanes=0&scrollbar=1`}
                 className="w-full h-full border-0"
                 title="Visualização do PDF"
+                style={{ backgroundColor: '#525659' }}
               />
             )}
           </div>
