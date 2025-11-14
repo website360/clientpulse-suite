@@ -81,11 +81,10 @@ export default function ClientContracts() {
     const { status, end_date } = contract;
     
     // Apenas recalcular status baseado na data se o status for 'active'
-    // Status definidos manualmente prevalecem
     let displayStatus = status;
     
     if (status === 'active' && end_date) {
-      const endDate = new Date(end_date);
+      const endDate = parse(end_date, 'yyyy-MM-dd', new Date());
       endDate.setHours(0, 0, 0, 0);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -94,6 +93,8 @@ export default function ClientContracts() {
       
       if (daysUntilExpiry < 0) {
         displayStatus = 'expired';
+      } else if (daysUntilExpiry === 0) {
+        displayStatus = 'expiring_today';
       } else if (daysUntilExpiry <= 30) {
         displayStatus = 'expiring';
       }
@@ -103,6 +104,7 @@ export default function ClientContracts() {
       pending_signature: 'secondary',
       active: 'default',
       expiring: 'outline',
+      expiring_today: 'outline',
       expired: 'destructive',
       completed: 'secondary',
     };
@@ -111,6 +113,7 @@ export default function ClientContracts() {
       pending_signature: 'Assinatura',
       active: 'Ativo',
       expiring: 'A Vencer',
+      expiring_today: 'Vence Hoje',
       expired: 'Vencido',
       completed: 'Concluído',
     };
@@ -118,7 +121,7 @@ export default function ClientContracts() {
     return (
       <Badge 
         variant={variants[displayStatus] || 'default'}
-        className={displayStatus === 'expiring' ? 'border-warning text-warning' : ''}
+        className={displayStatus === 'expiring' || displayStatus === 'expiring_today' ? 'border-warning text-warning' : ''}
       >
         {labels[displayStatus] || displayStatus}
       </Badge>
