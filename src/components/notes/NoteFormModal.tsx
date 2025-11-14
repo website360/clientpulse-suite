@@ -20,6 +20,8 @@ const NOTE_COLORS = [
   { value: '#bbf7d0', label: 'Verde' },
   { value: '#fed7aa', label: 'Laranja' },
   { value: '#e9d5ff', label: 'Roxo' },
+  { value: '#e5e7eb', label: 'Cinza Claro' },
+  { value: '#9ca3af', label: 'Cinza' },
 ];
 
 const formSchema = z.object({
