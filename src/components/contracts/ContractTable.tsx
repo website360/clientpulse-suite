@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -266,14 +266,14 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {format(new Date(contract.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      {format(parse(contract.start_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       {contract.end_date
-                        ? format(new Date(contract.end_date), 'dd/MM/yyyy', { locale: ptBR })
+                        ? format(parse(contract.end_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })
                         : 'Indeterminado'}
                     </div>
                   </TableCell>
@@ -340,6 +340,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center justify-between">
               <DialogTitle>{pdfViewModal.filename}</DialogTitle>
+              <DialogDescription className="sr-only">Visualização do PDF do contrato</DialogDescription>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
