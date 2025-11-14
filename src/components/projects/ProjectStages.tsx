@@ -48,6 +48,7 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
             id,
             status,
             approved_at,
+            approved_by_name,
             created_at
           )
         `)
@@ -106,7 +107,11 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
   });
 
   const toggleItemMutation = useMutation({
-    mutationFn: async ({ itemId, isCompleted }: { itemId: string; isCompleted: boolean }) => {
+    mutationFn: async ({ itemId, isCompleted, stageBlocked }: { itemId: string; isCompleted: boolean; stageBlocked?: boolean }) => {
+      if (stageBlocked) {
+        throw new Error('Esta etapa está bloqueada aguardando aprovação da etapa anterior');
+      }
+      
       const { error } = await supabase
         .from('project_checklist_items')
         .update({
@@ -218,14 +223,24 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                 <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <CardTitle className="text-xl">{stage.name}</CardTitle>
                         {allCompleted && (
                           <CheckCircle2 className="h-5 w-5 text-green-500" />
                         )}
+                        {(stage as any).is_blocked && (
+                          <Badge variant="destructive" className="text-xs">
+                            🔒 Bloqueada
+                          </Badge>
+                        )}
                       </div>
                       {stage.description && (
                         <CardDescription>{stage.description}</CardDescription>
+                      )}
+                      {(stage as any).is_blocked && (
+                        <p className="text-xs text-destructive">
+                          Aguardando aprovação da etapa anterior
+                        </p>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -338,10 +353,12 @@ export function ProjectStages({ projectId, onUpdate }: ProjectStagesProps) {
                             <Checkbox
                               id={item.id}
                               checked={item.is_completed}
+                              disabled={(stage as any).is_blocked}
                               onCheckedChange={() =>
                                 toggleItemMutation.mutate({
                                   itemId: item.id,
                                   isCompleted: item.is_completed,
+                                  stageBlocked: (stage as any).is_blocked,
                                 })
                               }
                               className="mt-0.5"
