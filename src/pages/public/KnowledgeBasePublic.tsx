@@ -276,18 +276,6 @@ export default function KnowledgeBasePublic() {
               {/* Main Content */}
               <main className="lg:col-span-8 space-y-12" role="main">
                 <article className="space-y-8">
-                  {/* Featured Image */}
-                  {selectedPost.featured_image_url && (
-                    <figure className="relative h-96 rounded-2xl overflow-hidden">
-                      <img
-                        src={selectedPost.featured_image_url}
-                        alt={`Imagem de destaque: ${selectedPost.title}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" aria-hidden="true" />
-                    </figure>
-                  )}
-
                   {/* Article Header */}
                   <header className="space-y-6">
                     <div className="flex flex-wrap items-center gap-4">

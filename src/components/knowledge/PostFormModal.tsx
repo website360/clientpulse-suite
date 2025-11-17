@@ -52,6 +52,7 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [htmlMode, setHtmlMode] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -279,26 +280,47 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="content">Conteúdo *</Label>
-              <EmojiPicker 
-                onEmojiSelect={(emoji) => setFormData({ ...formData, content: formData.content + emoji })}
-              />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="html-mode"
+                    checked={htmlMode}
+                    onCheckedChange={setHtmlMode}
+                  />
+                  <Label htmlFor="html-mode" className="text-sm cursor-pointer">
+                    Modo HTML
+                  </Label>
+                </div>
+                <EmojiPicker 
+                  onEmojiSelect={(emoji) => setFormData({ ...formData, content: formData.content + emoji })}
+                />
+              </div>
             </div>
             <div className="min-h-[500px]">
-              <ReactQuill
-                theme="snow"
-                value={formData.content}
-                onChange={(value) => setFormData({ ...formData, content: value })}
-                style={{ height: '450px' }}
-                modules={{
-                  toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ list: 'ordered' }, { list: 'bullet' }],
-                    ['link', 'image', 'video'],
-                    ['clean'],
-                  ],
-                }}
-              />
+              {htmlMode ? (
+                <Textarea
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  className="min-h-[450px] font-mono text-sm"
+                  placeholder="Cole seu HTML aqui..."
+                />
+              ) : (
+                <ReactQuill
+                  theme="snow"
+                  value={formData.content}
+                  onChange={(value) => setFormData({ ...formData, content: value })}
+                  style={{ height: '450px' }}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['link', 'image', 'video', 'code-block'],
+                      ['clean'],
+                    ],
+                  }}
+                />
+              )}
             </div>
           </div>
 
