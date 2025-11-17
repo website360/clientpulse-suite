@@ -23,6 +23,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Upload } from 'lucide-react';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
+import { HtmlSnippets } from './HtmlSnippets';
 
 interface Category {
   id: string;
@@ -280,7 +281,7 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="content">Conteúdo *</Label>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                   <Switch
                     id="html-mode"
@@ -291,6 +292,11 @@ export function PostFormModal({ open, onOpenChange, post, onSuccess }: PostFormM
                     Modo HTML
                   </Label>
                 </div>
+                {htmlMode && (
+                  <HtmlSnippets 
+                    onInsert={(code) => setFormData({ ...formData, content: formData.content + code })}
+                  />
+                )}
                 <EmojiPicker 
                   onEmojiSelect={(emoji) => setFormData({ ...formData, content: formData.content + emoji })}
                 />
