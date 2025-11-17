@@ -66,15 +66,23 @@ const HTML_SNIPPETS: HtmlSnippet[] = [
   {
     name: 'Imagem com Link',
     category: 'Mídia',
-    code: `<a href="https://exemplo.com" target="_blank">
-  <img src="https://via.placeholder.com/600x400" alt="Descrição da imagem" style="max-width: 100%; height: auto; border-radius: 8px;" />
+    code: `<a href="https://seu-link.com" target="_blank">
+  <img src="URL_DA_IMAGEM" alt="Descrição da imagem" style="max-width: 100%; height: auto; border-radius: 8px;" />
 </a>`,
   },
   {
     name: 'Imagem Centralizada',
     category: 'Mídia',
     code: `<div style="text-align: center; margin: 24px 0;">
-  <img src="https://via.placeholder.com/600x400" alt="Descrição da imagem" style="max-width: 100%; height: auto; border-radius: 8px;" />
+  <img src="URL_DA_IMAGEM" alt="Descrição da imagem" style="max-width: 100%; height: auto; border-radius: 8px;" />
+</div>`,
+  },
+  {
+    name: 'Duas Imagens Lado a Lado',
+    category: 'Mídia',
+    code: `<div style="display: flex; gap: 16px; margin: 24px 0;">
+  <img src="URL_DA_IMAGEM_1" alt="Imagem 1" style="width: 50%; height: auto; border-radius: 8px;" />
+  <img src="URL_DA_IMAGEM_2" alt="Imagem 2" style="width: 50%; height: auto; border-radius: 8px;" />
 </div>`,
   },
   {
@@ -143,9 +151,14 @@ export function HtmlSnippets({ onInsert }: HtmlSnippetsProps) {
           <div className="space-y-4">
             <div>
               <h4 className="font-semibold text-sm mb-2">Snippets HTML</h4>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mb-2">
                 Clique para inserir ou copiar
               </p>
+              <div className="bg-muted p-2 rounded text-xs space-y-1">
+                <p className="font-medium">💡 Para imagens:</p>
+                <p>1. Faça upload da imagem</p>
+                <p>2. Substitua "URL_DA_IMAGEM"</p>
+              </div>
             </div>
             {categories.map((category) => (
               <div key={category}>
