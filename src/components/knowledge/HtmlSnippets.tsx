@@ -18,12 +18,26 @@ const HTML_SNIPPETS: HtmlSnippet[] = [
   {
     name: 'Botão Primário',
     category: 'Botões',
-    code: `<a href="#" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Clique Aqui</a>`,
+    code: `<a href="https://seu-link.com" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Clique Aqui</a>`,
+  },
+  {
+    name: 'Botão Primário Centralizado',
+    category: 'Botões',
+    code: `<div style="text-align: center; margin: 24px 0;">
+  <a href="https://seu-link.com" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Clique Aqui</a>
+</div>`,
   },
   {
     name: 'Botão Secundário',
     category: 'Botões',
-    code: `<a href="#" style="display: inline-block; background-color: transparent; color: #0066cc; padding: 12px 24px; text-decoration: none; border: 2px solid #0066cc; border-radius: 6px; font-weight: bold;">Saiba Mais</a>`,
+    code: `<a href="https://seu-link.com" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: transparent; color: #0066cc; padding: 12px 24px; text-decoration: none; border: 2px solid #0066cc; border-radius: 6px; font-weight: bold;">Saiba Mais</a>`,
+  },
+  {
+    name: 'Botão Secundário Centralizado',
+    category: 'Botões',
+    code: `<div style="text-align: center; margin: 24px 0;">
+  <a href="https://seu-link.com" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: transparent; color: #0066cc; padding: 12px 24px; text-decoration: none; border: 2px solid #0066cc; border-radius: 6px; font-weight: bold;">Saiba Mais</a>
+</div>`,
   },
   {
     name: 'Caixa de Informação',
