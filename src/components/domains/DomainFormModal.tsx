@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toastSuccess, toastError } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +25,7 @@ interface Domain {
   expires_at: string;
   owner: 'agency' | 'client';
   client_id: string;
+  is_cloudflare?: boolean;
 }
 
 interface DomainFormModalProps {
@@ -44,6 +46,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
     client_id: '',
     expires_at: '',
     owner: 'client' as 'agency' | 'client',
+    is_cloudflare: false,
   });
 
   useEffect(() => {
@@ -56,6 +59,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           client_id: domain.client_id,
           expires_at: formatDateBR(parse(domain.expires_at, 'yyyy-MM-dd', new Date())),
           owner: domain.owner,
+          is_cloudflare: domain.is_cloudflare || false,
         });
       } else {
         setFormData({
@@ -63,6 +67,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
           client_id: '',
           expires_at: '',
           owner: 'client',
+          is_cloudflare: false,
         });
       }
     }
@@ -108,6 +113,7 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
         client_id: formData.client_id,
         expires_at: format(parsedDate, 'yyyy-MM-dd'),
         owner: formData.owner,
+        is_cloudflare: formData.is_cloudflare,
         ...(domain ? {} : { created_by: user?.id })
       };
 
@@ -213,6 +219,20 @@ export function DomainFormModal({ isOpen, onClose, onSuccess, domain }: DomainFo
                 <SelectItem value="client">Cliente</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="flex items-center justify-between space-x-2">
+            <div className="space-y-0.5">
+              <Label htmlFor="is-cloudflare">Cloudflare</Label>
+              <p className="text-sm text-muted-foreground">
+                Domínio gerenciado pela Cloudflare
+              </p>
+            </div>
+            <Switch
+              id="is-cloudflare"
+              checked={formData.is_cloudflare}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_cloudflare: checked })}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

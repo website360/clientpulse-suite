@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Globe, Calendar, Plus } from 'lucide-react';
+import { Pencil, Trash2, Globe, Calendar, Plus, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -25,6 +26,7 @@ interface Domain {
   expires_at: string;
   owner: 'agency' | 'client';
   client_id: string;
+  is_cloudflare?: boolean;
 }
 
 interface ClientDomainsProps {
@@ -149,6 +151,18 @@ export function ClientDomains({ clientId }: ClientDomainsProps) {
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground" />
                         {domain.domain}
+                        {domain.is_cloudflare && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Shield className="h-4 w-4 text-orange-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Gerenciado pela Cloudflare</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

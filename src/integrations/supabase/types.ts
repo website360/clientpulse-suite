@@ -869,6 +869,7 @@ export type Database = {
           domain: string
           expires_at: string
           id: string
+          is_cloudflare: boolean
           owner: Database["public"]["Enums"]["domain_owner"]
           updated_at: string
         }
@@ -879,6 +880,7 @@ export type Database = {
           domain: string
           expires_at: string
           id?: string
+          is_cloudflare?: boolean
           owner?: Database["public"]["Enums"]["domain_owner"]
           updated_at?: string
         }
@@ -889,6 +891,7 @@ export type Database = {
           domain?: string
           expires_at?: string
           id?: string
+          is_cloudflare?: boolean
           owner?: Database["public"]["Enums"]["domain_owner"]
           updated_at?: string
         }
