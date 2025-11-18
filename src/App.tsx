@@ -31,6 +31,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Domains = lazy(() => import("./pages/Domains"));
 const AccountsPayable = lazy(() => import("./pages/AccountsPayable"));
 const AccountsReceivable = lazy(() => import("./pages/AccountsReceivable"));
+const PaymentNotifications = lazy(() => import("./pages/PaymentNotifications"));
 const Contracts = lazy(() => import("./pages/Contracts"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Tasks = lazy(() => import("./pages/Tasks"));
@@ -97,6 +98,7 @@ const App = () => (
                     <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
                     <Route path="/financeiro/pagar" element={<AccountsPayable />} />
                     <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+                    <Route path="/financeiro/notificacoes" element={<PaymentNotifications />} />
                     <Route path="/contracts" element={<Contracts />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/tasks" element={<Tasks />} />
