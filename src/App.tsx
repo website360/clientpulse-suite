@@ -10,6 +10,7 @@ import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 
 // Eager loading for public pages and auth
@@ -64,10 +65,11 @@ const App = () => (
     <HelmetProvider>
       <DensityProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <InstallPrompt />
-          <BrowserRouter>
+      <Toaster />
+      <Sonner />
+      <InstallPrompt />
+      <UpdatePrompt />
+      <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
           <Route path="/install" element={<Install />} />
