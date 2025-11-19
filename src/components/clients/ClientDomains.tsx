@@ -182,7 +182,13 @@ export function ClientDomains({ clientId }: ClientDomainsProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={domain.owner === 'agency' ? 'default' : 'secondary'}>
+                      <Badge 
+                        className={
+                          domain.owner === 'agency' 
+                            ? 'bg-[#fdc101] text-[#1A3366] hover:bg-[#fdc101]/80' 
+                            : 'bg-[#1A3366] text-[#ffffff] hover:bg-[#1A3366]/80'
+                        }
+                      >
                         {getOwnerLabel(domain.owner)}
                       </Badge>
                     </TableCell>
