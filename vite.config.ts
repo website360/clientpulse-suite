@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     react(), 
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'robots.txt'],
       manifest: {
         name: 'Agência May',
@@ -68,6 +68,8 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
@@ -77,7 +79,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'supabase-api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 // 1 hour
+                maxAgeSeconds: 60 * 5 // 5 minutes
               },
               cacheableResponse: {
                 statuses: [0, 200]

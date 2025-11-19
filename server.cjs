@@ -5,8 +5,18 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const distPath = path.join(__dirname, 'dist');
 
-// Static assets with cache
-app.use(express.static(distPath, { maxAge: '1h', etag: true }));
+// Static assets with reduced cache
+app.use(express.static(distPath, { maxAge: '5m', etag: true }));
+
+// No cache for index.html
+app.use((req, res, next) => {
+  if (req.path === '/index.html' || req.path === '/') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
 
 // Simple health check for readiness probes
 app.get('/health', (_req, res) => res.status(200).send('OK'));
