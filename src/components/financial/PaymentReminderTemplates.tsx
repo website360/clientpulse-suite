@@ -191,7 +191,27 @@ export function PaymentReminderTemplates() {
     setSelectedTemplate(null);
   };
 
+  const toggleChannel = (channel: string, enabled: boolean) => {
+    if (enabled) {
+      setFormData({ 
+        ...formData, 
+        channels: [...formData.channels, channel] 
+      });
+    } else {
+      setFormData({ 
+        ...formData, 
+        channels: formData.channels.filter(c => c !== channel) 
+      });
+    }
+  };
+
   const handleSave = () => {
+    // Validação: pelo menos um canal deve estar selecionado
+    if (formData.channels.length === 0) {
+      showError('Erro de validação', 'Selecione pelo menos um canal de envio (Email ou WhatsApp)');
+      return;
+    }
+
     saveMutation.mutate(formData);
   };
 
@@ -368,6 +388,35 @@ export function PaymentReminderTemplates() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Descrição opcional"
               />
+            </div>
+
+            <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
+              <Label className="text-sm font-medium">Canais de Envio *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="channel_email" className="flex items-center gap-2 font-normal cursor-pointer">
+                  📧 Enviar por Email
+                </Label>
+                <Switch
+                  id="channel_email"
+                  checked={formData.channels.includes('email')}
+                  onCheckedChange={(checked) => toggleChannel('email', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="channel_whatsapp" className="flex items-center gap-2 font-normal cursor-pointer">
+                  📱 Enviar por WhatsApp
+                </Label>
+                <Switch
+                  id="channel_whatsapp"
+                  checked={formData.channels.includes('whatsapp')}
+                  onCheckedChange={(checked) => toggleChannel('whatsapp', checked)}
+                />
+              </div>
+              {formData.channels.length === 0 && (
+                <p className="text-xs text-destructive">
+                  Selecione pelo menos um canal de envio
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
