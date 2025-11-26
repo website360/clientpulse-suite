@@ -79,8 +79,10 @@ export default function Domains() {
         </div>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle>Lista de Domínios</CardTitle>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-4">
+              <CardTitle>Lista de Domínios</CardTitle>
+            </div>
             <DomainFilters filters={filters} onFiltersChange={setFilters} />
           </CardHeader>
           <CardContent className="p-0">
