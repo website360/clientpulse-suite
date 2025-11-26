@@ -44,9 +44,13 @@ interface DomainTableProps {
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
+  filters: {
+    search: string;
+    owner: string;
+  };
 }
 
-export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDirection, onSort }: DomainTableProps) {
+export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDirection, onSort, filters }: DomainTableProps) {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingDomain, setEditingDomain] = useState<Domain | null>(null);
@@ -54,7 +58,7 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
 
   useEffect(() => {
     fetchDomains();
-  }, [currentPage, pageSize, sortColumn, sortDirection]);
+  }, [currentPage, pageSize, sortColumn, sortDirection, filters]);
 
   const fetchDomains = async () => {
     try {
@@ -69,6 +73,14 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             client_type
           )
         `);
+
+      // Apply filters
+      if (filters.search) {
+        query = query.ilike('domain', `%${filters.search}%`);
+      }
+      if (filters.owner !== 'all') {
+        query = query.eq('owner', filters.owner as 'agency' | 'client');
+      }
 
       // Apply sorting
       if (sortColumn) {

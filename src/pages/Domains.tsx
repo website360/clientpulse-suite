@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Globe } from 'lucide-react';
 import { DomainTable } from '@/components/domains/DomainTable';
 import { DomainFormModal } from '@/components/domains/DomainFormModal';
+import { DomainFilters } from '@/components/domains/DomainFilters';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EmptyDomains } from '@/components/illustrations/EmptyDomains';
@@ -18,15 +19,29 @@ export default function Domains() {
   const [totalCount, setTotalCount] = useState(0);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [filters, setFilters] = useState({
+    search: '',
+    owner: 'all',
+  });
 
   useEffect(() => {
     fetchCount();
-  }, []);
+  }, [filters]);
 
   const fetchCount = async () => {
-    const { count } = await supabase
+    let query = supabase
       .from('domains')
       .select('*', { count: 'exact', head: true });
+
+    // Apply filters
+    if (filters.search) {
+      query = query.ilike('domain', `%${filters.search}%`);
+    }
+    if (filters.owner !== 'all') {
+      query = query.eq('owner', filters.owner as 'agency' | 'client');
+    }
+
+    const { count } = await query;
     setTotalCount(count || 0);
   };
 
@@ -64,8 +79,9 @@ export default function Domains() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>Lista de Domínios</CardTitle>
+            <DomainFilters filters={filters} onFiltersChange={setFilters} />
           </CardHeader>
           <CardContent className="p-0">
             {totalCount === 0 ? (
@@ -92,6 +108,7 @@ export default function Domains() {
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                   onSort={handleSort}
+                  filters={filters}
                 />
                 <TablePagination
                   currentPage={currentPage}
