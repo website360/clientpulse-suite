@@ -2718,6 +2718,154 @@ export type Database = {
           },
         ]
       }
+      proposal_pages: {
+        Row: {
+          background_type: string
+          background_value: string
+          created_at: string | null
+          elements: Json
+          id: string
+          page_order: number
+          proposal_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          background_type?: string
+          background_value?: string
+          created_at?: string | null
+          elements?: Json
+          id?: string
+          page_order: number
+          proposal_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          background_type?: string
+          background_value?: string
+          created_at?: string | null
+          elements?: Json
+          id?: string
+          page_order?: number
+          proposal_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_pages_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_services: {
+        Row: {
+          created_at: string | null
+          custom_name: string
+          description: string | null
+          id: string
+          price: number
+          proposal_id: string
+          service_id: string | null
+          service_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_name: string
+          description?: string | null
+          id?: string
+          price: number
+          proposal_id: string
+          service_id?: string | null
+          service_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_name?: string
+          description?: string | null
+          id?: string
+          price?: number
+          proposal_id?: string
+          service_id?: string | null
+          service_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_services_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          client_id: string
+          company_data: Json
+          created_at: string | null
+          created_by: string
+          email_sent_at: string | null
+          generated_pdf_url: string | null
+          id: string
+          notes: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          validity_days: number | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          client_id: string
+          company_data?: Json
+          created_at?: string | null
+          created_by: string
+          email_sent_at?: string | null
+          generated_pdf_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          validity_days?: number | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          company_data?: Json
+          created_at?: string | null
+          created_by?: string
+          email_sent_at?: string | null
+          generated_pdf_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          validity_days?: number | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
