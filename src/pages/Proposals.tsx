@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProposalTable } from '@/components/proposals/ProposalTable';
 import { ProposalFilters } from '@/components/proposals/ProposalFilters';
+import { ProposalFormModal } from '@/components/proposals/ProposalFormModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -78,10 +79,10 @@ export default function Proposals() {
     toast.info('Funcionalidade de download em desenvolvimento');
   };
 
+  const [showFormModal, setShowFormModal] = useState(false);
+
   const handleNew = () => {
-    // TODO: Implement new proposal modal
-    console.log('New proposal');
-    toast.info('Formulário de nova proposta em desenvolvimento');
+    setShowFormModal(true);
   };
 
   return (
@@ -115,6 +116,12 @@ export default function Proposals() {
           onDownload={handleDownload}
         />
       )}
+
+      <ProposalFormModal
+        open={showFormModal}
+        onClose={() => setShowFormModal(false)}
+        onSuccess={refetch}
+      />
     </div>
   );
 }
