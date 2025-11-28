@@ -39,7 +39,6 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
   const [formData, setFormData] = useState({
     title: '',
     client_id: '',
-    discount_percentage: '',
     validity_days: '30',
     notes: '',
   });
@@ -73,7 +72,6 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
       setFormData({
         title: proposal.title || '',
         client_id: proposal.client_id || '',
-        discount_percentage: proposal.discount_percentage?.toString() || '',
         validity_days: proposal.validity_days?.toString() || '30',
         notes: proposal.notes || '',
       });
@@ -81,7 +79,6 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
       setFormData({
         title: '',
         client_id: '',
-        discount_percentage: '',
         validity_days: '30',
         notes: '',
       });
@@ -110,10 +107,10 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
         title: formData.title,
         client_id: formData.client_id,
         created_by: user?.id,
-        discount_percentage: formData.discount_percentage ? parseFloat(formData.discount_percentage) : null,
         validity_days: parseInt(formData.validity_days) || 30,
         notes: formData.notes || null,
         status: 'draft',
+        company_data: {},
       };
 
       let proposalId = proposal?.id;
@@ -224,15 +221,12 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
   };
 
   const calculateTotal = () => {
-    const subtotal = serviceItems.reduce((sum, item) => {
+    return serviceItems.reduce((sum, item) => {
       if (item.price) {
         return sum + parseFloat(item.price);
       }
       return sum;
     }, 0);
-
-    const discount = formData.discount_percentage ? (subtotal * parseFloat(formData.discount_percentage)) / 100 : 0;
-    return subtotal - discount;
   };
 
   const getClientLabel = (client: any) => {
@@ -291,31 +285,15 @@ export function ProposalFormModal({ open, onClose, proposal, onSuccess }: Propos
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="discount_percentage">Desconto (%)</Label>
-                  <Input
-                    id="discount_percentage"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={formData.discount_percentage}
-                    onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="validity_days">Validade (dias)</Label>
-                  <Input
-                    id="validity_days"
-                    type="number"
-                    min="1"
-                    value={formData.validity_days}
-                    onChange={(e) => setFormData({ ...formData, validity_days: e.target.value })}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="validity_days">Validade (dias)</Label>
+                <Input
+                  id="validity_days"
+                  type="number"
+                  min="1"
+                  value={formData.validity_days}
+                  onChange={(e) => setFormData({ ...formData, validity_days: e.target.value })}
+                />
               </div>
 
               <div>
