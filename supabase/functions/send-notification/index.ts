@@ -758,12 +758,25 @@ serve(async (req) => {
             // Debug: Log what we're about to insert
             console.log(`[LOG-SAVE] Inserting log with channel: "${logEntry.channel}", status: "${logEntry.status}"`);
             
+            // Inserir explicitamente sem spread para evitar problemas
+            const insertData = {
+              template_id: logEntry.template_id,
+              event_type: logEntry.event_type,
+              channel: safeChannel as 'email' | 'sms' | 'whatsapp' | 'telegram',
+              recipient: logEntry.recipient,
+              subject: logEntry.subject,
+              message: logEntry.message,
+              reference_type: logEntry.reference_type,
+              reference_id: logEntry.reference_id,
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+            };
+            
+            console.log(`[LOG-SAVE] Insert data channel value: "${insertData.channel}"`);
+            
             const { error: logError } = await supabaseClient
               .from('notification_logs')
-              .insert({
-                ...logEntry,
-                sent_at: new Date().toISOString(),
-              });
+              .insert(insertData);
 
             if (logError) {
               console.error('[LOG-SAVE] Error saving log:', logError);
@@ -781,14 +794,22 @@ serve(async (req) => {
           } catch (error) {
             console.error(`Failed to send ${channel} to ${recipientAddress}:`, error);
 
-            // Salvar log com erro
-            logEntry.status = 'failed';
+            // Salvar log com erro - explicitamente sem spread
+            const errorInsertData = {
+              template_id: logEntry.template_id,
+              event_type: logEntry.event_type,
+              channel: safeChannel as 'email' | 'sms' | 'whatsapp' | 'telegram',
+              recipient: logEntry.recipient,
+              subject: logEntry.subject,
+              message: logEntry.message,
+              reference_type: logEntry.reference_type,
+              reference_id: logEntry.reference_id,
+              status: 'failed',
+              error_message: error instanceof Error ? error.message : 'Unknown error',
+            };
             await supabaseClient
               .from('notification_logs')
-              .insert({
-                ...logEntry,
-                error_message: error instanceof Error ? error.message : 'Unknown error',
-              });
+              .insert(errorInsertData);
 
             results.push({
               template: template.name,
