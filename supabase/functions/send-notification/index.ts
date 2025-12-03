@@ -617,8 +617,17 @@ serve(async (req) => {
         continue;
       }
 
+      // Canais válidos do enum
+      const validChannels = ['email', 'telegram', 'sms', 'whatsapp'];
+      
       // Enviar para cada canal configurado
       for (const channel of template.channels) {
+        // Validar que o canal não é vazio e é um valor válido do enum
+        if (!channel || typeof channel !== 'string' || !validChannels.includes(channel)) {
+          console.log(`Invalid or empty channel "${channel}", skipping`);
+          continue;
+        }
+        
         // Verificar se o canal está habilitado
         if (!isChannelEnabled(settings, channel)) {
           console.log(`Channel ${channel} is disabled for event ${event_type}`);
