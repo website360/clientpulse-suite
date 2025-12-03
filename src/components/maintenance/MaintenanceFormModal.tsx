@@ -94,7 +94,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
 
       console.log("📤 Enviando items para RPC:", items); // Debug em DEV
 
-      // Chamar RPC (tipagem flexível)
+      // Chamar RPC (tipagem flexível) - passa o valor do checkbox de WhatsApp
       const { data: executionId, error: rpcError } = await (supabase as any).rpc(
         'create_maintenance_execution' as any,
         {
@@ -102,6 +102,7 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
           p_next_date: nextScheduledDate.toISOString().split('T')[0],
           p_notes: notes || null,
           p_items: items,
+          p_send_whatsapp: sendWhatsApp,
         }
       );
 

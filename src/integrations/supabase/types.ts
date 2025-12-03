@@ -3687,6 +3687,16 @@ export type Database = {
               p_next_date: string
               p_notes: string
               p_plan_id: string
+              p_send_whatsapp?: boolean
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_items: Json
+              p_next_date: string
+              p_notes: string
+              p_plan_id: string
             }
             Returns: string
           }
