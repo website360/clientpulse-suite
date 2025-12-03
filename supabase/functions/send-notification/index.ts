@@ -780,9 +780,28 @@ serve(async (req) => {
 
             if (logError) {
               console.error('[LOG-SAVE] Error saving log:', logError);
-              console.error('[LOG-SAVE] Failed entry:', JSON.stringify(logEntry));
+              console.error('[LOG-SAVE] Failed entry:', JSON.stringify(insertData));
             } else {
               console.log(`[LOG-SAVE] Log saved successfully for ${safeChannel} to ${recipientAddress}`);
+            }
+
+            // CORREÇÃO DEFINITIVA: Atualizar diretamente maintenance_executions após envio WhatsApp bem-sucedido
+            if (event_type === 'maintenance_completed' && safeChannel === 'whatsapp' && reference_id) {
+              console.log(`[MAINTENANCE] Updating whatsapp_sent=true for execution ${reference_id}`);
+              const { error: updateError } = await supabaseClient
+                .from('maintenance_executions')
+                .update({
+                  whatsapp_sent: true,
+                  whatsapp_sent_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', reference_id);
+              
+              if (updateError) {
+                console.error(`[MAINTENANCE] Failed to update whatsapp_sent:`, updateError);
+              } else {
+                console.log(`[MAINTENANCE] Successfully updated whatsapp_sent=true for ${reference_id}`);
+              }
             }
 
             results.push({
