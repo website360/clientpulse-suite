@@ -718,11 +718,18 @@ serve(async (req) => {
             }
           }
 
-          // Criar log de notificação
+          // Criar log de notificação - garantir que channel é válido
+          const safeChannel = validChannels.includes(channel) ? channel : null;
+          
+          if (!safeChannel) {
+            console.error(`[LOG-SAVE] Channel "${channel}" is invalid at log creation, skipping log save`);
+            continue;
+          }
+
           const logEntry = {
             template_id: template.id,
             event_type: event_type,
-            channel: channel,
+            channel: safeChannel, // Usar canal validado
             recipient: recipientAddress,
             subject: subject,
             message: message,
@@ -730,6 +737,9 @@ serve(async (req) => {
             reference_id: reference_id,
             status: 'pending',
           };
+
+          // Debug: Log the entry BEFORE saving
+          console.log(`[LOG-SAVE] Creating log entry for channel: "${safeChannel}", recipient: ${recipientAddress}`);
 
           try {
             // Enviar notificação
@@ -744,6 +754,10 @@ serve(async (req) => {
 
             // Atualizar log como enviado
             logEntry.status = 'sent';
+            
+            // Debug: Log what we're about to insert
+            console.log(`[LOG-SAVE] Inserting log with channel: "${logEntry.channel}", status: "${logEntry.status}"`);
+            
             const { error: logError } = await supabaseClient
               .from('notification_logs')
               .insert({
@@ -751,7 +765,12 @@ serve(async (req) => {
                 sent_at: new Date().toISOString(),
               });
 
-            if (logError) console.error('Error saving log:', logError);
+            if (logError) {
+              console.error('[LOG-SAVE] Error saving log:', logError);
+              console.error('[LOG-SAVE] Failed entry:', JSON.stringify(logEntry));
+            } else {
+              console.log(`[LOG-SAVE] Log saved successfully for ${safeChannel} to ${recipientAddress}`);
+            }
 
             results.push({
               template: template.name,
