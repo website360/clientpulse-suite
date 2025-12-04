@@ -117,6 +117,14 @@ export function MaintenanceFormModal({ open, onOpenChange, selectedPlan: propSel
       toastSuccess("Manutenção registrada", "A manutenção foi registrada com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["maintenance-plans"] });
       queryClient.invalidateQueries({ queryKey: ["maintenance-history"] });
+      
+      // Refetch após 3s para pegar status atualizado do WhatsApp (edge function leva ~2-3s)
+      if (sendWhatsApp) {
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["maintenance-history"] });
+        }, 3000);
+      }
+      
       onOpenChange(false);
       resetForm();
     },

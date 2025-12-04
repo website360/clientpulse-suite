@@ -36,6 +36,8 @@ export function MaintenanceHistory() {
 
   const { data: executions, isLoading } = useQuery({
     queryKey: ["maintenance-history"],
+    staleTime: 5000, // Considera dados "stale" após 5s
+    refetchInterval: 10000, // Refetch automático a cada 10s como fallback
     queryFn: async () => {
       const { data, error } = await supabase
         .from("maintenance_executions")
