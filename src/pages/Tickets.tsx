@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, PlayCircle, CheckCircle2, XCircle, TrendingUp } from 'lucide-react';
+import { Plus, Clock, PlayCircle, CheckCircle2, XCircle, TrendingUp, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { TicketTable } from '@/components/tickets/TicketTable';
 import { TicketFilters } from '@/components/tickets/TicketFilters';
@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { toastSuccess, toastError } from '@/hooks/use-toast';
+import { toastSuccess, toastError, toastInfo } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { TableSkeleton } from '@/components/loading/TableSkeleton';
 
@@ -322,8 +322,21 @@ export default function Tickets() {
               Gerencie todos os tickets de suporte
             </p>
           </div>
-          {userRole === 'admin' && (
+        {userRole === 'admin' && (
             <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => {
+                  const link = `${window.location.origin}/abrir-chamado`;
+                  navigator.clipboard.writeText(link);
+                  toastInfo('Link copiado!', 'O link do formulário público foi copiado para a área de transferência.');
+                }} 
+                size="lg" 
+                variant="outline" 
+                className="gap-2"
+              >
+                <Link2 className="h-4 w-4" />
+                Copiar Link Externo
+              </Button>
               <Button 
                 onClick={() => navigate('/ticket-metrics')} 
                 size="lg" 
