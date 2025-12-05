@@ -76,13 +76,13 @@ export default function PublicTicket() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 1 * 1024 * 1024; // 1MB
     
     const validFiles = files.filter(file => {
       if (file.size > maxSize) {
         toast({
           title: 'Arquivo muito grande',
-          description: `${file.name} excede o limite de 10MB`,
+          description: `${file.name} excede o limite de 1MB`,
           variant: 'destructive',
         });
         return false;
@@ -406,7 +406,7 @@ export default function PublicTicket() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Formatos aceitos: imagens, PDF, documentos do Office. Máx. 10MB por arquivo.
+                  Formatos aceitos: imagens, PDF, documentos do Office. Máx. 1MB por arquivo.
                 </p>
               </div>
             </div>
