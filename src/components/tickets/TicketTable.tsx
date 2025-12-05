@@ -122,7 +122,16 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
               <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
               {!hideClientColumn && (
                 <TableCell>
-                  <ClientNameCell client={ticket.clients || {}} />
+                  {ticket.client_id ? (
+                    <ClientNameCell client={ticket.clients || {}} />
+                  ) : (
+                    <div className="flex flex-col">
+                      <span className="font-medium">{ticket.requester_name || 'Anônimo'}</span>
+                      {ticket.requester_email && (
+                        <span className="text-xs text-muted-foreground">{ticket.requester_email}</span>
+                      )}
+                    </div>
+                  )}
                 </TableCell>
               )}
               <TableCell>

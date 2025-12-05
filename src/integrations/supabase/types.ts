@@ -3467,7 +3467,7 @@ export type Database = {
       tickets: {
         Row: {
           assigned_to: string | null
-          client_id: string
+          client_id: string | null
           closed_at: string | null
           created_at: string
           created_by: string
@@ -3476,6 +3476,9 @@ export type Database = {
           id: string
           last_response_at: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
+          requester_email: string | null
+          requester_name: string | null
+          requester_phone: string | null
           resolution_time_minutes: number | null
           resolved_at: string | null
           response_time_minutes: number | null
@@ -3486,7 +3489,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
-          client_id: string
+          client_id?: string | null
           closed_at?: string | null
           created_at?: string
           created_by: string
@@ -3495,6 +3498,9 @@ export type Database = {
           id?: string
           last_response_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
           resolution_time_minutes?: number | null
           resolved_at?: string | null
           response_time_minutes?: number | null
@@ -3505,7 +3511,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
-          client_id?: string
+          client_id?: string | null
           closed_at?: string | null
           created_at?: string
           created_by?: string
@@ -3514,6 +3520,9 @@ export type Database = {
           id?: string
           last_response_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
           resolution_time_minutes?: number | null
           resolved_at?: string | null
           response_time_minutes?: number | null
@@ -3742,7 +3751,7 @@ export type Database = {
         Args: { p_new_status: string; p_ticket_id: string }
         Returns: {
           assigned_to: string | null
-          client_id: string
+          client_id: string | null
           closed_at: string | null
           created_at: string
           created_by: string
@@ -3751,6 +3760,9 @@ export type Database = {
           id: string
           last_response_at: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
+          requester_email: string | null
+          requester_name: string | null
+          requester_phone: string | null
           resolution_time_minutes: number | null
           resolved_at: string | null
           response_time_minutes: number | null

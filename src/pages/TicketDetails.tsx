@@ -756,35 +756,63 @@ export default function TicketDetails() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Cliente
+                  {ticket.client_id ? 'Cliente' : 'Solicitante'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Identificação</p>
-                  {ticket.clients?.client_type === 'person' ? (
+                {ticket.client_id ? (
+                  <>
                     <div>
-                      <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
-                      <p className="text-sm text-muted-foreground">{ticket.clients?.full_name || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground">Identificação</p>
+                      {ticket.clients?.client_type === 'person' ? (
+                        <div>
+                          <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
+                          <p className="text-sm text-muted-foreground">{ticket.clients?.full_name || 'N/A'}</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
+                          <p className="text-sm text-muted-foreground">{ticket.clients?.company_name || 'N/A'}</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
+                    {ticket.clients?.email && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{ticket.clients.email}</p>
+                      </div>
+                    )}
+                    {ticket.clients?.phone && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Telefone</p>
+                        <p className="font-medium">{ticket.clients.phone}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
+                      <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
+                        Não vinculado
+                      </Badge>
+                    </div>
                     <div>
-                      <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
-                      <p className="text-sm text-muted-foreground">{ticket.clients?.company_name || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground">Nome</p>
+                      <p className="font-semibold">{ticket.requester_name || 'Não informado'}</p>
                     </div>
-                  )}
-                </div>
-                {ticket.clients?.email && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{ticket.clients.email}</p>
-                  </div>
-                )}
-                {ticket.clients?.phone && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Telefone</p>
-                    <p className="font-medium">{ticket.clients.phone}</p>
-                  </div>
+                    {ticket.requester_email && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{ticket.requester_email}</p>
+                      </div>
+                    )}
+                    {ticket.requester_phone && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Telefone</p>
+                        <p className="font-medium">{ticket.requester_phone}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
