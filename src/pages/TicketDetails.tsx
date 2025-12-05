@@ -388,20 +388,37 @@ export default function TicketDetails() {
 
   const downloadAttachment = async (attachment: any) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('ticket-attachments')
-        .download(attachment.file_url);
+      // Check if file_url is already a full URL
+      if (attachment.file_url.startsWith('http')) {
+        // For full URLs, download via fetch
+        const response = await fetch(attachment.file_url);
+        if (!response.ok) throw new Error('Erro ao baixar arquivo');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = attachment.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // For relative paths, use Supabase storage
+        const { data, error } = await supabase.storage
+          .from('ticket-attachments')
+          .download(attachment.file_url);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = attachment.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = attachment.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
     } catch (error: any) {
       toast({
         title: 'Erro ao baixar arquivo',

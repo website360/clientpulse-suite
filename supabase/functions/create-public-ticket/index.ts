@@ -12,6 +12,14 @@ interface Attachment {
   data: string // base64
 }
 
+interface UploadedAttachment {
+  url: string
+  path: string
+  name: string
+  type: string
+  size: number
+}
+
 interface PublicTicketRequest {
   name: string
   email: string
@@ -135,7 +143,7 @@ Deno.serve(async (req) => {
     console.log('Ticket created successfully:', ticket)
 
     // Upload attachments if provided
-    const uploadedAttachments: { url: string; name: string; type: string; size: number }[] = []
+    const uploadedAttachments: UploadedAttachment[] = []
     if (attachments && attachments.length > 0) {
       for (const attachment of attachments) {
         try {
@@ -173,6 +181,7 @@ Deno.serve(async (req) => {
             
             uploadedAttachments.push({
               url: urlData.publicUrl,
+              path: fileName, // Store the path for database
               name: attachment.name,
               type: attachment.type,
               size: attachment.size
@@ -189,7 +198,7 @@ Deno.serve(async (req) => {
         const attachmentRecords = uploadedAttachments.map(att => ({
           ticket_id: ticket.id,
           file_name: att.name,
-          file_url: att.url,
+          file_url: att.path, // Save only the path, not the full URL
           file_type: att.type,
           file_size: att.size,
         }))
