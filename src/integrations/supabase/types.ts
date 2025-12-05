@@ -3072,7 +3072,7 @@ export type Database = {
           id: string
           message_id: string | null
           ticket_id: string
-          uploaded_by: string
+          uploaded_by: string | null
         }
         Insert: {
           created_at?: string
@@ -3083,7 +3083,7 @@ export type Database = {
           id?: string
           message_id?: string | null
           ticket_id: string
-          uploaded_by: string
+          uploaded_by?: string | null
         }
         Update: {
           created_at?: string
@@ -3094,7 +3094,7 @@ export type Database = {
           id?: string
           message_id?: string | null
           ticket_id?: string
-          uploaded_by?: string
+          uploaded_by?: string | null
         }
         Relationships: [
           {
