@@ -3470,7 +3470,7 @@ export type Database = {
           client_id: string | null
           closed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           department_id: string
           description: string
           id: string
@@ -3492,7 +3492,7 @@ export type Database = {
           client_id?: string | null
           closed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           department_id: string
           description: string
           id?: string
@@ -3514,7 +3514,7 @@ export type Database = {
           client_id?: string | null
           closed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           department_id?: string
           description?: string
           id?: string
@@ -3754,7 +3754,7 @@ export type Database = {
           client_id: string | null
           closed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           department_id: string
           description: string
           id: string
