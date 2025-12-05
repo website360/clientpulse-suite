@@ -31,13 +31,18 @@ export function AttachmentPreviewModal({
       // Reset error state when attachment changes
       setImageError(false);
       
-      // Generate public URL using Supabase client
-      const { data } = supabase.storage
-        .from('ticket-attachments')
-        .getPublicUrl(attachment.file_url);
-      
-      if (data?.publicUrl) {
-        setFileUrl(data.publicUrl);
+      // Check if file_url is already a full URL
+      if (attachment.file_url.startsWith('http')) {
+        setFileUrl(attachment.file_url);
+      } else {
+        // Generate public URL using Supabase client
+        const { data } = supabase.storage
+          .from('ticket-attachments')
+          .getPublicUrl(attachment.file_url);
+        
+        if (data?.publicUrl) {
+          setFileUrl(data.publicUrl);
+        }
       }
     }
   }, [attachment]);
