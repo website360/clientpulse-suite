@@ -5,6 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface Attachment {
+  name: string
+  type: string
+  size: number
+  data: string // base64
+}
+
 interface PublicTicketRequest {
   name: string
   email: string
@@ -13,6 +20,7 @@ interface PublicTicketRequest {
   priority: string
   subject: string
   description: string
+  attachments?: Attachment[]
 }
 
 Deno.serve(async (req) => {
@@ -28,9 +36,9 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const body: PublicTicketRequest = await req.json()
-    console.log('Received public ticket request:', { ...body, email: body.email.substring(0, 5) + '***' })
+    console.log('Received public ticket request:', { ...body, email: body.email.substring(0, 5) + '***', attachments: body.attachments?.length || 0 })
 
-    const { name, email, phone, department_id, priority, subject, description } = body
+    const { name, email, phone, department_id, priority, subject, description, attachments } = body
 
     // Validate required fields
     if (!name || !email || !phone || !department_id || !subject || !description) {
@@ -126,6 +134,63 @@ Deno.serve(async (req) => {
 
     console.log('Ticket created successfully:', ticket)
 
+    // Upload attachments if provided
+    const uploadedAttachments: string[] = []
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        try {
+          // Remove data URL prefix if present
+          const base64Data = attachment.data.includes('base64,') 
+            ? attachment.data.split('base64,')[1] 
+            : attachment.data
+          
+          // Convert base64 to Uint8Array
+          const binaryString = atob(base64Data)
+          const bytes = new Uint8Array(binaryString.length)
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i)
+          }
+
+          // Generate unique filename
+          const fileExt = attachment.name.split('.').pop() || 'bin'
+          const fileName = `${ticket.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+          // Upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from('ticket-attachments')
+            .upload(fileName, bytes, {
+              contentType: attachment.type,
+              upsert: false
+            })
+
+          if (uploadError) {
+            console.error('Error uploading attachment:', uploadError)
+          } else {
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from('ticket-attachments')
+              .getPublicUrl(fileName)
+            
+            uploadedAttachments.push(urlData.publicUrl)
+            console.log('Attachment uploaded:', fileName)
+          }
+        } catch (uploadErr) {
+          console.error('Error processing attachment:', uploadErr)
+        }
+      }
+
+      // Add attachments to initial ticket message
+      if (uploadedAttachments.length > 0) {
+        await supabase.from('ticket_messages').insert({
+          ticket_id: ticket.id,
+          message: `Anexos enviados pelo formulário público`,
+          is_internal: false,
+          attachments: uploadedAttachments,
+        })
+        console.log('Initial message with attachments created')
+      }
+    }
+
     // Notify admins about new public ticket
     const { data: admins } = await supabase
       .from('user_roles')
@@ -151,7 +216,8 @@ Deno.serve(async (req) => {
         success: true, 
         ticket_number: ticket.ticket_number,
         ticket_id: ticket.id,
-        client_found: !!clientId
+        client_found: !!clientId,
+        attachments_uploaded: uploadedAttachments.length
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

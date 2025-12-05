@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Ticket, Loader2 } from 'lucide-react';
+import { CheckCircle, Ticket, Loader2, Paperclip, X } from 'lucide-react';
 import { maskPhone } from '@/lib/masks';
 
 interface Department {
@@ -23,6 +23,8 @@ export default function PublicTicket() {
   const [ticketNumber, setTicketNumber] = useState<number | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loadingDepts, setLoadingDepts] = useState(true);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -72,6 +74,32 @@ export default function PublicTicket() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        toast({
+          title: 'Arquivo muito grande',
+          description: `${file.name} excede o limite de 10MB`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      return true;
+    });
+
+    setAttachments(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -117,8 +145,29 @@ export default function PublicTicket() {
     setLoading(true);
 
     try {
+      // Convert attachments to base64
+      const attachmentData = await Promise.all(
+        attachments.map(async (file) => {
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          return {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            data: base64,
+          };
+        })
+      );
+
       const { data, error } = await supabase.functions.invoke('create-public-ticket', {
-        body: formData,
+        body: {
+          ...formData,
+          attachments: attachmentData,
+        },
       });
 
       if (error) throw error;
@@ -305,6 +354,60 @@ export default function PublicTicket() {
                   className={errors.description ? 'border-destructive' : ''}
                 />
                 {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
+              </div>
+
+              {/* Anexos */}
+              <div>
+                <Label>Anexos (opcional)</Label>
+                <div className="mt-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={attachments.length >= 5}
+                    className="w-full"
+                  >
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    Adicionar Anexo ({attachments.length}/5)
+                  </Button>
+                </div>
+                {attachments.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {attachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{file.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({(file.size / 1024).toFixed(0)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAttachment(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  Formatos aceitos: imagens, PDF, documentos do Office. Máx. 10MB por arquivo.
+                </p>
               </div>
             </div>
 
