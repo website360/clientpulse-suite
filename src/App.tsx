@@ -21,6 +21,7 @@ import ClientRegistration from "./pages/public/ClientRegistration";
 import ProjectApproval from "./pages/public/ProjectApproval";
 import ApprovalSuccess from "./pages/public/ApprovalSuccess";
 import Install from "./pages/Install";
+import PublicTicket from "./pages/public/PublicTicket";
 
 // Lazy loading for main application pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -75,6 +76,7 @@ const App = () => (
           {/* Rotas públicas - SEM AuthProvider */}
           <Route path="/install" element={<Install />} />
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
+          <Route path="/abrir-chamado" element={<PublicTicket />} />
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
           <Route path="/base-conhecimento/:slug" element={<KnowledgeBasePublic />} />
           <Route path="/approval/:token" element={<ProjectApproval />} />

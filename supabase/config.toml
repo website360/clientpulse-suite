@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.google-calendar-oauth]
 verify_jwt = false
+
+[functions.create-public-ticket]
+verify_jwt = false
