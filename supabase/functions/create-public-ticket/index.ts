@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     console.log('Ticket created successfully:', ticket)
 
     // Upload attachments if provided
-    const uploadedAttachments: string[] = []
+    const uploadedAttachments: { url: string; name: string; type: string; size: number }[] = []
     if (attachments && attachments.length > 0) {
       for (const attachment of attachments) {
         try {
@@ -171,7 +171,12 @@ Deno.serve(async (req) => {
               .from('ticket-attachments')
               .getPublicUrl(fileName)
             
-            uploadedAttachments.push(urlData.publicUrl)
+            uploadedAttachments.push({
+              url: urlData.publicUrl,
+              name: attachment.name,
+              type: attachment.type,
+              size: attachment.size
+            })
             console.log('Attachment uploaded:', fileName)
           }
         } catch (uploadErr) {
@@ -179,15 +184,25 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Add attachments to initial ticket message
+      // Save attachments to ticket_attachments table
       if (uploadedAttachments.length > 0) {
-        await supabase.from('ticket_messages').insert({
+        const attachmentRecords = uploadedAttachments.map(att => ({
           ticket_id: ticket.id,
-          message: `Anexos enviados pelo formulário público`,
-          is_internal: false,
-          attachments: uploadedAttachments,
-        })
-        console.log('Initial message with attachments created')
+          file_name: att.name,
+          file_url: att.url,
+          file_type: att.type,
+          file_size: att.size,
+        }))
+        
+        const { error: attachmentInsertError } = await supabase
+          .from('ticket_attachments')
+          .insert(attachmentRecords)
+        
+        if (attachmentInsertError) {
+          console.error('Error saving attachments to database:', attachmentInsertError)
+        } else {
+          console.log('Attachments saved to ticket_attachments table')
+        }
       }
     }
 
