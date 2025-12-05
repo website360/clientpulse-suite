@@ -226,6 +226,66 @@ Deno.serve(async (req) => {
       console.log('Admin notifications sent')
     }
 
+    // Get department name for notification
+    let departmentName = 'Não especificado'
+    const { data: deptData } = await supabase
+      .from('departments')
+      .select('name')
+      .eq('id', department_id)
+      .single()
+    if (deptData) departmentName = deptData.name
+
+    // Get client data if found
+    let clientName = name
+    let clientEmail = email
+    let clientPhone = phone
+    
+    if (clientId) {
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('company_name, responsible_name, full_name, email, phone')
+        .eq('id', clientId)
+        .single()
+      
+      if (clientData) {
+        clientName = clientData.company_name || clientData.responsible_name || clientData.full_name || name
+        clientEmail = clientData.email || email
+        clientPhone = clientData.phone || phone
+      }
+    }
+
+    // Send notification via send-notification function (includes WhatsApp, email, etc.)
+    try {
+      const ticketUrl = `${supabaseUrl.replace('.supabase.co', '.supabase.co')}/tickets/${ticket.id}`
+      
+      await supabase.functions.invoke('send-notification', {
+        body: {
+          event_type: 'ticket_created',
+          reference_type: 'ticket',
+          reference_id: ticket.id,
+          data: {
+            ticket_number: ticket.ticket_number,
+            subject: subject,
+            description: description,
+            priority: priority || 'medium',
+            department: departmentName,
+            client_name: clientName,
+            client_email: clientEmail,
+            client_phone: clientPhone,
+            requester_name: name,
+            requester_email: email,
+            requester_phone: phone,
+            ticket_url: ticketUrl,
+            created_at: new Date().toLocaleString('pt-BR'),
+          }
+        }
+      })
+      console.log('Send-notification invoked for ticket_created event')
+    } catch (notifError) {
+      console.error('Error invoking send-notification:', notifError)
+      // Don't fail the request if notification fails
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
