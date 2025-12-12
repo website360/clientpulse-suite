@@ -124,7 +124,7 @@ export default function BroadcastMessages() {
       const { data, error } = await supabase
         .from("integration_settings")
         .select("key, value, is_active")
-        .in("key", ["email_enabled", "smtp_host", "smtp_user"]);
+        .in("key", ["email_enabled", "email_smtp_host", "email_smtp_user"]);
 
       if (error) throw error;
       return data;
@@ -134,8 +134,8 @@ export default function BroadcastMessages() {
   useEffect(() => {
     if (emailSettings) {
       const enabled = emailSettings.find(s => s.key === "email_enabled");
-      const host = emailSettings.find(s => s.key === "smtp_host");
-      const user = emailSettings.find(s => s.key === "smtp_user");
+      const host = emailSettings.find(s => s.key === "email_smtp_host");
+      const user = emailSettings.find(s => s.key === "email_smtp_user");
       
       const isConfigured = enabled?.value === "true" && 
         enabled?.is_active && 
