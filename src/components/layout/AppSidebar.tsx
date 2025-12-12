@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight, TrendingUp, Bell, FileCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight, TrendingUp, Bell, FileCheck, Send } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -179,6 +179,7 @@ export function AppSidebar() {
     { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
     { title: 'Manutenção', url: '/manutencao', icon: Wrench },
     { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote },
+    { title: 'Disparos WhatsApp', url: '/whatsapp-broadcast', icon: Send },
     { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];

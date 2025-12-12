@@ -44,6 +44,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
 const Proposals = lazy(() => import("./pages/Proposals"));
+const WhatsAppBroadcast = lazy(() => import("./pages/WhatsAppBroadcast"));
 
 // Client Portal
 const ClientDashboard = lazy(() => import('./pages/portal/Dashboard'));
@@ -112,6 +113,7 @@ const App = () => (
                     <Route path="/projetos" element={<Projects />} />
                     <Route path="/projetos/:id" element={<ProjectDetail />} />
                     <Route path="/propostas" element={<Proposals />} />
+                    <Route path="/whatsapp-broadcast" element={<WhatsAppBroadcast />} />
                     <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
                     <Route path="/departments" element={<Navigate to="/settings" replace />} />
                     <Route path="/settings" element={<Settings />} />
