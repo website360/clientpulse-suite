@@ -72,11 +72,19 @@ async function checkInstanceStatus(settings: WhatsAppSettings): Promise<any> {
 
 async function sendTextMessage(settings: WhatsAppSettings, phone: string, message: string): Promise<any> {
   try {
-    // Ensure phone is in correct format (numbers only)
-    const cleanPhone = phone.replace(/\D/g, '');
+    // Remove non-numeric characters
+    let cleanPhone = phone.replace(/\D/g, '');
     
-    if (cleanPhone.length < 10) {
-      throw new Error("Número de telefone inválido. Use o formato internacional sem +");
+    // Add Brazil country code (55) if not present
+    // Brazilian numbers: 10-11 digits (DDD + number)
+    // With country code: 12-13 digits (55 + DDD + number)
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
+      cleanPhone = '55' + cleanPhone;
+      console.log(`Added country code 55, phone is now: ${cleanPhone}`);
+    }
+    
+    if (cleanPhone.length < 12) {
+      throw new Error("Número de telefone inválido. Formato esperado: 55 + DDD + número");
     }
 
     const url = `${settings.apiUrl}/message/sendText/${settings.instanceName}`;
