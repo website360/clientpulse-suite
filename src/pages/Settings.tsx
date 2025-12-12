@@ -27,11 +27,11 @@ import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { ToastDemo } from '@/components/demo/ToastDemo';
 import { NotificationManager } from '@/components/pwa/NotificationManager';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Smartphone, Receipt } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Smartphone } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
 import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
-import { PaymentReminderSettingsTab } from '@/components/settings/PaymentReminderSettingsTab';
+
 
 export default function Settings() {
   const { user, userRole } = useAuth();
@@ -317,10 +317,6 @@ export default function Settings() {
                     <Smartphone className="h-4 w-4 mr-2" />
                     PWA & Mobile
                   </TabsTrigger>
-                  <TabsTrigger value="payment-reminders">
-                    <Receipt className="h-4 w-4 mr-2" />
-                    Lembretes de Cobrança
-                  </TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -567,9 +563,6 @@ export default function Settings() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="payment-reminders">
-                    <PaymentReminderSettingsTab />
-                  </TabsContent>
 
                   {/* Removed Clicksign and Document Templates content */}
                 </>
