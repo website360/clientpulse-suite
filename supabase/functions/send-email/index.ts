@@ -125,15 +125,31 @@ async function sendEmail(settings: EmailSettings, request: EmailRequest): Promis
 
     // Construir email
     const boundary = `----=_Part_${Date.now()}`;
+    
+    // Encode non-ASCII characters in headers using RFC 2047 (MIME encoded-word)
+    const encodeHeader = (text: string): string => {
+      // Check if string contains non-ASCII characters
+      if (/[^\x00-\x7F]/.test(text)) {
+        // Use Base64 encoding for UTF-8 text
+        const encoded = btoa(unescape(encodeURIComponent(text)));
+        return `=?UTF-8?B?${encoded}?=`;
+      }
+      return text;
+    };
+    
+    const encodedFromName = encodeHeader(settings.from_name);
+    const encodedSubject = encodeHeader(request.subject);
+    
     const emailContent = [
-      `From: ${settings.from_name} <${settings.from_email}>`,
+      `From: ${encodedFromName} <${settings.from_email}>`,
       `To: ${recipients.join(', ')}`,
-      `Subject: ${request.subject}`,
+      `Subject: ${encodedSubject}`,
       `MIME-Version: 1.0`,
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       ``,
       `--${boundary}`,
       `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: 8bit`,
       ``,
       request.text || request.html?.replace(/<[^>]*>/g, ''),
       ``,
