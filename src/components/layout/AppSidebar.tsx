@@ -179,7 +179,7 @@ export function AppSidebar() {
     { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
     { title: 'Manutenção', url: '/manutencao', icon: Wrench },
     { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote },
-    { title: 'Disparos WhatsApp', url: '/whatsapp-broadcast', icon: Send },
+    { title: 'Disparos e Alertas', url: '/broadcast-messages', icon: Send },
     { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];

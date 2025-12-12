@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +32,9 @@ import {
   Italic,
   Strikethrough,
   Code,
-  Smile
+  Smile,
+  Mail,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -67,8 +69,10 @@ interface Client {
 interface SendResult {
   clientId: string;
   clientName: string;
-  success: boolean;
-  error?: string;
+  whatsappSuccess?: boolean;
+  whatsappError?: string;
+  emailSuccess?: boolean;
+  emailError?: string;
 }
 
 const AVAILABLE_VARIABLES = [
@@ -91,11 +95,12 @@ const INTERVAL_OPTIONS = [
   { value: "30", label: "30 segundos (ultra seguro)" },
 ];
 
-export default function WhatsAppBroadcast() {
+export default function BroadcastMessages() {
   const { toast } = useToast();
   const { status: whatsappStatus, checkStatus, isChecking } = useWhatsAppStatus(true);
   
   const [message, setMessage] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("active");
@@ -104,6 +109,42 @@ export default function WhatsAppBroadcast() {
   const [sendProgress, setSendProgress] = useState(0);
   const [sendResults, setSendResults] = useState<SendResult[]>([]);
   const [currentSendingClient, setCurrentSendingClient] = useState<string | null>(null);
+  
+  // Channel selection
+  const [sendWhatsApp, setSendWhatsApp] = useState(true);
+  const [sendEmail, setSendEmail] = useState(true);
+  
+  // Email integration status
+  const [emailConfigured, setEmailConfigured] = useState<boolean | null>(null);
+
+  // Check if email is configured
+  const { data: emailSettings } = useQuery({
+    queryKey: ["email-settings-broadcast"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("integration_settings")
+        .select("key, value, is_active")
+        .in("key", ["email_enabled", "smtp_host", "smtp_user"]);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (emailSettings) {
+      const enabled = emailSettings.find(s => s.key === "email_enabled");
+      const host = emailSettings.find(s => s.key === "smtp_host");
+      const user = emailSettings.find(s => s.key === "smtp_user");
+      
+      const isConfigured = enabled?.value === "true" && 
+        enabled?.is_active && 
+        host?.value && 
+        user?.value;
+      
+      setEmailConfigured(!!isConfigured);
+    }
+  }, [emailSettings]);
 
   // Fetch clients
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
@@ -139,10 +180,22 @@ export default function WhatsAppBroadcast() {
     });
   }, [clients, searchQuery, filterStatus]);
 
-  // Clients with valid phone numbers
-  const clientsWithPhone = useMemo(() => {
-    return filteredClients.filter((c) => c.phone && c.phone.length >= 10);
-  }, [filteredClients]);
+  // Clients with valid contact info based on selected channels
+  const eligibleClients = useMemo(() => {
+    return filteredClients.filter((c) => {
+      const hasPhone = c.phone && c.phone.length >= 10;
+      const hasEmail = c.email && c.email.includes("@");
+      
+      if (sendWhatsApp && sendEmail) {
+        return hasPhone || hasEmail;
+      } else if (sendWhatsApp) {
+        return hasPhone;
+      } else if (sendEmail) {
+        return hasEmail;
+      }
+      return false;
+    });
+  }, [filteredClients, sendWhatsApp, sendEmail]);
 
   const getClientDisplayName = (client: Client) => {
     return client.nickname || client.company_name || client.full_name || "Sem nome";
@@ -153,6 +206,18 @@ export default function WhatsAppBroadcast() {
       .replace(/{nome}/g, client.full_name || client.company_name || "Cliente")
       .replace(/{empresa}/g, client.company_name || "")
       .replace(/{apelido}/g, client.nickname || client.full_name || "Cliente");
+  };
+
+  const convertWhatsAppToHtml = (text: string): string => {
+    // Convert WhatsApp formatting to HTML
+    let html = text
+      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      .replace(/~([^~]+)~/g, '<del>$1</del>')
+      .replace(/```([^`]+)```/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+    
+    return html;
   };
 
   const insertVariable = (variable: string) => {
@@ -175,10 +240,10 @@ export default function WhatsAppBroadcast() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedClients.size === clientsWithPhone.length) {
+    if (selectedClients.size === eligibleClients.length) {
       setSelectedClients(new Set());
     } else {
-      setSelectedClients(new Set(clientsWithPhone.map((c) => c.id)));
+      setSelectedClients(new Set(eligibleClients.map((c) => c.id)));
     }
   };
 
@@ -213,10 +278,37 @@ export default function WhatsAppBroadcast() {
       return;
     }
 
-    if (whatsappStatus !== "connected") {
+    if (!sendWhatsApp && !sendEmail) {
+      toast({
+        title: "Nenhum canal selecionado",
+        description: "Selecione pelo menos um canal de envio (WhatsApp ou E-mail)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sendWhatsApp && whatsappStatus !== "connected") {
       toast({
         title: "WhatsApp desconectado",
-        description: "Verifique a conexão com o WhatsApp antes de enviar",
+        description: "Verifique a conexão com o WhatsApp ou desmarque essa opção",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sendEmail && !emailConfigured) {
+      toast({
+        title: "E-mail não configurado",
+        description: "Configure o SMTP nas integrações ou desmarque essa opção",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sendEmail && !emailSubject.trim()) {
+      toast({
+        title: "Assunto do e-mail vazio",
+        description: "Digite um assunto para o e-mail",
         variant: "destructive",
       });
       return;
@@ -226,7 +318,7 @@ export default function WhatsAppBroadcast() {
     setSendProgress(0);
     setSendResults([]);
 
-    const selectedClientsList = clientsWithPhone.filter((c) => selectedClients.has(c.id));
+    const selectedClientsList = eligibleClients.filter((c) => selectedClients.has(c.id));
     const total = selectedClientsList.length;
     const interval = parseInt(intervalSeconds) * 1000;
     const results: SendResult[] = [];
@@ -235,40 +327,69 @@ export default function WhatsAppBroadcast() {
       const client = selectedClientsList[i];
       setCurrentSendingClient(getClientDisplayName(client));
 
-      try {
-        const personalizedMessage = personalizeMessage(message, client);
+      const result: SendResult = {
+        clientId: client.id,
+        clientName: getClientDisplayName(client),
+      };
 
-        const { data, error } = await supabase.functions.invoke("send-whatsapp", {
-          body: {
-            action: "send_message",
-            phone: client.phone,
-            message: personalizedMessage,
-          },
-        });
+      const personalizedMessage = personalizeMessage(message, client);
+      const hasPhone = client.phone && client.phone.length >= 10;
+      const hasEmail = client.email && client.email.includes("@");
 
-        if (error || !data?.success) {
-          results.push({
-            clientId: client.id,
-            clientName: getClientDisplayName(client),
-            success: false,
-            error: error?.message || data?.error || "Erro desconhecido",
+      // Send WhatsApp
+      if (sendWhatsApp && hasPhone) {
+        try {
+          const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+            body: {
+              action: "send_message",
+              phone: client.phone,
+              message: personalizedMessage,
+            },
           });
-        } else {
-          results.push({
-            clientId: client.id,
-            clientName: getClientDisplayName(client),
-            success: true,
-          });
+
+          if (error || !data?.success) {
+            result.whatsappSuccess = false;
+            result.whatsappError = error?.message || data?.error || "Erro desconhecido";
+          } else {
+            result.whatsappSuccess = true;
+          }
+        } catch (err: any) {
+          result.whatsappSuccess = false;
+          result.whatsappError = err.message;
         }
-      } catch (err: any) {
-        results.push({
-          clientId: client.id,
-          clientName: getClientDisplayName(client),
-          success: false,
-          error: err.message,
-        });
       }
 
+      // Send Email
+      if (sendEmail && hasEmail) {
+        try {
+          const htmlMessage = convertWhatsAppToHtml(personalizedMessage);
+          const personalizedSubject = personalizeMessage(emailSubject, client);
+
+          const { data, error } = await supabase.functions.invoke("send-email", {
+            body: {
+              to: client.email,
+              subject: personalizedSubject,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                  ${htmlMessage}
+                </div>
+              `,
+            },
+          });
+
+          if (error) {
+            result.emailSuccess = false;
+            result.emailError = error?.message || "Erro ao enviar e-mail";
+          } else {
+            result.emailSuccess = true;
+          }
+        } catch (err: any) {
+          result.emailSuccess = false;
+          result.emailError = err.message;
+        }
+      }
+
+      results.push(result);
       setSendProgress(((i + 1) / total) * 100);
       setSendResults([...results]);
 
@@ -281,13 +402,18 @@ export default function WhatsAppBroadcast() {
     setIsSending(false);
     setCurrentSendingClient(null);
 
-    const successCount = results.filter((r) => r.success).length;
-    const failCount = results.filter((r) => !r.success).length;
+    const whatsappSuccess = results.filter((r) => r.whatsappSuccess).length;
+    const whatsappFail = results.filter((r) => r.whatsappSuccess === false).length;
+    const emailSuccess = results.filter((r) => r.emailSuccess).length;
+    const emailFail = results.filter((r) => r.emailSuccess === false).length;
+
+    const totalSuccess = whatsappSuccess + emailSuccess;
+    const totalFail = whatsappFail + emailFail;
 
     toast({
       title: "Envio concluído",
-      description: `${successCount} enviados com sucesso, ${failCount} falharam`,
-      variant: failCount > 0 ? "destructive" : "default",
+      description: `${totalSuccess} enviados com sucesso, ${totalFail} falharam`,
+      variant: totalFail > 0 ? "destructive" : "default",
     });
   };
 
@@ -305,45 +431,121 @@ export default function WhatsAppBroadcast() {
     return personalizeMessage(message, sampleClient);
   }, [message]);
 
+  const getClientChannelInfo = (client: Client) => {
+    const hasPhone = client.phone && client.phone.length >= 10;
+    const hasEmail = client.email && client.email.includes("@");
+    return { hasPhone, hasEmail };
+  };
+
+  // Calculate results summary
+  const resultsSummary = useMemo(() => {
+    return {
+      whatsappSuccess: sendResults.filter((r) => r.whatsappSuccess).length,
+      whatsappFail: sendResults.filter((r) => r.whatsappSuccess === false).length,
+      emailSuccess: sendResults.filter((r) => r.emailSuccess).length,
+      emailFail: sendResults.filter((r) => r.emailSuccess === false).length,
+    };
+  }, [sendResults]);
+
+  const canSend = useMemo(() => {
+    if (selectedClients.size === 0 || !message.trim() || isSending) return false;
+    if (!sendWhatsApp && !sendEmail) return false;
+    if (sendWhatsApp && whatsappStatus !== "connected") return false;
+    if (sendEmail && !emailConfigured) return false;
+    if (sendEmail && !emailSubject.trim()) return false;
+    return true;
+  }, [selectedClients.size, message, isSending, sendWhatsApp, sendEmail, whatsappStatus, emailConfigured, emailSubject]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Disparos em Massa</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Disparos de Informações e Alertas</h1>
             <p className="text-muted-foreground">
-              Envie mensagens personalizadas para múltiplos clientes via WhatsApp
+              Envie mensagens personalizadas para múltiplos clientes via WhatsApp e E-mail
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={
-                whatsappStatus === "connected"
-                  ? "default"
-                  : whatsappStatus === "checking"
-                  ? "secondary"
-                  : "destructive"
-              }
-              className="gap-1"
-            >
-              <Smartphone className="h-3 w-3" />
-              {whatsappStatus === "connected"
-                ? "Conectado"
-                : whatsappStatus === "checking"
-                ? "Verificando..."
-                : "Desconectado"}
-            </Badge>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => checkStatus()}
-              disabled={isChecking}
-            >
-              <RefreshCw className={cn("h-4 w-4", isChecking && "animate-spin")} />
-            </Button>
-          </div>
         </div>
+
+        {/* Channel Status */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Canais de Envio</CardTitle>
+            <CardDescription>Selecione os canais para enviar a mensagem</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-6">
+              {/* WhatsApp Channel */}
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="channel-whatsapp"
+                  checked={sendWhatsApp}
+                  onCheckedChange={(checked) => setSendWhatsApp(!!checked)}
+                />
+                <label htmlFor="channel-whatsapp" className="flex items-center gap-2 cursor-pointer">
+                  <Smartphone className="h-4 w-4" />
+                  <span className="font-medium">WhatsApp</span>
+                </label>
+                <Badge
+                  variant={
+                    whatsappStatus === "connected"
+                      ? "default"
+                      : whatsappStatus === "checking"
+                      ? "secondary"
+                      : "destructive"
+                  }
+                  className="gap-1"
+                >
+                  {whatsappStatus === "connected"
+                    ? "Conectado"
+                    : whatsappStatus === "checking"
+                    ? "Verificando..."
+                    : "Desconectado"}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => checkStatus()}
+                  disabled={isChecking}
+                >
+                  <RefreshCw className={cn("h-4 w-4", isChecking && "animate-spin")} />
+                </Button>
+              </div>
+
+              {/* Email Channel */}
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="channel-email"
+                  checked={sendEmail}
+                  onCheckedChange={(checked) => setSendEmail(!!checked)}
+                />
+                <label htmlFor="channel-email" className="flex items-center gap-2 cursor-pointer">
+                  <Mail className="h-4 w-4" />
+                  <span className="font-medium">E-mail</span>
+                </label>
+                <Badge
+                  variant={
+                    emailConfigured === null
+                      ? "secondary"
+                      : emailConfigured
+                      ? "default"
+                      : "destructive"
+                  }
+                  className="gap-1"
+                >
+                  {emailConfigured === null
+                    ? "Verificando..."
+                    : emailConfigured
+                    ? "Configurado"
+                    : "Não configurado"}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Message Editor */}
@@ -358,6 +560,25 @@ export default function WhatsAppBroadcast() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Email Subject (only when email is selected) */}
+              {sendEmail && (
+                <div className="space-y-2">
+                  <Label htmlFor="email-subject" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Assunto do E-mail
+                  </Label>
+                  <Input
+                    id="email-subject"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Ex: Aviso importante - Recesso de fim de ano"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Você pode usar as mesmas variáveis: {"{nome}"}, {"{empresa}"}, {"{apelido}"}
+                  </p>
+                </div>
+              )}
+
               {/* Formatting Toolbar */}
               <div className="flex items-center gap-1 p-1 border rounded-md bg-muted/50">
                 <TooltipProvider>
@@ -526,7 +747,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
                 Selecionar Clientes
               </CardTitle>
               <CardDescription>
-                {selectedClients.size} de {clientsWithPhone.length} clientes selecionados
+                {selectedClients.size} de {eligibleClients.length} clientes selecionados
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -535,7 +756,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nome, telefone..."
+                    placeholder="Buscar por nome, telefone, e-mail..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -559,15 +780,15 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
                 <div className="flex items-center gap-2">
                   <Checkbox
                     checked={
-                      clientsWithPhone.length > 0 &&
-                      selectedClients.size === clientsWithPhone.length
+                      eligibleClients.length > 0 &&
+                      selectedClients.size === eligibleClients.length
                     }
                     onCheckedChange={toggleSelectAll}
                   />
                   <span className="text-sm font-medium">Selecionar todos</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {clientsWithPhone.length} com telefone válido
+                  {eligibleClients.length} com contato válido
                 </span>
               </div>
 
@@ -579,42 +800,82 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
-                ) : clientsWithPhone.length === 0 ? (
+                ) : eligibleClients.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum cliente encontrado com telefone válido
+                    Nenhum cliente encontrado com contato válido para os canais selecionados
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {clientsWithPhone.map((client) => (
-                      <div
-                        key={client.id}
-                        className={cn(
-                          "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
-                          selectedClients.has(client.id)
-                            ? "bg-primary/10"
-                            : "hover:bg-muted/50"
-                        )}
-                        onClick={() => toggleClient(client.id)}
-                      >
-                        <Checkbox
-                          checked={selectedClients.has(client.id)}
-                          onCheckedChange={() => toggleClient(client.id)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {getClientDisplayName(client)}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {client.phone}
-                          </p>
+                    {eligibleClients.map((client) => {
+                      const { hasPhone, hasEmail } = getClientChannelInfo(client);
+                      return (
+                        <div
+                          key={client.id}
+                          className={cn(
+                            "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                            selectedClients.has(client.id)
+                              ? "bg-primary/10"
+                              : "hover:bg-muted/50"
+                          )}
+                          onClick={() => toggleClient(client.id)}
+                        >
+                          <Checkbox
+                            checked={selectedClients.has(client.id)}
+                            onCheckedChange={() => toggleClient(client.id)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                              {getClientDisplayName(client)}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {hasPhone && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  {client.phone}
+                                </span>
+                              )}
+                              {hasEmail && (
+                                <span className="flex items-center gap-1 truncate">
+                                  <Mail className="h-3 w-3" />
+                                  {client.email}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            {sendWhatsApp && hasPhone && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="outline" className="h-6 w-6 p-0 flex items-center justify-center">
+                                      <Smartphone className="h-3 w-3" />
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Receberá via WhatsApp</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                            {sendEmail && hasEmail && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="outline" className="h-6 w-6 p-0 flex items-center justify-center">
+                                      <Mail className="h-3 w-3" />
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Receberá via E-mail</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          {!client.is_active && (
+                            <Badge variant="secondary" className="text-xs">
+                              Inativo
+                            </Badge>
+                          )}
                         </div>
-                        {!client.is_active && (
-                          <Badge variant="secondary" className="text-xs">
-                            Inativo
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </ScrollArea>
@@ -648,30 +909,67 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
             <CardContent className="space-y-4">
               <Progress value={sendProgress} className="h-2" />
 
-              <div className="flex gap-4 text-sm">
-                <div className="flex items-center gap-1 text-green-600">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {sendResults.filter((r) => r.success).length} enviados
-                </div>
-                <div className="flex items-center gap-1 text-red-600">
-                  <XCircle className="h-4 w-4" />
-                  {sendResults.filter((r) => !r.success).length} falharam
-                </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {/* WhatsApp Results */}
+                {sendWhatsApp && (
+                  <div className="space-y-1">
+                    <p className="font-medium flex items-center gap-1">
+                      <Smartphone className="h-4 w-4" /> WhatsApp
+                    </p>
+                    <div className="flex gap-4">
+                      <span className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {resultsSummary.whatsappSuccess} enviados
+                      </span>
+                      <span className="flex items-center gap-1 text-red-600">
+                        <XCircle className="h-4 w-4" />
+                        {resultsSummary.whatsappFail} falharam
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Email Results */}
+                {sendEmail && (
+                  <div className="space-y-1">
+                    <p className="font-medium flex items-center gap-1">
+                      <Mail className="h-4 w-4" /> E-mail
+                    </p>
+                    <div className="flex gap-4">
+                      <span className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {resultsSummary.emailSuccess} enviados
+                      </span>
+                      <span className="flex items-center gap-1 text-red-600">
+                        <XCircle className="h-4 w-4" />
+                        {resultsSummary.emailFail} falharam
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {sendResults.some((r) => !r.success) && (
+              {/* Error Details */}
+              {sendResults.some((r) => r.whatsappSuccess === false || r.emailSuccess === false) && (
                 <ScrollArea className="h-32 border rounded-md p-2">
                   <div className="space-y-1">
                     {sendResults
-                      .filter((r) => !r.success)
+                      .filter((r) => r.whatsappSuccess === false || r.emailSuccess === false)
                       .map((result) => (
-                        <div
-                          key={result.clientId}
-                          className="flex items-center gap-2 text-sm text-red-600"
-                        >
-                          <XCircle className="h-3 w-3" />
-                          <span>{result.clientName}:</span>
-                          <span className="text-muted-foreground">{result.error}</span>
+                        <div key={result.clientId} className="text-sm">
+                          <span className="font-medium">{result.clientName}:</span>
+                          {result.whatsappSuccess === false && (
+                            <span className="flex items-center gap-1 text-red-600 ml-2">
+                              <Smartphone className="h-3 w-3" />
+                              {result.whatsappError}
+                            </span>
+                          )}
+                          {result.emailSuccess === false && (
+                            <span className="flex items-center gap-1 text-red-600 ml-2">
+                              <Mail className="h-3 w-3" />
+                              {result.emailError}
+                            </span>
+                          )}
                         </div>
                       ))}
                   </div>
@@ -685,7 +983,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Importante:</strong> Envios em massa devem seguir as políticas do WhatsApp.
+            <strong>Importante:</strong> Envios em massa devem seguir as políticas do WhatsApp e de e-mail.
             Use intervalos adequados entre mensagens para evitar bloqueios. Mensagens devem ser
             relevantes e os destinatários devem ter consentido em recebê-las.
           </AlertDescription>
@@ -696,7 +994,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
           <Button
             size="lg"
             onClick={sendBroadcast}
-            disabled={isSending || selectedClients.size === 0 || !message.trim() || whatsappStatus !== "connected"}
+            disabled={!canSend}
             className="gap-2"
           >
             {isSending ? (
