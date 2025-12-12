@@ -43,7 +43,7 @@ const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
-const Proposals = lazy(() => import("./pages/Proposals"));
+
 const BroadcastMessages = lazy(() => import("./pages/BroadcastMessages"));
 
 // Client Portal
@@ -112,7 +112,7 @@ const App = () => (
                     <Route path="/anotacoes" element={<Notes />} />
                     <Route path="/projetos" element={<Projects />} />
                     <Route path="/projetos/:id" element={<ProjectDetail />} />
-                    <Route path="/propostas" element={<Proposals />} />
+                    
                     <Route path="/broadcast-messages" element={<BroadcastMessages />} />
                     <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
                     <Route path="/departments" element={<Navigate to="/settings" replace />} />
