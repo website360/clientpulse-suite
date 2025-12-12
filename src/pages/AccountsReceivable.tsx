@@ -8,7 +8,7 @@ import { ReceivableTable } from '@/components/financial/receivable/ReceivableTab
 import { ReceivableFormModal } from '@/components/financial/receivable/ReceivableFormModal';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, AlertTriangle, FileText, Users, BarChart3, History } from 'lucide-react';
+import { Plus, TrendingUp, AlertTriangle, FileText, Users, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
 import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
@@ -16,7 +16,7 @@ import { DelinquencyReport } from '@/components/financial/DelinquencyReport';
 import { DREReport } from '@/components/financial/DREReport';
 import { ClientProfitability } from '@/components/financial/ClientProfitability';
 import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
-import { PaymentReminderHistory } from '@/components/financial/PaymentReminderHistory';
+
 
 const AccountsReceivable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,10 +104,6 @@ const AccountsReceivable = () => {
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Reconciliação Asaas
                 </TabsTrigger>
-                <TabsTrigger value="reminders">
-                  <History className="h-4 w-4 mr-2" />
-                  Histórico de Lembretes
-                </TabsTrigger>
               </TabsList>
             </ScrollableTabs>
 
@@ -170,9 +166,6 @@ const AccountsReceivable = () => {
               <AsaasReconciliation />
             </TabsContent>
 
-            <TabsContent value="reminders" className="space-y-6">
-              <PaymentReminderHistory />
-            </TabsContent>
           </Tabs>
 
         <ReceivableFormModal 
