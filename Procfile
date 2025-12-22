@@ -1,1 +1,1 @@
-web: npm exec -- node server.cjs
+web: npm start
