@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { format, addDays, startOfDay, endOfDay } from "date-fns";
@@ -208,70 +209,102 @@ export function CashFlowProjection() {
 
         <TabsContent value="receivables" className="space-y-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {receivables?.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between border-b pb-4 last:border-0">
-                    <div className="space-y-1">
-                      <p className="font-medium">
-                        {item.clients?.company_name || item.clients?.full_name}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
-                        {item.category && (
-                          <Badge variant="outline">{item.category}</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-success">{formatCurrency(item.amount)}</p>
-                      <Badge variant={item.status === 'overdue' ? 'destructive' : 'secondary'}>
-                        {item.status === 'overdue' ? 'Vencido' : 'Pendente'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                {(!receivables || receivables.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma receita prevista para este período
-                  </p>
-                )}
-              </div>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {receivables && receivables.length > 0 ? (
+                    receivables.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.clients?.company_name || item.clients?.full_name}
+                        </TableCell>
+                        <TableCell>
+                          {item.category && (
+                            <Badge variant="outline">{item.category}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-right text-success font-bold">
+                          {formatCurrency(item.amount)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={item.status === 'overdue' ? 'destructive' : 'secondary'}>
+                            {item.status === 'overdue' ? 'Vencido' : 'Pendente'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhuma receita prevista para este período
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="payables" className="space-y-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {payables?.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between border-b pb-4 last:border-0">
-                    <div className="space-y-1">
-                      <p className="font-medium">{item.suppliers?.name || item.description}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
-                        {item.category && (
-                          <Badge variant="outline">{item.category}</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-destructive">{formatCurrency(item.amount)}</p>
-                      <Badge variant={item.status === 'overdue' ? 'destructive' : 'secondary'}>
-                        {item.status === 'overdue' ? 'Vencido' : 'Pendente'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                {(!payables || payables.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma despesa agendada para este período
-                  </p>
-                )}
-              </div>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fornecedor</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payables && payables.length > 0 ? (
+                    payables.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.suppliers?.name || item.description}
+                        </TableCell>
+                        <TableCell>
+                          {item.category && (
+                            <Badge variant="outline">{item.category}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-right text-destructive font-bold">
+                          {formatCurrency(item.amount)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={item.status === 'overdue' ? 'destructive' : 'secondary'}>
+                            {item.status === 'overdue' ? 'Vencido' : 'Pendente'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhuma despesa agendada para este período
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
