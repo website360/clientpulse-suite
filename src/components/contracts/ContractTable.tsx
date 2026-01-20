@@ -251,7 +251,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
   return (
     <>
       <Card className="card-elevated">
-        <Table className="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3">
+        <Table className="[&_td]:px-4 [&_td]:py-4 [&_th]:px-4 [&_th]:py-3">
           <TableHeader>
             <TableRow>
               {!hideClientColumn && <TableHead>Cliente</TableHead>}
