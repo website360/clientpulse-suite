@@ -36,7 +36,7 @@ export function AppSidebar() {
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
   const [taskCount, setTaskCount] = useState(0);
-  const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(() => {
+  const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string; avatar_url?: string | null } | null>(() => {
     const cachedProfile = sessionStorage.getItem('user-profile');
     return cachedProfile ? JSON.parse(cachedProfile) : null;
   });
@@ -108,7 +108,7 @@ export function AppSidebar() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, email, nickname')
+        .select('full_name, email, nickname, avatar_url')
         .eq('id', user?.id)
         .single();
       
@@ -387,6 +387,7 @@ export function AppSidebar() {
           )}>
             <AvatarInitials 
               name={profile.nickname || profile.full_name || 'User'} 
+              avatarUrl={profile.avatar_url}
               size="sm"
             />
             {!isCollapsed && (

@@ -1,8 +1,10 @@
 import { getAvatarColor, getInitials } from '@/lib/avatarColors';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface AvatarInitialsProps {
   name: string;
+  avatarUrl?: string | null;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -15,9 +17,25 @@ const sizeClasses = {
   xl: 'h-16 w-16 text-lg',
 };
 
-export function AvatarInitials({ name, size = 'md', className }: AvatarInitialsProps) {
+export function AvatarInitials({ name, avatarUrl, size = 'md', className }: AvatarInitialsProps) {
   const { bg, text } = getAvatarColor(name);
   const initials = getInitials(name);
+  const [imageError, setImageError] = useState(false);
+
+  if (avatarUrl && !imageError) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        onError={() => setImageError(true)}
+        className={cn(
+          'rounded-full object-cover flex-shrink-0',
+          sizeClasses[size],
+          className
+        )}
+      />
+    );
+  }
 
   return (
     <div
