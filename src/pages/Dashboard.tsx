@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
-import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
+
 import { useDateRangeFilter } from '@/hooks/useDateRangeFilter';
 import { QuickStatsGrid } from '@/components/dashboard/QuickStats';
 import { FinancialSummaryCard } from '@/components/dashboard/FinancialSummaryCard';
@@ -361,9 +361,6 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Welcome Banner */}
-        <WelcomeBanner />
-
         {/* Header with Date Filter */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
