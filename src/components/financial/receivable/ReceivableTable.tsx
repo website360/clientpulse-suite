@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, QrCode } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -497,7 +498,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
 
   return (
     <>
-      <div className="rounded-md border">
+      <Card className="card-elevated">
         <Table>
           <TableHeader>
             <TableRow>
@@ -640,7 +641,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {editingAccount && (
         <ReceivableFormModal

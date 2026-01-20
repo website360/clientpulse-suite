@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { MoreHorizontal, CheckCircle, XCircle, Edit, Trash2, Calendar } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast, toastSuccess, toastError } from '@/hooks/use-toast';
@@ -367,7 +368,7 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
 
   return (
     <>
-      <div className="rounded-md border">
+      <Card className="card-elevated">
         <Table>
           <TableHeader>
             <TableRow>
@@ -450,7 +451,7 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {editingAccount && (
         <PayableFormModal
