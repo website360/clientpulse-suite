@@ -205,7 +205,7 @@ export function AppSidebar() {
 
   const systemItems = [
     { title: 'Disparos e Alertas', url: '/broadcast-messages', icon: Send },
-    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen, copyLink: true },
+    { title: 'Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen, copyLink: true },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];
 
