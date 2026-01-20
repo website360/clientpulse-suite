@@ -320,7 +320,7 @@ export function AppSidebar() {
             />
             {!isCollapsed && (
               <div>
-                <h1 className="text-sm font-bold text-foreground">Agency OS</h1>
+                <h1 className="text-sm font-bold text-foreground">Agência May</h1>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sistema de Gestão</p>
               </div>
             )}
