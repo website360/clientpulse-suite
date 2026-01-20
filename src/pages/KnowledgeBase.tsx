@@ -243,10 +243,10 @@ export default function KnowledgeBase() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Título</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="whitespace-nowrap">Categoria</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Data</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -278,7 +278,7 @@ export default function KnowledgeBase() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {post.knowledge_base_categories ? (
                             <Badge
                               style={{
@@ -292,12 +292,12 @@ export default function KnowledgeBase() {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <Badge variant={post.is_published ? 'default' : 'secondary'}>
                             {post.is_published ? 'Publicado' : 'Rascunho'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="text-muted-foreground whitespace-nowrap">
                           {formatDistanceToNow(new Date(post.created_at), {
                             addSuffix: true,
                             locale: ptBR,
