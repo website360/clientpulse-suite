@@ -27,12 +27,12 @@ export function NoteFilters({
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           placeholder="Buscar anotações..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
+          className="pl-11 h-11 text-base"
         />
       </div>
 
@@ -43,7 +43,8 @@ export function NoteFilters({
             {selectedTagIds.length > 0 && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="default"
+                className="h-9"
                 onClick={() => selectedTagIds.forEach(id => onTagToggle(id))}
               >
                 Limpar filtros
