@@ -1,4 +1,4 @@
-import { User, Moon, Sun, Search, Plus } from 'lucide-react';
+import { User, Moon, Sun, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -130,25 +130,6 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
           <p className="text-xs text-muted-foreground capitalize hidden sm:block">
             {today} • {getGreeting()}, {userName.split(' ')[0]}
           </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center">
-          <Button
-            variant="outline"
-            className="h-9 w-64 justify-start text-muted-foreground font-normal rounded-lg border-border bg-muted/30"
-            onClick={() => {
-              // Trigger command palette
-              const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
-              document.dispatchEvent(event);
-            }}
-          >
-            <Search className="mr-2 h-4 w-4" />
-            <span>Buscar...</span>
-            <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-              ⌘K
-            </kbd>
-          </Button>
         </div>
 
         {/* Actions */}
