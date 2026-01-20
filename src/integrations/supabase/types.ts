@@ -3672,6 +3672,72 @@ export type Database = {
           },
         ]
       }
+      whitelabel_settings: {
+        Row: {
+          background_dark: string | null
+          background_light: string | null
+          border_radius: string | null
+          company_name: string | null
+          created_at: string | null
+          error_color: string | null
+          font_family: string | null
+          font_heading: string | null
+          id: string
+          info_color: string | null
+          primary_h: number | null
+          primary_l: number | null
+          primary_s: number | null
+          secondary_h: number | null
+          secondary_l: number | null
+          secondary_s: number | null
+          success_color: string | null
+          updated_at: string | null
+          warning_color: string | null
+        }
+        Insert: {
+          background_dark?: string | null
+          background_light?: string | null
+          border_radius?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          error_color?: string | null
+          font_family?: string | null
+          font_heading?: string | null
+          id?: string
+          info_color?: string | null
+          primary_h?: number | null
+          primary_l?: number | null
+          primary_s?: number | null
+          secondary_h?: number | null
+          secondary_l?: number | null
+          secondary_s?: number | null
+          success_color?: string | null
+          updated_at?: string | null
+          warning_color?: string | null
+        }
+        Update: {
+          background_dark?: string | null
+          background_light?: string | null
+          border_radius?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          error_color?: string | null
+          font_family?: string | null
+          font_heading?: string | null
+          id?: string
+          info_color?: string | null
+          primary_h?: number | null
+          primary_l?: number | null
+          primary_s?: number | null
+          secondary_h?: number | null
+          secondary_l?: number | null
+          secondary_s?: number | null
+          success_color?: string | null
+          updated_at?: string | null
+          warning_color?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
