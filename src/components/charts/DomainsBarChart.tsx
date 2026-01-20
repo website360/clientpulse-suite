@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { Globe } from 'lucide-react';
 
 const STATUS_COLORS = {
-  active: '#34d399', // verde
-  expiring: '#fbbf24', // amarelo
-  expired: '#fb7185', // vermelho
+  active: 'hsl(var(--accent))',
+  expiring: 'hsl(45 93% 47%)',
+  expired: 'hsl(0 84% 60%)',
 };
 
 const STATUS_LABELS = {
@@ -21,20 +22,36 @@ interface DomainData {
   label: string;
 }
 
-export function DomainsBarChart() {
+interface DomainsBarChartProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export function DomainsBarChart({ startDate, endDate }: DomainsBarChartProps) {
   const [data, setData] = useState<DomainData[]>([]);
   const [loading, setLoading] = useState(true);
   const [maxValue, setMaxValue] = useState(0);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     fetchDomainsData();
-  }, []);
+  }, [startDate, endDate]);
 
   const fetchDomainsData = async () => {
     try {
-      const { data: domains, error } = await supabase
+      let query = supabase
         .from('domains')
-        .select('expires_at');
+        .select('expires_at, created_at');
+
+      // Filter by creation date if date range is provided
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data: domains, error } = await query;
 
       if (error) throw error;
 
@@ -75,6 +92,7 @@ export function DomainsBarChart() {
 
       const max = Math.max(...chartData.map(d => d.count), 1);
       setMaxValue(max);
+      setTotal(domains?.length || 0);
       setData(chartData);
     } catch (error) {
       console.error('Error fetching domains data:', error);
@@ -85,13 +103,22 @@ export function DomainsBarChart() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Domínios</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Domínios</CardTitle>
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Globe className="h-4 w-4 text-primary" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+          <div className="h-[180px] flex items-center justify-center">
+            <div className="animate-pulse space-y-3 w-full">
+              <div className="h-2.5 bg-muted rounded-full" />
+              <div className="h-2.5 bg-muted rounded-full w-3/4" />
+              <div className="h-2.5 bg-muted rounded-full w-1/2" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -99,25 +126,38 @@ export function DomainsBarChart() {
   }
 
   return (
-    <Card>
+    <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Domínios</CardTitle>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold">Domínios</CardTitle>
+            <p className="text-2xl font-bold mt-1">{total}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Globe className="h-5 w-5 text-primary" />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {data.map((item, index) => (
             <div key={index} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-muted-foreground">{item.label}</span>
-                <span className="font-bold" style={{ color: item.color }}>{item.count}</span>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="h-2.5 w-2.5 rounded-full" 
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="font-medium text-muted-foreground">{item.label}</span>
+                </div>
+                <span className="font-semibold">{item.count}</span>
               </div>
-              <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
+              <div className="relative h-2 bg-muted/50 rounded-full overflow-hidden">
                 <div
                   className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${(item.count / maxValue) * 100}%`,
                     backgroundColor: item.color,
-                    opacity: 0.9,
                   }}
                 />
               </div>
