@@ -40,16 +40,11 @@ export default function Reports() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-            <FileText className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Relatórios</h1>
-            <p className="text-muted-foreground">
-              Gere relatórios detalhados e exporte dados
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold">Relatórios</h1>
+          <p className="text-sm text-muted-foreground">
+            Gere relatórios detalhados e exporte dados
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="financial" className="space-y-6">
@@ -77,7 +72,7 @@ export default function Reports() {
           <TabsContent value="financial" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Relatório Financeiro</CardTitle>
+                <CardTitle className="text-base">Relatório Financeiro</CardTitle>
                 <CardDescription>
                   Filtre e exporte dados de contas a pagar e receber
                 </CardDescription>
