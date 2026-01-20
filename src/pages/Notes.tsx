@@ -10,9 +10,10 @@ import { NoteFilters } from '@/components/notes/NoteFilters';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EmptyNotes } from '@/components/illustrations/EmptyNotes';
 import { toastSuccess, toastError } from '@/hooks/use-toast';
-
 export default function Notes() {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [notes, setNotes] = useState<any[]>([]);
   const [filteredNotes, setFilteredNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,105 +22,75 @@ export default function Notes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [availableTags, setAvailableTags] = useState<any[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-
   useEffect(() => {
     if (user) {
       fetchNotes();
       fetchTags();
     }
   }, [user]);
-
   useEffect(() => {
     filterNotes();
   }, [notes, searchQuery, selectedTagIds]);
-
   const fetchNotes = async () => {
     if (!user) return;
-
     setLoading(true);
-    const { data, error } = await supabase
-      .from('notes')
-      .select(`
+    const {
+      data,
+      error
+    } = await supabase.from('notes').select(`
         *,
         note_tag_relationships(
           tag_id,
           note_tags(id, name, color)
         )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
+      `).eq('user_id', user.id).order('created_at', {
+      ascending: false
+    });
     if (error) {
       toastError('Erro ao carregar anotações', error.message);
     } else {
       const notesWithTags = (data || []).map(note => ({
         ...note,
         image_urls: note.image_urls || [],
-        tags: note.note_tag_relationships
-          ?.map((rel: any) => rel.note_tags)
-          .filter((tag: any) => tag !== null) || [],
+        tags: note.note_tag_relationships?.map((rel: any) => rel.note_tags).filter((tag: any) => tag !== null) || []
       }));
       setNotes(notesWithTags);
     }
     setLoading(false);
   };
-
   const fetchTags = async () => {
     if (!user) return;
-
-    const { data } = await supabase
-      .from('note_tags')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('name');
-
+    const {
+      data
+    } = await supabase.from('note_tags').select('*').eq('user_id', user.id).eq('is_active', true).order('name');
     setAvailableTags(data || []);
   };
-
   const filterNotes = () => {
     let filtered = notes;
 
     // Filter by tags
     if (selectedTagIds.length > 0) {
-      filtered = filtered.filter(note =>
-        note.tags?.some((tag: any) => selectedTagIds.includes(tag.id))
-      );
+      filtered = filtered.filter(note => note.tags?.some((tag: any) => selectedTagIds.includes(tag.id)));
     }
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(note =>
-        note.title?.toLowerCase().includes(query) ||
-        note.content.toLowerCase().includes(query) ||
-        note.link_url?.toLowerCase().includes(query) ||
-        note.tags?.some((tag: any) => tag.name.toLowerCase().includes(query))
-      );
+      filtered = filtered.filter(note => note.title?.toLowerCase().includes(query) || note.content.toLowerCase().includes(query) || note.link_url?.toLowerCase().includes(query) || note.tags?.some((tag: any) => tag.name.toLowerCase().includes(query)));
     }
-
     setFilteredNotes(filtered);
   };
-
   const handleTagToggle = (tagId: string) => {
-    setSelectedTagIds(prev =>
-      prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
+    setSelectedTagIds(prev => prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]);
   };
-
   const handleEdit = (note: any) => {
     setSelectedNote(note);
     setModalOpen(true);
   };
-
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from('notes')
-      .delete()
-      .eq('id', id);
-
+    const {
+      error
+    } = await supabase.from('notes').delete().eq('id', id);
     if (error) {
       toastError('Erro ao excluir', error.message);
     } else {
@@ -127,27 +98,23 @@ export default function Notes() {
       fetchNotes();
     }
   };
-
   const handleColorChange = async (id: string, color: string) => {
-    const { error } = await supabase
-      .from('notes')
-      .update({ color })
-      .eq('id', id);
-
+    const {
+      error
+    } = await supabase.from('notes').update({
+      color
+    }).eq('id', id);
     if (error) {
       toastError('Erro ao atualizar cor', error.message);
     } else {
       fetchNotes();
     }
   };
-
   const handleModalClose = () => {
     setModalOpen(false);
     setSelectedNote(null);
   };
-
-  return (
-    <DashboardLayout breadcrumbLabel="Ideias e Anotações">
+  return <DashboardLayout breadcrumbLabel="Ideias e Anotações">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -156,64 +123,28 @@ export default function Notes() {
               Organize suas ideias com texto, links, imagens e tags
             </p>
           </div>
-          <Button onClick={() => setModalOpen(true)} className="gap-2 h-11 px-5">
-            <Plus className="h-5 w-5" />
+          <Button onClick={() => setModalOpen(true)} className="gap-2 py-px">
+            <Plus className="h-4 w-4" />
             Nova Anotação
           </Button>
         </div>
 
-        <NoteFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          availableTags={availableTags}
-          selectedTagIds={selectedTagIds}
-          onTagToggle={handleTagToggle}
-        />
+        <NoteFilters searchQuery={searchQuery} onSearchChange={setSearchQuery} availableTags={availableTags} selectedTagIds={selectedTagIds} onTagToggle={handleTagToggle} />
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
+        {loading ? <div className="flex items-center justify-center py-12">
             <div className="text-muted-foreground">Carregando anotações...</div>
-          </div>
-        ) : filteredNotes.length === 0 ? (
-          searchQuery || selectedTagIds.length > 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+          </div> : filteredNotes.length === 0 ? searchQuery || selectedTagIds.length > 0 ? <div className="flex flex-col items-center justify-center py-12 text-center">
               <p className="text-muted-foreground mb-4">
                 Nenhuma anotação encontrada com os filtros aplicados
               </p>
-            </div>
-          ) : (
-            <EmptyState
-              icon={Lightbulb}
-              title="Nenhuma anotação criada"
-              description="Organize suas ideias com texto, links, imagens e tags personalizadas."
-              illustration={<EmptyNotes />}
-              action={{
-                label: "Nova Anotação",
-                onClick: () => setModalOpen(true)
-              }}
-            />
-          )
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredNotes.map((note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onColorChange={handleColorChange}
-              />
-            ))}
-          </div>
-        )}
+            </div> : <EmptyState icon={Lightbulb} title="Nenhuma anotação criada" description="Organize suas ideias com texto, links, imagens e tags personalizadas." illustration={<EmptyNotes />} action={{
+        label: "Nova Anotação",
+        onClick: () => setModalOpen(true)
+      }} /> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredNotes.map(note => <NoteCard key={note.id} note={note} onEdit={handleEdit} onDelete={handleDelete} onColorChange={handleColorChange} />)}
+          </div>}
 
-        <NoteFormModal
-          open={modalOpen}
-          onOpenChange={handleModalClose}
-          note={selectedNote}
-          onSuccess={fetchNotes}
-        />
+        <NoteFormModal open={modalOpen} onOpenChange={handleModalClose} note={selectedNote} onSuccess={fetchNotes} />
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 }
