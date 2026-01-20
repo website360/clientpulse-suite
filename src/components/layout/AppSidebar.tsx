@@ -1,5 +1,9 @@
-import { LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, FolderKanban, ChevronLeft, ChevronRight, TrendingUp, Send } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { 
+  LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, 
+  FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, 
+  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut
+} from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -22,20 +26,21 @@ import { toast } from '@/hooks/use-toast';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
 import { cn } from '@/lib/utils';
+import { AvatarInitials } from '@/components/ui/avatar-initials';
 
 export function AppSidebar() {
   const { state, toggleSidebar, open } = useSidebar();
   const isCollapsed = !open;
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
+  const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [ticketCount, setTicketCount] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
   const [profile, setProfile] = useState<{ full_name: string; email: string; nickname?: string } | null>(() => {
-    // Tentar carregar do cache do sessionStorage primeiro
     const cachedProfile = sessionStorage.getItem('user-profile');
     return cachedProfile ? JSON.parse(cachedProfile) : null;
   });
   const [menuLogo, setMenuLogo] = useState<{ light: string; dark: string }>(() => {
-    // Tentar carregar do cache do sessionStorage primeiro
     const cachedLight = sessionStorage.getItem('logo-icon-light-url');
     const cachedDark = sessionStorage.getItem('logo-icon-dark-url');
     
@@ -49,15 +54,14 @@ export function AppSidebar() {
     const isDarkMode = document.documentElement.classList.contains('dark');
     setIsDark(isDarkMode);
     fetchTicketCount();
+    fetchTaskCount();
     
-    // Carregar logos do Storage (fonte principal) com fallback
     const loadLogos = async () => {
       const { loadBrandingUrl } = await import('@/lib/branding');
       
       const lightUrl = await loadBrandingUrl('logo-icon-light', logoLight);
       const darkUrl = await loadBrandingUrl('logo-icon-dark', logoDark);
       
-      // Salvar no sessionStorage para cache
       sessionStorage.setItem('logo-icon-light-url', lightUrl);
       sessionStorage.setItem('logo-icon-dark-url', darkUrl);
       
@@ -73,7 +77,6 @@ export function AppSidebar() {
       fetchProfile();
     }
 
-    // Observer para mudanças no tema
     const observer = new MutationObserver(() => {
       const newIsDark = document.documentElement.classList.contains('dark');
       setIsDark(newIsDark);
@@ -84,11 +87,9 @@ export function AppSidebar() {
       attributeFilter: ['class'],
     });
 
-    // Listener para atualizações de logo
     const handleLogoUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail.type === 'logo-icon-light' || customEvent.detail.type === 'logo-icon-dark') {
-        // Limpar cache ao atualizar
         sessionStorage.removeItem('logo-icon-light-url');
         sessionStorage.removeItem('logo-icon-dark-url');
         loadLogos();
@@ -113,7 +114,6 @@ export function AppSidebar() {
       
       if (error) throw error;
       
-      // Salvar no sessionStorage para cache
       sessionStorage.setItem('user-profile', JSON.stringify(data));
       setProfile(data);
     } catch (error) {
@@ -125,12 +125,27 @@ export function AppSidebar() {
     try {
       const { count, error } = await supabase
         .from('tickets')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['waiting', 'in_progress']);
       
       if (error) throw error;
       setTicketCount(count || 0);
     } catch (error) {
       console.error('Error fetching ticket count:', error);
+    }
+  };
+
+  const fetchTaskCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'done');
+      
+      if (error) throw error;
+      setTaskCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching task count:', error);
     }
   };
 
@@ -148,11 +163,9 @@ export function AppSidebar() {
 
   const handleToggleSidebar = () => {
     toggleSidebar();
-    // Salvar estado no localStorage
     const newState = open ? 'collapsed' : 'open';
     localStorage.setItem('sidebar-state', newState);
   };
-
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -165,22 +178,34 @@ export function AppSidebar() {
     });
   };
 
-  const adminItems = [
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  // Menu sections for admin
+  const mainMenuItems = [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'Clientes', url: '/clients', icon: Users },
-    { title: 'Tickets', url: '/tickets', icon: Ticket },
-    { title: 'Domínios', url: '/domains', icon: Globe },
+    { title: 'Tickets', url: '/tickets', icon: Ticket, badge: ticketCount },
+    { title: 'Tarefas', url: '/tasks', icon: CheckSquare, badge: taskCount },
     { title: 'Projetos', url: '/projetos', icon: FolderKanban },
-    
-    { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
-    
+  ];
+
+  const resourceItems = [
+    { title: 'Domínios', url: '/domains', icon: Globe },
     { title: 'Contratos', url: '/contracts', icon: FileText },
-    { title: 'Relatórios', url: '/reports', icon: BarChart3 },
-    { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
     { title: 'Manutenção', url: '/manutencao', icon: Wrench },
     { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote },
+  ];
+
+  const financeItems = [
+    { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
+    { title: 'Relatórios', url: '/reports', icon: BarChart3 },
+  ];
+
+  const systemItems = [
     { title: 'Disparos e Alertas', url: '/broadcast-messages', icon: Send },
-    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen },
+    { title: 'Base de Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen, copyLink: true },
     { title: 'Configurações', url: '/settings', icon: Settings },
   ];
 
@@ -195,125 +220,202 @@ export function AppSidebar() {
     { title: 'Meus Tickets', url: '/portal/tickets', icon: Ticket },
   ];
 
-  // Usar userRole diretamente para evitar flickering no menu
-  const items = userRole === 'admin' ? adminItems : userRole === 'contato' ? contatoItems : clientItems;
+  const renderMenuItem = (item: any) => {
+    const isActive = location.pathname === item.url || 
+      (item.url !== '/' && location.pathname.startsWith(item.url));
 
-  const badgeCounts: Record<string, number> = {
-    'Tickets': ticketCount,
-    'Meus Tickets': ticketCount,
+    return (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton asChild className={cn("h-10", isCollapsed && "justify-center px-2")}>
+          <NavLink
+            to={item.url}
+            end={item.url === '/' || item.url === '/portal'}
+            className={cn(
+              "transition-all duration-200 rounded-lg group/item",
+              isActive
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'hover:bg-muted text-muted-foreground hover:text-foreground',
+              !isCollapsed && 'px-3'
+            )}
+            title={isCollapsed ? item.title : undefined}
+          >
+            <item.icon className={cn(
+              "flex-shrink-0 transition-all duration-200",
+              isCollapsed ? "h-5 w-5" : "h-4 w-4",
+              isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover/item:text-foreground'
+            )} />
+            {!isCollapsed && (
+              <div className="flex items-center justify-between flex-1">
+                <span className="text-sm font-medium">{item.title}</span>
+                <div className="flex items-center gap-1.5">
+                  {item.badge > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className={cn(
+                        "h-5 min-w-[20px] px-1.5 text-xs font-medium",
+                        isActive 
+                          ? "bg-primary-foreground/20 text-primary-foreground" 
+                          : "bg-primary/10 text-primary"
+                      )}
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {item.copyLink && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "h-5 w-5 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity",
+                        isActive && "text-primary-foreground hover:bg-primary-foreground/20"
+                      )}
+                      onClick={handleCopyLink}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
   };
+
+  const renderMenuSection = (label: string, items: any[]) => (
+    <SidebarGroup key={label}>
+      {!isCollapsed && (
+        <SidebarGroupLabel className="text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase px-3 mb-1">
+          {label}
+        </SidebarGroupLabel>
+      )}
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-0.5">
+          {items.map(renderMenuItem)}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 
   return (
     <Sidebar 
       collapsible="icon" 
-      className="border-r border-sidebar-border h-screen sticky top-0"
+      className="border-r border-border bg-background h-screen"
     >
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      {/* Header with Logo and Toggle */}
+      <SidebarHeader className="p-4 border-b border-border">
         <div className={cn(
-          "flex gap-3",
-          isCollapsed ? "flex-col" : "flex-row items-center justify-between"
+          "flex items-center",
+          isCollapsed ? "justify-center" : "justify-between"
         )}>
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-3">
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
               className={cn(
                 "flex-shrink-0 object-contain transition-all",
-                isCollapsed ? "h-9 w-9 mx-auto" : "h-10 w-10"
+                isCollapsed ? "h-8 w-8" : "h-9 w-9"
               )}
             />
-            {!isCollapsed && profile && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile.nickname || profile.full_name}</p>
-                <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+            {!isCollapsed && (
+              <div>
+                <h1 className="text-sm font-bold text-foreground">Agency OS</h1>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sistema de Gestão</p>
               </div>
             )}
           </div>
+          {!isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleSidebar}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        {isCollapsed && (
           <Button
             variant="ghost"
             size="icon"
             onClick={handleToggleSidebar}
-            className={cn("h-8 w-8 flex-shrink-0", isCollapsed && "mx-auto")}
+            className="h-8 w-8 mx-auto mt-2 text-muted-foreground hover:text-foreground"
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <ChevronRight className="h-4 w-4" />
           </Button>
-        </div>
+        )}
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel>{userRole === 'admin' ? 'Menu Principal' : 'Suporte'}</SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={cn("gap-2", isCollapsed && "gap-3")}>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className={cn("py-2.5 px-3", isCollapsed && "justify-center items-center px-2 mx-auto")}>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className={({ isActive }) =>
-                        cn(
-                          "transition-all duration-200 w-full",
-                          isActive
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'hover:bg-sidebar-accent/50',
-                          !isCollapsed && 'hover:translate-x-1 px-3',
-                          isCollapsed && 'flex items-center justify-center px-0 hover:translate-x-0 hover:scale-110'
-                        )
-                      }
-                      title={isCollapsed ? item.title : undefined}
-                    >
-                      <item.icon className={cn(
-                        "flex-shrink-0 transition-all duration-200",
-                        isCollapsed ? "!h-5 !w-5 mx-auto" : "h-5 w-5"
-                      )} />
-                      {!isCollapsed && (
-                        <div className="flex items-center justify-between flex-1">
-                          <span className="text-[15px]">{item.title}</span>
-                          <div className="flex items-center gap-1 ml-auto">
-                            {badgeCounts[item.title] && (
-                              <Badge variant="secondary" className="h-5 px-1.5 text-xs">
-                                {badgeCounts[item.title]}
-                              </Badge>
-                            )}
-                            {item.title === 'Base de Conhecimento' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={handleCopyLink}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      {/* Menu Content */}
+      <SidebarContent className="px-2 py-4">
+        {userRole === 'admin' ? (
+          <>
+            {renderMenuSection('Menu Principal', mainMenuItems)}
+            {renderMenuSection('Recursos', resourceItems)}
+            {renderMenuSection('Financeiro', financeItems)}
+            {renderMenuSection('Sistema', systemItems)}
+          </>
+        ) : userRole === 'contato' ? (
+          renderMenuSection('Suporte', contatoItems)
+        ) : (
+          renderMenuSection('Portal do Cliente', clientItems)
+        )}
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-sidebar-border p-4">
+      {/* Footer with User Profile */}
+      <SidebarFooter className="border-t border-border p-4">
+        {/* Theme Toggle */}
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
           className={cn(
-            "w-full gap-2 transition-all",
-            isCollapsed ? "justify-center px-0" : "justify-start"
+            "w-full gap-2 justify-start mb-3 text-muted-foreground hover:text-foreground",
+            isCollapsed && "justify-center px-0"
           )}
           title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
         >
-          {isDark ? <Sun className={cn("transition-all", isCollapsed ? "!h-5 !w-5" : "h-5 w-5")} /> : <Moon className={cn("transition-all", isCollapsed ? "!h-5 !w-5" : "h-5 w-5")} />}
-          {!isCollapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {!isCollapsed && (
+            <span className="text-sm">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
+          )}
         </Button>
+
+        {/* User Profile */}
+        {profile && (
+          <div className={cn(
+            "flex items-center gap-3 p-2 rounded-lg bg-muted/50",
+            isCollapsed && "justify-center p-2"
+          )}>
+            <AvatarInitials 
+              name={profile.nickname || profile.full_name || 'User'} 
+              size="sm"
+            />
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {profile.nickname || profile.full_name}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userRole === 'admin' ? 'Administrador' : 'Cliente'}
+                </p>
+              </div>
+            )}
+            {!isCollapsed && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

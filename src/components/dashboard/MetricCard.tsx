@@ -6,54 +6,106 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  variant?: 'default' | 'success' | 'destructive';
+  variant?: 'default' | 'success' | 'destructive' | 'warning' | 'info';
   className?: string;
   onClick?: () => void;
   trend?: {
     value: string;
     isPositive: boolean;
   };
+  subtitle?: string;
 }
 
-export function MetricCard({ title, value, icon: Icon, trend, className, variant = 'default', onClick }: MetricCardProps) {
-  const getIconColor = () => {
-    if (variant === 'success') return 'text-emerald-600 dark:text-emerald-400';
-    if (variant === 'destructive') return 'text-rose-600 dark:text-rose-400';
-    return 'text-blue-600 dark:text-blue-400';
+export function MetricCard({ 
+  title, 
+  value, 
+  icon: Icon, 
+  trend, 
+  className, 
+  variant = 'default', 
+  onClick,
+  subtitle 
+}: MetricCardProps) {
+  const getIconStyles = () => {
+    switch (variant) {
+      case 'success':
+        return {
+          bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+          icon: 'text-emerald-600 dark:text-emerald-400'
+        };
+      case 'destructive':
+        return {
+          bg: 'bg-rose-500/10 dark:bg-rose-500/20',
+          icon: 'text-rose-600 dark:text-rose-400'
+        };
+      case 'warning':
+        return {
+          bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+          icon: 'text-amber-600 dark:text-amber-400'
+        };
+      case 'info':
+        return {
+          bg: 'bg-blue-500/10 dark:bg-blue-500/20',
+          icon: 'text-blue-600 dark:text-blue-400'
+        };
+      default:
+        return {
+          bg: 'bg-primary/10 dark:bg-primary/20',
+          icon: 'text-primary'
+        };
+    }
   };
 
-  const getIconBg = () => {
-    if (variant === 'success') return 'from-emerald-50 to-emerald-100/50 dark:from-emerald-950/50 dark:to-emerald-900/30 group-hover:from-emerald-100 group-hover:to-emerald-50 dark:group-hover:from-emerald-900/60 dark:group-hover:to-emerald-800/40';
-    if (variant === 'destructive') return 'from-rose-50 to-rose-100/50 dark:from-rose-950/50 dark:to-rose-900/30 group-hover:from-rose-100 group-hover:to-rose-50 dark:group-hover:from-rose-900/60 dark:group-hover:to-rose-800/40';
-    return 'from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 group-hover:from-blue-100 group-hover:to-blue-50 dark:group-hover:from-blue-900/60 dark:group-hover:to-blue-800/40';
-  };
+  const styles = getIconStyles();
 
   return (
     <Card 
       className={cn(
-        "group overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30",
-        onClick && "cursor-pointer hover:border-primary/50 active:scale-[0.98]",
+        "group overflow-hidden border bg-card transition-all duration-300",
+        "hover:shadow-lg hover:border-primary/20",
+        onClick && "cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
         className
       )}
       onClick={onClick}
     >
-      <CardContent style={{ padding: 'var(--card-padding)' }}>
-        <div style={{ gap: 'var(--spacing-sm)' }} className="flex flex-col">
-          <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{title}</p>
-          <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 transition-all">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          {/* Content */}
+          <div className="space-y-1 flex-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {title}
+            </p>
+            <h3 className="text-2xl font-bold text-foreground">
               {value}
             </h3>
-            <div className={`icon-wrapper h-12 w-12 rounded-2xl bg-gradient-to-br ${getIconBg()} flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:rotate-3 shadow-sm flex-shrink-0`}>
-              <Icon className={`lucide h-6 w-6 ${getIconColor()} transition-all duration-300 group-hover:scale-110`} strokeWidth={2} />
-            </div>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
+            {trend && (
+              <div className={cn(
+                "flex items-center gap-1 text-xs font-medium mt-2",
+                trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+              )}>
+                {trend.isPositive ? (
+                  <TrendingUp className="h-3.5 w-3.5" />
+                ) : (
+                  <TrendingDown className="h-3.5 w-3.5" />
+                )}
+                <span>{trend.value}</span>
+              </div>
+            )}
           </div>
-          {trend && (
-            <p className={`text-xs font-medium flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {trend.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {trend.value}
-            </p>
-          )}
+
+          {/* Icon */}
+          <div className={cn(
+            "h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0",
+            "transition-all duration-300 group-hover:scale-110",
+            styles.bg
+          )}>
+            <Icon className={cn("h-6 w-6", styles.icon)} strokeWidth={1.75} />
+          </div>
         </div>
       </CardContent>
     </Card>
