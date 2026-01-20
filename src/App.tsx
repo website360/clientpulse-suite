@@ -5,13 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DensityProvider } from "@/contexts/DensityContext";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
+import { loadSettingsFromLocalStorage, applyWhiteLabelSettings } from "@/lib/whitelabel";
 
 // Eager loading for public pages and auth
 import Auth from "./pages/Auth";
@@ -63,11 +64,23 @@ const queryClient = new QueryClient({
   },
 });
 
+// Component to apply white label settings on app init
+function WhiteLabelInit() {
+  useEffect(() => {
+    const cached = loadSettingsFromLocalStorage();
+    if (cached) {
+      applyWhiteLabelSettings(cached);
+    }
+  }, []);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
       <DensityProvider>
         <TooltipProvider>
+      <WhiteLabelInit />
       <Toaster />
       <Sonner />
       <InstallPrompt />

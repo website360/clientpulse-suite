@@ -27,10 +27,11 @@ import { ApprovalSettingsTab } from '@/components/settings/ApprovalSettingsTab';
 import { ToastDemo } from '@/components/demo/ToastDemo';
 import { NotificationManager } from '@/components/pwa/NotificationManager';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Smartphone } from 'lucide-react';
+import { User, MessageSquare, Settings2, FolderKanban, LogIn, Shield, Palette, Building2, Truck, DollarSign, Briefcase, BookOpen, Wrench, Timer, Zap, FileText, UserCog, Monitor, CheckCircle, Plug, Bell, Smartphone, Brush } from 'lucide-react';
 import { IntegrationsTab } from '@/components/settings/IntegrationsTab';
 import { NotificationTemplatesTab } from '@/components/settings/NotificationTemplatesTab';
 import { NotificationSettingsTab } from '@/components/settings/NotificationSettingsTab';
+import { WhiteLabelTab } from '@/components/settings/WhiteLabelTab';
 
 
 export default function Settings() {
@@ -261,6 +262,10 @@ export default function Settings() {
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Aprovações
                   </TabsTrigger>
+                  <TabsTrigger value="whitelabel">
+                    <Brush className="h-4 w-4 mr-2" />
+                    White Label
+                  </TabsTrigger>
                   <TabsTrigger value="appearance">
                     <Palette className="h-4 w-4 mr-2" />
                     Aparência
@@ -480,6 +485,10 @@ export default function Settings() {
 
                   <TabsContent value="approvals">
                     <ApprovalSettingsTab />
+                  </TabsContent>
+
+                  <TabsContent value="whitelabel">
+                    <WhiteLabelTab />
                   </TabsContent>
 
                   <TabsContent value="appearance">
