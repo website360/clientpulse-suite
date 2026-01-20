@@ -201,46 +201,41 @@ export default function KnowledgeBase() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Posts</CardTitle>
-            <CardDescription>Lista de todos os artigos da base de conhecimento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 space-y-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Pesquisar posts..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full md:w-[250px]">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Todas as categorias" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          {category.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full md:w-[250px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Todas as categorias" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    {category.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
+        <Card>
+          <CardContent>
             {loading ? (
               <p className="text-center text-muted-foreground">Carregando...</p>
             ) : (
