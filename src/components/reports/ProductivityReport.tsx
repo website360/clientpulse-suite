@@ -311,7 +311,7 @@ export default function ProductivityReport() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {productivityData?.reduce((sum: number, tech: any) => sum + tech.totalTickets, 0) || 0}
             </div>
           </CardContent>
@@ -323,7 +323,7 @@ export default function ProductivityReport() {
             <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {productivityData?.reduce((sum: number, tech: any) => sum + tech.resolvedTickets, 0) || 0}
             </div>
           </CardContent>
@@ -335,7 +335,7 @@ export default function ProductivityReport() {
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {formatMinutes(
                 productivityData?.reduce((sum: number, tech: any) => sum + tech.avgResolutionTime, 0) /
                   (productivityData?.length || 1) || 0
@@ -350,7 +350,7 @@ export default function ProductivityReport() {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {Math.round(
                 (productivityData?.reduce((sum: number, tech: any) => sum + tech.slaCompliance, 0) /
                   (productivityData?.reduce((sum: number, tech: any) => sum + (tech.slaCompliance + tech.slaBreach), 0) || 1)) *
@@ -403,7 +403,7 @@ export default function ProductivityReport() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg">
+          <Card className="card-elevated">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -438,7 +438,7 @@ export default function ProductivityReport() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         </CardContent>
       </Card>
     </div>
