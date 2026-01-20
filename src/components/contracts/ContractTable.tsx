@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw } from 'lucide-react';
+import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -242,8 +250,8 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
 
   return (
     <>
-      <div className="border rounded-lg">
-        <Table>
+      <Card className="card-elevated">
+        <Table className="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3">
           <TableHeader>
             <TableRow>
               {!hideClientColumn && <TableHead>Cliente</TableHead>}
@@ -265,8 +273,12 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                 </TableCell>
               </TableRow>
             ) : (
-              contracts.map((contract) => (
-                <TableRow key={contract.id}>
+              contracts.map((contract, index) => (
+                <TableRow 
+                  key={contract.id}
+                  className="hover:bg-muted/30 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   {!hideClientColumn && (
                     <TableCell>
                       <ClientNameCell client={contract.clients} />
@@ -292,53 +304,47 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
                   </TableCell>
                   <TableCell>{getStatusBadge(contract)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {shouldShowRenewButton(contract) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRenew(contract)}
-                          title="Renovar contrato por mais 1 ano"
-                          className="text-xs"
-                        >
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                          Renovar
-                        </Button>
-                      )}
-                      {contract.attachment_url && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => viewPdf(contract.attachment_url!)}
-                            title="Visualizar PDF"
-                          >
-                            <Eye className="h-4 w-4" />
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => downloadAttachment(contract.attachment_url!)}
-                            title="Baixar anexo"
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {contract.attachment_url && (
+                            <>
+                              <DropdownMenuItem onClick={() => viewPdf(contract.attachment_url!)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Visualizar PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => downloadAttachment(contract.attachment_url!)}>
+                                <Download className="h-4 w-4 mr-2" />
+                                Baixar Anexo
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
+                          <DropdownMenuItem onClick={() => onEdit(contract)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          {shouldShowRenewButton(contract) && (
+                            <DropdownMenuItem onClick={() => handleRenew(contract)}>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Renovar Contrato
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(contract)}
+                            className="text-destructive focus:text-destructive"
                           >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(contract)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(contract)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -346,7 +352,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null, storagePath: null })}>
         <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">

@@ -32,7 +32,7 @@ const TaskFilters = ({ filters, onFiltersChange }: TaskFiltersProps) => {
           placeholder="Buscar tarefas..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="pl-9"
+          className="pl-9 h-10"
         />
       </div>
 

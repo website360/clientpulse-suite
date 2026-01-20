@@ -232,7 +232,7 @@ export default function ClientTickets() {
             </TableHeader>
             <TableBody>
               {tickets.map((ticket) => (
-                <TableRow key={ticket.id} className="hover:bg-accent/50">
+                <TableRow key={ticket.id} className="hover:bg-muted/30">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       #{ticket.ticket_number}

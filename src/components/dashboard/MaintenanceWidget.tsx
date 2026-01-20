@@ -65,32 +65,32 @@ export function MaintenanceWidget({ stats }: MaintenanceWidgetProps) {
         {/* Completion Rate Ring */}
         <div className="flex items-center justify-center py-4">
           <div className="relative">
-            <svg className="h-24 w-24 -rotate-90">
+            <svg className="h-28 w-28 -rotate-90">
               <circle
-                cx="48"
-                cy="48"
-                r="40"
+                cx="56"
+                cy="56"
+                r="48"
                 stroke="currentColor"
                 strokeWidth="8"
                 fill="none"
                 className="text-muted/30"
               />
               <circle
-                cx="48"
-                cy="48"
-                r="40"
+                cx="56"
+                cy="56"
+                r="48"
                 stroke="currentColor"
                 strokeWidth="8"
                 fill="none"
-                strokeDasharray={251.2}
-                strokeDashoffset={251.2 - (251.2 * completionRate) / 100}
+                strokeDasharray={301.6}
+                strokeDashoffset={301.6 - (301.6 * completionRate) / 100}
                 className="text-cyan-500 transition-all duration-500"
                 strokeLinecap="round"
               />
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold">{completionRate}%</span>
-              <span className="text-xs text-muted-foreground">Concluído</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+              <span className="text-2xl font-bold leading-none">{completionRate}%</span>
+              <span className="text-xs text-muted-foreground leading-none">Concluído</span>
             </div>
           </div>
         </div>

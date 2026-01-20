@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ContractTable } from '@/components/contracts/ContractTable';
+import { ContractFilters } from '@/components/contracts/ContractFilters';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EmptyContracts } from '@/components/illustrations/EmptyContracts';
@@ -19,10 +20,14 @@ export default function Contracts() {
   const [totalCount, setTotalCount] = useState(0);
   const [sortColumn, setSortColumn] = useState<string | null>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'all',
+  });
 
   useEffect(() => {
     fetchContracts();
-  }, [currentPage, pageSize, sortColumn, sortDirection]);
+  }, [currentPage, pageSize, sortColumn, sortDirection, filters]);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -35,10 +40,25 @@ export default function Contracts() {
   };
 
   const fetchContracts = async () => {
-    // Count total
-    const { count } = await supabase
+    // Build count query
+    let countQuery = supabase
       .from('contracts')
-      .select('*', { count: 'exact', head: true });
+      .select('*, clients(full_name, company_name, responsible_name), services(name)', { count: 'exact', head: true });
+
+    // Apply status filter to count
+    if (filters.status === 'active') {
+      countQuery = countQuery.eq('status', 'active');
+    } else if (filters.status === 'expired') {
+      countQuery = countQuery.lt('end_date', new Date().toISOString().split('T')[0]);
+    } else if (filters.status === 'expiring_soon') {
+      const today = new Date();
+      const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+      countQuery = countQuery
+        .gte('end_date', today.toISOString().split('T')[0])
+        .lte('end_date', thirtyDaysFromNow.toISOString().split('T')[0]);
+    }
+
+    const { count } = await countQuery;
     setTotalCount(count || 0);
 
     // Fetch paginated data
@@ -60,12 +80,24 @@ export default function Contracts() {
         )
       `);
 
+    // Apply status filter
+    if (filters.status === 'active') {
+      query = query.eq('status', 'active');
+    } else if (filters.status === 'expired') {
+      query = query.lt('end_date', new Date().toISOString().split('T')[0]);
+    } else if (filters.status === 'expiring_soon') {
+      const today = new Date();
+      const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+      query = query
+        .gte('end_date', today.toISOString().split('T')[0])
+        .lte('end_date', thirtyDaysFromNow.toISOString().split('T')[0]);
+    }
+
     // Apply sorting
     if (sortColumn) {
       query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
     } else {
-      // Default: order by client name alphabetically
-      query = query.order('clients(full_name)', { ascending: true, nullsFirst: false });
+      query = query.order('created_at', { ascending: false });
     }
 
     // Apply pagination
@@ -76,7 +108,17 @@ export default function Contracts() {
     const { data, error } = await query;
 
     if (!error && data) {
-      setContracts(data);
+      // Apply search filter client-side
+      let filteredData = data;
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filteredData = data.filter((contract: any) => {
+          const clientName = contract.clients?.full_name || contract.clients?.company_name || contract.clients?.responsible_name || '';
+          const serviceName = contract.services?.name || '';
+          return clientName.toLowerCase().includes(searchLower) || serviceName.toLowerCase().includes(searchLower);
+        });
+      }
+      setContracts(filteredData);
     }
   };
 
@@ -106,47 +148,43 @@ export default function Contracts() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Lista de Contratos</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {contracts.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                title="Nenhum contrato cadastrado"
-                description="Comece criando seu primeiro contrato para gerenciar os serviços prestados aos clientes."
-                illustration={<EmptyContracts />}
-                action={{
-                  label: "Novo Contrato",
-                  onClick: () => setIsFormOpen(true)
-                }}
-              />
-            ) : (
-              <>
-                <ContractTable
-                  contracts={contracts}
-                  onEdit={handleEdit}
-                  onRefresh={fetchContracts}
-                  sortColumn={sortColumn}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={Math.ceil(totalCount / pageSize)}
-                  pageSize={pageSize}
-                  totalItems={totalCount}
-                  onPageChange={setCurrentPage}
-                  onPageSizeChange={(size) => {
-                    setPageSize(size);
-                    setCurrentPage(1);
-                  }}
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {contracts.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon={FileText}
+              title="Nenhum contrato cadastrado"
+              description="Comece criando seu primeiro contrato para gerenciar os serviços prestados aos clientes."
+              illustration={<EmptyContracts />}
+              action={{
+                label: "Novo Contrato",
+                onClick: () => setIsFormOpen(true)
+              }}
+            />
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            <ContractFilters filters={filters} onFiltersChange={setFilters} />
+            <ContractTable
+              contracts={contracts}
+              onEdit={handleEdit}
+              onRefresh={fetchContracts}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(totalCount / pageSize)}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        )}
 
         <ContractFormModal
           isOpen={isFormOpen}

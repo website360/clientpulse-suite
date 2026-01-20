@@ -507,7 +507,7 @@
   
   /* Table row hover effect */
   .table-row-interactive {
-    @apply transition-all duration-200 hover:bg-accent/50 cursor-pointer;
+    @apply transition-all duration-200 hover:bg-muted/30 cursor-pointer;
   }
   
   .table-row-interactive:active {

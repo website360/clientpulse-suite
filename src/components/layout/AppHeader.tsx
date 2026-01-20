@@ -45,7 +45,7 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [profile, setProfile] = useState<{ full_name: string; nickname?: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; nickname?: string; avatar_url?: string } | null>(null);
   const [isDark, setIsDark] = useState(false);
 
   // Get greeting based on time
@@ -87,7 +87,7 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, nickname')
+        .select('full_name, nickname, avatar_url')
         .eq('id', user?.id)
         .single();
 
@@ -124,16 +124,9 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
         
         {/* Page Title and Greeting */}
         <div className="flex-1">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-xl font-semibold text-foreground">
-              {currentPage.title}
-            </h1>
-            {currentPage.subtitle && (
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                {currentPage.subtitle}
-              </span>
-            )}
-          </div>
+          <h1 className="text-xl font-semibold text-foreground">
+            {currentPage.title}
+          </h1>
           <p className="text-xs text-muted-foreground capitalize hidden sm:block">
             {today} • {getGreeting()}, {userName.split(' ')[0]}
           </p>
@@ -176,12 +169,12 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
-                <AvatarInitials name={userName} size="sm" />
+                <AvatarInitials name={userName} avatarUrl={profile?.avatar_url} size="sm" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center gap-3 p-2">
-                <AvatarInitials name={userName} size="sm" />
+                <AvatarInitials name={userName} avatarUrl={profile?.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{userName}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>

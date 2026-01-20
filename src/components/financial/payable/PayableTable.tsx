@@ -389,8 +389,12 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
                 </TableCell>
               </TableRow>
             ) : (
-              accounts.map((account) => (
-                <TableRow key={account.id}>
+              accounts.map((account, index) => (
+                <TableRow 
+                  key={account.id}
+                  className="hover:bg-muted/30 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <TableCell className="font-medium">{account.description}</TableCell>
                   <TableCell>{account.supplier?.name}</TableCell>
                   <TableCell>{account.category}</TableCell>

@@ -1,7 +1,14 @@
-import { Play, Pencil } from 'lucide-react';
+import { Play, Pencil, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -144,7 +151,7 @@ export function MaintenanceTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border">
+      <Card className="card-elevated">
         <Table>
           <TableHeader>
             <TableRow>
@@ -199,7 +206,11 @@ export function MaintenanceTable({
               const nextDate = getNextScheduledDate(plan);
 
               return (
-                <TableRow key={plan.id}>
+                <TableRow 
+                  key={plan.id}
+                  className="hover:bg-muted/30 animate-fade-in-up"
+                  style={{ animationDelay: `${plans.indexOf(plan) * 50}ms` }}
+                >
                   <TableCell>
                     <ClientNameCell client={plan.clients || {}} />
                   </TableCell>
@@ -222,27 +233,29 @@ export function MaintenanceTable({
                     {getStatusBadge(plan)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(plan)}
-                        className="gap-2"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      {shouldShowExecuteButton(plan) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onExecute(plan)}
-                          disabled={!plan.is_active}
-                          className="gap-2"
-                        >
-                          <Play className="h-3 w-3" />
-                          Executar
-                        </Button>
-                      )}
+                    <div className="flex items-center justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(plan)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          {shouldShowExecuteButton(plan) && (
+                            <DropdownMenuItem 
+                              onClick={() => onExecute(plan)}
+                              disabled={!plan.is_active}
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              Executar Manutenção
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -250,7 +263,7 @@ export function MaintenanceTable({
             })}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       <TablePagination
         currentPage={currentPage}

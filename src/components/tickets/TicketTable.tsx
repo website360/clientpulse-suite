@@ -1,4 +1,4 @@
-import { Eye, Ticket as TicketIcon, Trash2, Calendar } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2, Calendar, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -116,7 +123,7 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
           {tickets.map((ticket, index) => (
             <TableRow 
               key={ticket.id} 
-              className="table-row-interactive hover:bg-accent/50 animate-fade-in-up"
+              className="table-row-interactive hover:bg-muted/30 animate-fade-in-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
@@ -177,23 +184,32 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate(`/tickets/${ticket.id}`)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  {userRole === 'admin' && onDelete && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(ticket.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  )}
+                <div className="flex items-center justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => navigate(`/tickets/${ticket.id}`)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
+                      {userRole === 'admin' && onDelete && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => onDelete(ticket.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </TableCell>
             </TableRow>

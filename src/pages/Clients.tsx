@@ -276,6 +276,7 @@ export default function Clients() {
               variant={viewMode === 'table' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('table')}
+              className={viewMode === 'table' ? '' : 'hover:bg-secondary/20 hover:text-secondary-foreground'}
             >
               <TableIcon className="h-4 w-4" />
             </Button>
@@ -283,6 +284,7 @@ export default function Clients() {
               variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('cards')}
+              className={viewMode === 'cards' ? '' : 'hover:bg-secondary/20 hover:text-secondary-foreground'}
             >
               <LayoutGrid className="h-4 w-4" />
             </Button>

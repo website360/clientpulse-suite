@@ -20,7 +20,7 @@ export function ToastDemo() {
               <Button
                 variant="outline"
                 onClick={() => showSuccess("Sucesso!", "Operação concluída com êxito")}
-                className="w-full border-green-500/50 hover:bg-green-50"
+                className="w-full border-secondary/50 hover:bg-secondary/20"
               >
                 Sucesso
               </Button>
@@ -54,7 +54,7 @@ export function ToastDemo() {
               <Button
                 variant="outline"
                 onClick={() => toastSuccess("Cliente cadastrado", "Dados salvos com sucesso")}
-                className="w-full border-green-500/50 hover:bg-green-50"
+                className="w-full border-secondary/50 hover:bg-secondary/20"
               >
                 Toast Sucesso
               </Button>

@@ -1,7 +1,16 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Link2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Edit, Trash2, Link2, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,9 +30,12 @@ interface TaskTableProps {
   tasks: any[];
   onEditTask: (task: any) => void;
   onRefetch: () => void;
+  sortColumn?: string | null;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (column: string) => void;
 }
 
-export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
+export function TaskTable({ tasks, onEditTask, onRefetch, sortColumn, sortDirection, onSort }: TaskTableProps) {
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
@@ -73,20 +85,24 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
 
   return (
     <>
-      <div className="rounded-md border">
+      <Card className="card-elevated">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Tarefa</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Prioridade</TableHead>
+              <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="title" label="Tarefa" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+              <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task.id}>
+            {tasks.map((task, index) => (
+              <TableRow 
+                key={task.id}
+                className="hover:bg-muted/30 animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <TableCell>
                   {task.client ? (
                     <ClientNameCell client={task.client} />
@@ -113,28 +129,35 @@ export function TaskTable({ tasks, onEditTask, onRefetch }: TaskTableProps) {
                 <TableCell>{getStatusBadge(task.status)}</TableCell>
                 <TableCell>{getPriorityBadge(task.priority)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEditTask(task)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteTaskId(task.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <div className="flex items-center justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEditTask(task)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setDeleteTaskId(task.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
         <AlertDialogContent>

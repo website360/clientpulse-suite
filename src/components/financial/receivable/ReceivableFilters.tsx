@@ -55,7 +55,7 @@ export function ReceivableFilters({ filters, onFiltersChange }: ReceivableFilter
           placeholder="Buscar por descrição..."
           value={filters.search}
           onChange={(e) => updateFilter('search', e.target.value)}
-          className="pl-9"
+          className="pl-9 h-10"
         />
       </div>
 

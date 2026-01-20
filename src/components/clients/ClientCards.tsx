@@ -51,10 +51,11 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
         <Card 
           key={client.id} 
           className={cn(
-            "group border bg-card transition-all duration-300",
+            "group border bg-card transition-all duration-300 cursor-pointer",
             "hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
           )}
           style={{ animationDelay: `${index * 50}ms` }}
+          onClick={() => onView(client)}
         >
           <CardContent className="p-5">
             {/* Header */}
@@ -80,21 +81,22 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
                     variant="ghost" 
                     size="icon" 
                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onView(client)}>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(client); }}>
                     <Eye className="mr-2 h-4 w-4" />
                     Ver detalhes
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEdit(client)}>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(client); }}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Editar
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => onDelete(client.id)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(client.id); }}
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -145,7 +147,7 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
                 className={cn(
                   "font-medium",
                   client.is_active 
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20' 
+                    ? 'bg-secondary text-primary hover:bg-secondary/80' 
                     : 'bg-muted text-muted-foreground'
                 )}
               >
@@ -164,16 +166,6 @@ export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsPr
                 </span>
               )}
             </div>
-
-            {/* Action Button */}
-            <Button
-              variant="ghost"
-              className="w-full mt-4 justify-between text-muted-foreground hover:text-primary group/btn"
-              onClick={() => onView(client)}
-            >
-              <span>Ver Dashboard</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-            </Button>
           </CardContent>
         </Card>
       ))}

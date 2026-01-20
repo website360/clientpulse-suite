@@ -46,7 +46,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
           placeholder="Buscar tickets..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="pl-9"
+          className="pl-9 h-10"
         />
       </div>
 

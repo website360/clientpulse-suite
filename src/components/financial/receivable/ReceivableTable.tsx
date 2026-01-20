@@ -519,8 +519,12 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                 </TableCell>
               </TableRow>
             ) : (
-              accounts.map((account) => (
-                <TableRow key={account.id}>
+              accounts.map((account, index) => (
+                <TableRow 
+                  key={account.id}
+                  className="hover:bg-muted/30 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <TableCell>
                     <ClientNameCell client={account.client || {}} />
                   </TableCell>

@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Edit, Trash2, Eye, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,9 +37,12 @@ interface ProjectTableProps {
   onEdit: (project: any) => void;
   onRefresh: () => void;
   hideClientColumn?: boolean;
+  sortColumn?: string | null;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (column: string) => void;
 }
 
-export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClientColumn = false }: ProjectTableProps) {
+export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClientColumn = false, sortColumn, sortDirection, onSort }: ProjectTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -136,23 +148,27 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="rounded-md border">
+      <Card className="card-elevated">
         <Table>
         <TableHeader>
           <TableRow>
-            {!hideClientColumn && <TableHead>Cliente</TableHead>}
-            <TableHead>Projeto</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Progresso</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Prazo</TableHead>
+            {!hideClientColumn && <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />}
+            <SortableTableHead column="name" label="Projeto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="project_type_id" label="Tipo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="progress" label="Progresso" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
+            <SortableTableHead column="due_date" label="Prazo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {projects.map((project) => {
+          {projects.map((project, index) => {
             return (
-              <TableRow key={project.id}>
+              <TableRow 
+                key={project.id}
+                className="hover:bg-muted/30 animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 {!hideClientColumn && (
                   <TableCell>
                     <ClientNameCell client={project.clients || {}} />
@@ -176,28 +192,32 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
                   {project.due_date ? format(parseISO(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/projetos/${project.id}`)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(project)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/projetos/${project.id}`)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(project)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -205,7 +225,7 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
     </>
   );
 }

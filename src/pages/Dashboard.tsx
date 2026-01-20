@@ -112,8 +112,10 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [dateRange.startDate, dateRange.endDate]);
+    if (userRole) {
+      fetchDashboardData();
+    }
+  }, [dateRange.startDate, dateRange.endDate, userRole]);
 
   useEffect(() => {
     localStorage.setItem('showReceivableValues', JSON.stringify(showReceivableValues));
@@ -365,9 +367,6 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-            </p>
           </div>
           <DateRangeFilter
             preset={preset}

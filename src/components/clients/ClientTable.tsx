@@ -132,7 +132,7 @@ export function ClientTable({
             {clients.map((client, index) => (
               <TableRow 
                 key={client.id} 
-                className="hover:bg-accent/50 table-row-interactive animate-fade-in-up"
+                className="hover:bg-muted/30 table-row-interactive animate-fade-in-up"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <TableCell>
@@ -154,29 +154,13 @@ export function ClientTable({
                 <TableCell>
                   <Badge
                     variant={client.is_active ? 'default' : 'secondary'}
-                    className={client.is_active ? 'bg-success/10 text-success border-success/20' : ''}
+                    className={client.is_active ? 'bg-secondary text-primary border-secondary pointer-events-none' : 'bg-muted text-muted-foreground border-muted pointer-events-none'}
                   >
                     {client.is_active ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onView(client)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(client)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -184,6 +168,15 @@ export function ClientTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onView(client)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(client)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => onToggleStatus(client.id, client.is_active)}>
                           {client.is_active ? (
                             <>

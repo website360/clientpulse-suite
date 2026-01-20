@@ -4,7 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Globe, Calendar, Shield } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Globe, Calendar, Shield, Pencil, Trash2, MoreVertical } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { toast } from 'sonner';
@@ -179,7 +187,7 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
 
   return (
     <>
-      <div className="rounded-lg border bg-card">
+      <Card className="card-elevated">
         <Table>
           <TableHeader>
             <TableRow>
@@ -191,8 +199,12 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
             </TableRow>
           </TableHeader>
           <TableBody>
-            {domains.map((domain) => (
-              <TableRow key={domain.id}>
+            {domains.map((domain, index) => (
+              <TableRow 
+                key={domain.id}
+                className="hover:bg-muted/30 animate-fade-in-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <TableCell>
                   <ClientNameCell client={domain.clients} />
                 </TableCell>
@@ -242,28 +254,35 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingDomain(domain)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeletingDomain(domain)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditingDomain(domain)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setDeletingDomain(domain)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       <DomainFormModal
         isOpen={!!editingDomain}
