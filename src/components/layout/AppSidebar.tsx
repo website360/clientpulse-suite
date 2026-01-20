@@ -234,7 +234,7 @@ export function AppSidebar() {
               "transition-all duration-200 rounded-lg group/item",
               isActive
                 ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground',
+                : 'hover:bg-primary/90 text-muted-foreground hover:text-white',
               !isCollapsed && 'px-3'
             )}
             title={isCollapsed ? item.title : undefined}
@@ -242,7 +242,7 @@ export function AppSidebar() {
             <item.icon className={cn(
               "flex-shrink-0 transition-all duration-200",
               isCollapsed ? "h-5 w-5" : "h-4 w-4",
-              isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover/item:text-sidebar-accent-foreground'
+              isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover/item:text-white'
             )} />
             {!isCollapsed && (
               <div className="flex items-center justify-between flex-1">
