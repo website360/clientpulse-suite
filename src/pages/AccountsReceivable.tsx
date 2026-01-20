@@ -118,28 +118,26 @@ const AccountsReceivable = () => {
               </Button>
             </div>
 
-            <div className="border rounded-lg">
-              <ReceivableTable 
-                filters={filters}
-                currentPage={currentPage}
-                pageSize={pageSize}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                onTotalCountChange={setTotalCount}
-              />
-              <TablePagination
-                currentPage={currentPage}
-                totalPages={Math.ceil(totalCount / pageSize)}
-                pageSize={pageSize}
-                totalItems={totalCount}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
+            <ReceivableTable 
+              filters={filters}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              onTotalCountChange={setTotalCount}
+            />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(totalCount / pageSize)}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="cashflow" className="space-y-6">
