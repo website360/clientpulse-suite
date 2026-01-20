@@ -225,7 +225,7 @@ export default function ProductivityReport() {
       {/* Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
+          <CardTitle className="text-base">Filtros</CardTitle>
           <CardDescription>Configure o período e filtros do relatório</CardDescription>
         </CardHeader>
         <CardContent>
@@ -364,7 +364,7 @@ export default function ProductivityReport() {
       {/* Gráfico */}
       <Card>
         <CardHeader>
-          <CardTitle>Produtividade por Técnico</CardTitle>
+          <CardTitle className="text-base">Produtividade por Técnico</CardTitle>
           <CardDescription>Comparação de tickets totais vs resolvidos</CardDescription>
         </CardHeader>
         <CardContent>
@@ -387,7 +387,7 @@ export default function ProductivityReport() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Detalhamento por Técnico</CardTitle>
+              <CardTitle className="text-base">Detalhamento por Técnico</CardTitle>
               <CardDescription>{productivityData?.length || 0} técnico(s) encontrado(s)</CardDescription>
             </div>
             <div className="flex gap-2">

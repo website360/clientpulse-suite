@@ -167,7 +167,7 @@ export function AsaasReconciliation() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Reconciliação Asaas</CardTitle>
+          <CardTitle className="text-base">Reconciliação Asaas</CardTitle>
           <CardDescription>
             A integração com Asaas não está ativa. Configure nas configurações do sistema.
           </CardDescription>
@@ -186,7 +186,7 @@ export function AsaasReconciliation() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Reconciliação Asaas</CardTitle>
+              <CardTitle className="text-base">Reconciliação Asaas</CardTitle>
               <CardDescription>
                 Sincronize e reconcilie cobranças com o Asaas
               </CardDescription>

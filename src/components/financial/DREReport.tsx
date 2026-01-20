@@ -221,7 +221,7 @@ export function DREReport() {
       {/* DRE Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Demonstrativo Detalhado</CardTitle>
+          <CardTitle className="text-base">Demonstrativo Detalhado</CardTitle>
           <CardDescription>
             {format(selectedMonth, "MMMM 'de' yyyy", { locale: ptBR })}
           </CardDescription>

@@ -142,7 +142,7 @@ export function ClientProfitability() {
         {/* Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 5 Clientes por Receita</CardTitle>
+            <CardTitle className="text-base">Top 5 Clientes por Receita</CardTitle>
             <CardDescription>Distribuição de receitas</CardDescription>
           </CardHeader>
           <CardContent>
@@ -153,7 +153,7 @@ export function ClientProfitability() {
         {/* Performance ranking */}
         <Card>
           <CardHeader>
-            <CardTitle>Ranking de Performance</CardTitle>
+            <CardTitle className="text-base">Ranking de Performance</CardTitle>
             <CardDescription>Clientes mais lucrativos</CardDescription>
           </CardHeader>
           <CardContent>
@@ -182,7 +182,7 @@ export function ClientProfitability() {
       {/* Detailed Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Análise Detalhada por Cliente</CardTitle>
+          <CardTitle className="text-base">Análise Detalhada por Cliente</CardTitle>
           <CardDescription>
             Receitas, custos, lucro e indicadores de rentabilidade
           </CardDescription>

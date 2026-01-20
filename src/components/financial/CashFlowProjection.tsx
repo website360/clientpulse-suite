@@ -185,7 +185,7 @@ export function CashFlowProjection() {
       {/* Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Gráfico de Projeção</CardTitle>
+          <CardTitle className="text-base">Gráfico de Projeção</CardTitle>
           <CardDescription>
             Receitas vs Despesas por semana
           </CardDescription>
