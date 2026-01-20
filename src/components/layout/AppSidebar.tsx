@@ -261,13 +261,13 @@ export function AppSidebar() {
                       {item.badge}
                     </Badge>
                   )}
-                  {item.copyLink && (
+                    {item.copyLink && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className={cn(
-                        "h-5 w-5 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity",
-                        isActive && "text-primary-foreground hover:bg-primary-foreground/20"
+                        "h-5 w-5 p-0 transition-opacity",
+                        isActive ? "text-primary-foreground hover:bg-primary-foreground/20" : "text-muted-foreground hover:text-foreground"
                       )}
                       onClick={handleCopyLink}
                     >
