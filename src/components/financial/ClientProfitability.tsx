@@ -151,27 +151,32 @@ export function ClientProfitability() {
         </Card>
 
         {/* Performance ranking */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ranking de Performance</CardTitle>
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Ranking de Performance</CardTitle>
             <CardDescription>Clientes mais lucrativos</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {clientsData?.slice(0, 5).map((client, index) => (
-                <div key={client.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
+                <div key={client.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{index + 1}</Badge>
-                      <span className="font-medium">
+                      <div className="h-2.5 w-2.5 rounded-full bg-secondary" />
+                      <span className="font-medium text-muted-foreground">
                         {client.company_name || client.full_name}
                       </span>
                     </div>
-                    <span className="font-bold text-success">
-                      {formatCurrency(client.profit)}
-                    </span>
+                    <span className="font-semibold">{formatCurrency(client.profit)}</span>
                   </div>
-                  <Progress value={Math.min((client.profit / totalProfit) * 100, 100)} />
+                  <div className="relative h-2 bg-muted/50 rounded-full overflow-hidden">
+                    <div
+                      className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out bg-secondary"
+                      style={{
+                        width: `${Math.min((client.profit / totalProfit) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

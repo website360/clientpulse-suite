@@ -27,7 +27,6 @@ import { MaintenanceWidget } from '@/components/dashboard/MaintenanceWidget';
 import { TicketsOverview } from '@/components/dashboard/TicketsOverview';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
-import { ClientRankingWidget } from '@/components/dashboard/ClientRankingWidget';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -446,11 +445,10 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Charts and Ranking */}
-                <div className="grid gap-6 lg:grid-cols-3">
+                {/* Charts */}
+                <div className="grid gap-6 lg:grid-cols-2">
                   <DomainsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
                   <ContractsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
-                  <ClientRankingWidget />
                 </div>
               </>
             )}
