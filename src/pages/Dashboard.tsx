@@ -448,8 +448,8 @@ export default function Dashboard() {
 
                 {/* Charts */}
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <DomainsBarChart />
-                  <ContractsBarChart />
+                  <DomainsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
+                  <ContractsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
                 </div>
               </>
             )}

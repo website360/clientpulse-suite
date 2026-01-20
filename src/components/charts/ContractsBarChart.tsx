@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { FileText } from 'lucide-react';
 
 const STATUS_COLORS = {
-  pending_signature: '#a78bfa', // roxo suave
-  active: '#34d399', // verde
-  expiring_today: '#f97316', // laranja
-  expiring: '#fbbf24', // amarelo
-  expired: '#fb7185', // vermelho suave
-  completed: '#60a5fa', // azul suave
+  pending_signature: 'hsl(270 70% 70%)',
+  active: 'hsl(var(--accent))',
+  expiring_today: 'hsl(25 95% 53%)',
+  expiring: 'hsl(45 93% 47%)',
+  expired: 'hsl(0 84% 60%)',
+  completed: 'hsl(210 80% 60%)',
 };
 
 const STATUS_LABELS = {
@@ -27,27 +28,42 @@ interface ContractData {
   label: string;
 }
 
-export function ContractsBarChart() {
+interface ContractsBarChartProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps) {
   const [data, setData] = useState<ContractData[]>([]);
   const [loading, setLoading] = useState(true);
   const [maxValue, setMaxValue] = useState(0);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     fetchContractsData();
-  }, []);
+  }, [startDate, endDate]);
 
   const fetchContractsData = async () => {
     try {
-      const { data: contracts, error } = await supabase
+      let query = supabase
         .from('contracts')
-        .select('status, end_date');
+        .select('status, end_date, start_date, created_at');
+
+      // Filter by creation date if date range is provided
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data: contracts, error } = await query;
 
       if (error) throw error;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Calcular status dinâmico baseado nas datas
       const statusCount: Record<string, number> = {
         pending_signature: 0,
         active: 0,
@@ -58,7 +74,6 @@ export function ContractsBarChart() {
       };
 
       contracts?.forEach(contract => {
-        // Status definidos manualmente prevalecem
         if (contract.status === 'completed') {
           statusCount.completed++;
           return;
@@ -79,7 +94,6 @@ export function ContractsBarChart() {
           return;
         }
 
-        // Apenas recalcular status baseado na data se o status for 'active'
         if (contract.status === 'active') {
           if (contract.end_date) {
             const endDate = new Date(contract.end_date);
@@ -100,12 +114,10 @@ export function ContractsBarChart() {
             statusCount.active++;
           }
         } else {
-          // Se não for nenhum dos status conhecidos, contar como active
           statusCount.active++;
         }
       });
 
-      // Formatar dados para o gráfico
       const chartData = Object.entries(STATUS_LABELS).map(([key, label]) => ({
         status: key,
         count: statusCount[key] || 0,
@@ -115,6 +127,7 @@ export function ContractsBarChart() {
 
       const max = Math.max(...chartData.map(d => d.count), 1);
       setMaxValue(max);
+      setTotal(contracts?.length || 0);
       setData(chartData);
     } catch (error) {
       console.error('Error fetching contracts data:', error);
@@ -125,13 +138,22 @@ export function ContractsBarChart() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Contratos</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Contratos</CardTitle>
+            <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+              <FileText className="h-4 w-4 text-accent" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+          <div className="h-[180px] flex items-center justify-center">
+            <div className="animate-pulse space-y-3 w-full">
+              <div className="h-2.5 bg-muted rounded-full" />
+              <div className="h-2.5 bg-muted rounded-full w-3/4" />
+              <div className="h-2.5 bg-muted rounded-full w-1/2" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -139,25 +161,38 @@ export function ContractsBarChart() {
   }
 
   return (
-    <Card>
+    <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Contratos</CardTitle>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold">Contratos</CardTitle>
+            <p className="text-2xl font-bold mt-1">{total}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+            <FileText className="h-5 w-5 text-accent" />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {data.map((item, index) => (
             <div key={index} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-muted-foreground">{item.label}</span>
-                <span className="font-bold" style={{ color: item.color }}>{item.count}</span>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="h-2.5 w-2.5 rounded-full" 
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="font-medium text-muted-foreground">{item.label}</span>
+                </div>
+                <span className="font-semibold">{item.count}</span>
               </div>
-              <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
+              <div className="relative h-2 bg-muted/50 rounded-full overflow-hidden">
                 <div
                   className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${(item.count / maxValue) * 100}%`,
                     backgroundColor: item.color,
-                    opacity: 0.9,
                   }}
                 />
               </div>
