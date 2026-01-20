@@ -71,12 +71,12 @@ export function FinancialSummaryCard({
 
   return (
     <Card className="relative overflow-hidden">
-      {/* Gradient accent */}
+      {/* Color accent */}
       <div className={cn(
         "absolute top-0 left-0 right-0 h-1",
         isReceivable 
-          ? "bg-gradient-to-r from-emerald-500 to-blue-500" 
-          : "bg-gradient-to-r from-purple-500 to-pink-500"
+          ? "bg-emerald-500" 
+          : "bg-purple-500"
       )} />
       
       <CardHeader className="pb-2">
