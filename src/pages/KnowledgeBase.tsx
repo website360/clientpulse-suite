@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast, toastSuccess } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Filter, Copy } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Filter, Copy, MoreVertical } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -32,6 +32,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PostFormModal } from '@/components/knowledge/PostFormModal';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -197,7 +203,7 @@ export default function KnowledgeBase() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Posts</CardTitle>
+            <CardTitle className="text-base">Posts</CardTitle>
             <CardDescription>Lista de todos os artigos da base de conhecimento</CardDescription>
           </CardHeader>
           <CardContent>
@@ -303,30 +309,30 @@ export default function KnowledgeBase() {
                           })}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleCopyLink(post.slug)}
-                              title="Copiar link"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditModal(post)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openDeleteDialog(post.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleCopyLink(post.slug)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copiar link
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEditModal(post)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => openDeleteDialog(post.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))

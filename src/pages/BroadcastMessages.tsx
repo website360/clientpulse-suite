@@ -551,7 +551,7 @@ export default function BroadcastMessages() {
           {/* Message Editor */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
                 Mensagem
               </CardTitle>
@@ -742,7 +742,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
           {/* Client Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 Selecionar Clientes
               </CardTitle>
