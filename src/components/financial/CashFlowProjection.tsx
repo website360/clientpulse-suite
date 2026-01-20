@@ -103,20 +103,20 @@ export function CashFlowProjection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Fluxo de Caixa Projetado</h2>
-          <p className="text-muted-foreground">
-            Projeção de receitas e despesas para os próximos dias
+          <h2 className="text-xl font-bold">Fluxo de Caixa Projetado</h2>
+          <p className="text-sm text-muted-foreground">
+            Projeção de receitas e despesas
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Todas as categorias" />
+            <SelectTrigger className="w-[180px] h-10">
+              <SelectValue placeholder="Categorias" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {categories?.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
@@ -126,7 +126,7 @@ export function CashFlowProjection() {
           </Select>
 
           <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[120px] h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -146,9 +146,9 @@ export function CashFlowProjection() {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{formatCurrency(totalReceivables)}</div>
+            <div className="text-xl font-bold text-success">{formatCurrency(totalReceivables)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {receivables?.length || 0} títulos a receber
+              {receivables?.length || 0} títulos
             </p>
           </CardContent>
         </Card>
@@ -159,9 +159,9 @@ export function CashFlowProjection() {
             <TrendingDown className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(totalPayables)}</div>
+            <div className="text-xl font-bold text-destructive">{formatCurrency(totalPayables)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {payables?.length || 0} títulos a pagar
+              {payables?.length || 0} títulos
             </p>
           </CardContent>
         </Card>
@@ -172,11 +172,11 @@ export function CashFlowProjection() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${projectedBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
+            <div className={`text-xl font-bold ${projectedBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(projectedBalance)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {projectedBalance >= 0 ? 'Superávit' : 'Déficit'} projetado
+              {projectedBalance >= 0 ? 'Superávit' : 'Déficit'}
             </p>
           </CardContent>
         </Card>

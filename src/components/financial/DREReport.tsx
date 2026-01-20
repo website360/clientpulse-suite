@@ -143,8 +143,8 @@ export function DREReport() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">DRE - Demonstrativo de Resultado</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl font-bold">Demonstrativo de Resultado (DRE)</h2>
+          <p className="text-sm text-muted-foreground">
             Análise de receitas, despesas e lucratividade
           </p>
         </div>
@@ -179,7 +179,7 @@ export function DREReport() {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{formatCurrency(totalRevenue)}</div>
+            <div className="text-xl font-bold text-success">{formatCurrency(totalRevenue)}</div>
           </CardContent>
         </Card>
 
@@ -189,7 +189,7 @@ export function DREReport() {
             <TrendingDown className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>
+            <div className="text-xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>
           </CardContent>
         </Card>
 
@@ -199,7 +199,7 @@ export function DREReport() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+            <div className={`text-xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(netProfit)}
             </div>
           </CardContent>
@@ -211,7 +211,7 @@ export function DREReport() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${profitMargin >= 0 ? 'text-success' : 'text-destructive'}`}>
+            <div className={`text-xl font-bold ${profitMargin >= 0 ? 'text-success' : 'text-destructive'}`}>
               {profitMargin.toFixed(2)}%
             </div>
           </CardContent>

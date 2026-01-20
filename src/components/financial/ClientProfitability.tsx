@@ -87,8 +87,8 @@ export function ClientProfitability() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Análise de Lucratividade por Cliente</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl font-bold">Análise de Lucratividade por Cliente</h2>
+        <p className="text-sm text-muted-foreground">
           Receitas, custos e margem de lucro de cada cliente
         </p>
       </div>
@@ -101,7 +101,7 @@ export function ClientProfitability() {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{formatCurrency(totalRevenue)}</div>
+            <div className="text-xl font-bold text-success">{formatCurrency(totalRevenue)}</div>
           </CardContent>
         </Card>
 
@@ -111,7 +111,7 @@ export function ClientProfitability() {
             <TrendingDown className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(totalCosts)}</div>
+            <div className="text-xl font-bold text-destructive">{formatCurrency(totalCosts)}</div>
           </CardContent>
         </Card>
 
@@ -121,7 +121,7 @@ export function ClientProfitability() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+            <div className={`text-xl font-bold ${totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(totalProfit)}
             </div>
           </CardContent>
@@ -133,7 +133,7 @@ export function ClientProfitability() {
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgMargin.toFixed(1)}%</div>
+            <div className="text-xl font-bold">{avgMargin.toFixed(1)}%</div>
           </CardContent>
         </Card>
       </div>

@@ -115,8 +115,8 @@ export function DelinquencyReport() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Relatório de Inadimplência</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl font-bold">Relatório de Inadimplência</h2>
+        <p className="text-sm text-muted-foreground">
           Clientes com pagamentos em atraso
         </p>
       </div>
@@ -129,9 +129,9 @@ export function DelinquencyReport() {
             <DollarSign className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(totalOverdue)}</div>
+            <div className="text-xl font-bold text-destructive">{formatCurrency(totalOverdue)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {overdueReceivables?.length || 0} títulos vencidos
+              {overdueReceivables?.length || 0} títulos
             </p>
           </CardContent>
         </Card>
@@ -142,7 +142,7 @@ export function DelinquencyReport() {
             <Users className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalClients}</div>
+            <div className="text-xl font-bold">{totalClients}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Com pagamentos pendentes
             </p>
@@ -155,7 +155,7 @@ export function DelinquencyReport() {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(avgDaysOverdue)} dias</div>
+            <div className="text-xl font-bold">{Math.round(avgDaysOverdue)} dias</div>
             <p className="text-xs text-muted-foreground mt-1">
               Tempo médio de inadimplência
             </p>
