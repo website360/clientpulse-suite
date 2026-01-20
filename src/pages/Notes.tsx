@@ -156,8 +156,8 @@ export default function Notes() {
               Organize suas ideias com texto, links, imagens e tags
             </p>
           </div>
-          <Button onClick={() => setModalOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button onClick={() => setModalOpen(true)} className="gap-2 h-11 px-5">
+            <Plus className="h-5 w-5" />
             Nova Anotação
           </Button>
         </div>
