@@ -189,9 +189,6 @@ export function AppSidebar() {
     { title: 'Tickets', url: '/tickets', icon: Ticket, badge: ticketCount },
     { title: 'Tarefas', url: '/tasks', icon: CheckSquare, badge: taskCount },
     { title: 'Projetos', url: '/projetos', icon: FolderKanban },
-  ];
-
-  const resourceItems = [
     { title: 'Domínios', url: '/domains', icon: Globe },
     { title: 'Contratos', url: '/contracts', icon: FileText },
     { title: 'Manutenção', url: '/manutencao', icon: Wrench },
@@ -353,7 +350,6 @@ export function AppSidebar() {
         {userRole === 'admin' ? (
           <>
             {renderMenuSection('Menu Principal', mainMenuItems)}
-            {renderMenuSection('Recursos', resourceItems)}
             {renderMenuSection('Financeiro', financeItems)}
             {renderMenuSection('Sistema', systemItems)}
           </>
