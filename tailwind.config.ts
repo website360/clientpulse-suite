@@ -66,7 +66,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['SF Mono', 'Roboto Mono', 'monospace'],
       },
       boxShadow: {

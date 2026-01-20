@@ -1,9 +1,16 @@
-import { Eye, Pencil, Trash2, Building2, User, Mail, Phone, FileText, UserCheck } from 'lucide-react';
+import { Eye, Pencil, Trash2, Building2, User, Mail, Phone, FileText, MoreHorizontal, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { formatPhone, formatCpfCnpj } from '@/lib/masks';
+import { AvatarInitials } from '@/components/ui/avatar-initials';
+import { cn } from '@/lib/utils';
 
 interface ClientCardsProps {
   clients: any[];
@@ -13,128 +20,161 @@ interface ClientCardsProps {
 }
 
 export function ClientCards({ clients, onEdit, onView, onDelete }: ClientCardsProps) {
-
   if (clients.length === 0) {
     return (
-      <Card className="card-elevated p-12 text-center">
-        <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+      <Card className="p-12 text-center border-dashed">
+        <User className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
         <h3 className="text-lg font-semibold mb-2">Nenhum cliente encontrado</h3>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Comece adicionando seu primeiro cliente
         </p>
       </Card>
     );
   }
 
+  const getClientName = (client: any) => {
+    return client.responsible_name || 
+           (client.client_type === 'company' ? client.company_name : client.full_name) ||
+           'Cliente';
+  };
+
+  const getClientSubtitle = (client: any) => {
+    if (client.responsible_name) {
+      return client.client_type === 'company' ? client.company_name : client.full_name;
+    }
+    return client.email;
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {clients.map((client, index) => (
         <Card 
           key={client.id} 
-          className="card-elevated card-interactive group animate-fade-in-up"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className={cn(
+            "group border bg-card transition-all duration-300",
+            "hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
+          )}
+          style={{ animationDelay: `${index * 50}ms` }}
         >
-          <CardContent className="p-6">
+          <CardContent className="p-5">
+            {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  {client.client_type === 'company' ? (
-                    <Building2 className="h-6 w-6 text-primary transition-transform group-hover:scale-110" />
-                  ) : (
-                    <User className="h-6 w-6 text-primary transition-transform group-hover:scale-110" />
-                  )}
-                </div>
-                <div>
-                  <Badge
-                    variant={client.is_active ? 'default' : 'secondary'}
-                    className={client.is_active ? 'bg-success/10 text-success border-success/20' : ''}
-                  >
-                    {client.is_active ? 'Ativo' : 'Inativo'}
-                  </Badge>
+                <AvatarInitials 
+                  name={getClientName(client)} 
+                  size="lg"
+                />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-foreground truncate">
+                    {getClientName(client)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {getClientSubtitle(client)}
+                  </p>
                 </div>
               </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onView(client)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver detalhes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(client)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(client.id)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            <h3 className="font-semibold text-lg mb-1 line-clamp-1 flex items-center gap-1.5">
-              {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-              {(client.contacts_count?.[0]?.count || 0) > 0 && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <UserCheck className="h-3.5 w-3.5 text-primary/40 flex-shrink-0" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{client.contacts_count[0].count} contato{client.contacts_count[0].count > 1 ? 's' : ''}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </h3>
-            
-            {client.responsible_name && (
-              <p className="text-sm text-muted-foreground mb-3">
-                {client.client_type === 'company' ? client.company_name : client.full_name}
-              </p>
-            )}
+            {/* Info Grid */}
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                  {client.client_type === 'company' ? (
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <span className="text-muted-foreground truncate">
+                  {client.client_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+                </span>
+              </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span className="truncate">{client.email}</span>
+              <div className="flex items-center gap-2 text-sm">
+                <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <span className="text-muted-foreground">{formatPhone(client.phone)}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{formatPhone(client.phone)}</span>
-              </div>
+
               {client.cpf_cnpj && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  <span className="text-xs">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span className="text-muted-foreground text-xs">
                     {client.client_type === 'person' ? 'CPF' : 'CNPJ'}: {formatCpfCnpj(client.cpf_cnpj)}
                   </span>
                 </div>
               )}
             </div>
 
-            {(client.address_city || client.address_state) && (
-              <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  {client.address_city && client.address_state
-                    ? `${client.address_city} - ${client.address_state}`
-                    : client.address_city || client.address_state}
-                </p>
-              </div>
-            )}
-          </CardContent>
+            {/* Status and Location */}
+            <div className="flex items-center justify-between pt-4 border-t border-border">
+              <Badge
+                variant={client.is_active ? 'default' : 'secondary'}
+                className={cn(
+                  "font-medium",
+                  client.is_active 
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20' 
+                    : 'bg-muted text-muted-foreground'
+                )}
+              >
+                <span className={cn(
+                  "mr-1.5 h-1.5 w-1.5 rounded-full",
+                  client.is_active ? 'bg-emerald-500' : 'bg-muted-foreground'
+                )} />
+                {client.is_active ? 'Ativo' : 'Inativo'}
+              </Badge>
 
-          <CardFooter className="p-4 pt-0 flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 hover:scale-105 transition-transform"
-              onClick={() => onView(client)}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Ver
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 hover:scale-105 transition-transform"
-              onClick={() => onEdit(client)}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
+              {(client.address_city || client.address_state) && (
+                <span className="text-xs text-muted-foreground">
+                  {client.address_city && client.address_state
+                    ? `${client.address_city}, ${client.address_state}`
+                    : client.address_city || client.address_state}
+                </span>
+              )}
+            </div>
+
+            {/* Action Button */}
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => onDelete(client.id)}
-              className="hover:scale-110 hover:text-destructive transition-all"
+              className="w-full mt-4 justify-between text-muted-foreground hover:text-primary group/btn"
+              onClick={() => onView(client)}
             >
-              <Trash2 className="h-4 w-4 text-error" />
+              <span>Ver Dashboard</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
             </Button>
-          </CardFooter>
+          </CardContent>
         </Card>
       ))}
     </div>
