@@ -166,7 +166,7 @@ export function DelinquencyReport() {
       {/* Delinquent Clients Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Clientes Inadimplentes</CardTitle>
+          <CardTitle className="text-base">Clientes Inadimplentes</CardTitle>
           <CardDescription>
             Lista completa de clientes com pagamentos em atraso
           </CardDescription>

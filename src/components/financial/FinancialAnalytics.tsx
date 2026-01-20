@@ -165,7 +165,7 @@ export function FinancialAnalytics() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <CardTitle>Projeção Anual</CardTitle>
+          <CardTitle className="text-base">Projeção Anual</CardTitle>
           <div className="flex gap-2">
             <Select value={filterType} onValueChange={(value) => setFilterType(value as FilterType)}>
               <SelectTrigger className="w-[200px]">
