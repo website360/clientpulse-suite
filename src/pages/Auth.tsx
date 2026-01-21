@@ -199,14 +199,14 @@ export default function Auth() {
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="nome@empresa.com"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-14 pl-11 bg-background border-2 border-border focus:border-primary rounded-xl text-base transition-colors"
+                  className="h-14 pl-11 bg-muted/30 border-2 border-border/50 focus:border-primary focus:bg-background rounded-xl text-base transition-all duration-200 shadow-sm focus:shadow-md placeholder:text-muted-foreground/50"
                   required
                 />
               </div>
@@ -226,14 +226,14 @@ export default function Auth() {
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-14 pl-11 pr-12 bg-background border-2 border-border focus:border-primary rounded-xl text-base transition-colors"
+                  className="h-14 pl-11 pr-12 bg-muted/30 border-2 border-border/50 focus:border-primary focus:bg-background rounded-xl text-base transition-all duration-200 shadow-sm focus:shadow-md placeholder:text-muted-foreground/50"
                   required
                 />
                 <button
