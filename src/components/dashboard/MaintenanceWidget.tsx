@@ -43,7 +43,7 @@ export function MaintenanceWidget({ stats }: MaintenanceWidgetProps) {
   ];
 
   return (
-    <Card className="h-full border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
+    <Card className="h-full border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

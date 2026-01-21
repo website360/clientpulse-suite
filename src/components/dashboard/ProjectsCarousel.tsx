@@ -51,7 +51,7 @@ const getStatusVariant = (status: string) => {
 export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
   if (projects.length === 0) {
     return (
-      <Card className="border-dashed border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
+      <Card className="border-dashed border-border/50">
         <CardContent className="flex flex-col items-center justify-center py-12">
           <FolderKanban className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground text-center">
@@ -69,7 +69,7 @@ export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
   }
 
   return (
-    <Card className="h-full border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
+    <Card className="h-full border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
