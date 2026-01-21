@@ -63,6 +63,7 @@ export function ModularDashboard({
     availableWidgets,
     reorderWidgets,
     changeWidgetSize,
+    changeWidgetHeight,
     addWidget,
     removeWidget,
     resetLayout,
@@ -171,6 +172,7 @@ export function ModularDashboard({
                 isEditMode={isEditMode}
                 onRemove={removeWidget}
                 onChangeSize={changeWidgetSize}
+                onChangeHeight={changeWidgetHeight}
               >
                 {renderWidgetContent(widget.type)}
               </DraggableWidget>

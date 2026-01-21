@@ -1,13 +1,15 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, Maximize2, Minimize2 } from 'lucide-react';
+import { GripVertical, X, Columns, Rows } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DashboardWidget, WIDGET_CONFIGS } from '@/types/dashboard';
+import { DashboardWidget, WidgetSize, WidgetHeight, WIDGET_CONFIGS } from '@/types/dashboard';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +17,8 @@ interface DraggableWidgetProps {
   widget: DashboardWidget;
   isEditMode: boolean;
   onRemove: (id: string) => void;
-  onChangeSize: (id: string, size: DashboardWidget['size']) => void;
+  onChangeSize: (id: string, size: WidgetSize) => void;
+  onChangeHeight: (id: string, height: WidgetHeight) => void;
   children: React.ReactNode;
 }
 
@@ -26,11 +29,33 @@ const sizeClasses = {
   full: 'col-span-12',
 };
 
+const heightClasses = {
+  auto: '',
+  small: 'min-h-[200px] max-h-[200px]',
+  medium: 'min-h-[300px] max-h-[300px]',
+  large: 'min-h-[400px] max-h-[400px]',
+};
+
+const heightLabels = {
+  auto: 'Automática',
+  small: 'Pequena (200px)',
+  medium: 'Média (300px)',
+  large: 'Grande (400px)',
+};
+
+const sizeLabels = {
+  small: 'Pequeno (4 colunas)',
+  medium: 'Médio (6 colunas)',
+  large: 'Grande (8 colunas)',
+  full: 'Completo (12 colunas)',
+};
+
 export function DraggableWidget({
   widget,
   isEditMode,
   onRemove,
   onChangeSize,
+  onChangeHeight,
   children,
 }: DraggableWidgetProps) {
   const {
@@ -72,23 +97,43 @@ export function DraggableWidget({
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <Maximize2 className="h-3 w-3" />
+              <Button variant="ghost" size="icon" className="h-6 w-6" title="Largura">
+                <Columns className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center">
-              <DropdownMenuItem onClick={() => onChangeSize(widget.id, 'small')}>
-                Pequeno (4 colunas)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChangeSize(widget.id, 'medium')}>
-                Médio (6 colunas)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChangeSize(widget.id, 'large')}>
-                Grande (8 colunas)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChangeSize(widget.id, 'full')}>
-                Completo (12 colunas)
-              </DropdownMenuItem>
+              <DropdownMenuLabel>Largura</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(Object.keys(sizeLabels) as WidgetSize[]).map((size) => (
+                <DropdownMenuItem 
+                  key={size} 
+                  onClick={() => onChangeSize(widget.id, size)}
+                  className={widget.size === size ? 'bg-accent' : ''}
+                >
+                  {sizeLabels[size]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6" title="Altura">
+                <Rows className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuLabel>Altura</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(Object.keys(heightLabels) as WidgetHeight[]).map((height) => (
+                <DropdownMenuItem 
+                  key={height} 
+                  onClick={() => onChangeHeight(widget.id, height)}
+                  className={widget.height === height ? 'bg-accent' : ''}
+                >
+                  {heightLabels[height]}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -104,7 +149,8 @@ export function DraggableWidget({
       )}
 
       <div className={cn(
-        'h-full w-full',
+        'h-full w-full overflow-auto',
+        heightClasses[widget.height],
         isEditMode && 'pointer-events-none'
       )}>
         {children}

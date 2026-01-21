@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DashboardWidget, WidgetType, DEFAULT_WIDGETS, WIDGET_CONFIGS } from '@/types/dashboard';
+import { DashboardWidget, WidgetType, WidgetSize, WidgetHeight, DEFAULT_WIDGETS, WIDGET_CONFIGS } from '@/types/dashboard';
 
-const STORAGE_KEY = 'dashboard-layout-v2';
+const STORAGE_KEY = 'dashboard-layout-v3';
 
 export function useDashboardLayout() {
   const [widgets, setWidgets] = useState<DashboardWidget[]>(DEFAULT_WIDGETS);
@@ -12,7 +12,12 @@ export function useDashboardLayout() {
     if (saved) {
       try {
         const parsed: DashboardWidget[] = JSON.parse(saved);
-        setWidgets(parsed);
+        // Migrate old widgets without height
+        const migrated = parsed.map(w => ({
+          ...w,
+          height: w.height || WIDGET_CONFIGS[w.type]?.defaultHeight || 'auto'
+        }));
+        setWidgets(migrated);
       } catch (error) {
         console.error('Error loading dashboard layout:', error);
       }
@@ -38,9 +43,16 @@ export function useDashboardLayout() {
     saveWidgets(reordered);
   }, [widgets, saveWidgets]);
 
-  const changeWidgetSize = useCallback((widgetId: string, size: DashboardWidget['size']) => {
+  const changeWidgetSize = useCallback((widgetId: string, size: WidgetSize) => {
     const newWidgets = widgets.map(w => 
       w.id === widgetId ? { ...w, size } : w
+    );
+    saveWidgets(newWidgets);
+  }, [widgets, saveWidgets]);
+
+  const changeWidgetHeight = useCallback((widgetId: string, height: WidgetHeight) => {
+    const newWidgets = widgets.map(w => 
+      w.id === widgetId ? { ...w, height } : w
     );
     saveWidgets(newWidgets);
   }, [widgets, saveWidgets]);
@@ -53,6 +65,7 @@ export function useDashboardLayout() {
       id: type,
       type,
       size: config.defaultSize,
+      height: config.defaultHeight,
       order: widgets.length,
     };
     saveWidgets([...widgets, newWidget]);
@@ -82,6 +95,7 @@ export function useDashboardLayout() {
     availableWidgets,
     reorderWidgets,
     changeWidgetSize,
+    changeWidgetHeight,
     addWidget,
     removeWidget,
     resetLayout,
