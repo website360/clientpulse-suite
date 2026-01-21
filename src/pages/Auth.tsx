@@ -114,12 +114,12 @@ export default function Auth() {
         }}
       >
         {/* Overlay com 70% de opacidade */}
-        <div className="absolute inset-0 bg-white/70 dark:bg-slate-900/70" />
+        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(24, 51, 102, 0.7)' }} />
         
         {/* Logo */}
         <div className="relative z-10">
           <img 
-            src={isDark ? authLogo.dark : authLogo.light} 
+            src={authLogo.light} 
             alt="Logo" 
             className="h-10 w-auto"
           />
