@@ -85,8 +85,8 @@ export default function ContractGenerator() {
     const client = clients.find(c => c.id === clientId);
     if (client && selectedTemplate) {
       const clientName = client.client_type === 'pj' 
-        ? client.company_name 
-        : client.full_name;
+        ? (client.company_name || client.responsible_name || client.full_name || '')
+        : (client.full_name || client.company_name || '');
       
       const addressParts = [
         client.address_street,
@@ -99,7 +99,7 @@ export default function ContractGenerator() {
       
       setFormData(prev => ({
         ...prev,
-        client_name: clientName || '',
+        client_name: clientName,
         client_document: client.cpf_cnpj || '',
         client_address: address || '',
       }));
@@ -413,11 +413,16 @@ export default function ContractGenerator() {
                       <SelectValue placeholder="Selecione um cliente para preencher automaticamente" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.client_type === 'pj' ? client.company_name : client.full_name}
-                        </SelectItem>
-                      ))}
+                      {clients.map(client => {
+                        const displayName = client.client_type === 'pj' 
+                          ? (client.company_name || client.responsible_name || client.full_name || 'Empresa sem nome')
+                          : (client.full_name || client.company_name || 'Cliente sem nome');
+                        return (
+                          <SelectItem key={client.id} value={client.id}>
+                            {displayName}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
