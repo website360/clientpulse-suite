@@ -25,7 +25,7 @@ import {
   TrendingUp,
   Share2
 } from 'lucide-react';
-import { CONTRACT_TEMPLATES, ContractTemplate, ContractField } from '@/types/contract-generator';
+import { CONTRACT_TEMPLATES, ContractTemplate, ContractField, ContractStyleConfig, DEFAULT_STYLE_CONFIG } from '@/types/contract-generator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -166,29 +166,57 @@ export default function ContractGenerator() {
   };
 
   const handlePrint = () => {
+    const style = selectedTemplate?.styleConfig || DEFAULT_STYLE_CONFIG;
     const printWindow = window.open('', '_blank');
     if (printWindow) {
+      const backgroundStyle = style.backgroundImage 
+        ? `background-image: url('${style.backgroundImage}'); background-size: cover; background-position: center; background-repeat: no-repeat;`
+        : '';
+      const overlayStyle = style.backgroundImage
+        ? `position: relative;`
+        : '';
+      const contentOverlay = style.backgroundImage
+        ? `<div style="position: absolute; inset: 0; background: rgba(255,255,255,${1 - style.backgroundOpacity}); z-index: 0;"></div>`
+        : '';
+      
       printWindow.document.write(`
         <html>
           <head>
             <title>Contrato - ${selectedTemplate?.name}</title>
             <style>
+              @page {
+                margin: ${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px;
+              }
               body { 
-                font-family: 'Times New Roman', serif; 
-                padding: 40px; 
-                line-height: 1.8;
-                max-width: 800px;
-                margin: 0 auto;
+                font-family: '${style.fontFamily}', serif; 
+                font-size: ${style.fontSize}pt;
+                line-height: ${style.lineHeight};
+                text-align: ${style.textAlign};
+                margin: 0;
+                padding: ${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px;
+                ${backgroundStyle}
+                ${overlayStyle}
+                ${style.paragraphBold ? 'font-weight: bold;' : ''}
+              }
+              .content {
+                position: relative;
+                z-index: 1;
               }
               pre { 
                 white-space: pre-wrap; 
-                font-family: 'Times New Roman', serif;
-                font-size: 14px;
+                font-family: '${style.fontFamily}', serif;
+                font-size: ${style.fontSize}pt;
+                line-height: ${style.lineHeight};
+                text-align: ${style.textAlign};
+                ${style.paragraphBold ? 'font-weight: bold;' : ''}
               }
             </style>
           </head>
           <body>
-            <pre>${generatedContent}</pre>
+            ${contentOverlay}
+            <div class="content">
+              <pre>${generatedContent}</pre>
+            </div>
           </body>
         </html>
       `);
@@ -538,13 +566,45 @@ export default function ContractGenerator() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[600px] rounded-lg border p-6 bg-white dark:bg-slate-950">
-                  <div ref={previewRef} className="max-w-3xl mx-auto">
-                    <pre className="whitespace-pre-wrap font-serif text-sm leading-relaxed">
-                      {generatedContent}
-                    </pre>
-                  </div>
-                </ScrollArea>
+                {(() => {
+                  const style = selectedTemplate?.styleConfig || DEFAULT_STYLE_CONFIG;
+                  return (
+                    <ScrollArea className="h-[600px] rounded-lg border bg-white dark:bg-slate-950 relative overflow-hidden">
+                      {style.backgroundImage && (
+                        <>
+                          <div 
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                            style={{ backgroundImage: `url(${style.backgroundImage})` }}
+                          />
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
+                          />
+                        </>
+                      )}
+                      <div 
+                        ref={previewRef} 
+                        className="relative z-10 max-w-3xl mx-auto"
+                        style={{
+                          padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
+                        }}
+                      >
+                        <pre 
+                          className="whitespace-pre-wrap"
+                          style={{
+                            fontFamily: `'${style.fontFamily}', serif`,
+                            fontSize: `${style.fontSize}pt`,
+                            lineHeight: style.lineHeight,
+                            textAlign: style.textAlign,
+                            fontWeight: style.paragraphBold ? 'bold' : 'normal',
+                          }}
+                        >
+                          {generatedContent}
+                        </pre>
+                      </div>
+                    </ScrollArea>
+                  );
+                })()}
               </CardContent>
             </Card>
           </div>
