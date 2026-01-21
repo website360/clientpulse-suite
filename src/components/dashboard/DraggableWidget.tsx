@@ -31,9 +31,9 @@ const sizeClasses = {
 
 const heightClasses = {
   auto: '',
-  small: 'min-h-[200px] max-h-[200px]',
-  medium: 'min-h-[300px] max-h-[300px]',
-  large: 'min-h-[400px] max-h-[400px]',
+  small: 'h-[200px]',
+  medium: 'h-[300px]',
+  large: 'h-[400px]',
 };
 
 const heightLabels = {
@@ -149,8 +149,8 @@ export function DraggableWidget({
       )}
 
       <div className={cn(
-        'h-full w-full overflow-auto',
-        heightClasses[widget.height],
+        'w-full overflow-auto [&>*]:h-full',
+        widget.height === 'auto' ? '' : heightClasses[widget.height],
         isEditMode && 'pointer-events-none'
       )}>
         {children}
