@@ -128,19 +128,6 @@ export default function Auth() {
             {/* Abstract shapes */}
             <div className="absolute -top-20 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
             <div className="absolute -bottom-10 -right-10 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl" />
-            
-            {/* Central illustration placeholder */}
-            <div className="relative bg-white/50 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-white/60">
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-emerald-500/20 rounded-2xl flex items-center justify-center">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-emerald-500 rounded-xl" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-800">Gestão Completa</h3>
-                <p className="text-sm text-slate-600">
-                  Centralize clientes, projetos, tickets e finanças em um só lugar.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
