@@ -249,10 +249,10 @@ export function AppSidebar() {
                     <Badge 
                       variant="secondary" 
                       className={cn(
-                        "h-5 min-w-[20px] px-1.5 text-xs font-medium",
+                        "h-5 min-w-[20px] px-1.5 text-xs font-medium transition-colors",
                         isActive 
                           ? "bg-white/20 text-white" 
-                          : "bg-primary/10 text-primary"
+                          : "bg-primary/10 text-primary group-hover/item:bg-white/20 group-hover/item:text-white"
                       )}
                     >
                       {item.badge}
