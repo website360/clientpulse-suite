@@ -1,0 +1,83 @@
+/* Custom styles for Quill editor */
+.ql-container {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.ql-editor {
+  min-height: 400px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ql-editor.ql-blank::before {
+  font-style: normal;
+  color: #9ca3af;
+}
+
+/* Contract content preview styles */
+.contract-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.contract-content p {
+  margin-bottom: 1em;
+}
+
+.contract-content h1,
+.contract-content h2,
+.contract-content h3 {
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.contract-content h1 {
+  font-size: 1.5em;
+}
+
+.contract-content h2 {
+  font-size: 1.3em;
+}
+
+.contract-content h3 {
+  font-size: 1.1em;
+}
+
+.contract-content ul,
+.contract-content ol {
+  margin-left: 2em;
+  margin-bottom: 1em;
+}
+
+.contract-content li {
+  margin-bottom: 0.25em;
+}
+
+.contract-content strong {
+  font-weight: bold;
+}
+
+.contract-content em {
+  font-style: italic;
+}
+
+.contract-content u {
+  text-decoration: underline;
+}
+
+/* Page break simulation */
+.page-break {
+  page-break-after: always;
+  break-after: page;
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 2px dashed #e5e7eb;
+}
+
+@media print {
+  .page-break {
+    border-bottom: none;
+  }
+}

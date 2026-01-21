@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import '@/styles/quill-custom.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -271,7 +274,7 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
     let content = formData.content;
     fields.forEach(field => {
       const regex = new RegExp(`{{${field.name}}}`, 'g');
-      content = content.replace(regex, `[${field.label}]`);
+      content = content.replace(regex, `<strong>[${field.label}]</strong>`);
     });
     return content;
   };
@@ -314,7 +317,7 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
               {/* Basic Info */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Informações Básicas</CardTitle>
+                  <CardTitle className="text-lg">Informações Básicas</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -368,16 +371,27 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                     <CardHeader>
                       <CardTitle className="text-base">Conteúdo do Contrato *</CardTitle>
                       <p className="text-xs text-muted-foreground">
-                        Use {`{{nome_do_campo}}`} para campos dinâmicos
+                        Use {`{{nome_do_campo}}`} para campos dinâmicos. Formate o texto como no Word.
                       </p>
                     </CardHeader>
                     <CardContent>
-                      <Textarea
-                        value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                        placeholder="Digite o conteúdo do contrato..."
-                        className="min-h-[400px] font-mono text-sm"
-                      />
+                      <div className="border rounded-lg overflow-hidden">
+                        <ReactQuill
+                          theme="snow"
+                          value={formData.content}
+                          onChange={(value) => setFormData({ ...formData, content: value })}
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, false] }],
+                              ['bold', 'italic', 'underline'],
+                              [{ 'align': [] }],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              ['clean']
+                            ]
+                          }}
+                          style={{ minHeight: '400px' }}
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -853,8 +867,8 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                         </div>
                       )}
                       
-                      <pre 
-                        className="whitespace-pre-wrap"
+                      <div 
+                        className="contract-content"
                         style={{
                           fontFamily: `'${styleConfig.fontFamily}', serif`,
                           fontSize: `${styleConfig.fontSize}pt`,
@@ -862,9 +876,8 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                           textAlign: styleConfig.textAlign,
                           fontWeight: styleConfig.paragraphBold ? 'bold' : 'normal',
                         }}
-                      >
-                        {generatePreview()}
-                      </pre>
+                        dangerouslySetInnerHTML={{ __html: generatePreview() }}
+                      />
                     </div>
                   </div>
                 </CardContent>

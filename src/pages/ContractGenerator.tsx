@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import '@/styles/quill-custom.css';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -202,13 +203,36 @@ export default function ContractGenerator() {
                 position: relative;
                 z-index: 1;
               }
-              pre { 
-                white-space: pre-wrap; 
+              .contract-content { 
                 font-family: '${style.fontFamily}', serif;
                 font-size: ${style.fontSize}pt;
                 line-height: ${style.lineHeight};
                 text-align: ${style.textAlign};
                 ${style.paragraphBold ? 'font-weight: bold;' : ''}
+              }
+              .contract-content p {
+                margin-bottom: 1em;
+              }
+              .contract-content h1,
+              .contract-content h2,
+              .contract-content h3 {
+                font-weight: bold;
+                margin-top: 1.5em;
+                margin-bottom: 0.5em;
+              }
+              .contract-content ul,
+              .contract-content ol {
+                margin-left: 2em;
+                margin-bottom: 1em;
+              }
+              .contract-content strong {
+                font-weight: bold;
+              }
+              .contract-content em {
+                font-style: italic;
+              }
+              .contract-content u {
+                text-decoration: underline;
               }
               .header-logo {
                 margin-bottom: 20px;
@@ -232,7 +256,7 @@ export default function ContractGenerator() {
                   ${style.showHeaderLine ? '<div class="header-line"></div>' : ''}
                 </div>
               ` : ''}
-              <pre>${generatedContent}</pre>
+              <div class="contract-content">${generatedContent}</div>
             </div>
           </body>
         </html>
@@ -629,8 +653,8 @@ export default function ContractGenerator() {
                           </div>
                         )}
                         
-                        <pre 
-                          className="whitespace-pre-wrap"
+                        <div 
+                          className="contract-content"
                           style={{
                             fontFamily: `'${style.fontFamily}', serif`,
                             fontSize: `${style.fontSize}pt`,
@@ -638,9 +662,8 @@ export default function ContractGenerator() {
                             textAlign: style.textAlign,
                             fontWeight: style.paragraphBold ? 'bold' : 'normal',
                           }}
-                        >
-                          {generatedContent}
-                        </pre>
+                          dangerouslySetInnerHTML={{ __html: generatedContent }}
+                        />
                       </div>
                     </ScrollArea>
                   );
