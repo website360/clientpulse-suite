@@ -824,22 +824,25 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                     Visualize como o contrato ficará com as configurações atuais
                   </p>
                 </CardHeader>
-                <CardContent>
-                  <div className="rounded-lg border bg-white dark:bg-slate-950 relative overflow-hidden min-h-[600px]">
+                <CardContent className="bg-gray-100 p-6">
+                  <div className="contract-page">
+                    {/* Background Image */}
                     {styleConfig.backgroundImage && (
                       <>
                         <div 
-                          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                          className="contract-page-background"
                           style={{ backgroundImage: `url(${styleConfig.backgroundImage})` }}
                         />
                         <div 
-                          className="absolute inset-0"
+                          className="contract-page-overlay"
                           style={{ backgroundColor: `rgba(255,255,255,${1 - styleConfig.backgroundOpacity})` }}
                         />
                       </>
                     )}
+                    
+                    {/* Content */}
                     <div 
-                      className="relative z-10"
+                      className="contract-page-content"
                       style={{
                         padding: `${styleConfig.marginTop}px ${styleConfig.marginRight}px ${styleConfig.marginBottom}px ${styleConfig.marginLeft}px`,
                       }}

@@ -610,60 +610,64 @@ export default function ContractGenerator() {
                 {(() => {
                   const style = selectedTemplate?.styleConfig || DEFAULT_STYLE_CONFIG;
                   return (
-                    <ScrollArea className="h-[600px] rounded-lg border bg-white dark:bg-slate-950 relative overflow-hidden">
-                      {style.backgroundImage && (
-                        <>
-                          <div 
-                            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                            style={{ backgroundImage: `url(${style.backgroundImage})` }}
-                          />
-                          <div 
-                            className="absolute inset-0"
-                            style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
-                          />
-                        </>
-                      )}
-                      <div 
-                        ref={previewRef} 
-                        className="relative z-10 max-w-3xl mx-auto"
-                        style={{
-                          padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
-                        }}
-                      >
-                        {/* Header Logo */}
-                        {style.headerLogo && (
-                          <div className="mb-6">
-                            <div className="flex justify-start mb-3">
-                              <img 
-                                src={style.headerLogo} 
-                                alt="Logo" 
-                                style={{ height: `${style.headerLogoHeight}px` }}
-                                className="object-contain"
-                              />
-                            </div>
-                            {style.showHeaderLine && (
-                              <div 
-                                className="w-full border-t-2"
-                                style={{ 
-                                  borderColor: '#FFD700',
-                                  marginBottom: '20px'
-                                }}
-                              />
-                            )}
-                          </div>
+                    <ScrollArea className="h-[600px] bg-gray-100 p-6">
+                      <div ref={previewRef} className="contract-page">
+                        {/* Background Image */}
+                        {style.backgroundImage && (
+                          <>
+                            <div 
+                              className="contract-page-background"
+                              style={{ backgroundImage: `url(${style.backgroundImage})` }}
+                            />
+                            <div 
+                              className="contract-page-overlay"
+                              style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
+                            />
+                          </>
                         )}
                         
+                        {/* Content */}
                         <div 
-                          className="contract-content"
+                          className="contract-page-content"
                           style={{
-                            fontFamily: `'${style.fontFamily}', serif`,
-                            fontSize: `${style.fontSize}pt`,
-                            lineHeight: style.lineHeight,
-                            textAlign: style.textAlign,
-                            fontWeight: style.paragraphBold ? 'bold' : 'normal',
+                            padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
                           }}
-                          dangerouslySetInnerHTML={{ __html: generatedContent }}
-                        />
+                        >
+                          {/* Header Logo */}
+                          {style.headerLogo && (
+                            <div className="mb-6">
+                              <div className="flex justify-start mb-3">
+                                <img 
+                                  src={style.headerLogo} 
+                                  alt="Logo" 
+                                  style={{ height: `${style.headerLogoHeight}px` }}
+                                  className="object-contain"
+                                />
+                              </div>
+                              {style.showHeaderLine && (
+                                <div 
+                                  className="w-full border-t-2"
+                                  style={{ 
+                                    borderColor: '#FFD700',
+                                    marginBottom: '20px'
+                                  }}
+                                />
+                              )}
+                            </div>
+                          )}
+                          
+                          <div 
+                            className="contract-content"
+                            style={{
+                              fontFamily: `'${style.fontFamily}', serif`,
+                              fontSize: `${style.fontSize}pt`,
+                              lineHeight: style.lineHeight,
+                              textAlign: style.textAlign,
+                              fontWeight: style.paragraphBold ? 'bold' : 'normal',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: generatedContent }}
+                          />
+                        </div>
                       </div>
                     </ScrollArea>
                   );

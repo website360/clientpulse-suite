@@ -67,17 +67,59 @@
   text-decoration: underline;
 }
 
+/* Page simulation for preview */
+.contract-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+  margin: 0 auto 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.contract-page-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.contract-page-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.contract-page-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+}
+
 /* Page break simulation */
 .page-break {
   page-break-after: always;
   break-after: page;
-  margin-bottom: 40px;
-  padding-bottom: 40px;
-  border-bottom: 2px dashed #e5e7eb;
 }
 
 @media print {
+  .contract-page {
+    box-shadow: none;
+    margin: 0;
+    page-break-after: always;
+  }
+  
   .page-break {
     border-bottom: none;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .contract-page {
+    width: 100%;
+    min-height: auto;
   }
 }
