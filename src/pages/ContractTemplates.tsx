@@ -28,9 +28,11 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { CONTRACT_TEMPLATES, ContractTemplate, ContractField } from '@/types/contract-generator';
+import { CONTRACT_TEMPLATES, ContractTemplate, ContractField, ContractStyleConfig, DEFAULT_STYLE_CONFIG } from '@/types/contract-generator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 
 const SERVICE_TYPES = [
   'Desenvolvimento Web',
@@ -50,6 +52,21 @@ const FIELD_TYPES = [
   { value: 'currency', label: 'Moeda (R$)' },
   { value: 'textarea', label: 'Texto Longo' },
   { value: 'select', label: 'Seleção' },
+];
+
+const FONT_FAMILIES = [
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'Verdana', label: 'Verdana' },
+  { value: 'Courier New', label: 'Courier New' },
+  { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+];
+
+const TEXT_ALIGNMENTS = [
+  { value: 'left', label: 'Esquerda' },
+  { value: 'center', label: 'Centro' },
+  { value: 'justify', label: 'Justificado' },
 ];
 
 const serviceIcons: Record<string, React.ElementType> = {
@@ -77,7 +94,9 @@ export default function ContractTemplates() {
     content: '',
   });
   const [fields, setFields] = useState<ContractField[]>([]);
+  const [styleConfig, setStyleConfig] = useState<ContractStyleConfig>(DEFAULT_STYLE_CONFIG);
   const [expandedFieldIndex, setExpandedFieldIndex] = useState<number | null>(null);
+  const [editingDefaultTemplate, setEditingDefaultTemplate] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -110,6 +129,7 @@ export default function ContractTemplates() {
 
   const handleCreate = () => {
     setSelectedTemplate(null);
+    setEditingDefaultTemplate(false);
     setFormData({
       id: '',
       name: '',
@@ -122,28 +142,32 @@ export default function ContractTemplates() {
       { id: 'client_document', name: 'client_document', label: 'CPF/CNPJ', type: 'text', required: true, placeholder: '000.000.000-00' },
       { id: 'client_address', name: 'client_address', label: 'Endereço', type: 'textarea', required: true, placeholder: 'Endereço completo' },
     ]);
+    setStyleConfig({ ...DEFAULT_STYLE_CONFIG });
     setIsFormOpen(true);
   };
 
   const handleEdit = (template: ContractTemplate) => {
-    if (isDefaultTemplate(template.id)) {
-      toast.error('Templates padrão não podem ser editados. Duplique para criar uma versão personalizada.');
-      return;
-    }
+    const isDefault = isDefaultTemplate(template.id);
+    setEditingDefaultTemplate(isDefault);
     setSelectedTemplate(template);
     setFormData({
-      id: template.id,
-      name: template.name,
+      id: isDefault ? '' : template.id,
+      name: isDefault ? `${template.name} (Personalizado)` : template.name,
       serviceType: template.serviceType,
       description: template.description,
       content: template.content,
     });
     setFields([...template.fields]);
+    setStyleConfig(template.styleConfig || { ...DEFAULT_STYLE_CONFIG });
     setIsFormOpen(true);
+    if (isDefault) {
+      toast.info('Editando template padrão - será salvo como nova versão personalizada.');
+    }
   };
 
   const handleDuplicate = (template: ContractTemplate) => {
     setSelectedTemplate(null);
+    setEditingDefaultTemplate(false);
     setFormData({
       id: '',
       name: `${template.name} (Cópia)`,
@@ -152,6 +176,7 @@ export default function ContractTemplates() {
       content: template.content,
     });
     setFields([...template.fields]);
+    setStyleConfig(template.styleConfig || { ...DEFAULT_STYLE_CONFIG });
     setIsFormOpen(true);
     toast.info('Template duplicado. Faça as alterações desejadas e salve.');
   };
@@ -195,18 +220,21 @@ export default function ContractTemplates() {
       description: formData.description,
       content: formData.content,
       fields: fields,
+      styleConfig: styleConfig,
     };
 
     const customTemplates = getCustomTemplates();
     
-    if (selectedTemplate) {
-      // Update existing
+    if (selectedTemplate && !editingDefaultTemplate) {
+      // Update existing custom template
       const index = customTemplates.findIndex(t => t.id === selectedTemplate.id);
       if (index >= 0) {
         customTemplates[index] = newTemplate;
+      } else {
+        customTemplates.push(newTemplate);
       }
     } else {
-      // Create new
+      // Create new (or save edited default as new)
       customTemplates.push(newTemplate);
     }
 
@@ -373,24 +401,22 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(template)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       {!isDefault && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(template)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(template)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(template)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -580,20 +606,206 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                   </div>
                 </div>
 
-                {/* Right Column - Content */}
+                {/* Right Column - Content & Style */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium">Conteúdo do Contrato *</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Use {`{{nome_do_campo}}`} para campos dinâmicos
-                    </p>
-                  </div>
-                  <Textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="Digite o conteúdo do contrato..."
-                    className="min-h-[500px] font-mono text-sm"
-                  />
+                  <Tabs defaultValue="content" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="content">Conteúdo</TabsTrigger>
+                      <TabsTrigger value="style">Formatação</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="content" className="space-y-4 mt-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">Conteúdo do Contrato *</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Use {`{{nome_do_campo}}`} para campos dinâmicos
+                        </p>
+                      </div>
+                      <Textarea
+                        value={formData.content}
+                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        placeholder="Digite o conteúdo do contrato..."
+                        className="min-h-[450px] font-mono text-sm"
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="style" className="space-y-6 mt-4">
+                      <h3 className="font-medium">Configurações de Formatação</h3>
+                      
+                      {/* Font Settings */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Fonte</Label>
+                          <Select 
+                            value={styleConfig.fontFamily} 
+                            onValueChange={(v) => setStyleConfig({ ...styleConfig, fontFamily: v })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FONT_FAMILIES.map(font => (
+                                <SelectItem key={font.value} value={font.value}>
+                                  <span style={{ fontFamily: font.value }}>{font.label}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Alinhamento</Label>
+                          <Select 
+                            value={styleConfig.textAlign} 
+                            onValueChange={(v) => setStyleConfig({ ...styleConfig, textAlign: v as any })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TEXT_ALIGNMENTS.map(align => (
+                                <SelectItem key={align.value} value={align.value}>
+                                  {align.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Size Settings */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Tamanho do Texto: {styleConfig.fontSize}pt</Label>
+                          <Slider
+                            value={[styleConfig.fontSize]}
+                            onValueChange={([v]) => setStyleConfig({ ...styleConfig, fontSize: v })}
+                            min={8}
+                            max={18}
+                            step={1}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tamanho do Título: {styleConfig.titleFontSize}pt</Label>
+                          <Slider
+                            value={[styleConfig.titleFontSize]}
+                            onValueChange={([v]) => setStyleConfig({ ...styleConfig, titleFontSize: v })}
+                            min={10}
+                            max={24}
+                            step={1}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Espaçamento entre Linhas: {styleConfig.lineHeight}</Label>
+                        <Slider
+                          value={[styleConfig.lineHeight * 10]}
+                          onValueChange={([v]) => setStyleConfig({ ...styleConfig, lineHeight: v / 10 })}
+                          min={10}
+                          max={30}
+                          step={1}
+                        />
+                      </div>
+
+                      {/* Bold Settings */}
+                      <div className="space-y-3">
+                        <Label>Formatação de Texto</Label>
+                        <div className="flex flex-wrap gap-4">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={styleConfig.titleBold}
+                              onChange={(e) => setStyleConfig({ ...styleConfig, titleBold: e.target.checked })}
+                              className="rounded"
+                            />
+                            <span className="text-sm">Título em Negrito</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={styleConfig.paragraphBold}
+                              onChange={(e) => setStyleConfig({ ...styleConfig, paragraphBold: e.target.checked })}
+                              className="rounded"
+                            />
+                            <span className="text-sm">Texto em Negrito</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Background Image */}
+                      <div className="space-y-4">
+                        <Label>Imagem de Fundo (URL)</Label>
+                        <Input
+                          value={styleConfig.backgroundImage || ''}
+                          onChange={(e) => setStyleConfig({ ...styleConfig, backgroundImage: e.target.value })}
+                          placeholder="https://exemplo.com/imagem.png"
+                        />
+                        {styleConfig.backgroundImage && (
+                          <div className="space-y-2">
+                            <Label>Opacidade da Imagem: {Math.round(styleConfig.backgroundOpacity * 100)}%</Label>
+                            <Slider
+                              value={[styleConfig.backgroundOpacity * 100]}
+                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, backgroundOpacity: v / 100 })}
+                              min={5}
+                              max={50}
+                              step={5}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Margins */}
+                      <div className="space-y-4">
+                        <Label>Margens (px)</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Superior: {styleConfig.marginTop}px</Label>
+                            <Slider
+                              value={[styleConfig.marginTop]}
+                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, marginTop: v })}
+                              min={10}
+                              max={100}
+                              step={5}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Inferior: {styleConfig.marginBottom}px</Label>
+                            <Slider
+                              value={[styleConfig.marginBottom]}
+                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, marginBottom: v })}
+                              min={10}
+                              max={100}
+                              step={5}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Esquerda: {styleConfig.marginLeft}px</Label>
+                            <Slider
+                              value={[styleConfig.marginLeft]}
+                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, marginLeft: v })}
+                              min={10}
+                              max={100}
+                              step={5}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Direita: {styleConfig.marginRight}px</Label>
+                            <Slider
+                              value={[styleConfig.marginRight]}
+                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, marginRight: v })}
+                              min={10}
+                              max={100}
+                              step={5}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               </div>
             </div>

@@ -1,3 +1,34 @@
+export interface ContractStyleConfig {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  titleFontSize: number;
+  titleBold: boolean;
+  paragraphBold: boolean;
+  textAlign: 'left' | 'center' | 'justify';
+  backgroundImage?: string;
+  backgroundOpacity: number;
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+}
+
+export const DEFAULT_STYLE_CONFIG: ContractStyleConfig = {
+  fontFamily: 'Times New Roman',
+  fontSize: 12,
+  lineHeight: 1.8,
+  titleFontSize: 14,
+  titleBold: true,
+  paragraphBold: false,
+  textAlign: 'justify',
+  backgroundOpacity: 0.1,
+  marginTop: 40,
+  marginBottom: 40,
+  marginLeft: 40,
+  marginRight: 40,
+};
+
 export interface ContractTemplate {
   id: string;
   name: string;
@@ -5,6 +36,7 @@ export interface ContractTemplate {
   description: string;
   content: string;
   fields: ContractField[];
+  styleConfig?: ContractStyleConfig;
 }
 
 export interface ContractField {
