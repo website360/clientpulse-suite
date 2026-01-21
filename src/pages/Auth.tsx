@@ -186,14 +186,14 @@ export default function Auth() {
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="nome@empresa.com"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-20 pl-14 pr-4 text-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
+                  className="h-24 pl-12 pr-4 text-base bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
                   required
                 />
               </div>
@@ -213,14 +213,14 @@ export default function Auth() {
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-20 pl-14 pr-16 text-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
+                  className="h-24 pl-12 pr-14 text-base bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
                   required
                 />
                 <button
@@ -228,7 +228,7 @@ export default function Auth() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function Auth() {
             {/* Sign In Button */}
             <Button 
               type="submit" 
-              className="w-full h-20 rounded-xl text-xl font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 hover:shadow-xl" 
+              className="w-full h-24 rounded-xl text-lg font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 hover:shadow-xl" 
               disabled={loading}
             >
               {loading ? 'Entrando...' : 'Entrar'}
