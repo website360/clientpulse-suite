@@ -113,8 +113,11 @@ export default function Auth() {
             : 'linear-gradient(135deg, hsl(210 40% 96%) 0%, hsl(210 40% 98%) 50%, hsl(210 30% 95%) 100%)',
         }}
       >
+        {/* Overlay com 70% de opacidade */}
+        <div className="absolute inset-0 bg-white/70 dark:bg-slate-900/70" />
+        
         {/* Logo */}
-        <div>
+        <div className="relative z-10">
           <img 
             src={isDark ? authLogo.dark : authLogo.light} 
             alt="Logo" 
@@ -123,7 +126,7 @@ export default function Auth() {
         </div>
 
         {/* Decorative Elements */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center relative z-10">
           <div className="relative w-full max-w-md">
             {/* Abstract shapes */}
             <div className="absolute -top-20 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
@@ -131,31 +134,6 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* Testimonial */}
-        <div className="space-y-6">
-          {/* Stars */}
-          <div className="flex gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-
-          {/* Quote */}
-          <blockquote className="text-lg text-slate-700 leading-relaxed max-w-md">
-            "Esta plataforma revolucionou como gerenciamos nossos clientes. Uma verdadeira mudança para nossa agência."
-          </blockquote>
-
-          {/* Author */}
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-              SJ
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800">Sarah Jenkins</p>
-              <p className="text-sm text-slate-500">CMO at TechFlow</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Right Side - Sign In Form */}
@@ -193,7 +171,7 @@ export default function Auth() {
                   placeholder="nome@empresa.com"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-24 pl-14 pr-6 py-6 text-base border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
+                  className="h-24 pl-14 pr-6 py-6 text-base border-2 border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
                   style={{ backgroundColor: '#f9f9f9' }}
                   required
                 />
@@ -221,7 +199,7 @@ export default function Auth() {
                   placeholder="••••••••"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-24 pl-14 pr-16 py-6 text-base border-2 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
+                  className="h-24 pl-14 pr-16 py-6 text-base border-2 border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
                   style={{ backgroundColor: '#f9f9f9' }}
                   required
                 />
