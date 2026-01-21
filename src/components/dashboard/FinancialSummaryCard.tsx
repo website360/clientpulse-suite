@@ -70,7 +70,7 @@ export function FinancialSummaryCard({
   };
 
   return (
-    <Card className="relative overflow-hidden border-border/50">
+    <Card className="relative overflow-hidden border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
       {/* Color accent */}
       <div className={cn(
         "absolute top-0 left-0 right-0 h-1",

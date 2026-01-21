@@ -138,7 +138,7 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
 
   if (loading) {
     return (
-      <Card className="border-border/50">
+      <Card className="border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">Contratos</CardTitle>
@@ -161,7 +161,7 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
   }
 
   return (
-    <Card className="border-border/50">
+    <Card className="border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

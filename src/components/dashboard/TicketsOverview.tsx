@@ -58,7 +58,7 @@ export function TicketsOverview({ stats }: TicketsOverviewProps) {
   ];
 
   return (
-    <Card className="border-border/50">
+    <Card className="border-border/50 transition-all duration-200 hover:shadow-md hover:border-primary/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
