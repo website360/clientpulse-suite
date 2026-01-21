@@ -737,24 +737,60 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
 
                       {/* Background Image */}
                       <div className="space-y-4">
-                        <Label>Imagem de Fundo (URL)</Label>
-                        <Input
-                          value={styleConfig.backgroundImage || ''}
-                          onChange={(e) => setStyleConfig({ ...styleConfig, backgroundImage: e.target.value })}
-                          placeholder="https://exemplo.com/imagem.png"
-                        />
-                        {styleConfig.backgroundImage && (
-                          <div className="space-y-2">
-                            <Label>Opacidade da Imagem: {Math.round(styleConfig.backgroundOpacity * 100)}%</Label>
-                            <Slider
-                              value={[styleConfig.backgroundOpacity * 100]}
-                              onValueChange={([v]) => setStyleConfig({ ...styleConfig, backgroundOpacity: v / 100 })}
-                              min={5}
-                              max={50}
-                              step={5}
-                            />
-                          </div>
-                        )}
+                        <Label>Imagem de Fundo</Label>
+                        <div className="space-y-3">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Verificar tamanho (max 2MB)
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast.error('Imagem muito grande. Máximo 2MB.');
+                                  return;
+                                }
+                                
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setStyleConfig({ ...styleConfig, backgroundImage: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="cursor-pointer"
+                          />
+                          {styleConfig.backgroundImage && (
+                            <div className="space-y-3">
+                              <div className="relative w-full h-32 rounded-lg border overflow-hidden bg-muted">
+                                <img 
+                                  src={styleConfig.backgroundImage} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setStyleConfig({ ...styleConfig, backgroundImage: undefined })}
+                                className="w-full"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Remover Imagem
+                              </Button>
+                              <div className="space-y-2">
+                                <Label>Opacidade da Imagem: {Math.round(styleConfig.backgroundOpacity * 100)}%</Label>
+                                <Slider
+                                  value={[styleConfig.backgroundOpacity * 100]}
+                                  onValueChange={([v]) => setStyleConfig({ ...styleConfig, backgroundOpacity: v / 100 })}
+                                  min={5}
+                                  max={50}
+                                  step={5}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <Separator />
