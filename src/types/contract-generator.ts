@@ -12,6 +12,9 @@ export interface ContractStyleConfig {
   marginBottom: number;
   marginLeft: number;
   marginRight: number;
+  headerLogo?: string;
+  headerLogoHeight: number;
+  showHeaderLine: boolean;
 }
 
 export const DEFAULT_STYLE_CONFIG: ContractStyleConfig = {
@@ -27,6 +30,8 @@ export const DEFAULT_STYLE_CONFIG: ContractStyleConfig = {
   marginBottom: 40,
   marginLeft: 40,
   marginRight: 40,
+  headerLogoHeight: 60,
+  showHeaderLine: true,
 };
 
 export interface ContractTemplate {

@@ -210,11 +210,28 @@ export default function ContractGenerator() {
                 text-align: ${style.textAlign};
                 ${style.paragraphBold ? 'font-weight: bold;' : ''}
               }
+              .header-logo {
+                margin-bottom: 20px;
+              }
+              .header-logo img {
+                height: ${style.headerLogoHeight}px;
+              }
+              .header-line {
+                width: 100%;
+                border-top: 2px solid #FFD700;
+                margin-bottom: 20px;
+              }
             </style>
           </head>
           <body>
             ${contentOverlay}
             <div class="content">
+              ${style.headerLogo ? `
+                <div class="header-logo">
+                  <img src="${style.headerLogo}" alt="Logo" />
+                  ${style.showHeaderLine ? '<div class="header-line"></div>' : ''}
+                </div>
+              ` : ''}
               <pre>${generatedContent}</pre>
             </div>
           </body>
@@ -589,6 +606,29 @@ export default function ContractGenerator() {
                           padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
                         }}
                       >
+                        {/* Header Logo */}
+                        {style.headerLogo && (
+                          <div className="mb-6">
+                            <div className="flex justify-start mb-3">
+                              <img 
+                                src={style.headerLogo} 
+                                alt="Logo" 
+                                style={{ height: `${style.headerLogoHeight}px` }}
+                                className="object-contain"
+                              />
+                            </div>
+                            {style.showHeaderLine && (
+                              <div 
+                                className="w-full border-t-2"
+                                style={{ 
+                                  borderColor: '#FFD700',
+                                  marginBottom: '20px'
+                                }}
+                              />
+                            )}
+                          </div>
+                        )}
+                        
                         <pre 
                           className="whitespace-pre-wrap"
                           style={{

@@ -616,6 +616,78 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
 
                       <Separator />
 
+                      {/* Header Logo */}
+                      <div className="space-y-4">
+                        <Label>Logo do Cabeçalho</Label>
+                        <div className="space-y-3">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast.error('Imagem muito grande. Máximo 2MB.');
+                                  return;
+                                }
+                                
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setStyleConfig({ ...styleConfig, headerLogo: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="cursor-pointer"
+                          />
+                          {styleConfig.headerLogo && (
+                            <div className="space-y-3">
+                              <div className="relative w-full h-24 rounded-lg border overflow-hidden bg-white flex items-center justify-center p-4">
+                                <img 
+                                  src={styleConfig.headerLogo} 
+                                  alt="Logo Preview" 
+                                  style={{ height: `${styleConfig.headerLogoHeight}px` }}
+                                  className="object-contain"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Altura do Logo: {styleConfig.headerLogoHeight}px</Label>
+                                <Slider
+                                  value={[styleConfig.headerLogoHeight]}
+                                  onValueChange={([v]) => setStyleConfig({ ...styleConfig, headerLogoHeight: v })}
+                                  min={30}
+                                  max={120}
+                                  step={5}
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id="showHeaderLine"
+                                  checked={styleConfig.showHeaderLine}
+                                  onChange={(e) => setStyleConfig({ ...styleConfig, showHeaderLine: e.target.checked })}
+                                  className="rounded"
+                                />
+                                <Label htmlFor="showHeaderLine" className="text-sm cursor-pointer">
+                                  Mostrar linha horizontal abaixo do logo
+                                </Label>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setStyleConfig({ ...styleConfig, headerLogo: undefined })}
+                                className="w-full"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Remover Logo
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <Separator />
+
                       {/* Background Image */}
                       <div className="space-y-4">
                         <Label>Imagem de Fundo</Label>
@@ -758,6 +830,29 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                         padding: `${styleConfig.marginTop}px ${styleConfig.marginRight}px ${styleConfig.marginBottom}px ${styleConfig.marginLeft}px`,
                       }}
                     >
+                      {/* Header Logo */}
+                      {styleConfig.headerLogo && (
+                        <div className="mb-6">
+                          <div className="flex justify-start mb-3">
+                            <img 
+                              src={styleConfig.headerLogo} 
+                              alt="Logo" 
+                              style={{ height: `${styleConfig.headerLogoHeight}px` }}
+                              className="object-contain"
+                            />
+                          </div>
+                          {styleConfig.showHeaderLine && (
+                            <div 
+                              className="w-full border-t-2"
+                              style={{ 
+                                borderColor: '#FFD700',
+                                marginBottom: '20px'
+                              }}
+                            />
+                          )}
+                        </div>
+                      )}
+                      
                       <pre 
                         className="whitespace-pre-wrap"
                         style={{
