@@ -119,7 +119,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="relative z-10">
           <img 
-            src={authLogo.light} 
+            src={authLogo.dark} 
             alt="Logo" 
             className="h-10 w-auto"
           />
