@@ -413,16 +413,19 @@ export default function ContractGenerator() {
                       <SelectValue placeholder="Selecione um cliente para preencher automaticamente" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map(client => {
-                        const displayName = client.client_type === 'pj' 
-                          ? (client.company_name || client.responsible_name || client.full_name || 'Empresa sem nome')
-                          : (client.full_name || client.company_name || 'Cliente sem nome');
-                        return (
+                      {clients
+                        .map(client => ({
+                          ...client,
+                          displayName: client.client_type === 'pj' 
+                            ? (client.company_name || client.responsible_name || client.full_name || 'Empresa sem nome')
+                            : (client.full_name || client.company_name || 'Cliente sem nome')
+                        }))
+                        .sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt-BR'))
+                        .map(client => (
                           <SelectItem key={client.id} value={client.id}>
-                            {displayName}
+                            {client.displayName}
                           </SelectItem>
-                        );
-                      })}
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
