@@ -126,7 +126,7 @@ function EmptyTasks({ type }: { type: 'recent' | 'urgent' }) {
 
 export function TasksWidget({ recentTasks, urgentTasks }: TasksWidgetProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
