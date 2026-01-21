@@ -63,8 +63,8 @@ export function QuickStat({
   return (
     <Card 
       className={cn(
-        "relative overflow-hidden transition-all duration-200",
-        "hover:shadow-md hover:border-primary/20 hover:bg-muted/30",
+        "relative overflow-hidden transition-all duration-200 border-border/50",
+        "hover:shadow-lg hover:border-primary/40 hover:bg-muted/50",
         onClick && "cursor-pointer"
       )}
       onClick={onClick}
