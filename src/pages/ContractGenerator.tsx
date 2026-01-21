@@ -56,10 +56,13 @@ export default function ContractGenerator() {
     const { data, error } = await supabase
       .from('clients')
       .select('id, full_name, company_name, responsible_name, document, address, city, state, client_type')
-      .eq('is_active', true)
       .order('full_name');
 
-    if (!error && data) {
+    if (error) {
+      console.error('Erro ao buscar clientes:', error);
+    }
+    
+    if (data) {
       setClients(data);
     }
   };

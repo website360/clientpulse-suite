@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, FileText, Wand2 } from 'lucide-react';
+import { Plus, FileText, Wand2, Settings2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -144,6 +144,11 @@ export default function Contracts() {
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Contratos</h1>
           <div className="flex items-center gap-2">
+            <Link to="/contracts/templates">
+              <Button variant="ghost" size="icon" title="Gerenciar Templates">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </Link>
             <Link to="/contracts/generator">
               <Button variant="outline">
                 <Wand2 className="h-4 w-4 mr-2" />

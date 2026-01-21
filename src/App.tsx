@@ -37,6 +37,7 @@ const AccountsReceivable = lazy(() => import("./pages/AccountsReceivable"));
 
 const Contracts = lazy(() => import("./pages/Contracts"));
 const ContractGenerator = lazy(() => import("./pages/ContractGenerator"));
+const ContractTemplates = lazy(() => import("./pages/ContractTemplates"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
@@ -121,6 +122,7 @@ const App = () => (
                     
                     <Route path="/contracts" element={<Contracts />} />
                     <Route path="/contracts/generator" element={<ContractGenerator />} />
+                    <Route path="/contracts/templates" element={<ContractTemplates />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/manutencao" element={<Maintenance />} />
