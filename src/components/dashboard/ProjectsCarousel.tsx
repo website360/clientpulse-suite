@@ -69,104 +69,108 @@ export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2">
-            <FolderKanban className="h-5 w-5 text-primary" />
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2">
+              <FolderKanban className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-semibold">Projetos Ativos</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {projects.length} projeto{projects.length !== 1 ? 's' : ''} em andamento
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">Projetos Ativos</h2>
-            <p className="text-xs text-muted-foreground">
-              {projects.length} projeto{projects.length !== 1 ? 's' : ''} em andamento
-            </p>
-          </div>
+          <Link 
+            to="/projetos"
+            className="text-sm text-primary hover:underline flex items-center gap-1"
+          >
+            Ver todos
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-        <Link 
-          to="/projetos"
-          className="text-sm text-primary hover:underline flex items-center gap-1"
-        >
-          Ver todos
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+      </CardHeader>
 
-      <Carousel className="w-full">
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {projects.map((project) => (
-            <CarouselItem 
-              key={project.id} 
-              className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
-            >
-              <Link to={`/projetos/${project.id}`} className="block h-full">
-                <Card className={cn(
-                  "h-full transition-all duration-200",
-                  "hover:shadow-lg hover:border-primary/20 cursor-pointer",
-                  "group"
-                )}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs shrink-0"
-                      >
-                        {project.projectType}
-                      </Badge>
-                      <Badge variant={getStatusVariant(project.status)}>
-                        {project.status}
-                      </Badge>
-                    </div>
-                    <div className="pt-2">
-                      <CardTitle className="text-base line-clamp-1 group-hover:text-primary transition-colors">
-                        {project.name}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <AvatarInitials 
-                          name={project.clientName} 
-                          size="xs"
+      <CardContent>
+        <Carousel className="w-full">
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {projects.map((project) => (
+              <CarouselItem 
+                key={project.id} 
+                className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
+              >
+                <Link to={`/projetos/${project.id}`} className="block h-full">
+                  <Card className={cn(
+                    "h-full transition-all duration-200 border-border/50",
+                    "hover:shadow-lg hover:border-primary/20 cursor-pointer",
+                    "group"
+                  )}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs shrink-0"
+                        >
+                          {project.projectType}
+                        </Badge>
+                        <Badge variant={getStatusVariant(project.status)}>
+                          {project.status}
+                        </Badge>
+                      </div>
+                      <div className="pt-2">
+                        <CardTitle className="text-base line-clamp-1 group-hover:text-primary transition-colors">
+                          {project.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <AvatarInitials 
+                            name={project.clientName} 
+                            size="xs"
+                          />
+                          <span className="text-sm text-muted-foreground truncate">
+                            {project.clientName}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {/* Progress */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Progresso</span>
+                          <span className="font-semibold">{project.progress}%</span>
+                        </div>
+                        <Progress 
+                          value={project.progress} 
+                          className="h-2"
+                          indicatorClassName={getProgressColor(project.progress)}
                         />
-                        <span className="text-sm text-muted-foreground truncate">
-                          {project.clientName}
-                        </span>
                       </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {/* Progress */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Progresso</span>
-                        <span className="font-semibold">{project.progress}%</span>
-                      </div>
-                      <Progress 
-                        value={project.progress} 
-                        className="h-2"
-                        indicatorClassName={getProgressColor(project.progress)}
-                      />
-                    </div>
 
-                    {/* Due date */}
-                    {project.dueDate && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          Prazo: {format(new Date(project.dueDate), "dd MMM yyyy", { locale: ptBR })}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        
-        <div className="flex justify-end gap-2 mt-4">
-          <CarouselPrevious className="static translate-y-0" />
-          <CarouselNext className="static translate-y-0" />
-        </div>
-      </Carousel>
-    </div>
+                      {/* Due date */}
+                      {project.dueDate && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            Prazo: {format(new Date(project.dueDate), "dd MMM yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <CarouselPrevious className="static translate-y-0" />
+            <CarouselNext className="static translate-y-0" />
+          </div>
+        </Carousel>
+      </CardContent>
+    </Card>
   );
 }
