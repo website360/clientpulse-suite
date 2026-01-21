@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,30 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  FileText, 
   Save,
   X,
-  Copy,
-  Eye,
-  Globe,
-  Palette,
-  Wrench,
-  TrendingUp,
+  Plus,
   GripVertical,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowLeft
 } from 'lucide-react';
 import { CONTRACT_TEMPLATES, ContractTemplate, ContractField, ContractStyleConfig, DEFAULT_STYLE_CONFIG } from '@/types/contract-generator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 
 const SERVICE_TYPES = [
   'Desenvolvimento Web',
@@ -71,23 +61,14 @@ const TEXT_ALIGNMENTS = [
   { value: 'justify', label: 'Justificado' },
 ];
 
-const serviceIcons: Record<string, React.ElementType> = {
-  'Desenvolvimento Web': Globe,
-  'Marketing Digital': TrendingUp,
-  'Manutenção': Wrench,
-  'Design': Palette,
-};
-
 const STORAGE_KEY = 'contract-templates-custom';
 
-export default function ContractTemplates() {
+export default function ContractTemplateEditor() {
   const navigate = useNavigate();
-  const [templates, setTemplates] = useState<ContractTemplate[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ContractTemplate | null>(null);
-  const [previewTemplate, setPreviewTemplate] = useState<ContractTemplate | null>(null);
-  
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('id');
+  const [editingDefaultTemplate, setEditingDefaultTemplate] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     id: '',
@@ -99,26 +80,49 @@ export default function ContractTemplates() {
   const [fields, setFields] = useState<ContractField[]>([]);
   const [styleConfig, setStyleConfig] = useState<ContractStyleConfig>(DEFAULT_STYLE_CONFIG);
   const [expandedFieldIndex, setExpandedFieldIndex] = useState<number | null>(null);
-  const [editingDefaultTemplate, setEditingDefaultTemplate] = useState(false);
 
   useEffect(() => {
-    loadTemplates();
-  }, []);
+    if (templateId) {
+      loadTemplate(templateId);
+    } else {
+      // New template
+      setFormData({
+        id: '',
+        name: '',
+        serviceType: '',
+        description: '',
+        content: getDefaultContent(),
+      });
+      setFields([
+        { id: 'client_name', name: 'client_name', label: 'Nome do Cliente', type: 'text', required: true, placeholder: 'Nome completo ou razão social' },
+        { id: 'client_document', name: 'client_document', label: 'CPF/CNPJ', type: 'text', required: true, placeholder: '000.000.000-00' },
+        { id: 'client_address', name: 'client_address', label: 'Endereço', type: 'textarea', required: true, placeholder: 'Endereço completo' },
+      ]);
+      setStyleConfig({ ...DEFAULT_STYLE_CONFIG });
+    }
+  }, [templateId]);
 
-  const loadTemplates = () => {
-    // Load custom templates from localStorage
-    const customTemplatesJson = localStorage.getItem(STORAGE_KEY);
-    const customTemplates: ContractTemplate[] = customTemplatesJson 
-      ? JSON.parse(customTemplatesJson) 
-      : [];
-    
-    // Combine with default templates
+  const loadTemplate = (id: string) => {
+    const customTemplates = getCustomTemplates();
     const allTemplates = [...CONTRACT_TEMPLATES, ...customTemplates];
-    setTemplates(allTemplates);
-  };
-
-  const saveCustomTemplates = (customTemplates: ContractTemplate[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customTemplates));
+    const template = allTemplates.find(t => t.id === id);
+    
+    if (template) {
+      const isDefault = isDefaultTemplate(id);
+      setEditingDefaultTemplate(isDefault);
+      setFormData({
+        id: isDefault ? '' : template.id,
+        name: isDefault ? `${template.name} (Personalizado)` : template.name,
+        serviceType: template.serviceType,
+        description: template.description,
+        content: template.content,
+      });
+      setFields([...template.fields]);
+      setStyleConfig(template.styleConfig || { ...DEFAULT_STYLE_CONFIG });
+      if (isDefault) {
+        toast.info('Editando template padrão - será salvo como nova versão personalizada.');
+      }
+    }
   };
 
   const getCustomTemplates = (): ContractTemplate[] => {
@@ -126,52 +130,12 @@ export default function ContractTemplates() {
     return customTemplatesJson ? JSON.parse(customTemplatesJson) : [];
   };
 
+  const saveCustomTemplates = (customTemplates: ContractTemplate[]) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customTemplates));
+  };
+
   const isDefaultTemplate = (templateId: string): boolean => {
     return CONTRACT_TEMPLATES.some(t => t.id === templateId);
-  };
-
-  const handleCreate = () => {
-    navigate('/contracts/templates/editor');
-  };
-
-  const handleEdit = (template: ContractTemplate) => {
-    navigate(`/contracts/templates/editor?id=${template.id}`);
-  };
-
-  const handleDuplicate = (template: ContractTemplate) => {
-    setSelectedTemplate(null);
-    setEditingDefaultTemplate(false);
-    setFormData({
-      id: '',
-      name: `${template.name} (Cópia)`,
-      serviceType: template.serviceType,
-      description: template.description,
-      content: template.content,
-    });
-    setFields([...template.fields]);
-    setStyleConfig(template.styleConfig || { ...DEFAULT_STYLE_CONFIG });
-    setIsFormOpen(true);
-    toast.info('Template duplicado. Faça as alterações desejadas e salve.');
-  };
-
-  const handleDelete = (template: ContractTemplate) => {
-    if (isDefaultTemplate(template.id)) {
-      toast.error('Templates padrão não podem ser excluídos.');
-      return;
-    }
-    setSelectedTemplate(template);
-    setIsDeleteOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (!selectedTemplate) return;
-    
-    const customTemplates = getCustomTemplates().filter(t => t.id !== selectedTemplate.id);
-    saveCustomTemplates(customTemplates);
-    loadTemplates();
-    setIsDeleteOpen(false);
-    setSelectedTemplate(null);
-    toast.success('Template excluído com sucesso');
   };
 
   const handleSave = () => {
@@ -185,9 +149,9 @@ export default function ContractTemplates() {
       return;
     }
 
-    const templateId = formData.id || `custom-${Date.now()}`;
+    const templateIdToSave = formData.id || `custom-${Date.now()}`;
     const newTemplate: ContractTemplate = {
-      id: templateId,
+      id: templateIdToSave,
       name: formData.name,
       serviceType: formData.serviceType,
       description: formData.description,
@@ -198,9 +162,9 @@ export default function ContractTemplates() {
 
     const customTemplates = getCustomTemplates();
     
-    if (selectedTemplate && !editingDefaultTemplate) {
+    if (templateId && !editingDefaultTemplate) {
       // Update existing custom template
-      const index = customTemplates.findIndex(t => t.id === selectedTemplate.id);
+      const index = customTemplates.findIndex(t => t.id === templateId);
       if (index >= 0) {
         customTemplates[index] = newTemplate;
       } else {
@@ -212,9 +176,8 @@ export default function ContractTemplates() {
     }
 
     saveCustomTemplates(customTemplates);
-    loadTemplates();
-    setIsFormOpen(false);
-    toast.success(selectedTemplate ? 'Template atualizado com sucesso' : 'Template criado com sucesso');
+    toast.success(templateId ? 'Template atualizado com sucesso' : 'Template criado com sucesso');
+    navigate('/contracts/templates');
   };
 
   const addField = () => {
@@ -303,170 +266,135 @@ _______________________________
 CONTRATADA: [NOME DA SUA EMPRESA]`;
   };
 
+  // Generate preview content
+  const generatePreview = () => {
+    let content = formData.content;
+    fields.forEach(field => {
+      const regex = new RegExp(`{{${field.name}}}`, 'g');
+      content = content.replace(regex, `[${field.label}]`);
+    });
+    return content;
+  };
+
   return (
-    <DashboardLayout breadcrumbLabel="Templates de Contratos">
-      <div className="space-y-6">
+    <DashboardLayout>
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Templates de Contratos</h1>
-            <p className="text-muted-foreground">
-              Crie e gerencie modelos de contratos para diferentes tipos de serviço
-            </p>
+        <div className="flex items-center justify-between p-6 border-b bg-background">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/contracts/templates')}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">
+                {templateId ? 'Editar Template' : 'Novo Template'}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Configure o template e visualize em tempo real
+              </p>
+            </div>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Template
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate('/contracts/templates')}>
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleSave}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Template
+            </Button>
+          </div>
         </div>
 
-        {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {templates.map((template) => {
-            const Icon = serviceIcons[template.serviceType] || FileText;
-            const isDefault = isDefaultTemplate(template.id);
-            
-            return (
-              <Card key={template.id} className="relative group">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{template.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {template.serviceType}
-                          </Badge>
-                          {isDefault && (
-                            <Badge variant="outline" className="text-xs">
-                              Padrão
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+        {/* Main Content */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
+          {/* Left Column - Configuration */}
+          <div className="border-r overflow-y-auto">
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informações Básicas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Nome do Template *</Label>
+                      <Input
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Ex: Contrato de Desenvolvimento"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo de Serviço *</Label>
+                      <Select 
+                        value={formData.serviceType} 
+                        onValueChange={(v) => setFormData({ ...formData, serviceType: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SERVICE_TYPES.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    {template.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <FileText className="h-3 w-3" />
-                      <span>{template.fields.length} campos</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setPreviewTemplate(template)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDuplicate(template)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(template)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      {!isDefault && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(template)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Descrição</Label>
+                    <Input
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Breve descrição do template"
+                    />
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
 
-        {/* Create/Edit Dialog */}
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedTemplate ? 'Editar Template' : 'Novo Template de Contrato'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure o modelo de contrato com campos dinâmicos
-              </DialogDescription>
-            </DialogHeader>
+              {/* Tabs for Content, Fields, and Style */}
+              <Tabs defaultValue="content" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="content">Conteúdo</TabsTrigger>
+                  <TabsTrigger value="fields">Campos</TabsTrigger>
+                  <TabsTrigger value="style">Formatação</TabsTrigger>
+                </TabsList>
 
-            <div className="flex-1 overflow-y-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
-                {/* Left Column - Basic Info & Fields */}
-                <div className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Informações Básicas</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Nome do Template *</Label>
-                        <Input
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder="Ex: Contrato de Desenvolvimento"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Tipo de Serviço *</Label>
-                        <Select 
-                          value={formData.serviceType} 
-                          onValueChange={(v) => setFormData({ ...formData, serviceType: v })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SERVICE_TYPES.map(type => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Descrição</Label>
-                      <Input
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Breve descrição do template"
+                {/* Content Tab */}
+                <TabsContent value="content" className="space-y-4 mt-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Conteúdo do Contrato *</CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        Use {`{{nome_do_campo}}`} para campos dinâmicos
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        value={formData.content}
+                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        placeholder="Digite o conteúdo do contrato..."
+                        className="min-h-[400px] font-mono text-sm"
                       />
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                  <Separator />
-
-                  {/* Fields */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">Campos Dinâmicos</h3>
-                      <Button variant="outline" size="sm" onClick={addField}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Adicionar
-                      </Button>
-                    </div>
-                    
-                    <ScrollArea className="h-[300px] pr-4">
+                {/* Fields Tab */}
+                <TabsContent value="fields" className="space-y-4 mt-4">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">Campos Dinâmicos</CardTitle>
+                        <Button variant="outline" size="sm" onClick={addField}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adicionar
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
                       <div className="space-y-2">
                         {fields.map((field, index) => (
                           <Card 
@@ -575,36 +503,17 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                           </Card>
                         ))}
                       </div>
-                    </ScrollArea>
-                  </div>
-                </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                {/* Right Column - Content & Style */}
-                <div className="space-y-4">
-                  <Tabs defaultValue="content" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="content">Conteúdo</TabsTrigger>
-                      <TabsTrigger value="style">Formatação</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="content" className="space-y-4 mt-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium">Conteúdo do Contrato *</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Use {`{{nome_do_campo}}`} para campos dinâmicos
-                        </p>
-                      </div>
-                      <Textarea
-                        value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                        placeholder="Digite o conteúdo do contrato..."
-                        className="min-h-[450px] font-mono text-sm"
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="style" className="space-y-6 mt-4">
-                      <h3 className="font-medium">Configurações de Formatação</h3>
-                      
+                {/* Style Tab */}
+                <TabsContent value="style" className="space-y-6 mt-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Configurações de Formatação</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
                       {/* Font Settings */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -717,7 +626,6 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                // Verificar tamanho (max 2MB)
                                 if (file.size > 2 * 1024 * 1024) {
                                   toast.error('Imagem muito grande. Máximo 2MB.');
                                   return;
@@ -813,59 +721,62 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                           </div>
                         </div>
                       </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
+          </div>
 
-            <DialogFooter className="border-t pt-4">
-              <Button variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Template
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Preview Dialog */}
-        <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>{previewTemplate?.name}</DialogTitle>
-              <DialogDescription>
-                Pré-visualização do template de contrato
-              </DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="h-[500px] rounded-lg border p-6 bg-white dark:bg-slate-950">
-              <pre className="whitespace-pre-wrap font-serif text-sm leading-relaxed">
-                {previewTemplate?.content}
-              </pre>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Confirmation */}
-        <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Template</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o template "{selectedTemplate?.name}"? 
-                Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Excluir
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          {/* Right Column - Live Preview */}
+          <div className="bg-muted/30 overflow-y-auto">
+            <div className="p-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Pré-visualização em Tempo Real</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Visualize como o contrato ficará com as configurações atuais
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-lg border bg-white dark:bg-slate-950 relative overflow-hidden min-h-[600px]">
+                    {styleConfig.backgroundImage && (
+                      <>
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                          style={{ backgroundImage: `url(${styleConfig.backgroundImage})` }}
+                        />
+                        <div 
+                          className="absolute inset-0"
+                          style={{ backgroundColor: `rgba(255,255,255,${1 - styleConfig.backgroundOpacity})` }}
+                        />
+                      </>
+                    )}
+                    <div 
+                      className="relative z-10"
+                      style={{
+                        padding: `${styleConfig.marginTop}px ${styleConfig.marginRight}px ${styleConfig.marginBottom}px ${styleConfig.marginLeft}px`,
+                      }}
+                    >
+                      <pre 
+                        className="whitespace-pre-wrap"
+                        style={{
+                          fontFamily: `'${styleConfig.fontFamily}', serif`,
+                          fontSize: `${styleConfig.fontSize}pt`,
+                          lineHeight: styleConfig.lineHeight,
+                          textAlign: styleConfig.textAlign,
+                          fontWeight: styleConfig.paragraphBold ? 'bold' : 'normal',
+                        }}
+                      >
+                        {generatePreview()}
+                      </pre>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
