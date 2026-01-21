@@ -55,7 +55,7 @@ export default function ContractGenerator() {
   const fetchClients = async () => {
     const { data, error } = await supabase
       .from('clients')
-      .select('id, full_name, company_name, responsible_name, document, address, city, state, client_type')
+      .select('id, full_name, company_name, responsible_name, cpf_cnpj, address_street, address_number, address_neighborhood, address_city, address_state, client_type')
       .order('full_name');
 
     if (error) {
@@ -88,12 +88,19 @@ export default function ContractGenerator() {
         ? client.company_name 
         : client.full_name;
       
-      const address = [client.address, client.city, client.state].filter(Boolean).join(', ');
+      const addressParts = [
+        client.address_street,
+        client.address_number,
+        client.address_neighborhood,
+        client.address_city,
+        client.address_state
+      ].filter(Boolean);
+      const address = addressParts.join(', ');
       
       setFormData(prev => ({
         ...prev,
         client_name: clientName || '',
-        client_document: client.document || '',
+        client_document: client.cpf_cnpj || '',
         client_address: address || '',
       }));
     }
