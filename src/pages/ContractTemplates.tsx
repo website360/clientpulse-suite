@@ -58,6 +58,7 @@ const FONT_FAMILIES = [
   { value: 'Times New Roman', label: 'Times New Roman' },
   { value: 'Arial', label: 'Arial' },
   { value: 'Georgia', label: 'Georgia' },
+  { value: 'Montserrat', label: 'Montserrat' },
   { value: 'Verdana', label: 'Verdana' },
   { value: 'Courier New', label: 'Courier New' },
   { value: 'Trebuchet MS', label: 'Trebuchet MS' },
