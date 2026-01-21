@@ -12,16 +12,9 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useDashboardLayout } from '@/hooks/useDashboardLayout';
-import { WidgetType } from '@/types/dashboard';
+import { WidgetType, DashboardWidget, WidgetSize, WidgetHeight } from '@/types/dashboard';
 import { DraggableWidget } from './DraggableWidget';
 
-import { QuickStatsGrid } from './QuickStats';
-import { FinancialSummaryCard } from './FinancialSummaryCard';
-import { TicketsOverview } from './TicketsOverview';
-import { ProjectsCarousel } from './ProjectsCarousel';
-import { TasksWidget } from './TasksWidget';
-import { MaintenanceWidget } from './MaintenanceWidget';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 
@@ -37,6 +30,13 @@ interface ModularDashboardProps {
   projectsContent: React.ReactNode;
   tasksContent: React.ReactNode;
   maintenanceContent: React.ReactNode;
+  // Props do hook useDashboardLayout
+  widgets: DashboardWidget[];
+  isEditMode: boolean;
+  reorderWidgets: (activeId: string, overId: string) => void;
+  changeWidgetSize: (widgetId: string, size: WidgetSize) => void;
+  changeWidgetHeight: (widgetId: string, height: WidgetHeight) => void;
+  removeWidget: (widgetId: string) => void;
 }
 
 export function ModularDashboard({
@@ -48,19 +48,13 @@ export function ModularDashboard({
   projectsContent,
   tasksContent,
   maintenanceContent,
+  widgets,
+  isEditMode,
+  reorderWidgets,
+  changeWidgetSize,
+  changeWidgetHeight,
+  removeWidget,
 }: ModularDashboardProps) {
-  const {
-    widgets,
-    isEditMode,
-    availableWidgets,
-    reorderWidgets,
-    changeWidgetSize,
-    changeWidgetHeight,
-    addWidget,
-    removeWidget,
-    resetLayout,
-    toggleEditMode,
-  } = useDashboardLayout();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

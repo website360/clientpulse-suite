@@ -91,9 +91,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { preset, setPreset, dateRange } = useDateRangeFilter('month');
   const {
+    widgets,
     isEditMode,
     availableWidgets,
+    reorderWidgets,
+    changeWidgetSize,
+    changeWidgetHeight,
     addWidget,
+    removeWidget,
     resetLayout,
     toggleEditMode,
   } = useDashboardLayout();
@@ -439,6 +444,12 @@ export default function Dashboard() {
               <ModularDashboard
                 stats={stats}
                 dateRange={dateRange}
+                widgets={widgets}
+                isEditMode={isEditMode}
+                reorderWidgets={reorderWidgets}
+                changeWidgetSize={changeWidgetSize}
+                changeWidgetHeight={changeWidgetHeight}
+                removeWidget={removeWidget}
                 quickStatsContent={<QuickStatsGrid stats={quickStats} columns={4} />}
                 financialCards={
                   <div className="grid gap-6 md:grid-cols-2">
