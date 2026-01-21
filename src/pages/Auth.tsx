@@ -271,13 +271,6 @@ export default function Auth() {
             </Button>
           </form>
 
-          {/* Support Link */}
-          <p className="text-center text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
-            <button type="button" className="text-primary hover:underline font-medium">
-              Contate o Suporte
-            </button>
-          </p>
         </div>
       </div>
     </div>
