@@ -13,16 +13,8 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useDashboardLayout } from '@/hooks/useDashboardLayout';
-import { WidgetType, WIDGET_CONFIGS } from '@/types/dashboard';
+import { WidgetType } from '@/types/dashboard';
 import { DraggableWidget } from './DraggableWidget';
-import { Button } from '@/components/ui/button';
-import { Settings, Plus, RotateCcw } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 import { QuickStatsGrid } from './QuickStats';
 import { FinancialSummaryCard } from './FinancialSummaryCard';
@@ -112,48 +104,7 @@ export function ModularDashboard({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Dashboard Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={isEditMode ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleEditMode}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            {isEditMode ? 'Salvar Layout' : 'Personalizar Dashboard'}
-          </Button>
-          {isEditMode && (
-            <Button variant="outline" size="sm" onClick={resetLayout}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Restaurar Padrão
-            </Button>
-          )}
-        </div>
-
-        {isEditMode && availableWidgets.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Widget
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {availableWidgets.map((widgetType) => (
-                <DropdownMenuItem
-                  key={widgetType}
-                  onClick={() => addWidget(widgetType)}
-                >
-                  {WIDGET_CONFIGS[widgetType].title}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-
+    <div className="space-y-6">
       {/* Grid Layout */}
       <DndContext
         sensors={sensors}

@@ -28,6 +28,16 @@ import { TicketsOverview } from '@/components/dashboard/TicketsOverview';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
 import { ModularDashboard } from '@/components/dashboard/ModularDashboard';
+import { useDashboardLayout } from '@/hooks/useDashboardLayout';
+import { WIDGET_CONFIGS } from '@/types/dashboard';
+import { Settings, Plus, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -80,6 +90,13 @@ export default function Dashboard() {
   const { userRole } = useAuth();
   const [loading, setLoading] = useState(true);
   const { preset, setPreset, dateRange } = useDateRangeFilter('month');
+  const {
+    isEditMode,
+    availableWidgets,
+    addWidget,
+    resetLayout,
+    toggleEditMode,
+  } = useDashboardLayout();
   
   const [stats, setStats] = useState<DashboardStats>({
     inProgressTickets: 0,
@@ -364,8 +381,48 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header with Date Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+        {/* Header with Controls and Date Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {userRole === 'admin' && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant={isEditMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleEditMode}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                {isEditMode ? 'Salvar Layout' : 'Personalizar Dashboard'}
+              </Button>
+              {isEditMode && (
+                <>
+                  <Button variant="outline" size="sm" onClick={resetLayout}>
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Restaurar Padrão
+                  </Button>
+                  {availableWidgets.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Widget
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {availableWidgets.map((widgetType) => (
+                          <DropdownMenuItem
+                            key={widgetType}
+                            onClick={() => addWidget(widgetType)}
+                          >
+                            {WIDGET_CONFIGS[widgetType].title}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           <DateRangeFilter
             preset={preset}
             onPresetChange={setPreset}
