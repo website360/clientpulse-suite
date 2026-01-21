@@ -36,6 +36,7 @@ const AccountsPayable = lazy(() => import("./pages/AccountsPayable"));
 const AccountsReceivable = lazy(() => import("./pages/AccountsReceivable"));
 
 const Contracts = lazy(() => import("./pages/Contracts"));
+const ContractGenerator = lazy(() => import("./pages/ContractGenerator"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
@@ -119,6 +120,7 @@ const App = () => (
                     <Route path="/financeiro/receber" element={<AccountsReceivable />} />
                     
                     <Route path="/contracts" element={<Contracts />} />
+                    <Route path="/contracts/generator" element={<ContractGenerator />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/manutencao" element={<Maintenance />} />
