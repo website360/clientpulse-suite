@@ -27,6 +27,7 @@ import { MaintenanceWidget } from '@/components/dashboard/MaintenanceWidget';
 import { TicketsOverview } from '@/components/dashboard/TicketsOverview';
 import { DomainsBarChart } from '@/components/charts/DomainsBarChart';
 import { ContractsBarChart } from '@/components/charts/ContractsBarChart';
+import { ModularDashboard } from '@/components/dashboard/ModularDashboard';
 
 interface DashboardStats {
   inProgressTickets: number;
@@ -381,61 +382,60 @@ export default function Dashboard() {
         ) : (
           <>
             {userRole === 'admin' && (
-              <>
-                {/* Quick Stats */}
-                <QuickStatsGrid stats={quickStats} columns={4} />
-
-                {/* Financial Cards */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <FinancialSummaryCard
-                    title="Contas a Receber"
-                    icon={<ArrowUpRight className="h-5 w-5 text-emerald-600" />}
-                    type="receivable"
-                    showValues={showReceivableValues}
-                    onToggleVisibility={() => setShowReceivableValues(!showReceivableValues)}
-                    linkTo="/contas-a-receber"
-                    items={[
-                      { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
-                      { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
-                      { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
-                      { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
-                    ]}
+              <ModularDashboard
+                stats={stats}
+                dateRange={dateRange}
+                quickStatsContent={<QuickStatsGrid stats={quickStats} columns={4} />}
+                financialCards={
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FinancialSummaryCard
+                      title="Contas a Receber"
+                      icon={<ArrowUpRight className="h-5 w-5 text-emerald-600" />}
+                      type="receivable"
+                      showValues={showReceivableValues}
+                      onToggleVisibility={() => setShowReceivableValues(!showReceivableValues)}
+                      linkTo="/contas-a-receber"
+                      items={[
+                        { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
+                        { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
+                        { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
+                        { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
+                      ]}
+                    />
+                    <FinancialSummaryCard
+                      title="Contas a Pagar"
+                      icon={<ArrowDownRight className="h-5 w-5 text-purple-600" />}
+                      type="payable"
+                      showValues={showPayableValues}
+                      onToggleVisibility={() => setShowPayableValues(!showPayableValues)}
+                      linkTo="/contas-a-pagar"
+                      items={[
+                        { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
+                        { label: 'Pago', value: stats.totalPaid, variant: 'success' },
+                        { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
+                        { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
+                      ]}
+                    />
+                  </div>
+                }
+                ticketsContent={
+                  <TicketsOverview
+                    stats={{
+                      waiting: stats.waitingTickets,
+                      inProgress: stats.inProgressTickets,
+                      resolved: stats.resolvedTickets,
+                      closed: stats.closedTickets,
+                    }}
                   />
-                  <FinancialSummaryCard
-                    title="Contas a Pagar"
-                    icon={<ArrowDownRight className="h-5 w-5 text-purple-600" />}
-                    type="payable"
-                    showValues={showPayableValues}
-                    onToggleVisibility={() => setShowPayableValues(!showPayableValues)}
-                    linkTo="/contas-a-pagar"
-                    items={[
-                      { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
-                      { label: 'Pago', value: stats.totalPaid, variant: 'success' },
-                      { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
-                      { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
-                    ]}
-                  />
-                </div>
-
-                {/* Tickets Overview */}
-                <TicketsOverview
-                  stats={{
-                    waiting: stats.waitingTickets,
-                    inProgress: stats.inProgressTickets,
-                    resolved: stats.resolvedTickets,
-                    closed: stats.closedTickets,
-                  }}
-                />
-
-                {/* Projects Carousel */}
-                <ProjectsCarousel projects={activeProjects} />
-
-                {/* Tasks and Maintenance */}
-                <div className="grid gap-6 lg:grid-cols-2">
+                }
+                projectsContent={<ProjectsCarousel projects={activeProjects} />}
+                tasksContent={
                   <TasksWidget 
                     recentTasks={recentTasks} 
                     urgentTasks={overdueTasks} 
                   />
+                }
+                maintenanceContent={
                   <MaintenanceWidget
                     stats={{
                       done: stats.maintenanceDone,
@@ -443,14 +443,8 @@ export default function Dashboard() {
                       overdue: stats.maintenanceOverdue,
                     }}
                   />
-                </div>
-
-                {/* Charts */}
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <DomainsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
-                  <ContractsBarChart startDate={dateRange.startDate} endDate={dateRange.endDate} />
-                </div>
-              </>
+                }
+              />
             )}
 
             {userRole !== 'admin' && (
