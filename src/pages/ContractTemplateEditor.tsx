@@ -376,17 +376,23 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                       </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="border rounded-lg overflow-hidden">
+                      <div className="border rounded-lg overflow-hidden quill-editor-container">
                         <ReactQuill
                           theme="snow"
                           value={formData.content}
                           onChange={(value) => setFormData({ ...formData, content: value })}
                           modules={{
                             toolbar: [
-                              [{ 'header': [1, 2, 3, false] }],
-                              ['bold', 'italic', 'underline'],
+                              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                              [{ 'font': [] }],
+                              [{ 'size': ['small', false, 'large', 'huge'] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'color': [] }, { 'background': [] }],
+                              [{ 'script': 'sub'}, { 'script': 'super' }],
                               [{ 'align': [] }],
-                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'indent': '-1'}, { 'indent': '+1' }],
+                              ['blockquote', 'code-block'],
+                              ['link'],
                               ['clean']
                             ]
                           }}
