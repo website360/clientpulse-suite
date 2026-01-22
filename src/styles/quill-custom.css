@@ -23,7 +23,7 @@
 
 .contract-content p {
   margin: 0;
-  margin-bottom: 0.5em;
+  margin-bottom: var(--paragraph-spacing, 0.5em);
 }
 
 .contract-content p:last-child {

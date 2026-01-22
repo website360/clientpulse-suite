@@ -212,7 +212,7 @@ export default function ContractGenerator() {
               }
               .contract-content p {
                 margin: 0;
-                margin-bottom: 0.5em;
+                margin-bottom: ${style.paragraphSpacing}em;
               }
               .contract-content p:last-child {
                 margin-bottom: 0;

@@ -2,6 +2,7 @@ export interface ContractStyleConfig {
   fontFamily: string;
   fontSize: number;
   lineHeight: number;
+  paragraphSpacing: number;
   titleFontSize: number;
   titleBold: boolean;
   paragraphBold: boolean;
@@ -21,6 +22,7 @@ export const DEFAULT_STYLE_CONFIG: ContractStyleConfig = {
   fontFamily: 'Times New Roman',
   fontSize: 12,
   lineHeight: 1.8,
+  paragraphSpacing: 0.5,
   titleFontSize: 14,
   titleBold: true,
   paragraphBold: false,

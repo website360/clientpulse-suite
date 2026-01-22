@@ -135,6 +135,7 @@ export function ContractPagedPreview({ content, styleConfig }: ContractPagedPrev
             fontSize: `${styleConfig.fontSize}pt`,
             lineHeight: styleConfig.lineHeight,
             fontWeight: styleConfig.paragraphBold ? 'bold' : 'normal',
+            ['--paragraph-spacing' as any]: `${styleConfig.paragraphSpacing}em`,
           }}
           dangerouslySetInnerHTML={{ __html: pageContent }}
         />

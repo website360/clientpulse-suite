@@ -604,6 +604,17 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                         />
                       </div>
 
+                      <div className="space-y-2">
+                        <Label>Espaçamento entre Parágrafos (Enter): {styleConfig.paragraphSpacing}em</Label>
+                        <Slider
+                          value={[styleConfig.paragraphSpacing * 10]}
+                          onValueChange={([v]) => setStyleConfig({ ...styleConfig, paragraphSpacing: v / 10 })}
+                          min={0}
+                          max={30}
+                          step={1}
+                        />
+                      </div>
+
                       {/* Bold Settings */}
                       <div className="space-y-3">
                         <Label>Formatação de Texto</Label>
