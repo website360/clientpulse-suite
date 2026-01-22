@@ -107,11 +107,15 @@ export default function ContractTemplateEditor() {
   }, [templateId]);
 
   const loadTemplate = (id: string) => {
+    console.log('Loading template with ID:', id);
     const customTemplates = getCustomTemplates();
+    console.log('Custom templates found:', customTemplates.length);
     const allTemplates = [...CONTRACT_TEMPLATES, ...customTemplates];
+    console.log('All templates:', allTemplates.map(t => ({ id: t.id, name: t.name })));
     const template = allTemplates.find(t => t.id === id);
     
     if (template) {
+      console.log('Template found:', template);
       const isDefault = isDefaultTemplate(id);
       setEditingDefaultTemplate(isDefault);
       setFormData({
@@ -126,6 +130,9 @@ export default function ContractTemplateEditor() {
       if (isDefault) {
         toast.info('Editando template padrão - será salvo como nova versão personalizada.');
       }
+    } else {
+      console.error('Template not found with ID:', id);
+      toast.error('Template não encontrado');
     }
   };
 
@@ -153,7 +160,15 @@ export default function ContractTemplateEditor() {
       return;
     }
 
-    const templateIdToSave = formData.id || `custom-${Date.now()}`;
+    console.log('Saving template...');
+    console.log('templateId from URL:', templateId);
+    console.log('formData.id:', formData.id);
+    console.log('editingDefaultTemplate:', editingDefaultTemplate);
+
+    // Use formData.id if exists, otherwise templateId, otherwise generate new
+    const templateIdToSave = formData.id || templateId || `custom-${Date.now()}`;
+    console.log('templateIdToSave:', templateIdToSave);
+
     const newTemplate: ContractTemplate = {
       id: templateIdToSave,
       name: formData.name,
@@ -165,21 +180,26 @@ export default function ContractTemplateEditor() {
     };
 
     const customTemplates = getCustomTemplates();
+    console.log('Current custom templates:', customTemplates.length);
     
     if (templateId && !editingDefaultTemplate) {
       // Update existing custom template
       const index = customTemplates.findIndex(t => t.id === templateId);
+      console.log('Updating template at index:', index);
       if (index >= 0) {
         customTemplates[index] = newTemplate;
       } else {
+        console.log('Template not found in custom templates, adding as new');
         customTemplates.push(newTemplate);
       }
     } else {
       // Create new (or save edited default as new)
+      console.log('Creating new template');
       customTemplates.push(newTemplate);
     }
 
     saveCustomTemplates(customTemplates);
+    console.log('Template saved successfully');
     toast.success(templateId ? 'Template atualizado com sucesso' : 'Template criado com sucesso');
     navigate('/contracts/templates');
   };
