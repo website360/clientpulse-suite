@@ -22,7 +22,12 @@
 }
 
 .contract-content p {
-  margin-bottom: 1em;
+  margin: 0;
+  margin-bottom: 0.5em;
+}
+
+.contract-content p:last-child {
+  margin-bottom: 0;
 }
 
 /* Preserve Quill alignment classes */

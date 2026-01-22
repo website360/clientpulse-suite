@@ -210,7 +210,11 @@ export default function ContractGenerator() {
                 ${style.paragraphBold ? 'font-weight: bold;' : ''}
               }
               .contract-content p {
-                margin-bottom: 1em;
+                margin: 0;
+                margin-bottom: 0.5em;
+              }
+              .contract-content p:last-child {
+                margin-bottom: 0;
               }
               .contract-content h1,
               .contract-content h2,
