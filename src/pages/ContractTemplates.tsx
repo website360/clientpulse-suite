@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ContractPagedPreview } from '@/components/contracts/ContractPagedPreview';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -833,17 +834,20 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
 
         {/* Preview Dialog */}
         <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogContent className="max-w-4xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{previewTemplate?.name}</DialogTitle>
               <DialogDescription>
-                Pré-visualização do template de contrato
+                Pré-visualização do template de contrato com formatação e paginação
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="h-[500px] rounded-lg border p-6 bg-white dark:bg-slate-950">
-              <pre className="whitespace-pre-wrap font-serif text-sm leading-relaxed">
-                {previewTemplate?.content}
-              </pre>
+            <ScrollArea className="h-[600px] bg-gray-100 p-6">
+              {previewTemplate && (
+                <ContractPagedPreview 
+                  content={previewTemplate.content}
+                  styleConfig={previewTemplate.styleConfig || DEFAULT_STYLE_CONFIG}
+                />
+              )}
             </ScrollArea>
           </DialogContent>
         </Dialog>
