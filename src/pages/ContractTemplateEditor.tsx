@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ContractPagedPreview } from '@/components/contracts/ContractPagedPreview';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import '@/styles/quill-custom.css';
@@ -825,63 +826,10 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                   </p>
                 </CardHeader>
                 <CardContent className="bg-gray-100 p-6">
-                  <div className="contract-page">
-                    {/* Background Image */}
-                    {styleConfig.backgroundImage && (
-                      <>
-                        <div 
-                          className="contract-page-background"
-                          style={{ backgroundImage: `url(${styleConfig.backgroundImage})` }}
-                        />
-                        <div 
-                          className="contract-page-overlay"
-                          style={{ backgroundColor: `rgba(255,255,255,${1 - styleConfig.backgroundOpacity})` }}
-                        />
-                      </>
-                    )}
-                    
-                    {/* Content */}
-                    <div 
-                      className="contract-page-content"
-                      style={{
-                        padding: `${styleConfig.marginTop}px ${styleConfig.marginRight}px ${styleConfig.marginBottom}px ${styleConfig.marginLeft}px`,
-                      }}
-                    >
-                      {/* Header Logo */}
-                      {styleConfig.headerLogo && (
-                        <div className="mb-6">
-                          <div className="flex justify-start mb-3">
-                            <img 
-                              src={styleConfig.headerLogo} 
-                              alt="Logo" 
-                              style={{ height: `${styleConfig.headerLogoHeight}px` }}
-                              className="object-contain"
-                            />
-                          </div>
-                          {styleConfig.showHeaderLine && (
-                            <div 
-                              className="w-full border-t-2"
-                              style={{ 
-                                borderColor: '#FFD700',
-                                marginBottom: '20px'
-                              }}
-                            />
-                          )}
-                        </div>
-                      )}
-                      
-                      <div 
-                        className="contract-content"
-                        style={{
-                          fontFamily: `'${styleConfig.fontFamily}', serif`,
-                          fontSize: `${styleConfig.fontSize}pt`,
-                          lineHeight: styleConfig.lineHeight,
-                          fontWeight: styleConfig.paragraphBold ? 'bold' : 'normal',
-                        }}
-                        dangerouslySetInnerHTML={{ __html: generatePreview() }}
-                      />
-                    </div>
-                  </div>
+                  <ContractPagedPreview 
+                    content={generatePreview()}
+                    styleConfig={styleConfig}
+                  />
                 </CardContent>
               </Card>
             </div>

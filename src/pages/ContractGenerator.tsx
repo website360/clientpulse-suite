@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ContractPagedPreview } from '@/components/contracts/ContractPagedPreview';
 import '@/styles/quill-custom.css';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -629,73 +630,13 @@ export default function ContractGenerator() {
                 {(() => {
                   const style = selectedTemplate?.styleConfig || DEFAULT_STYLE_CONFIG;
                   
-                  // Render page template
-                  const renderPage = (pageNumber: number, isFirstPage: boolean) => (
-                    <div key={pageNumber} className="contract-page">
-                      {/* Background Image */}
-                      {style.backgroundImage && (
-                        <>
-                          <div 
-                            className="contract-page-background"
-                            style={{ backgroundImage: `url(${style.backgroundImage})` }}
-                          />
-                          <div 
-                            className="contract-page-overlay"
-                            style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
-                          />
-                        </>
-                      )}
-                      
-                      {/* Content */}
-                      <div 
-                        className="contract-page-content"
-                        style={{
-                          padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
-                        }}
-                      >
-                        {/* Header Logo - only on first page */}
-                        {isFirstPage && style.headerLogo && (
-                          <div className="mb-6">
-                            <div className="flex justify-start mb-3">
-                              <img 
-                                src={style.headerLogo} 
-                                alt="Logo" 
-                                style={{ height: `${style.headerLogoHeight}px` }}
-                                className="object-contain"
-                              />
-                            </div>
-                            {style.showHeaderLine && (
-                              <div 
-                                className="w-full border-t-2"
-                                style={{ 
-                                  borderColor: '#FFD700',
-                                  marginBottom: '20px'
-                                }}
-                              />
-                            )}
-                          </div>
-                        )}
-                        
-                        {pageNumber === 1 && (
-                          <div 
-                            className="contract-content"
-                            style={{
-                              fontFamily: `'${style.fontFamily}', serif`,
-                              fontSize: `${style.fontSize}pt`,
-                              lineHeight: style.lineHeight,
-                              fontWeight: style.paragraphBold ? 'bold' : 'normal',
-                            }}
-                            dangerouslySetInnerHTML={{ __html: generatedContent }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                  
                   return (
                     <ScrollArea className="h-[600px] bg-gray-100 p-6">
                       <div ref={previewRef}>
-                        {renderPage(1, true)}
+                        <ContractPagedPreview 
+                          content={generatedContent}
+                          styleConfig={style}
+                        />
                       </div>
                     </ScrollArea>
                   );
