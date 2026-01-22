@@ -45,26 +45,11 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
 
   const fetchContractsData = async () => {
     try {
-      let query = supabase
+      const { data: contracts, error } = await supabase
         .from('contracts')
         .select('status, end_date, start_date, created_at');
 
-      // Filter by creation date if date range is provided
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
-      }
-
-      const { data: contracts, error } = await query;
-
-      if (error) {
-        console.error('Error fetching contracts:', error);
-        throw error;
-      }
-
-      console.log('Contracts fetched:', contracts?.length || 0);
+      if (error) throw error;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);

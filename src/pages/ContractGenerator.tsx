@@ -628,53 +628,55 @@ export default function ContractGenerator() {
               <CardContent>
                 {(() => {
                   const style = selectedTemplate?.styleConfig || DEFAULT_STYLE_CONFIG;
-                  return (
-                    <ScrollArea className="h-[600px] bg-gray-100 p-6">
-                      <div ref={previewRef} className="contract-page">
-                        {/* Background Image */}
-                        {style.backgroundImage && (
-                          <>
-                            <div 
-                              className="contract-page-background"
-                              style={{ backgroundImage: `url(${style.backgroundImage})` }}
-                            />
-                            <div 
-                              className="contract-page-overlay"
-                              style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
-                            />
-                          </>
+                  
+                  // Render page template
+                  const renderPage = (pageNumber: number, isFirstPage: boolean) => (
+                    <div key={pageNumber} className="contract-page">
+                      {/* Background Image */}
+                      {style.backgroundImage && (
+                        <>
+                          <div 
+                            className="contract-page-background"
+                            style={{ backgroundImage: `url(${style.backgroundImage})` }}
+                          />
+                          <div 
+                            className="contract-page-overlay"
+                            style={{ backgroundColor: `rgba(255,255,255,${1 - style.backgroundOpacity})` }}
+                          />
+                        </>
+                      )}
+                      
+                      {/* Content */}
+                      <div 
+                        className="contract-page-content"
+                        style={{
+                          padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
+                        }}
+                      >
+                        {/* Header Logo - only on first page */}
+                        {isFirstPage && style.headerLogo && (
+                          <div className="mb-6">
+                            <div className="flex justify-start mb-3">
+                              <img 
+                                src={style.headerLogo} 
+                                alt="Logo" 
+                                style={{ height: `${style.headerLogoHeight}px` }}
+                                className="object-contain"
+                              />
+                            </div>
+                            {style.showHeaderLine && (
+                              <div 
+                                className="w-full border-t-2"
+                                style={{ 
+                                  borderColor: '#FFD700',
+                                  marginBottom: '20px'
+                                }}
+                              />
+                            )}
+                          </div>
                         )}
                         
-                        {/* Content */}
-                        <div 
-                          className="contract-page-content"
-                          style={{
-                            padding: `${style.marginTop}px ${style.marginRight}px ${style.marginBottom}px ${style.marginLeft}px`,
-                          }}
-                        >
-                          {/* Header Logo */}
-                          {style.headerLogo && (
-                            <div className="mb-6">
-                              <div className="flex justify-start mb-3">
-                                <img 
-                                  src={style.headerLogo} 
-                                  alt="Logo" 
-                                  style={{ height: `${style.headerLogoHeight}px` }}
-                                  className="object-contain"
-                                />
-                              </div>
-                              {style.showHeaderLine && (
-                                <div 
-                                  className="w-full border-t-2"
-                                  style={{ 
-                                    borderColor: '#FFD700',
-                                    marginBottom: '20px'
-                                  }}
-                                />
-                              )}
-                            </div>
-                          )}
-                          
+                        {pageNumber === 1 && (
                           <div 
                             className="contract-content"
                             style={{
@@ -685,7 +687,15 @@ export default function ContractGenerator() {
                             }}
                             dangerouslySetInnerHTML={{ __html: generatedContent }}
                           />
-                        </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                  
+                  return (
+                    <ScrollArea className="h-[600px] bg-gray-100 p-6">
+                      <div ref={previewRef}>
+                        {renderPage(1, true)}
                       </div>
                     </ScrollArea>
                   );

@@ -39,26 +39,11 @@ export function DomainsBarChart({ startDate, endDate }: DomainsBarChartProps) {
 
   const fetchDomainsData = async () => {
     try {
-      let query = supabase
+      const { data: domains, error } = await supabase
         .from('domains')
         .select('expires_at, created_at');
 
-      // Filter by creation date if date range is provided
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
-      }
-
-      const { data: domains, error } = await query;
-
-      if (error) {
-        console.error('Error fetching domains:', error);
-        throw error;
-      }
-
-      console.log('Domains fetched:', domains?.length || 0);
+      if (error) throw error;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);

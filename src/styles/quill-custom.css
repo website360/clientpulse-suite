@@ -101,7 +101,19 @@
   margin: 0 auto 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
-  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+}
+
+.contract-page:last-child {
+  margin-bottom: 0;
+}
+
+/* Multi-page container */
+.contract-pages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .contract-page-background {
