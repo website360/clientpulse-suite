@@ -39,6 +39,8 @@ const serviceIcons: Record<string, React.ElementType> = {
   'Design': Palette,
 };
 
+const STORAGE_KEY = 'contract-templates-custom';
+
 export default function ContractGenerator() {
   const [step, setStep] = useState<'select' | 'fill' | 'preview'>('select');
   const [selectedTemplate, setSelectedTemplate] = useState<ContractTemplate | null>(null);
@@ -48,11 +50,23 @@ export default function ContractGenerator() {
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState(false);
+  const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchClients();
+    loadTemplates();
   }, []);
+
+  const loadTemplates = () => {
+    const customTemplatesJson = localStorage.getItem(STORAGE_KEY);
+    const customTemplates: ContractTemplate[] = customTemplatesJson 
+      ? JSON.parse(customTemplatesJson) 
+      : [];
+    const allTemplates = [...CONTRACT_TEMPLATES, ...customTemplates];
+    console.log('Templates loaded:', allTemplates.length);
+    setTemplates(allTemplates);
+  };
 
   const fetchClients = async () => {
     const { data, error } = await supabase
@@ -310,7 +324,7 @@ export default function ContractGenerator() {
     toast.success('Contrato baixado com sucesso');
   };
 
-  const filteredTemplates = CONTRACT_TEMPLATES.filter(template =>
+  const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.serviceType.toLowerCase().includes(searchTerm.toLowerCase())
   );

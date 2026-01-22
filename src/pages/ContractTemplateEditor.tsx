@@ -20,6 +20,7 @@ import {
   Save,
   X,
   Plus,
+  Copy,
   GripVertical,
   ChevronDown,
   ChevronUp,
@@ -392,10 +393,36 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                     <CardHeader>
                       <CardTitle className="text-base">Conteúdo do Contrato *</CardTitle>
                       <p className="text-xs text-muted-foreground">
-                        Use {`{{nome_do_campo}}`} para campos dinâmicos. Formate o texto como no Word.
+                        Clique nos botões abaixo para inserir campos dinâmicos no texto.
                       </p>
                     </CardHeader>
                     <CardContent>
+                      {/* Variable Buttons */}
+                      {fields.length > 0 && (
+                        <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                          <Label className="text-xs mb-2 block">Inserir Campos:</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {fields.map((field) => (
+                              <Button
+                                key={field.id}
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-7"
+                                onClick={() => {
+                                  const variable = `{{${field.name}}}`;
+                                  const currentContent = formData.content || '';
+                                  setFormData({ ...formData, content: currentContent + variable });
+                                  toast.success(`Campo ${field.label} inserido`);
+                                }}
+                              >
+                                <Copy className="h-3 w-3 mr-1" />
+                                {field.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="border rounded-lg overflow-hidden quill-editor-container">
                         <ReactQuill
                           theme="snow"
