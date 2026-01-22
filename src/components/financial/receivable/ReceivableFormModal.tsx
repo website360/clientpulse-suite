@@ -32,7 +32,6 @@ const formSchema = z.object({
   due_day: z.number().min(1).max(31).optional(),
   installments: z.number().min(1).optional(),
   payment_method: z.string().optional(),
-  credit_card_installments: z.number().min(1).max(12).optional(),
   invoice_number: z.string().optional(),
   notes: z.string().optional(),
 }).refine((data) => {
@@ -63,38 +62,6 @@ const parseCurrency = (val: any): number => {
   return Number((isNaN(num) ? 0 : num).toFixed(2));
 };
 
-// Função para calcular taxas de cartão de crédito
-const calculateCreditCardFees = (amount: number, installments: number) => {
-  // Taxa fixa: 2,99% + R$ 0,49
-  const fixedFeePercent = 0.0299;
-  const fixedFeeAmount = 0.49;
-  
-  // Taxa de antecipação: 1,6% ao mês
-  const anticipationFeePerMonth = 0.016;
-  
-  // Calcula taxa fixa
-  const fixedFee = (amount * fixedFeePercent) + fixedFeeAmount;
-  
-  // Calcula taxa de antecipação (apenas se parcelado)
-  let anticipationFee = 0;
-  if (installments > 1) {
-    // Taxa de antecipação é aplicada sobre o valor + taxa fixa, multiplicado pelos meses
-    anticipationFee = (amount + fixedFee) * anticipationFeePerMonth * (installments - 1);
-  }
-  
-  const totalFees = fixedFee + anticipationFee;
-  const totalAmount = amount + totalFees;
-  const installmentValue = totalAmount / installments;
-  
-  return {
-    fixedFee,
-    anticipationFee,
-    totalFees,
-    totalAmount,
-    installmentValue,
-  };
-};
-
 interface ReceivableFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -106,8 +73,6 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncWithAsaas, setSyncWithAsaas] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
-  const [creditCardInstallments, setCreditCardInstallments] = useState<number>(1);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -165,7 +130,6 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
       amount: '',
       occurrence_type: 'unica',
       payment_method: '',
-      credit_card_installments: 1,
       invoice_number: '',
       notes: '',
     },
@@ -780,13 +744,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Forma de Pagamento</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedPaymentMethod(value);
-                    }} 
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -804,96 +762,6 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                 </FormItem>
               )}
             />
-
-            {selectedPaymentMethod?.toLowerCase().includes('cartão') && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                <FormField
-                  control={form.control}
-                  name="credit_card_installments"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Parcelamento do Cartão</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          const installments = parseInt(value);
-                          field.onChange(installments);
-                          setCreditCardInstallments(installments);
-                        }} 
-                        value={field.value?.toString() || '1'}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
-                            <SelectItem key={num} value={num.toString()}>
-                              {num}x {num === 1 ? '(à vista)' : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {(() => {
-                  const amount = parseCurrency(form.watch('amount'));
-                  const installments = form.watch('credit_card_installments') || 1;
-                  
-                  if (amount > 0) {
-                    const fees = calculateCreditCardFees(amount, installments);
-                    
-                    return (
-                      <div className="space-y-2 text-sm">
-                        <div className="font-semibold text-base mb-2">Cálculo de Taxas:</div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Valor original:</span>
-                          <span className="font-medium">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Taxa fixa (2,99% + R$ 0,49):</span>
-                          <span className="text-orange-600 font-medium">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.fixedFee)}
-                          </span>
-                        </div>
-                        {installments > 1 && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Taxa antecipação (1,6% ao mês × {installments - 1}):</span>
-                            <span className="text-orange-600 font-medium">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.anticipationFee)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex justify-between pt-2 border-t">
-                          <span className="text-muted-foreground font-semibold">Total de taxas:</span>
-                          <span className="text-red-600 font-bold">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalFees)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t">
-                          <span className="font-semibold">Valor total a receber:</span>
-                          <span className="text-green-600 font-bold text-lg">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalAmount)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between bg-primary/10 p-2 rounded">
-                          <span className="font-semibold">Valor de cada parcela:</span>
-                          <span className="font-bold">
-                            {installments}× de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.installmentValue)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            )}
 
             <FormField
               control={form.control}
