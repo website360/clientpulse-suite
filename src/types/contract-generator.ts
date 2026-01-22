@@ -19,7 +19,7 @@ export interface ContractStyleConfig {
 }
 
 export const DEFAULT_STYLE_CONFIG: ContractStyleConfig = {
-  fontFamily: 'Times New Roman',
+  fontFamily: 'Montserrat',
   fontSize: 12,
   lineHeight: 1.8,
   paragraphSpacing: 0.5,

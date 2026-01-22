@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ContractPagedPreview } from '@/components/contracts/ContractPagedPreview';
@@ -85,6 +85,7 @@ export default function ContractTemplateEditor() {
   const [fields, setFields] = useState<ContractField[]>([]);
   const [styleConfig, setStyleConfig] = useState<ContractStyleConfig>(DEFAULT_STYLE_CONFIG);
   const [expandedFieldIndex, setExpandedFieldIndex] = useState<number | null>(null);
+  const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
     if (templateId) {
@@ -411,8 +412,17 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                                 className="text-xs h-7"
                                 onClick={() => {
                                   const variable = `{{${field.name}}}`;
-                                  const currentContent = formData.content || '';
-                                  setFormData({ ...formData, content: currentContent + variable });
+                                  const quill = quillRef.current?.getEditor();
+                                  if (quill) {
+                                    const range = quill.getSelection();
+                                    const position = range ? range.index : quill.getLength();
+                                    quill.insertText(position, variable);
+                                    quill.setSelection(position + variable.length, 0);
+                                  } else {
+                                    // Fallback se quill não estiver disponível
+                                    const currentContent = formData.content || '';
+                                    setFormData({ ...formData, content: currentContent + variable });
+                                  }
                                   toast.success(`Campo ${field.label} inserido`);
                                 }}
                               >
@@ -425,6 +435,7 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                       )}
                       <div className="border rounded-lg overflow-hidden quill-editor-container">
                         <ReactQuill
+                          ref={quillRef}
                           theme="snow"
                           value={formData.content}
                           onChange={(value) => setFormData({ ...formData, content: value })}
