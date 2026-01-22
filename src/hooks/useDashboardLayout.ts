@@ -50,6 +50,14 @@ export function useDashboardLayout() {
     saveWidgets(newWidgets);
   }, [widgets, saveWidgets]);
 
+  // Change widget height
+  const changeWidgetHeight = useCallback((widgetId: string, height: DashboardWidget['height']) => {
+    const newWidgets = widgets.map(w => 
+      w.id === widgetId ? { ...w, height } : w
+    );
+    saveWidgets(newWidgets);
+  }, [widgets, saveWidgets]);
+
   // Add widget
   const addWidget = useCallback((type: WidgetType) => {
     if (widgets.some(w => w.type === type)) return;
@@ -59,6 +67,7 @@ export function useDashboardLayout() {
       id: type,
       type,
       size: config.defaultSize,
+      height: config.defaultHeight,
       order: widgets.length,
     };
     saveWidgets([...widgets, newWidget]);
@@ -92,6 +101,7 @@ export function useDashboardLayout() {
     availableWidgets,
     reorderWidgets,
     changeWidgetSize,
+    changeWidgetHeight,
     addWidget,
     removeWidget,
     resetLayout,
