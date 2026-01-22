@@ -53,6 +53,7 @@ export default function ContractGenerator() {
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [creditCardInstallments, setCreditCardInstallments] = useState<number>(1);
+  const [passFeesToClient, setPassFeesToClient] = useState<boolean>(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,29 +145,66 @@ export default function ContractGenerator() {
     return isNaN(num) ? 0 : num;
   };
 
-  const calculateCreditCardFees = (amount: number, installments: number) => {
+  const calculateCreditCardFees = (amount: number, installments: number, passToClient: boolean) => {
     const fixedFeePercent = 0.0299;
     const fixedFeeAmount = 0.49;
     const anticipationFeePerMonth = 0.016;
     
-    const fixedFee = (amount * fixedFeePercent) + fixedFeeAmount;
+    // Taxa fixa por parcela
+    const fixedFeePerInstallment = fixedFeeAmount;
+    const totalFixedFee = fixedFeePerInstallment * installments;
     
+    // Taxa percentual sobre o valor
+    const percentFee = amount * fixedFeePercent;
+    
+    // Total da taxa fixa
+    const fixedFee = percentFee + totalFixedFee;
+    
+    // Valor líquido sem antecipação (o que você recebe esperando as parcelas)
+    const netAmountWithoutAnticipation = amount - fixedFee;
+    
+    // Taxa de antecipação (sobre o valor líquido, não sobre o total)
     let anticipationFee = 0;
     if (installments > 1) {
-      anticipationFee = (amount + fixedFee) * anticipationFeePerMonth * (installments - 1);
+      // Antecipação é calculada sobre o valor líquido
+      anticipationFee = netAmountWithoutAnticipation * anticipationFeePerMonth * (installments - 1);
     }
     
-    const totalFees = fixedFee + anticipationFee;
-    const totalAmount = amount + totalFees;
-    const installmentValue = totalAmount / installments;
+    // Valor que você recebe com antecipação
+    const netAmountWithAnticipation = netAmountWithoutAnticipation - anticipationFee;
     
-    return {
-      fixedFee,
-      anticipationFee,
-      totalFees,
-      totalAmount,
-      installmentValue,
-    };
+    if (passToClient) {
+      // Se repassar taxas ao cliente
+      // Cliente paga: valor original + taxas
+      const totalToCharge = amount + fixedFee + anticipationFee;
+      const installmentValue = totalToCharge / installments;
+      
+      return {
+        fixedFee,
+        anticipationFee,
+        totalFees: fixedFee + anticipationFee,
+        amountToReceive: amount, // Você recebe o valor original
+        totalToCharge,
+        installmentValue,
+        netAmountWithoutAnticipation: amount,
+        netAmountWithAnticipation: amount,
+      };
+    } else {
+      // Se NÃO repassar taxas ao cliente
+      // Cliente paga: valor original
+      const installmentValue = amount / installments;
+      
+      return {
+        fixedFee,
+        anticipationFee,
+        totalFees: fixedFee + anticipationFee,
+        amountToReceive: netAmountWithAnticipation,
+        totalToCharge: amount,
+        installmentValue,
+        netAmountWithoutAnticipation,
+        netAmountWithAnticipation,
+      };
+    }
   };
 
   const handleCurrencyChange = (fieldName: string, value: string) => {
@@ -615,23 +653,36 @@ export default function ContractGenerator() {
 
                   {paymentMethod === 'cartao_credito' && (
                     <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                      <div className="space-y-2">
-                        <Label>Parcelamento do Cartão</Label>
-                        <Select 
-                          value={creditCardInstallments.toString()} 
-                          onValueChange={(value) => setCreditCardInstallments(parseInt(value))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
-                              <SelectItem key={num} value={num.toString()}>
-                                {num}x {num === 1 ? '(à vista)' : ''}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Parcelamento do Cartão</Label>
+                          <Select 
+                            value={creditCardInstallments.toString()} 
+                            onValueChange={(value) => setCreditCardInstallments(parseInt(value))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {num}x {num === 1 ? '(à vista)' : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2 flex items-end">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={passFeesToClient}
+                              onChange={(e) => setPassFeesToClient(e.target.checked)}
+                              className="rounded"
+                            />
+                            Repassar taxas ao cliente
+                          </label>
+                        </div>
                       </div>
 
                       {(() => {
@@ -641,45 +692,49 @@ export default function ContractGenerator() {
                         const amount = parseCurrency(formData[valueField.name] || '0');
                         
                         if (amount > 0) {
-                          const fees = calculateCreditCardFees(amount, creditCardInstallments);
+                          const fees = calculateCreditCardFees(amount, creditCardInstallments, passFeesToClient);
                           
                           return (
                             <div className="space-y-2 text-sm">
                               <div className="font-semibold text-base mb-2">Cálculo de Taxas:</div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Valor original:</span>
+                                <span className="text-muted-foreground">Total a cobrar do cliente:</span>
                                 <span className="font-medium">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalToCharge)}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Taxa fixa (2,99% + R$ 0,49):</span>
+                                <span className="text-muted-foreground">Taxa fixa (2,99% + R$ 0,49 por parcela):</span>
                                 <span className="text-orange-600 font-medium">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.fixedFee)}
+                                  -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.fixedFee)}
                                 </span>
                               </div>
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="font-semibold">Você recebe (sem antecipação):</span>
+                                <span className="text-blue-600 font-bold">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.netAmountWithoutAnticipation)}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mb-2">Uma parcela a cada 32 dias</div>
                               {creditCardInstallments > 1 && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Taxa antecipação (1,6% ao mês × {creditCardInstallments - 1}):</span>
-                                  <span className="text-orange-600 font-medium">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.anticipationFee)}
-                                  </span>
-                                </div>
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Taxa antecipação (1,6% ao mês):</span>
+                                    <span className="text-orange-600 font-medium">
+                                      -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.anticipationFee)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between pt-2 border-t">
+                                    <span className="font-semibold">Você recebe (com antecipação):</span>
+                                    <span className="text-green-600 font-bold text-lg">
+                                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.netAmountWithAnticipation)}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mb-2">Receber todas em até 2 dias úteis</div>
+                                </>
                               )}
-                              <div className="flex justify-between pt-2 border-t">
-                                <span className="text-muted-foreground font-semibold">Total de taxas:</span>
-                                <span className="text-red-600 font-bold">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalFees)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between pt-2 border-t">
-                                <span className="font-semibold">Valor total a receber:</span>
-                                <span className="text-green-600 font-bold text-lg">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalAmount)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between bg-primary/10 p-2 rounded">
-                                <span className="font-semibold">Valor de cada parcela:</span>
+                              <div className="flex justify-between bg-primary/10 p-2 rounded mt-2">
+                                <span className="font-semibold">Parcelas para o cliente:</span>
                                 <span className="font-bold">
                                   {creditCardInstallments}× de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.installmentValue)}
                                 </span>
