@@ -51,6 +51,7 @@ export default function ContractGenerator() {
   const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState(false);
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [creditCardInstallments, setCreditCardInstallments] = useState<number>(1);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -587,102 +588,110 @@ export default function ContractGenerator() {
                   ))}
                 </div>
 
-                {/* Credit Card Installments - shown after payment method field if "Cartão de Crédito" is selected */}
-                {(() => {
-                  const paymentField = selectedTemplate.fields.find(f => 
-                    f.type === 'select' && 
-                    (f.name.toLowerCase().includes('pagamento') || f.label.toLowerCase().includes('pagamento'))
-                  );
-                  
-                  if (!paymentField) return null;
-                  
-                  const selectedPayment = formData[paymentField.name];
-                  const isCreditCard = selectedPayment?.toLowerCase().includes('cartão');
-                  
-                  if (!isCreditCard) return null;
-                  
-                  return (
-                    <>
-                      <Separator />
-                      <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                        <div className="space-y-2">
-                          <Label>Parcelamento do Cartão</Label>
-                          <Select 
-                            value={creditCardInstallments.toString()} 
-                            onValueChange={(value) => setCreditCardInstallments(parseInt(value))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {num}x {num === 1 ? '(à vista)' : ''}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                <Separator />
 
-                        {(() => {
-                          const valueField = selectedTemplate.fields.find(f => f.type === 'currency');
-                          if (!valueField) return null;
-                          
-                          const amount = parseCurrency(formData[valueField.name] || '0');
-                          
-                          if (amount > 0) {
-                            const fees = calculateCreditCardFees(amount, creditCardInstallments);
-                            
-                            return (
-                              <div className="space-y-2 text-sm">
-                                <div className="font-semibold text-base mb-2">Cálculo de Taxas:</div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Valor original:</span>
-                                  <span className="font-medium">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Taxa fixa (2,99% + R$ 0,49):</span>
-                                  <span className="text-orange-600 font-medium">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.fixedFee)}
-                                  </span>
-                                </div>
-                                {creditCardInstallments > 1 && (
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Taxa antecipação (1,6% ao mês × {creditCardInstallments - 1}):</span>
-                                    <span className="text-orange-600 font-medium">
-                                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.anticipationFee)}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between pt-2 border-t">
-                                  <span className="text-muted-foreground font-semibold">Total de taxas:</span>
-                                  <span className="text-red-600 font-bold">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalFees)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between pt-2 border-t">
-                                  <span className="font-semibold">Valor total a receber:</span>
-                                  <span className="text-green-600 font-bold text-lg">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalAmount)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between bg-primary/10 p-2 rounded">
-                                  <span className="font-semibold">Valor de cada parcela:</span>
-                                  <span className="font-bold">
-                                    {creditCardInstallments}× de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.installmentValue)}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
+                {/* Payment Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Forma de Pagamento</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Método de Pagamento</Label>
+                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a forma de pagamento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                          <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                          <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                          <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {paymentMethod === 'cartao_credito' && (
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                      <div className="space-y-2">
+                        <Label>Parcelamento do Cartão</Label>
+                        <Select 
+                          value={creditCardInstallments.toString()} 
+                          onValueChange={(value) => setCreditCardInstallments(parseInt(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {num}x {num === 1 ? '(à vista)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </>
-                  );
-                })()}
+
+                      {(() => {
+                        const valueField = selectedTemplate.fields.find(f => f.type === 'currency');
+                        if (!valueField) return null;
+                        
+                        const amount = parseCurrency(formData[valueField.name] || '0');
+                        
+                        if (amount > 0) {
+                          const fees = calculateCreditCardFees(amount, creditCardInstallments);
+                          
+                          return (
+                            <div className="space-y-2 text-sm">
+                              <div className="font-semibold text-base mb-2">Cálculo de Taxas:</div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Valor original:</span>
+                                <span className="font-medium">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Taxa fixa (2,99% + R$ 0,49):</span>
+                                <span className="text-orange-600 font-medium">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.fixedFee)}
+                                </span>
+                              </div>
+                              {creditCardInstallments > 1 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Taxa antecipação (1,6% ao mês × {creditCardInstallments - 1}):</span>
+                                  <span className="text-orange-600 font-medium">
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.anticipationFee)}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="text-muted-foreground font-semibold">Total de taxas:</span>
+                                <span className="text-red-600 font-bold">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalFees)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="font-semibold">Valor total a receber:</span>
+                                <span className="text-green-600 font-bold text-lg">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.totalAmount)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between bg-primary/10 p-2 rounded">
+                                <span className="font-semibold">Valor de cada parcela:</span>
+                                <span className="font-bold">
+                                  {creditCardInstallments}× de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fees.installmentValue)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleGenerate} size="lg">
