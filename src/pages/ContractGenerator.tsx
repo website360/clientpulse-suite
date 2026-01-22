@@ -207,7 +207,6 @@ export default function ContractGenerator() {
                 font-family: '${style.fontFamily}', serif;
                 font-size: ${style.fontSize}pt;
                 line-height: ${style.lineHeight};
-                text-align: ${style.textAlign};
                 ${style.paragraphBold ? 'font-weight: bold;' : ''}
               }
               .contract-content p {
@@ -233,6 +232,22 @@ export default function ContractGenerator() {
               }
               .contract-content u {
                 text-decoration: underline;
+              }
+              .contract-content .ql-align-center,
+              .contract-content p.ql-align-center {
+                text-align: center !important;
+              }
+              .contract-content .ql-align-right,
+              .contract-content p.ql-align-right {
+                text-align: right !important;
+              }
+              .contract-content .ql-align-left,
+              .contract-content p.ql-align-left {
+                text-align: left !important;
+              }
+              .contract-content .ql-align-justify,
+              .contract-content p.ql-align-justify {
+                text-align: justify !important;
               }
               .header-logo {
                 margin-bottom: 20px;
@@ -662,7 +677,6 @@ export default function ContractGenerator() {
                               fontFamily: `'${style.fontFamily}', serif`,
                               fontSize: `${style.fontSize}pt`,
                               lineHeight: style.lineHeight,
-                              textAlign: style.textAlign,
                               fontWeight: style.paragraphBold ? 'bold' : 'normal',
                             }}
                             dangerouslySetInnerHTML={{ __html: generatedContent }}

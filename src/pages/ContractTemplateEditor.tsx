@@ -876,7 +876,6 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
                           fontFamily: `'${styleConfig.fontFamily}', serif`,
                           fontSize: `${styleConfig.fontSize}pt`,
                           lineHeight: styleConfig.lineHeight,
-                          textAlign: styleConfig.textAlign,
                           fontWeight: styleConfig.paragraphBold ? 'bold' : 'normal',
                         }}
                         dangerouslySetInnerHTML={{ __html: generatePreview() }}

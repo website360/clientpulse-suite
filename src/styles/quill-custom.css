@@ -25,6 +25,27 @@
   margin-bottom: 1em;
 }
 
+/* Preserve Quill alignment classes */
+.contract-content .ql-align-center,
+.contract-content p.ql-align-center {
+  text-align: center !important;
+}
+
+.contract-content .ql-align-right,
+.contract-content p.ql-align-right {
+  text-align: right !important;
+}
+
+.contract-content .ql-align-left,
+.contract-content p.ql-align-left {
+  text-align: left !important;
+}
+
+.contract-content .ql-align-justify,
+.contract-content p.ql-align-justify {
+  text-align: justify !important;
+}
+
 .contract-content h1,
 .contract-content h2,
 .contract-content h3 {
