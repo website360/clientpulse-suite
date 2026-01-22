@@ -53,7 +53,12 @@ export function DomainsBarChart({ startDate, endDate }: DomainsBarChartProps) {
 
       const { data: domains, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching domains:', error);
+        throw error;
+      }
+
+      console.log('Domains fetched:', domains?.length || 0);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);

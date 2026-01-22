@@ -59,7 +59,12 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
 
       const { data: contracts, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching contracts:', error);
+        throw error;
+      }
+
+      console.log('Contracts fetched:', contracts?.length || 0);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
