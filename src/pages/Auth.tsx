@@ -150,7 +150,7 @@ export default function Auth() {
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
                   className="pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
-                  style={{ height: '50px' }}
+                  style={{ height: '50px', fontFamily: 'Montserrat, sans-serif' }}
                   required
                 />
               </div>
