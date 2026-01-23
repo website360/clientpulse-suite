@@ -107,11 +107,12 @@ export default function Auth() {
       {/* Left Side - Dark Panel with Benefits */}
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 flex-col justify-between p-12">
         {/* Logo */}
-        <div>
+        <div className="min-h-12">
           <img 
             src={authLogo.dark} 
             alt="Logo" 
             className="h-12 w-auto"
+            style={{ minHeight: '3rem' }}
           />
         </div>
 
@@ -119,7 +120,7 @@ export default function Auth() {
         <div className="space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl font-bold text-white leading-tight">
-              Bem-vindo à<br />Agência May
+              Bem-vindo à Agência May
             </h1>
             <p className="text-slate-300 text-lg">
               Gerencia seus tickets, projetos e financeiro em nossa plataforma.
