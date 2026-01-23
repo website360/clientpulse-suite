@@ -131,32 +131,32 @@ export default function Auth() {
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
-                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(253, 193, 0, 0.2)' }}>
+                  <Check className="w-3 h-3" style={{ color: '#FDC100' }} strokeWidth={3} />
                 </div>
               </div>
               <span className="text-slate-200">Gestão completa de projetos</span>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
-                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(253, 193, 0, 0.2)' }}>
+                  <Check className="w-3 h-3" style={{ color: '#FDC100' }} strokeWidth={3} />
                 </div>
               </div>
               <span className="text-slate-200">Controle financeiro integrado</span>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
-                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(253, 193, 0, 0.2)' }}>
+                  <Check className="w-3 h-3" style={{ color: '#FDC100' }} strokeWidth={3} />
                 </div>
               </div>
               <span className="text-slate-200">Relatórios e dashboards em tempo real</span>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
-                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(253, 193, 0, 0.2)' }}>
+                  <Check className="w-3 h-3" style={{ color: '#FDC100' }} strokeWidth={3} />
                 </div>
               </div>
               <span className="text-slate-200">Suporte técnico especializado</span>
