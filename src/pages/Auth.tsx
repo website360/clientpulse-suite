@@ -17,8 +17,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const [authLogoDark, setAuthLogoDark] = useState<string>(logoDark);
-  const [authLogoLight, setAuthLogoLight] = useState<string>(logoLight);
+  const [authLogoDark, setAuthLogoDark] = useState<string>('');
+  const [authLogoLight, setAuthLogoLight] = useState<string>('');
+  const [logoLoaded, setLogoLoaded] = useState(false);
 
   useEffect(() => {
     const loadAuthImages = async () => {
@@ -31,6 +32,7 @@ export default function Auth() {
       
       setAuthLogoDark(darkUrl);
       setAuthLogoLight(lightUrl);
+      setLogoLoaded(true);
     };
     
     loadAuthImages();
@@ -84,12 +86,14 @@ export default function Auth() {
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 flex-col justify-between p-12">
         {/* Logo */}
         <div className="min-h-12">
-          <img 
-            src={authLogoDark} 
-            alt="Logo" 
-            className="h-12 w-auto"
-            style={{ minHeight: '3rem' }}
-          />
+          {logoLoaded && authLogoDark && (
+            <img 
+              src={authLogoDark} 
+              alt="Logo" 
+              className="h-12 w-auto"
+              style={{ minHeight: '3rem' }}
+            />
+          )}
         </div>
 
         {/* Welcome Message and Benefits */}
@@ -151,11 +155,13 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
-            <img 
-              src={authLogoLight} 
-              alt="Logo" 
-              className="h-10 w-auto mx-auto"
-            />
+            {logoLoaded && authLogoLight && (
+              <img 
+                src={authLogoLight} 
+                alt="Logo" 
+                className="h-10 w-auto mx-auto"
+              />
+            )}
           </div>
 
           {/* Header */}
