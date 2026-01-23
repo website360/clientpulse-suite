@@ -626,33 +626,24 @@ export default function ContractGenerator() {
                   ))}
                 </div>
 
-                <Separator />
-
-                {/* Payment Section */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Forma de Pagamento</h3>
+                {/* Credit Card Installments - shown after payment method field if "Cartão" is selected */}
+                {(() => {
+                  const paymentField = selectedTemplate.fields.find(f => 
+                    f.type === 'select' && 
+                    (f.name.toLowerCase().includes('pagamento') || f.label.toLowerCase().includes('pagamento'))
+                  );
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Método de Pagamento</Label>
-                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a forma de pagamento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pix">PIX</SelectItem>
-                          <SelectItem value="boleto">Boleto Bancário</SelectItem>
-                          <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                          <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                          <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {paymentMethod === 'cartao_credito' && (
-                    <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                  if (!paymentField) return null;
+                  
+                  const selectedPayment = formData[paymentField.name];
+                  const isCreditCard = selectedPayment?.toLowerCase().includes('cartão');
+                  
+                  if (!isCreditCard) return null;
+                  
+                  return (
+                    <>
+                      <Separator />
+                      <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Parcelamento do Cartão</Label>
@@ -745,8 +736,9 @@ export default function ContractGenerator() {
                         return null;
                       })()}
                     </div>
-                  )}
-                </div>
+                    </>
+                  );
+                })()}
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleGenerate} size="lg">

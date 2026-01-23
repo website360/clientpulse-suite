@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, Star } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Check } from 'lucide-react';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -104,45 +104,86 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Testimonial Section (Light Background) */}
-      <div 
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative"
-        style={{
-          background: backgroundImage 
-            ? `url(${backgroundImage}) center/cover no-repeat`
-            : 'linear-gradient(135deg, hsl(210 40% 96%) 0%, hsl(210 40% 98%) 50%, hsl(210 30% 95%) 100%)',
-        }}
-      >
-        {/* Overlay com 70% de opacidade */}
-        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(24, 51, 102, 0.7)' }} />
-        
+      {/* Left Side - Dark Panel with Benefits */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 flex-col justify-between p-12">
         {/* Logo */}
-        <div className="relative z-10">
+        <div>
           <img 
             src={authLogo.dark} 
             alt="Logo" 
-            className="h-10 w-auto"
+            className="h-12 w-auto"
           />
         </div>
 
-        {/* Decorative Elements */}
-        <div className="flex-1 flex items-center justify-center relative z-10">
-          <div className="relative w-full max-w-md">
-            {/* Abstract shapes */}
-            <div className="absolute -top-20 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -right-10 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl" />
+        {/* Welcome Message and Benefits */}
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold text-white leading-tight">
+              Bem-vindo à<br />ClientPulse Suite
+            </h1>
+            <p className="text-slate-300 text-lg">
+              Gerencie seus clientes e projetos com nossa plataforma completa e especializada.
+            </p>
+          </div>
+
+          {/* Benefits List */}
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                </div>
+              </div>
+              <span className="text-slate-200">Gestão completa de clientes</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                </div>
+              </div>
+              <span className="text-slate-200">Controle financeiro integrado</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                </div>
+              </div>
+              <span className="text-slate-200">Gerador de contratos personalizados</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                </div>
+              </div>
+              <span className="text-slate-200">Relatórios e dashboards em tempo real</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
+                </div>
+              </div>
+              <span className="text-slate-200">Suporte técnico especializado</span>
+            </div>
           </div>
         </div>
 
+        {/* Footer */}
+        <div className="text-slate-400 text-sm">
+          © 2026 ClientPulse Suite. Todos os direitos reservados.
+        </div>
       </div>
 
       {/* Right Side - Sign In Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-background">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-white">
         <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <img 
-              src={isDark ? authLogo.dark : authLogo.light} 
+              src={authLogo.light} 
               alt="Logo" 
               className="h-10 w-auto mx-auto"
             />
@@ -150,29 +191,28 @@ export default function Auth() {
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">Bem-vindo de volta</h1>
-            <p className="text-muted-foreground">
-              Digite suas credenciais para acessar sua conta
+            <h1 className="text-2xl font-bold text-slate-900">Plataforma ClientPulse</h1>
+            <p className="text-slate-600">
+              Entre para acessar seu painel
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignIn} className="space-y-6">
+          <form onSubmit={handleSignIn} className="space-y-5">
             {/* Email Input */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                E-mail
               </Label>
               <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="nome@empresa.com"
+                  placeholder="Digite seu e-mail"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-24 pl-14 pr-6 py-6 text-base border-2 border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
-                  style={{ backgroundColor: '#f9f9f9' }}
+                  className="h-12 pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
                   required
                 />
               </div>
@@ -180,61 +220,60 @@ export default function Auth() {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Senha
-                </Label>
-                <button
-                  type="button"
-                  className="text-sm text-primary hover:underline font-medium"
-                >
-                  Esqueceu a senha?
-                </button>
-              </div>
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                Senha
+              </Label>
               <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Digite sua senha"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-24 pl-14 pr-16 py-6 text-base border-2 border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl transition-all duration-200 placeholder:text-slate-400"
-                  style={{ backgroundColor: '#f9f9f9' }}
+                  className="h-12 pl-10 pr-12 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="remember" 
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-              />
-              <Label 
-                htmlFor="remember" 
-                className="text-sm text-muted-foreground cursor-pointer"
+            {/* Remember Me and Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
+                <Label 
+                  htmlFor="remember" 
+                  className="text-sm text-slate-600 cursor-pointer"
+                >
+                  Lembrar-me
+                </Label>
+              </div>
+              <button
+                type="button"
+                className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
               >
-                Lembrar-me neste dispositivo
-              </Label>
+                Esqueceu a senha?
+              </button>
             </div>
 
             {/* Sign In Button */}
             <Button 
               type="submit" 
-              className="w-full h-24 rounded-xl text-lg font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 hover:shadow-xl" 
+              className="w-full h-12 rounded-lg text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-sm hover:shadow-md" 
               disabled={loading}
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Entrando...' : '→ Entrar'}
             </Button>
           </form>
 
