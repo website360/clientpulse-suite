@@ -134,7 +134,7 @@ export default function Auth() {
                   <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
                 </div>
               </div>
-              <span className="text-slate-200">Gestão completa de clientes</span>
+              <span className="text-slate-200">Gestão completa de projetos</span>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
@@ -143,14 +143,6 @@ export default function Auth() {
                 </div>
               </div>
               <span className="text-slate-200">Controle financeiro integrado</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-1 flex-shrink-0">
-                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-amber-500" strokeWidth={3} />
-                </div>
-              </div>
-              <span className="text-slate-200">Gerador de contratos personalizados</span>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 flex-shrink-0">
@@ -212,7 +204,7 @@ export default function Auth() {
                   placeholder="Digite seu e-mail"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-12 pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  className="h-14 pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
                   required
                 />
               </div>
@@ -231,7 +223,7 @@ export default function Auth() {
                   placeholder="Digite sua senha"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-12 pl-10 pr-12 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  className="h-14 pl-10 pr-12 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
                   required
                 />
                 <button
@@ -270,7 +262,7 @@ export default function Auth() {
             {/* Sign In Button */}
             <Button 
               type="submit" 
-              className="w-full h-12 rounded-lg text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-sm hover:shadow-md" 
+              className="w-full h-14 rounded-lg text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-sm hover:shadow-md" 
               disabled={loading}
             >
               {loading ? 'Entrando...' : '→ Entrar'}
