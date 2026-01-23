@@ -17,62 +17,6 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  
-  // Images
-  const [authLogo, setAuthLogo] = useState<{ light: string; dark: string }>({
-    light: logoLight,
-    dark: logoDark,
-  });
-  const [backgroundImage, setBackgroundImage] = useState<string>('');
-
-  useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
-
-    // Carregar imagens personalizadas do Storage
-    const loadAuthImages = async () => {
-      const { loadBrandingUrl } = await import('@/lib/branding');
-      
-      const lightUrl = await loadBrandingUrl('auth-logo-light', logoLight);
-      const darkUrl = await loadBrandingUrl('auth-logo-dark', logoDark);
-      const bgUrl = await loadBrandingUrl('auth-background', '');
-      
-      setAuthLogo({
-        light: lightUrl,
-        dark: darkUrl,
-      });
-      
-      setBackgroundImage(bgUrl);
-    };
-    
-    loadAuthImages();
-
-    // Observer para mudanças no tema
-    const observer = new MutationObserver(() => {
-      const newIsDark = document.documentElement.classList.contains('dark');
-      setIsDark(newIsDark);
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
-    // Listener para atualizações de imagens
-    const handleImageUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail.type.startsWith('auth-')) {
-        loadAuthImages();
-      }
-    };
-
-    window.addEventListener('logoUpdated', handleImageUpdate);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('logoUpdated', handleImageUpdate);
-    };
-  }, []);
 
   // Sign in state
   const [signInEmail, setSignInEmail] = useState('');
@@ -109,7 +53,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="min-h-12">
           <img 
-            src={authLogo.dark} 
+            src={logoDark} 
             alt="Logo" 
             className="h-12 w-auto"
             style={{ minHeight: '3rem' }}
@@ -176,7 +120,7 @@ export default function Auth() {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <img 
-              src={authLogo.light} 
+              src={logoLight} 
               alt="Logo" 
               className="h-10 w-auto mx-auto"
             />
