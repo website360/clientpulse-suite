@@ -53,7 +53,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="min-h-12">
           <img 
-            src={logoLight} 
+            src={logoDark} 
             alt="Logo" 
             className="h-12 w-auto"
             style={{ minHeight: '3rem' }}
