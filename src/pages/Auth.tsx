@@ -119,10 +119,10 @@ export default function Auth() {
         <div className="space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl font-bold text-white leading-tight">
-              Bem-vindo à<br />ClientPulse Suite
+              Bem-vindo à<br />Agência May
             </h1>
             <p className="text-slate-300 text-lg">
-              Gerencie seus clientes e projetos com nossa plataforma completa e especializada.
+              Gerencia seus tickets, projetos e financeiro em nossa plataforma.
             </p>
           </div>
 
@@ -173,7 +173,7 @@ export default function Auth() {
 
         {/* Footer */}
         <div className="text-slate-400 text-sm">
-          © 2026 ClientPulse Suite. Todos os direitos reservados.
+          © 2026 Agência May. Todos os direitos reservados.
         </div>
       </div>
 
@@ -191,7 +191,7 @@ export default function Auth() {
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-slate-900">Plataforma ClientPulse</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Bem-vindo de volta!</h1>
             <p className="text-slate-600">
               Entre para acessar seu painel
             </p>
