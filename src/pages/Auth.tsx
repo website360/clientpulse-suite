@@ -205,7 +205,8 @@ export default function Auth() {
                   placeholder="Digite seu e-mail"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  className="h-14 pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  className="pl-10 pr-4 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  style={{ height: '50px' }}
                   required
                 />
               </div>
@@ -224,7 +225,8 @@ export default function Auth() {
                   placeholder="Digite sua senha"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="h-14 pl-10 pr-12 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  className="pl-10 pr-12 text-sm border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg transition-all bg-white text-slate-900 placeholder:text-slate-400"
+                  style={{ height: '50px' }}
                   required
                 />
                 <button
@@ -263,7 +265,8 @@ export default function Auth() {
             {/* Sign In Button */}
             <Button 
               type="submit" 
-              className="w-full h-14 rounded-lg text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-sm hover:shadow-md" 
+              className="w-full rounded-lg text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-sm hover:shadow-md" 
+              style={{ height: '50px' }}
               disabled={loading}
             >
               {loading ? 'Entrando...' : '→ Entrar'}
