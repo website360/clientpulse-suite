@@ -17,6 +17,36 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [authLogoDark, setAuthLogoDark] = useState<string>(logoDark);
+  const [authLogoLight, setAuthLogoLight] = useState<string>(logoLight);
+
+  useEffect(() => {
+    const loadAuthImages = async () => {
+      const { loadBrandingUrl } = await import('@/lib/branding');
+      
+      const darkUrl = await loadBrandingUrl('auth-logo-dark', logoDark);
+      const lightUrl = await loadBrandingUrl('auth-logo-light', logoLight);
+      
+      setAuthLogoDark(darkUrl);
+      setAuthLogoLight(lightUrl);
+    };
+    
+    loadAuthImages();
+
+    // Listener para atualizações de imagens
+    const handleImageUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.type.startsWith('auth-logo')) {
+        loadAuthImages();
+      }
+    };
+
+    window.addEventListener('logoUpdated', handleImageUpdate);
+
+    return () => {
+      window.removeEventListener('logoUpdated', handleImageUpdate);
+    };
+  }, []);
 
   // Sign in state
   const [signInEmail, setSignInEmail] = useState('');
@@ -53,7 +83,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="min-h-12">
           <img 
-            src={logoDark} 
+            src={authLogoDark} 
             alt="Logo" 
             className="h-12 w-auto"
             style={{ minHeight: '3rem' }}
@@ -120,7 +150,7 @@ export default function Auth() {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <img 
-              src={logoLight} 
+              src={authLogoLight} 
               alt="Logo" 
               className="h-10 w-auto mx-auto"
             />
