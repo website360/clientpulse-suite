@@ -24,6 +24,8 @@ export default function Auth() {
     const loadAuthImages = async () => {
       const { loadBrandingUrl } = await import('@/lib/branding');
       
+      // 'auth-logo-dark' = Logo do Formulário - Versão Escura (para fundo escuro)
+      // 'auth-logo-light' = Logo do Formulário - Versão Clara (para fundo claro)
       const darkUrl = await loadBrandingUrl('auth-logo-dark', logoDark);
       const lightUrl = await loadBrandingUrl('auth-logo-light', logoLight);
       
