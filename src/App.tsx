@@ -9,7 +9,6 @@ import { lazy, Suspense, useEffect } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
 import { HelmetProvider } from "react-helmet-async";
 import { KeyboardShortcutsProvider } from "@/components/shared/KeyboardShortcutsProvider";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { loadSettingsFromLocalStorage, applyWhiteLabelSettings } from "@/lib/whitelabel";
@@ -21,7 +20,6 @@ import KnowledgeBasePublic from "./pages/public/KnowledgeBasePublic";
 import ClientRegistration from "./pages/public/ClientRegistration";
 import ProjectApproval from "./pages/public/ProjectApproval";
 import ApprovalSuccess from "./pages/public/ApprovalSuccess";
-import Install from "./pages/Install";
 import PublicTicket from "./pages/public/PublicTicket";
 
 // Lazy loading for main application pages
@@ -86,12 +84,10 @@ const App = () => (
       <WhiteLabelInit />
       <Toaster />
       <Sonner />
-      <InstallPrompt />
       <UpdatePrompt />
       <BrowserRouter>
         <Routes>
           {/* Rotas públicas - SEM AuthProvider */}
-          <Route path="/install" element={<Install />} />
           <Route path="/cadastro-cliente" element={<ClientRegistration />} />
           <Route path="/abrir-chamado" element={<PublicTicket />} />
           <Route path="/base-conhecimento" element={<KnowledgeBasePublic />} />
