@@ -240,23 +240,11 @@ export default function Settings() {
                 <User className="h-4 w-4 mr-2" />
                 Perfil
               </TabsTrigger>
-              <TabsTrigger value="security">
-                <Shield className="h-4 w-4 mr-2" />
-                Segurança
-              </TabsTrigger>
               {userRole === 'admin' && (
                 <>
-                  <TabsTrigger value="audit-logs">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Auditoria
-                  </TabsTrigger>
                   <TabsTrigger value="roles">
                     <UserCog className="h-4 w-4 mr-2" />
                     Roles
-                  </TabsTrigger>
-                  <TabsTrigger value="sessions">
-                    <Monitor className="h-4 w-4 mr-2" />
-                    Sessões
                   </TabsTrigger>
                   <TabsTrigger value="approvals">
                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -429,10 +417,8 @@ export default function Settings() {
                 </form>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="security">
-            <Card>
+            <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Alterar Senha</CardTitle>
                 <CardDescription>
@@ -471,16 +457,8 @@ export default function Settings() {
 
               {userRole === 'admin' && (
                 <>
-                  <TabsContent value="audit-logs">
-                    <AuditLogsTab />
-                  </TabsContent>
-
                   <TabsContent value="roles">
                     <RolesPermissionsTab />
-                  </TabsContent>
-
-                  <TabsContent value="sessions">
-                    <SessionsTab />
                   </TabsContent>
 
                   <TabsContent value="approvals">

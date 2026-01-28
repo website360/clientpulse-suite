@@ -8,9 +8,10 @@ interface TaskKanbanProps {
   tasks: any[];
   onStatusChange: (taskId: string, newStatus: string) => void;
   onEditTask: (task: any) => void;
+  onViewTask: (task: any) => void;
 }
 
-const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
+const TaskKanban = ({ tasks, onStatusChange, onEditTask, onViewTask }: TaskKanbanProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const columns = [
@@ -127,7 +128,7 @@ const TaskKanban = ({ tasks, onStatusChange, onEditTask }: TaskKanbanProps) => {
                       <TaskCard
                         key={task.id}
                         task={task}
-                        onClick={() => onEditTask(task)}
+                        onClick={() => onViewTask(task)}
                       />
                     ))
                   )}

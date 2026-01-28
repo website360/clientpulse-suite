@@ -9,11 +9,7 @@ import { Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { uploadBrandingFile, loadBrandingUrl } from '@/lib/branding';
 
 export function AuthenticationTab() {
-  const [uploadingBg, setUploadingBg] = useState(false);
-  const [uploadingLogoLight, setUploadingLogoLight] = useState(false);
   const [uploadingLogoDark, setUploadingLogoDark] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState<string>('');
-  const [logoLightImage, setLogoLightImage] = useState<string>('');
   const [logoDarkImage, setLogoDarkImage] = useState<string>('');
 
   useEffect(() => {
@@ -22,90 +18,11 @@ export function AuthenticationTab() {
 
   const loadImages = async () => {
     try {
-      const bgUrl = await loadBrandingUrl('auth-background', '');
-      const logoLightUrl = await loadBrandingUrl('auth-logo-light', '');
       const logoDarkUrl = await loadBrandingUrl('auth-logo-dark', '');
       
-      setBackgroundImage(bgUrl);
-      setLogoLightImage(logoLightUrl);
       setLogoDarkImage(logoDarkUrl);
     } catch (error) {
       console.error('Error loading images:', error);
-    }
-  };
-
-  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validar tipo de arquivo
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem válida');
-      return;
-    }
-
-    // Validar tamanho (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 5MB');
-      return;
-    }
-
-    setUploadingBg(true);
-
-    try {
-      const { url, error } = await uploadBrandingFile('auth-background', file);
-      
-      if (error) throw new Error(error);
-
-      setBackgroundImage(url);
-      
-      // Disparar evento para atualizar o preview
-      window.dispatchEvent(new CustomEvent('logoUpdated', { 
-        detail: { type: 'auth-background' } 
-      }));
-
-      toast.success('Imagem de fundo atualizada com sucesso!');
-    } catch (error) {
-      console.error('Error uploading background:', error);
-      toast.error('Erro ao fazer upload da imagem');
-    } finally {
-      setUploadingBg(false);
-    }
-  };
-
-  const handleLogoLightUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem válida');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 2MB');
-      return;
-    }
-
-    setUploadingLogoLight(true);
-
-    try {
-      const { url, error } = await uploadBrandingFile('auth-logo-light', file);
-      
-      if (error) throw new Error(error);
-
-      setLogoLightImage(url);
-      
-      window.dispatchEvent(new CustomEvent('logoUpdated', { 
-        detail: { type: 'auth-logo-light' } 
-      }));
-
-      toast.success('Logo clara atualizada com sucesso!');
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      toast.error('Erro ao fazer upload da logo');
-    } finally {
-      setUploadingLogoLight(false);
     }
   };
 
@@ -142,60 +59,6 @@ export function AuthenticationTab() {
       toast.error('Erro ao fazer upload da logo');
     } finally {
       setUploadingLogoDark(false);
-    }
-  };
-
-  const handleRemoveBackground = async () => {
-    try {
-      const { data: existingFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-background'
-        });
-
-      if (existingFiles && existingFiles.length > 0) {
-        await supabase.storage
-          .from('branding')
-          .remove(existingFiles.map(f => f.name));
-        
-        setBackgroundImage('');
-        
-        window.dispatchEvent(new CustomEvent('logoUpdated', { 
-          detail: { type: 'auth-background' } 
-        }));
-        
-        toast.success('Imagem de fundo removida com sucesso!');
-      }
-    } catch (error) {
-      console.error('Error removing background:', error);
-      toast.error('Erro ao remover imagem');
-    }
-  };
-
-  const handleRemoveLogoLight = async () => {
-    try {
-      const { data: existingFiles } = await supabase.storage
-        .from('branding')
-        .list('', {
-          search: 'auth-logo-light'
-        });
-
-      if (existingFiles && existingFiles.length > 0) {
-        await supabase.storage
-          .from('branding')
-          .remove(existingFiles.map(f => f.name));
-        
-        setLogoLightImage('');
-        
-        window.dispatchEvent(new CustomEvent('logoUpdated', { 
-          detail: { type: 'auth-logo-light' } 
-        }));
-        
-        toast.success('Logo clara removida com sucesso!');
-      }
-    } catch (error) {
-      console.error('Error removing logo:', error);
-      toast.error('Erro ao remover logo');
     }
   };
 
@@ -236,116 +99,6 @@ export function AuthenticationTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Background Image */}
-          <div className="space-y-4">
-            <div>
-              <Label className="text-base font-semibold">Imagem de Fundo</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                Imagem exibida no lado esquerdo da tela de login (recomendado: 1920x1080px)
-              </p>
-            </div>
-            
-            {backgroundImage && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
-                <img 
-                  src={backgroundImage} 
-                  alt="Background preview" 
-                  className="w-full h-full object-cover"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={handleRemoveBackground}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Input
-                id="background-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleBackgroundUpload}
-                disabled={uploadingBg}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('background-upload')?.click()}
-                disabled={uploadingBg}
-              >
-                {uploadingBg ? (
-                  <>Fazendo upload...</>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {backgroundImage ? 'Alterar Imagem' : 'Fazer Upload'}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t pt-6" />
-
-          {/* Logo Light Image */}
-          <div className="space-y-4">
-            <div>
-              <Label className="text-base font-semibold">Logo do Formulário - Versão Clara</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                Logo exibida no tema claro (recomendado: 200x60px, fundo transparente)
-              </p>
-            </div>
-            
-            {logoLightImage && (
-              <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border bg-white flex items-center justify-center">
-                <img 
-                  src={logoLightImage} 
-                  alt="Logo clara preview" 
-                  className="max-w-full max-h-full object-contain p-2"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={handleRemoveLogoLight}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Input
-                id="logo-light-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoLightUpload}
-                disabled={uploadingLogoLight}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('logo-light-upload')?.click()}
-                disabled={uploadingLogoLight}
-              >
-                {uploadingLogoLight ? (
-                  <>Fazendo upload...</>
-                ) : (
-                  <>
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    {logoLightImage ? 'Alterar Logo Clara' : 'Fazer Upload'}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t pt-6" />
-
           {/* Logo Dark Image */}
           <div className="space-y-4">
             <div>

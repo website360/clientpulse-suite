@@ -29,13 +29,14 @@ import {
 interface TaskTableProps {
   tasks: any[];
   onEditTask: (task: any) => void;
+  onViewTask: (task: any) => void;
   onRefetch: () => void;
   sortColumn?: string | null;
   sortDirection?: 'asc' | 'desc';
   onSort?: (column: string) => void;
 }
 
-export function TaskTable({ tasks, onEditTask, onRefetch, sortColumn, sortDirection, onSort }: TaskTableProps) {
+export function TaskTable({ tasks, onEditTask, onViewTask, onRefetch, sortColumn, sortDirection, onSort }: TaskTableProps) {
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
@@ -100,8 +101,9 @@ export function TaskTable({ tasks, onEditTask, onRefetch, sortColumn, sortDirect
             {tasks.map((task, index) => (
               <TableRow 
                 key={task.id}
-                className="hover:bg-muted/30 animate-fade-in-up"
+                className="hover:bg-muted/30 animate-fade-in-up cursor-pointer"
                 style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => onViewTask(task)}
               >
                 <TableCell>
                   {task.client ? (

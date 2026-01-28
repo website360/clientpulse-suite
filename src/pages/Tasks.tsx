@@ -6,6 +6,7 @@ import { Plus, CheckSquare } from "lucide-react";
 import { TaskTable } from "@/components/tasks/TaskTable";
 import TaskKanban from "@/components/tasks/TaskKanban";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
+import { TaskViewModal } from "@/components/tasks/TaskViewModal";
 import TaskFilters from "@/components/tasks/TaskFilters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyTasks } from "@/components/illustrations/EmptyTasks";
@@ -22,7 +23,9 @@ export interface TaskFilters {
 
 const Tasks = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
+  const [viewingTask, setViewingTask] = useState<any>(null);
   const [filters, setFilters] = useState<TaskFilters>({
     search: "",
     status: "active",
@@ -84,9 +87,19 @@ const Tasks = () => {
     setIsFormOpen(true);
   };
 
+  const handleViewTask = (task: any) => {
+    setViewingTask(task);
+    setIsViewOpen(true);
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingTask(null);
+  };
+
+  const handleCloseView = () => {
+    setIsViewOpen(false);
+    setViewingTask(null);
   };
 
   return (
@@ -129,6 +142,7 @@ const Tasks = () => {
               <TaskTable
                 tasks={tasks}
                 onEditTask={handleEditTask}
+                onViewTask={handleViewTask}
                 onRefetch={refetch}
               />
             )}
@@ -151,6 +165,7 @@ const Tasks = () => {
                 tasks={tasks}
                 onStatusChange={handleStatusChange}
                 onEditTask={handleEditTask}
+                onViewTask={handleViewTask}
               />
             )}
           </TabsContent>
@@ -161,6 +176,12 @@ const Tasks = () => {
           onClose={handleCloseForm}
           task={editingTask}
           onSuccess={refetch}
+        />
+
+        <TaskViewModal
+          open={isViewOpen}
+          onClose={handleCloseView}
+          task={viewingTask}
         />
       </div>
     </DashboardLayout>
