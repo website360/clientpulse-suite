@@ -26,7 +26,8 @@ export function ClientFilters({ filters, onFiltersChange }: ClientFiltersProps) 
           placeholder="Buscar por nome, email, CPF/CNPJ..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="pl-9 h-10"
+          className="pl-9"
+          style={{ height: '40px' }}
         />
       </div>
 
@@ -34,7 +35,7 @@ export function ClientFilters({ filters, onFiltersChange }: ClientFiltersProps) 
         value={filters.type}
         onValueChange={(value) => onFiltersChange({ ...filters, type: value })}
       >
-        <SelectTrigger className="w-[160px] h-10">
+        <SelectTrigger className="w-[160px] h-11">
           <SelectValue placeholder="Tipo" />
         </SelectTrigger>
         <SelectContent>
@@ -48,7 +49,7 @@ export function ClientFilters({ filters, onFiltersChange }: ClientFiltersProps) 
         value={filters.status}
         onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
       >
-        <SelectTrigger className="w-[140px] h-10">
+        <SelectTrigger className="w-[140px] h-11">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>

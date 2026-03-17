@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Edit, Trash2, Link2, MoreVertical } from 'lucide-react';
+import { Edit, Trash2, Link2, MoreVertical, Circle } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,27 +40,57 @@ export function TaskTable({ tasks, onEditTask, onViewTask, onRefetch, sortColumn
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: "secondary" | "default" | "outline"; className?: string }> = {
-      todo: { label: 'A Fazer', variant: 'secondary' },
-      in_progress: { label: 'Em Andamento', variant: 'default' },
-      done: { label: 'Concluído', variant: 'outline', className: 'bg-success/10 border-success text-success' },
+    const styles: Record<string, { badge: string; dot: string; label: string }> = {
+      todo: {
+        badge: 'bg-slate-50 text-slate-700 border-0 hover:bg-slate-50',
+        dot: 'h-2 w-2 fill-slate-400 text-slate-400',
+        label: 'A Fazer',
+      },
+      in_progress: {
+        badge: 'bg-blue-50 text-blue-700 border-0 hover:bg-blue-50',
+        dot: 'h-2 w-2 fill-blue-500 text-blue-500',
+        label: 'Em Andamento',
+      },
+      done: {
+        badge: 'bg-green-50 text-green-700 border-0 hover:bg-green-50',
+        dot: 'h-2 w-2 fill-green-500 text-green-500',
+        label: 'Concluído',
+      },
     };
-    const config = statusMap[status] || statusMap.todo;
+    const config = styles[status] || styles.todo;
     return (
-      <Badge variant={config.variant} className={config.className}>
+      <Badge variant="default" className={`${config.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}>
+        <Circle className={config.dot} />
         {config.label}
       </Badge>
     );
   };
 
   const getPriorityBadge = (priority: string) => {
-    const priorityMap = {
-      high: { label: 'Alta', variant: 'destructive' as const },
-      medium: { label: 'Média', variant: 'default' as const },
-      low: { label: 'Baixa', variant: 'outline' as const },
+    const styles: Record<string, { badge: string; dot: string; label: string }> = {
+      high: {
+        badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50',
+        dot: 'h-2 w-2 fill-red-500 text-red-500',
+        label: 'Alta',
+      },
+      medium: {
+        badge: 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50',
+        dot: 'h-2 w-2 fill-amber-500 text-amber-500',
+        label: 'Média',
+      },
+      low: {
+        badge: 'bg-gray-100 text-gray-600 border-0 hover:bg-gray-100',
+        dot: 'h-2 w-2 fill-gray-400 text-gray-400',
+        label: 'Baixa',
+      },
     };
-    const config = priorityMap[priority as keyof typeof priorityMap] || priorityMap.medium;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = styles[priority] || styles.medium;
+    return (
+      <Badge variant="default" className={`${config.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}>
+        <Circle className={config.dot} />
+        {config.label}
+      </Badge>
+    );
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -86,80 +116,106 @@ export function TaskTable({ tasks, onEditTask, onViewTask, onRefetch, sortColumn
 
   return (
     <>
-      <Card className="card-elevated">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="title" label="Tarefa" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="priority" label="Prioridade" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task, index) => (
-              <TableRow 
-                key={task.id}
-                className="hover:bg-muted/30 animate-fade-in-up cursor-pointer"
-                style={{ animationDelay: `${index * 50}ms` }}
-                onClick={() => onViewTask(task)}
-              >
-                <TableCell>
-                  {task.client ? (
-                    <ClientNameCell client={task.client} />
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+          <div className="col-span-3 cursor-pointer" onClick={() => onSort?.('client_id')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente {sortColumn === 'client_id' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-4 cursor-pointer" onClick={() => onSort?.('title')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarefa {sortColumn === 'title' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('status')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('priority')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Prioridade {sortColumn === 'priority' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Task Rows as Cards */}
+        {tasks.map((task, index) => (
+          <Card 
+            key={task.id}
+            onClick={() => onViewTask(task)}
+            className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer"
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+              {/* Cliente */}
+              <div className="col-span-3">
+                {task.client ? (
+                  <ClientNameCell client={task.client} />
+                ) : (
+                  <span className="text-[14px] text-muted-foreground">-</span>
+                )}
+              </div>
+
+              {/* Tarefa */}
+              <div className="col-span-4">
+                <div className="space-y-1">
+                  <p className="text-[14px] font-medium text-foreground">{task.title}</p>
+                  {task.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
                   )}
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="font-medium">{task.title}</div>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {task.description}
-                      </p>
-                    )}
-                    {task.ticket && (
-                      <Badge variant="outline" className="gap-1">
-                        <Link2 className="h-3 w-3" />
-                        #{task.ticket.ticket_number}
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{getStatusBadge(task.status)}</TableCell>
-                <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEditTask(task)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => setDeleteTaskId(task.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                  {task.ticket && (
+                    <Badge variant="outline" className="gap-1 text-[12px]">
+                      <Link2 className="h-3 w-3" />
+                      #{task.ticket.ticket_number}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="col-span-2">
+                {getStatusBadge(task.status)}
+              </div>
+
+              {/* Prioridade */}
+              <div className="col-span-2">
+                {getPriorityBadge(task.priority)}
+              </div>
+
+              {/* Ações */}
+              <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                    <DropdownMenuItem 
+                      onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
+                      className="rounded-lg px-3 py-2.5 cursor-pointer"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={(e) => { e.stopPropagation(); setDeleteTaskId(task.id); }}
+                      className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
         <AlertDialogContent>

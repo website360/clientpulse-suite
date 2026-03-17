@@ -71,3 +71,9 @@ verify_jwt = false
 
 [functions.create-public-ticket]
 verify_jwt = false
+
+[functions.sync-emails]
+verify_jwt = false
+
+[functions.send-custom-email]
+verify_jwt = false

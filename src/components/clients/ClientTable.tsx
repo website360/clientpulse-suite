@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, User, MoreVertical, UserX, UserCheck, Users } from 'lucide-react';
+import { Eye, Pencil, Trash2, User, MoreVertical, UserX, UserCheck, Users, Circle } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,150 +71,167 @@ export function ClientTable({
   }
 
   return (
-    <div className="space-y-0">
-      <Card className="card-elevated">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead
-                column="full_name"
-                label="Cliente"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
+    <div className="space-y-2">
+      {/* Header Row */}
+      <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+        <div className="col-span-3 cursor-pointer" onClick={() => onSort('full_name')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente {sortColumn === 'full_name' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-1 cursor-pointer" onClick={() => onSort('client_type')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tipo {sortColumn === 'client_type' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-2 cursor-pointer" onClick={() => onSort('email')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Email {sortColumn === 'email' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-2 cursor-pointer" onClick={() => onSort('phone')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Telefone {sortColumn === 'phone' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-2 cursor-pointer" onClick={() => onSort('cpf_cnpj')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">CPF/CNPJ {sortColumn === 'cpf_cnpj' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-1 cursor-pointer" onClick={() => onSort('is_active')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'is_active' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="col-span-1 text-right">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+        </div>
+      </div>
+
+      {/* Client Rows as Cards */}
+      {clients.map((client, index) => (
+        <Card 
+          key={client.id}
+          onClick={() => onView(client)}
+          className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer"
+          style={{ animationDelay: `${index * 30}ms` }}
+        >
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+            {/* Cliente */}
+            <div className="col-span-3">
+              <ClientNameCell 
+                client={client} 
+                contactsCount={client.contacts_count?.[0]?.count || undefined}
               />
-              <SortableTableHead
-                column="client_type"
-                label="Tipo"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-              />
-              <SortableTableHead
-                column="email"
-                label="Email"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-              />
-              <SortableTableHead
-                column="phone"
-                label="Telefone"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-              />
-              <SortableTableHead
-                column="cpf_cnpj"
-                label="CPF/CNPJ"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-              />
-              <SortableTableHead
-                column="is_active"
-                label="Status"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-              />
-              <SortableTableHead
-                column="created_at"
-                label="Ações"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                className="text-right"
-              />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clients.map((client, index) => (
-              <TableRow 
-                key={client.id} 
-                className="hover:bg-muted/30 table-row-interactive animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
+            </div>
+
+            {/* Tipo */}
+            <div className="col-span-1">
+              <Badge variant="outline" className="text-[13px] border-0 whitespace-nowrap">
+                {client.client_type === 'person' ? 'PF' : 'PJ'}
+              </Badge>
+            </div>
+
+            {/* Email */}
+            <div className="col-span-2">
+              <p className="text-[14px] text-foreground truncate whitespace-nowrap">{client.email}</p>
+            </div>
+
+            {/* Telefone */}
+            <div className="col-span-2">
+              <p className="text-[14px] text-foreground whitespace-nowrap">{formatPhone(client.phone)}</p>
+            </div>
+
+            {/* CPF/CNPJ */}
+            <div className="col-span-2">
+              <p className="text-[14px] text-foreground whitespace-nowrap">{formatCpfCnpj(client.cpf_cnpj)}</p>
+            </div>
+
+            {/* Status */}
+            <div className="col-span-1">
+              <Badge
+                variant={client.is_active ? 'default' : 'secondary'}
+                className={client.is_active 
+                  ? 'bg-green-50 text-green-700 border-0 hover:bg-green-50 font-medium px-3 py-1 flex items-center gap-1.5 w-fit' 
+                  : 'bg-gray-100 text-gray-600 border-0 font-medium px-3 py-1 flex items-center gap-1.5 w-fit'
+                }
               >
-                <TableCell>
-                  <ClientNameCell 
-                    client={client} 
-                    contactsCount={client.contacts_count?.[0]?.count || undefined}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {client.client_type === 'person' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm">{client.email}</TableCell>
-                <TableCell className="text-sm">{formatPhone(client.phone)}</TableCell>
-                <TableCell className="text-sm">
-                  {formatCpfCnpj(client.cpf_cnpj)}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={client.is_active ? 'default' : 'secondary'}
-                    className={client.is_active ? 'bg-secondary text-primary border-secondary pointer-events-none' : 'bg-muted text-muted-foreground border-muted pointer-events-none'}
+                <Circle 
+                  className={client.is_active ? 'h-2 w-2 fill-green-500 text-green-500' : 'h-2 w-2 fill-gray-400 text-gray-400'}
+                />
+                {client.is_active ? 'Ativo' : 'Inativo'}
+              </Badge>
+            </div>
+
+            {/* Actions */}
+            <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 flex-shrink-0"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {client.is_active ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView(client)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(client)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onToggleStatus(client.id, client.is_active)}>
-                          {client.is_active ? (
-                            <>
-                              <UserX className="h-4 w-4 mr-2" />
-                              Inativar Cliente
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="h-4 w-4 mr-2" />
-                              Ativar Cliente
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => onDelete(client.id)}
-                          className="text-error focus:text-error"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir Permanentemente
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={totalCount}
-          onPageChange={onPageChange}
-          onPageSizeChange={onPageSizeChange}
-        />
-      </Card>
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(client);
+                    }}
+                    className="rounded-lg px-3 py-2.5 cursor-pointer"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Detalhes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(client);
+                    }}
+                    className="rounded-lg px-3 py-2.5 cursor-pointer"
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleStatus(client.id, client.is_active);
+                    }}
+                    className="rounded-lg px-3 py-2.5 cursor-pointer"
+                  >
+                    {client.is_active ? (
+                      <>
+                        <UserX className="h-4 w-4 mr-2" />
+                        Inativar Cliente
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Ativar Cliente
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(client.id);
+                    }}
+                    className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Permanentemente
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </Card>
+      ))}
+      
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalCount}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </div>
   );
 }

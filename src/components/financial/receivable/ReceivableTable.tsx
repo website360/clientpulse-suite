@@ -498,150 +498,173 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
 
   return (
     <>
-      <Card className="card-elevated">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <SortableTableHead column="category" label="Categoria" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead>Ocorrência</TableHead>
-              <SortableTableHead column="due_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              {asaasEnabled && <TableHead>Asaas</TableHead>}
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accounts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={asaasEnabled ? 8 : 7} className="text-center py-8 text-muted-foreground">
-                  Nenhuma conta encontrada
-                </TableCell>
-              </TableRow>
-            ) : (
-              accounts.map((account, index) => (
-                <TableRow 
-                  key={account.id}
-                  className="hover:bg-muted/30 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <TableCell>
-                    <ClientNameCell client={account.client || {}} />
-                  </TableCell>
-                  <TableCell>{account.category}</TableCell>
-                  <TableCell className="capitalize">
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className={`grid ${asaasEnabled ? 'grid-cols-12' : 'grid-cols-11'} gap-4 px-6 py-3 bg-muted/20 rounded-xl`}>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('category')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria {sortColumn === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ocorrência</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('due_date')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Vencimento {sortColumn === 'due_date' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('amount')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Valor {sortColumn === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('status')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          {asaasEnabled && (
+            <div className="col-span-1">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Asaas</span>
+            </div>
+          )}
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Rows as Cards */}
+        {accounts.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">Nenhuma conta encontrada</div>
+        ) : (
+          accounts.map((account, index) => (
+            <Card 
+              key={account.id}
+              className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group"
+              style={{ animationDelay: `${index * 30}ms` }}
+            >
+              <div className={`grid ${asaasEnabled ? 'grid-cols-12' : 'grid-cols-11'} gap-4 px-6 py-4 items-center`}>
+                <div className="col-span-2">
+                  <ClientNameCell client={account.client || {}} />
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[14px] text-foreground">{account.category}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[14px] text-foreground capitalize">
                     {account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}
                     {account.occurrence_type === 'parcelada' && account.installment_number && account.total_installments && (
                       <span className="ml-1">
                         {String(account.installment_number).padStart(2, '0')}/{String(account.total_installments).padStart(2, '0')}
                       </span>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {(() => {
-                        const [y, m, d] = account.due_date.split('-');
-                        return `${d}/${m}/${y}`;
-                      })()}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{formatCurrency(account.amount)}</TableCell>
-                  <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
-                  {asaasEnabled && (
-                    <TableCell>
-                      {account.sync_with_asaas && account.asaas_payment_id ? (
-                        <div className="flex flex-col gap-1">
-                          {getAsaasStatusBadge(account.asaas_status)}
-                          {account.asaas_invoice_url && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="h-auto p-0 text-xs"
-                              onClick={() => window.open(account.asaas_invoice_url, '_blank')}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Ver Fatura
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Não sincronizado</span>
-                      )}
-                    </TableCell>
-                  )}
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(account)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        {account.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleMarkAsReceived(account)}>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Marcar como Recebido
-                          </DropdownMenuItem>
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {(() => {
+                      const [y, m, d] = account.due_date.split('-');
+                      return `${d}/${m}/${y}`;
+                    })()}
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-[14px] font-medium text-foreground">{formatCurrency(account.amount)}</p>
+                </div>
+                <div className="col-span-1">
+                  {getStatusBadge(account.status, account.due_date)}
+                </div>
+                {asaasEnabled && (
+                  <div className="col-span-1">
+                    {account.sync_with_asaas && account.asaas_payment_id ? (
+                      <div className="flex flex-col gap-1">
+                        {getAsaasStatusBadge(account.asaas_status)}
+                        {account.asaas_invoice_url && (
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => window.open(account.asaas_invoice_url, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Ver Fatura
+                          </Button>
                         )}
-                        {asaasEnabled && !account.asaas_payment_id && (
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Não sinc.</span>
+                    )}
+                  </div>
+                )}
+                <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                      <DropdownMenuItem onClick={() => handleEdit(account)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      {account.status === 'pending' && (
+                        <DropdownMenuItem onClick={() => handleMarkAsReceived(account)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Marcar como Recebido
+                        </DropdownMenuItem>
+                      )}
+                      {asaasEnabled && !account.asaas_payment_id && (
+                        <DropdownMenuItem 
+                          onClick={() => handleCreateInAsaas(account)}
+                          disabled={syncing === account.id}
+                          className="rounded-lg px-3 py-2.5 cursor-pointer"
+                        >
+                          {syncing === account.id ? (
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4 mr-2" />
+                          )}
+                          Criar no Asaas
+                        </DropdownMenuItem>
+                      )}
+                      {asaasEnabled && account.asaas_payment_id && (
+                        <>
                           <DropdownMenuItem 
-                            onClick={() => handleCreateInAsaas(account)}
+                            onClick={() => handleSyncFromAsaas(account)}
                             disabled={syncing === account.id}
+                            className="rounded-lg px-3 py-2.5 cursor-pointer"
                           >
                             {syncing === account.id ? (
                               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                             ) : (
-                              <Plus className="h-4 w-4 mr-2" />
+                              <RefreshCw className="h-4 w-4 mr-2" />
                             )}
-                            Criar no Asaas
+                            Sincronizar Status
                           </DropdownMenuItem>
-                        )}
-                        {asaasEnabled && account.asaas_payment_id && (
-                          <>
-                            <DropdownMenuItem 
-                              onClick={() => handleSyncFromAsaas(account)}
-                              disabled={syncing === account.id}
-                            >
-                              {syncing === account.id ? (
-                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                              )}
-                              Sincronizar Status
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setAsaasDetailsModal({ open: true, account })}>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Detalhes Asaas
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPixQRCodeModal({ open: true, account })}>
-                              <QrCode className="h-4 w-4 mr-2" />
-                              QR Code PIX
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                          </>
-                        )}
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(account)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                          <DropdownMenuItem onClick={() => setAsaasDetailsModal({ open: true, account })} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Detalhes Asaas
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setPixQRCodeModal({ open: true, account })} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <QrCode className="h-4 w-4 mr-2" />
+                            QR Code PIX
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(account)}
+                        className="text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
 
       {editingAccount && (
         <ReceivableFormModal

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const STATUS_COLORS = {
   active: 'hsl(var(--accent))',
@@ -93,70 +92,47 @@ export function DomainsBarChart({ startDate, endDate }: DomainsBarChartProps) {
 
   if (loading) {
     return (
-      <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">Domínios</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Globe className="h-4 w-4 text-primary" />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[180px] flex items-center justify-center">
-            <div className="animate-pulse space-y-3 w-full">
-              <div className="h-2.5 bg-muted rounded-full" />
-              <div className="h-2.5 bg-muted rounded-full w-3/4" />
-              <div className="h-2.5 bg-muted rounded-full w-1/2" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border bg-card">
+        <div className="px-6 py-4 border-b">
+          <span className="text-sm font-semibold text-foreground">Domínios</span>
+        </div>
+        <div className="px-6 py-6 space-y-4">
+          <div className="h-2 bg-muted rounded-full animate-pulse" />
+          <div className="h-2 bg-muted rounded-full w-3/4 animate-pulse" />
+          <div className="h-2 bg-muted rounded-full w-1/2 animate-pulse" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Globe className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-semibold">Domínios</CardTitle>
-              <p className="text-2xl font-bold">{total}</p>
-            </div>
+    <div className="rounded-xl border bg-card">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <span className="text-sm font-semibold text-foreground">Domínios</span>
+      </div>
+
+      {/* Total */}
+      <div className="px-6 pt-5 pb-4">
+        <p className="text-[11px] text-muted-foreground mb-1">Total registrados</p>
+        <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{total}</p>
+      </div>
+
+      {/* Items */}
+      <div className="border-t">
+        {data.map((item, index) => (
+          <div
+            key={index}
+            className={cn(
+              "flex items-center justify-between px-6 py-3.5",
+              index < data.length - 1 && "border-b"
+            )}
+          >
+            <span className="text-[13px] text-muted-foreground">{item.label}</span>
+            <span className="text-[15px] font-semibold tabular-nums text-foreground">{item.count}</span>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {data.map((item, index) => (
-            <div key={index} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="h-2.5 w-2.5 rounded-full" 
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="font-medium text-muted-foreground">{item.label}</span>
-                </div>
-                <span className="font-semibold">{item.count}</span>
-              </div>
-              <div className="relative h-2 bg-muted/50 rounded-full overflow-hidden">
-                <div
-                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
-                  style={{
-                    width: `${(item.count / maxValue) * 100}%`,
-                    backgroundColor: item.color,
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </div>
   );
 }

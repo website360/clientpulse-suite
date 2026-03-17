@@ -314,48 +314,49 @@ export default function Tickets() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Tickets</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie todos os tickets de suporte
-            </p>
-          </div>
-        {userRole === 'admin' && (
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => {
-                  const link = `${window.location.origin}/abrir-chamado`;
-                  navigator.clipboard.writeText(link);
-                  toastInfo('Link copiado!', 'O link do formulário público foi copiado para a área de transferência.');
-                }} 
-                size="lg" 
-                variant="outline" 
-                className="gap-2"
-              >
-                <Link2 className="h-4 w-4" />
-                Copiar Link Externo
-              </Button>
-              <Button 
-                onClick={() => navigate('/ticket-metrics')} 
-                size="lg" 
-                variant="outline" 
-                className="gap-2"
-              >
-                <TrendingUp className="h-4 w-4" />
-                Métricas
-              </Button>
-              <Button onClick={() => setNewTicketModalOpen(true)} size="lg" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Ticket
-              </Button>
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Tickets</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie todos os tickets de suporte
+              </p>
             </div>
-          )}
+          {userRole === 'admin' && (
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={() => {
+                    const link = `${window.location.origin}/abrir-chamado`;
+                    navigator.clipboard.writeText(link);
+                    toastInfo('Link copiado!', 'O link do formulário público foi copiado para a área de transferência.');
+                  }} 
+                  size="lg" 
+                  variant="outline" 
+                  className="gap-2 h-11"
+                >
+                  <Link2 className="h-4 w-4" />
+                  Copiar Link Externo
+                </Button>
+                <Button 
+                  onClick={() => navigate('/ticket-metrics')} 
+                  size="lg" 
+                  variant="outline" 
+                  className="gap-2 h-11"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Métricas
+                </Button>
+                <Button onClick={() => setNewTicketModalOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+                  Novo Ticket
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
           <TicketFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 

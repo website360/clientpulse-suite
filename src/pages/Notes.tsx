@@ -116,20 +116,23 @@ export default function Notes() {
   };
   return <DashboardLayout breadcrumbLabel="Ideias e Anotações">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Ideias e Anotações</h1>
-            <p className="text-muted-foreground mt-1">
-              Organize suas ideias com texto, links, imagens e tags
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Ideias e Anotações</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Organize suas ideias com texto, links, imagens e tags
+              </p>
+            </div>
+            <Button onClick={() => setModalOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Nova Anotação
+            </Button>
           </div>
-          <Button onClick={() => setModalOpen(true)} className="gap-2 py-px">
-            <Plus className="h-4 w-4" />
-            Nova Anotação
-          </Button>
         </div>
 
-        <NoteFilters searchQuery={searchQuery} onSearchChange={setSearchQuery} availableTags={availableTags} selectedTagIds={selectedTagIds} onTagToggle={handleTagToggle} />
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+          <NoteFilters searchQuery={searchQuery} onSearchChange={setSearchQuery} availableTags={availableTags} selectedTagIds={selectedTagIds} onTagToggle={handleTagToggle} />
+        </div>
 
         {loading ? <div className="flex items-center justify-center py-12">
             <div className="text-muted-foreground">Carregando anotações...</div>

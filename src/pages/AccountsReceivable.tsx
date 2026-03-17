@@ -62,10 +62,12 @@ const AccountsReceivable = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-            <p className="text-muted-foreground">Gerencie contas a pagar e receber</p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Financeiro</h1>
+              <p className="text-[15px] text-muted-foreground">Gerencie contas a pagar e receber</p>
+            </div>
           </div>
         </div>
 

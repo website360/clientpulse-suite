@@ -105,20 +105,23 @@ const Tasks = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Tarefas</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas tarefas e sincronize com Google Calendar
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Tarefas</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie suas tarefas e sincronize com Google Calendar
+              </p>
+            </div>
+            <Button onClick={() => setIsFormOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Nova Tarefa
+            </Button>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Tarefa
-          </Button>
         </div>
 
-        <TaskFilters filters={filters} onFiltersChange={setFilters} />
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+          <TaskFilters filters={filters} onFiltersChange={setFilters} />
+        </div>
 
         <Tabs defaultValue="list" className="space-y-4">
           <TabsList>

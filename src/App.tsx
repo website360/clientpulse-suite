@@ -47,6 +47,7 @@ const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
 
 const BroadcastMessages = lazy(() => import("./pages/BroadcastMessages"));
+const Messages = lazy(() => import("./pages/Messages"));
 
 // Client Portal
 const ClientDashboard = lazy(() => import('./pages/portal/Dashboard'));
@@ -129,6 +130,7 @@ const App = () => (
                     <Route path="/projetos/:id" element={<ProjectDetail />} />
                     
                     <Route path="/broadcast-messages" element={<BroadcastMessages />} />
+                    <Route path="/messages" element={<Messages />} />
                     <Route path="/admin/base-conhecimento" element={<KnowledgeBase />} />
                     <Route path="/departments" element={<Navigate to="/settings" replace />} />
                     <Route path="/settings" element={<Settings />} />

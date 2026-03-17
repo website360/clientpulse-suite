@@ -40,11 +40,15 @@ export default function Reports() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Relatórios</h1>
-          <p className="text-sm text-muted-foreground">
-            Gere relatórios detalhados e exporte dados
-          </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Relatórios</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gere relatórios detalhados e exporte dados
+              </p>
+            </div>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="financial" className="space-y-6">

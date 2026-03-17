@@ -148,84 +148,100 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="card-elevated">
-        <Table>
-        <TableHeader>
-          <TableRow>
-            {!hideClientColumn && <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />}
-            <SortableTableHead column="name" label="Projeto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <SortableTableHead column="project_type_id" label="Tipo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <SortableTableHead column="progress" label="Progresso" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <SortableTableHead column="due_date" label="Prazo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {projects.map((project, index) => {
-            return (
-              <TableRow 
-                key={project.id}
-                className="hover:bg-muted/30 animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {!hideClientColumn && (
-                  <TableCell>
-                    <ClientNameCell client={project.clients || {}} />
-                  </TableCell>
-                )}
-                <TableCell className="font-medium">{project.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>
-                    {project.project_types?.name}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <ProjectProgress projectId={project.id} />
-                </TableCell>
-                <TableCell>
-                  <Badge className={statusColors[project.status]}>
-                    {statusLabels[project.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {project.due_date ? format(parseISO(project.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/projetos/${project.id}`)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(project)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => setProjectToDelete({ id: project.id, name: project.name })}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </Card>
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-3 bg-muted/20 rounded-xl`}>
+          {!hideClientColumn && (
+            <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('client_id')}>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente {sortColumn === 'client_id' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+            </div>
+          )}
+          <div className="col-span-3 cursor-pointer" onClick={() => onSort?.('name')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Projeto {sortColumn === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort?.('project_type_id')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tipo {sortColumn === 'project_type_id' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('progress')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Progresso {sortColumn === 'progress' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('status')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort?.('due_date')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Prazo {sortColumn === 'due_date' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Project Rows as Cards */}
+        {projects.map((project, index) => (
+          <Card 
+            key={project.id}
+            onClick={() => navigate(`/projetos/${project.id}`)}
+            className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer"
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-4 items-center`}>
+              {!hideClientColumn && (
+                <div className="col-span-2">
+                  <ClientNameCell client={project.clients || {}} />
+                </div>
+              )}
+              <div className="col-span-3">
+                <p className="text-[14px] font-medium text-foreground">{project.name}</p>
+              </div>
+              <div className="col-span-1">
+                <Badge variant="outline" className="text-[12px] whitespace-nowrap" style={{ backgroundColor: `${project.project_types?.color}20`, color: project.project_types?.color }}>
+                  {project.project_types?.name}
+                </Badge>
+              </div>
+              <div className="col-span-2">
+                <ProjectProgress projectId={project.id} />
+              </div>
+              <div className="col-span-2">
+                <Badge className={`${statusColors[project.status]} text-[12px]`}>
+                  {statusLabels[project.status]}
+                </Badge>
+              </div>
+              <div className="col-span-1">
+                <p className="text-[14px] text-muted-foreground">
+                  {project.due_date ? format(parseISO(project.due_date), 'dd/MM/yy', { locale: ptBR }) : '-'}
+                </p>
+              </div>
+              <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/projetos/${project.id}`); }} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalhes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={(e) => { e.stopPropagation(); setProjectToDelete({ id: project.id, name: project.name }); }}
+                      className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
     </>
   );
 }

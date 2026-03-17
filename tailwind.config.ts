@@ -66,14 +66,14 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Montserrat', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['SF Mono', 'Roboto Mono', 'monospace'],
+        sans: ['Urbanist', 'Urbanist Fallback', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SF Mono', 'Roboto Mono', 'monospace'],
       },
       boxShadow: {
-        'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'md': '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-        'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-        'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+        'sm': '0 1px 2px 0 rgb(0 0 0 / 0.04)',
+        'md': '0 2px 8px -2px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.03)',
+        'lg': '0 4px 16px -4px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.03)',
+        'xl': '0 8px 30px -8px rgb(0 0 0 / 0.1), 0 4px 8px -4px rgb(0 0 0 / 0.04)',
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Globe, Calendar, Shield, Pencil, Trash2, MoreVertical } from 'lucide-react';
+import { Globe, Calendar, Shield, Pencil, Trash2, MoreVertical, Circle } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { toast } from 'sonner';
@@ -187,102 +187,124 @@ export function DomainTable({ onEdit, currentPage, pageSize, sortColumn, sortDir
 
   return (
     <>
-      <Card className="card-elevated">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead column="client_id" label="Cliente" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="domain" label="Domínio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="expires_at" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="owner" label="Proprietário" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {domains.map((domain, index) => (
-              <TableRow 
-                key={domain.id}
-                className="hover:bg-muted/30 animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <TableCell>
-                  <ClientNameCell client={domain.clients} />
-                </TableCell>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    {domain.domain}
-                    {domain.is_cloudflare && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Shield className="h-4 w-4 text-orange-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Gerenciado pela Cloudflare</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy")}
-                    </span>
-                    {isExpired(domain.expires_at) && (
-                      <Badge variant="destructive">Vencido</Badge>
-                    )}
-                    {!isExpired(domain.expires_at) && isExpiringSoon(domain.expires_at) && (
-                      <Badge variant="secondary" className="bg-warning/20 text-warning">
-                        Vence em breve
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge 
-                    className={
-                      domain.owner === 'agency' 
-                        ? 'bg-[#fdc101] text-[#1A3366] hover:bg-[#fdc101]/80' 
-                        : 'bg-[#1A3366] text-[#ffffff] hover:bg-[#1A3366]/80'
-                    }
-                  >
-                    {getOwnerLabel(domain.owner)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditingDomain(domain)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => setDeletingDomain(domain)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+          <div className="col-span-3 cursor-pointer" onClick={() => onSort('client_id')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente {sortColumn === 'client_id' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-3 cursor-pointer" onClick={() => onSort('domain')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Domínio {sortColumn === 'domain' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-3 cursor-pointer" onClick={() => onSort('expires_at')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Vencimento {sortColumn === 'expires_at' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('owner')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Proprietário {sortColumn === 'owner' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Domain Rows as Cards */}
+        {domains.map((domain, index) => (
+          <Card 
+            key={domain.id}
+            className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group"
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+              {/* Cliente */}
+              <div className="col-span-3">
+                <ClientNameCell client={domain.clients} />
+              </div>
+
+              {/* Domínio */}
+              <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[14px] font-medium text-foreground">{domain.domain}</span>
+                  {domain.is_cloudflare && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Shield className="h-4 w-4 text-orange-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerenciado pela Cloudflare</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
+
+              {/* Vencimento */}
+              <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[14px] text-muted-foreground">
+                    {format(parse(domain.expires_at, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy")}
+                  </span>
+                  {isExpired(domain.expires_at) && (
+                    <Badge variant="default" className="bg-red-50 text-red-700 border-0 hover:bg-red-50 font-medium px-3 py-1 flex items-center gap-1.5 w-fit">
+                      <Circle className="h-2 w-2 fill-red-500 text-red-500" />
+                      Vencido
+                    </Badge>
+                  )}
+                  {!isExpired(domain.expires_at) && isExpiringSoon(domain.expires_at) && (
+                    <Badge variant="default" className="bg-orange-50 text-orange-700 border-0 hover:bg-orange-50 font-medium px-3 py-1 flex items-center gap-1.5 w-fit">
+                      <Circle className="h-2 w-2 fill-orange-500 text-orange-500" />
+                      Vence em breve
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Proprietário */}
+              <div className="col-span-2">
+                <Badge 
+                  variant="default"
+                  className={
+                    domain.owner === 'agency' 
+                      ? 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50 font-medium px-3 py-1 flex items-center gap-1.5 w-fit' 
+                      : 'bg-blue-50 text-blue-700 border-0 hover:bg-blue-50 font-medium px-3 py-1 flex items-center gap-1.5 w-fit'
+                  }
+                >
+                  <Circle className={domain.owner === 'agency' ? 'h-2 w-2 fill-amber-500 text-amber-500' : 'h-2 w-2 fill-blue-500 text-blue-500'} />
+                  {getOwnerLabel(domain.owner)}
+                </Badge>
+              </div>
+
+              {/* Ações */}
+              <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                    <DropdownMenuItem onClick={() => setEditingDomain(domain)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setDeletingDomain(domain)}
+                      className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       <DomainFormModal
         isOpen={!!editingDomain}

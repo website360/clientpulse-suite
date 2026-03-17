@@ -74,13 +74,19 @@ export default function Projects() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Projetos</h1>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Projeto
-          </Button>
+      <div className="space-y-6">
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Projetos</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie seus projetos e aprovações
+              </p>
+            </div>
+            <Button onClick={() => setIsModalOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Novo Projeto
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="projects" className="space-y-4">
@@ -90,7 +96,9 @@ export default function Projects() {
           </TabsList>
 
           <TabsContent value="projects" className="space-y-4">
-            <ProjectFilters filters={filters} onFiltersChange={setFilters} />
+            <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+              <ProjectFilters filters={filters} onFiltersChange={setFilters} />
+            </div>
 
             <ProjectTable
               projects={projects || []}

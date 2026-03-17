@@ -141,24 +141,31 @@ export default function Contracts() {
   return (
     <DashboardLayout breadcrumbLabel="Contratos">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Contratos</h1>
-          <div className="flex items-center gap-2">
-            <Link to="/contracts/templates">
-              <Button variant="ghost" size="icon" title="Gerenciar Templates">
-                <Settings2 className="h-4 w-4" />
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Contratos</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie seus contratos e documentos
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to="/contracts/templates">
+                <Button variant="outline" size="lg" className="gap-2 h-11">
+                  <Settings2 className="h-4 w-4" />
+                  Templates
+                </Button>
+              </Link>
+              <Link to="/contracts/generator">
+                <Button variant="outline" size="lg" className="gap-2 h-11">
+                  <Wand2 className="h-4 w-4" />
+                  Gerar Contrato
+                </Button>
+              </Link>
+              <Button onClick={() => setIsFormOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+                Novo Contrato
               </Button>
-            </Link>
-            <Link to="/contracts/generator">
-              <Button variant="outline">
-                <Wand2 className="h-4 w-4 mr-2" />
-                Gerar Contrato
-              </Button>
-            </Link>
-            <Button onClick={() => setIsFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Contrato
-            </Button>
+            </div>
           </div>
         </div>
 
@@ -177,7 +184,9 @@ export default function Contracts() {
           </Card>
         ) : (
           <div className="space-y-4">
-            <ContractFilters filters={filters} onFiltersChange={setFilters} />
+            <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+              <ContractFilters filters={filters} onFiltersChange={setFilters} />
+            </div>
             <ContractTable
               contracts={contracts}
               onEdit={handleEdit}

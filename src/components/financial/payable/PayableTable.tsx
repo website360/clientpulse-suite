@@ -368,90 +368,113 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
 
   return (
     <>
-      <Card className="card-elevated">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead column="description" label="Descrição" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead>Fornecedor</TableHead>
-              <SortableTableHead column="category" label="Categoria" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead>Ocorrência</TableHead>
-              <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="due_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accounts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  Nenhuma conta encontrada
-                </TableCell>
-              </TableRow>
-            ) : (
-              accounts.map((account, index) => (
-                <TableRow 
-                  key={account.id}
-                  className="hover:bg-muted/30 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <TableCell className="font-medium">{account.description}</TableCell>
-                  <TableCell>{account.supplier?.name}</TableCell>
-                  <TableCell>{account.category}</TableCell>
-                  <TableCell className="capitalize">
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('description')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição {sortColumn === 'description' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Fornecedor</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('category')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria {sortColumn === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ocorrência</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('amount')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Valor {sortColumn === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('due_date')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Vencimento {sortColumn === 'due_date' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('status')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Rows as Cards */}
+        {accounts.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">Nenhuma conta encontrada</div>
+        ) : (
+          accounts.map((account, index) => (
+            <Card 
+              key={account.id}
+              className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group"
+              style={{ animationDelay: `${index * 30}ms` }}
+            >
+              <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                <div className="col-span-2">
+                  <p className="text-[14px] font-medium text-foreground truncate">{account.description}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[14px] text-foreground truncate">{account.supplier?.name}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-[14px] text-foreground truncate">{account.category}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[14px] text-foreground capitalize">
                     {account.occurrence_type === 'unica' ? 'Única' : account.occurrence_type}
                     {account.occurrence_type === 'parcelada' && account.installment_number && account.total_installments && (
                       <span className="ml-1">
                         {String(account.installment_number).padStart(2, '0')}/{String(account.total_installments).padStart(2, '0')}
                       </span>
                     )}
-                  </TableCell>
-                  <TableCell>{formatCurrency(account.amount)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {(() => {
-                        const [y, m, d] = account.due_date.split('-');
-                        return `${d}/${m}/${y}`;
-                      })()}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(account.status, account.due_date)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(account)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
+                  </p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-[14px] font-medium text-foreground">{formatCurrency(account.amount)}</p>
+                </div>
+                <div className="col-span-2">
+                  <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {(() => {
+                      const [y, m, d] = account.due_date.split('-');
+                      return `${d}/${m}/${y}`;
+                    })()}
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  {getStatusBadge(account.status, account.due_date)}
+                </div>
+                <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                      <DropdownMenuItem onClick={() => handleEdit(account)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      {account.status === 'pending' && (
+                        <DropdownMenuItem onClick={() => handleMarkAsPaid(account)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Marcar como Pago
                         </DropdownMenuItem>
-                        {account.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleMarkAsPaid(account)}>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Marcar como Pago
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(account)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                      )}
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(account)}
+                        className="text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
 
       {editingAccount && (
         <PayableFormModal

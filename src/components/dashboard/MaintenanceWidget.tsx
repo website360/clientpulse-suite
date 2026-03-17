@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Wrench, CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -19,101 +17,51 @@ export function MaintenanceWidget({ stats }: MaintenanceWidgetProps) {
   const completionRate = total > 0 ? Math.round((stats.done / total) * 100) : 0;
 
   const items = [
-    {
-      label: 'Realizadas',
-      value: stats.done,
-      icon: CheckCircle,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bg: 'bg-emerald-500/10',
-    },
-    {
-      label: 'Aguardando',
-      value: stats.pending,
-      icon: Clock,
-      color: 'text-amber-600 dark:text-amber-400',
-      bg: 'bg-amber-500/10',
-    },
-    {
-      label: 'Atrasadas',
-      value: stats.overdue,
-      icon: AlertTriangle,
-      color: 'text-red-600 dark:text-red-400',
-      bg: 'bg-red-500/10',
-    },
+    { label: 'Realizadas', value: stats.done },
+    { label: 'Aguardando', value: stats.pending },
+    { label: 'Atrasadas', value: stats.overdue },
   ];
 
   return (
-    <Card className="h-full border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center rounded-lg bg-cyan-500/10 p-2">
-              <Wrench className="h-5 w-5 text-cyan-600" />
-            </div>
-            <CardTitle className="text-base font-semibold">Manutenções</CardTitle>
-          </div>
-          <Link to="/manutencoes">
-            <Button variant="ghost" size="sm" className="text-primary">
-              Ver todas
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Completion Rate Ring */}
-        <div className="flex items-center justify-center py-4">
-          <div className="relative">
-            <svg className="h-28 w-28 -rotate-90">
-              <circle
-                cx="56"
-                cy="56"
-                r="48"
-                stroke="currentColor"
-                strokeWidth="8"
-                fill="none"
-                className="text-muted/30"
-              />
-              <circle
-                cx="56"
-                cy="56"
-                r="48"
-                stroke="currentColor"
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={301.6}
-                strokeDashoffset={301.6 - (301.6 * completionRate) / 100}
-                className="text-cyan-500 transition-all duration-500"
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-              <span className="text-2xl font-bold leading-none">{completionRate}%</span>
-              <span className="text-xs text-muted-foreground leading-none">Concluído</span>
-            </div>
-          </div>
-        </div>
+    <div className="h-full rounded-xl border bg-card">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <span className="text-sm font-semibold text-foreground">Manutenções</span>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2">
-          {items.map((item) => (
-            <div 
-              key={item.label}
-              className={cn(
-                "flex flex-col items-center rounded-lg p-3",
-                item.bg
-              )}
-            >
-              <item.icon className={cn("h-5 w-5 mb-1", item.color)} />
-              <span className="text-lg font-bold">{item.value}</span>
-              <span className="text-xs text-muted-foreground text-center">
-                {item.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+      {/* Total + completion */}
+      <div className="px-6 pt-5 pb-4">
+        <p className="text-[11px] text-muted-foreground mb-1">Taxa de conclusão</p>
+        <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{completionRate}%</p>
+        <p className="text-[11px] text-muted-foreground mt-1">{total} manutenções no total</p>
+      </div>
+
+      {/* Items */}
+      <div className="border-t">
+        {items.map((item, index) => (
+          <div
+            key={item.label}
+            className={cn(
+              "flex items-center justify-between px-6 py-3.5",
+              index < items.length - 1 && "border-b"
+            )}
+          >
+            <span className="text-[13px] text-muted-foreground">{item.label}</span>
+            <span className="text-[15px] font-semibold tabular-nums text-foreground">{item.value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-3">
+        <Link
+          to="/manutencoes"
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Ver todas
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </div>
   );
 }

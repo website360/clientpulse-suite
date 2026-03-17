@@ -210,28 +210,42 @@ export default function TicketMetrics() {
   return (
     <DashboardLayout breadcrumbLabel="Métricas de Tickets">
       <div className="space-y-6">
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Métricas de Tickets</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Acompanhe o desempenho do suporte
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Filters */}
-        <div className="flex flex-wrap gap-4">
-          <DateRangeFilter
-            preset={preset}
-            onPresetChange={setPreset}
-            startDate={dateRange.startDate}
-            endDate={dateRange.endDate}
-          />
-          
-          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Todos os departamentos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os departamentos</SelectItem>
-              {departments?.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id}>
-                  {dept.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+          <div className="flex flex-wrap gap-4">
+            <DateRangeFilter
+              preset={preset}
+              onPresetChange={setPreset}
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+            />
+            
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Todos os departamentos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os departamentos</SelectItem>
+                {departments?.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Key Metrics Cards */}

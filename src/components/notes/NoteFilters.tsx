@@ -32,7 +32,8 @@ export function NoteFilters({
           placeholder="Buscar anotações..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-11 h-11 text-base"
+          className="pl-11 text-base"
+          style={{ height: '40px' }}
         />
       </div>
 

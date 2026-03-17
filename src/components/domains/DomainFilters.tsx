@@ -25,7 +25,8 @@ export function DomainFilters({ filters, onFiltersChange }: DomainFiltersProps) 
           placeholder="Buscar por domínio..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="pl-9 h-10"
+          className="pl-9"
+          style={{ height: '40px' }}
         />
       </div>
 

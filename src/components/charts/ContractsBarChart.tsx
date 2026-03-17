@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const STATUS_COLORS = {
   pending_signature: 'hsl(270 70% 70%)',
@@ -128,70 +127,45 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
 
   if (loading) {
     return (
-      <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">Contratos</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-              <FileText className="h-4 w-4 text-accent" />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[180px] flex items-center justify-center">
-            <div className="animate-pulse space-y-3 w-full">
-              <div className="h-2.5 bg-muted rounded-full" />
-              <div className="h-2.5 bg-muted rounded-full w-3/4" />
-              <div className="h-2.5 bg-muted rounded-full w-1/2" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border bg-card">
+        <div className="px-6 py-4 border-b">
+          <span className="text-sm font-semibold text-foreground">Contratos</span>
+        </div>
+        <div className="px-6 py-6 space-y-4">
+          <div className="h-2 bg-muted rounded-full animate-pulse" />
+          <div className="h-2 bg-muted rounded-full w-3/4 animate-pulse" />
+          <div className="h-2 bg-muted rounded-full w-1/2 animate-pulse" />
+        </div>
+      </div>
     );
   }
 
+  const visibleData = data.filter((item) => item.count > 0);
+  const displayData = visibleData.length > 0 ? visibleData : data;
+
   return (
-    <Card className="border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-semibold">Contratos</CardTitle>
-              <p className="text-2xl font-bold">{total}</p>
-            </div>
+    <div className="rounded-xl border bg-card">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <span className="text-sm font-semibold text-foreground">Contratos</span>
+        <span className="text-2xl font-bold tracking-tight tabular-nums text-foreground">{total}</span>
+      </div>
+
+      {/* Items */}
+      <div>
+        {displayData.map((item, index) => (
+          <div
+            key={index}
+            className={cn(
+              "flex items-center justify-between px-6 py-2.5",
+              index < displayData.length - 1 && "border-b"
+            )}
+          >
+            <span className="text-[13px] text-muted-foreground">{item.label}</span>
+            <span className="text-[15px] font-semibold tabular-nums text-foreground">{item.count}</span>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {data.map((item, index) => (
-            <div key={index} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="h-2.5 w-2.5 rounded-full" 
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="font-medium text-muted-foreground">{item.label}</span>
-                </div>
-                <span className="font-semibold">{item.count}</span>
-              </div>
-              <div className="relative h-2 bg-muted/50 rounded-full overflow-hidden">
-                <div
-                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out"
-                  style={{
-                    width: `${(item.count / maxValue) * 100}%`,
-                    backgroundColor: item.color,
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </div>
   );
 }

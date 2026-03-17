@@ -65,21 +65,22 @@ export default function Domains() {
   return (
     <DashboardLayout breadcrumbLabel="Domínios">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Domínios</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie os domínios dos seus clientes
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Domínios</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie os domínios dos seus clientes
+              </p>
+            </div>
+            <Button onClick={() => setIsModalOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Novo Domínio
+            </Button>
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Domínio
-          </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
           <DomainFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 

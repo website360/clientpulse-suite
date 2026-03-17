@@ -26,72 +26,58 @@ export function MetricCard({
   onClick,
   subtitle 
 }: MetricCardProps) {
-  const getIconStyles = () => {
+  const getIconColor = () => {
     switch (variant) {
       case 'success':
-        return {
-          bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-          icon: 'text-emerald-600 dark:text-emerald-400'
-        };
+        return 'text-emerald-600 dark:text-emerald-400';
       case 'destructive':
-        return {
-          bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-          icon: 'text-rose-600 dark:text-rose-400'
-        };
+        return 'text-red-600 dark:text-red-400';
       case 'warning':
-        return {
-          bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-          icon: 'text-amber-600 dark:text-amber-400'
-        };
+        return 'text-amber-600 dark:text-amber-400';
       case 'info':
-        return {
-          bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-          icon: 'text-blue-600 dark:text-blue-400'
-        };
+        return 'text-primary';
       default:
-        return {
-          bg: 'bg-primary/10 dark:bg-primary/20',
-          icon: 'text-primary'
-        };
+        return 'text-muted-foreground';
     }
   };
 
-  const styles = getIconStyles();
+  const iconColor = getIconColor();
 
   return (
     <Card 
       className={cn(
-        "group overflow-hidden border bg-card transition-all duration-300",
-        "hover:shadow-lg hover:border-primary/20",
-        onClick && "cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
+        "group border shadow-sm hover:shadow-md transition-all duration-200",
+        onClick && "cursor-pointer",
         className
       )}
       onClick={onClick}
     >
       <CardContent className="p-5">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           {/* Content */}
-          <div className="space-y-1 flex-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
               {title}
             </p>
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3 className="text-2xl font-bold tracking-tight leading-none text-foreground">
               {value}
             </h3>
             {subtitle && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] font-medium text-muted-foreground">
                 {subtitle}
               </p>
             )}
             {trend && (
               <div className={cn(
-                "flex items-center gap-1 text-xs font-medium mt-2",
-                trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1",
+                trend.isPositive 
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                  : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
               )}>
                 {trend.isPositive ? (
-                  <TrendingUp className="h-3.5 w-3.5" />
+                  <TrendingUp className="h-3 w-3" />
                 ) : (
-                  <TrendingDown className="h-3.5 w-3.5" />
+                  <TrendingDown className="h-3 w-3" />
                 )}
                 <span>{trend.value}</span>
               </div>
@@ -99,12 +85,8 @@ export function MetricCard({
           </div>
 
           {/* Icon */}
-          <div className={cn(
-            "h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0",
-            "transition-all duration-300 group-hover:scale-110",
-            styles.bg
-          )}>
-            <Icon className={cn("h-6 w-6", styles.icon)} strokeWidth={1.75} />
+          <div className="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-muted/60">
+            <Icon className={cn("h-5 w-5", iconColor)} strokeWidth={2} />
           </div>
         </div>
       </CardContent>

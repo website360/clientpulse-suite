@@ -1,11 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  ListTodo, 
-  Clock, 
-  AlertCircle, 
   ArrowRight,
   CheckCircle2,
   Circle,
@@ -13,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { AvatarInitials } from '@/components/ui/avatar-initials';
 
 interface Task {
   id: string;
@@ -40,66 +33,33 @@ interface TasksWidgetProps {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'done':
-      return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+      return <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />;
     case 'in_progress':
-      return <Timer className="h-4 w-4 text-blue-500" />;
+      return <Timer className="h-3.5 w-3.5 text-muted-foreground" />;
     default:
-      return <Circle className="h-4 w-4 text-muted-foreground" />;
+      return <Circle className="h-3.5 w-3.5 text-muted-foreground/40" />;
   }
 };
 
-const getStatusLabel = (status: string) => {
-  const statusMap: { [key: string]: string } = {
-    'todo': 'A fazer',
-    'in_progress': 'Em progresso',
-    'done': 'Concluída',
-    'cancelled': 'Cancelada'
-  };
-  return statusMap[status] || status;
-};
-
-const getPriorityBadge = (priority: string) => {
-  switch (priority) {
-    case 'high':
-      return <Badge variant="destructive" className="text-xs">Alta</Badge>;
-    case 'medium':
-      return <Badge variant="secondary" className="text-xs">Média</Badge>;
-    default:
-      return <Badge variant="outline" className="text-xs">Baixa</Badge>;
-  }
-};
-
-function TaskItem({ task }: { task: Task }) {
+function TaskItem({ task, isLast }: { task: Task; isLast: boolean }) {
   return (
     <div className={cn(
-      "group flex items-start gap-3 rounded-lg p-3",
-      "hover:bg-muted/50 transition-colors",
-      "border-b border-border/50 last:border-0"
+      "flex items-center gap-3 px-6 py-3",
+      !isLast && "border-b"
     )}>
-      <div className="pt-0.5">
+      <div className="shrink-0">
         {getStatusIcon(task.status)}
       </div>
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className={cn(
-            "text-sm font-medium truncate",
-            task.status === 'done' && "line-through text-muted-foreground"
-          )}>
-            {task.title}
-          </p>
-          {getPriorityBadge(task.priority)}
-        </div>
+      <div className="flex-1 min-w-0">
+        <p className={cn(
+          "text-[13px] font-medium truncate",
+          task.status === 'done' && "line-through text-muted-foreground"
+        )}>
+          {task.title}
+        </p>
         {task.client?.nickname && (
-          <div className="flex items-center gap-2">
-            <AvatarInitials name={task.client.nickname} size="xs" />
-            <span className="text-xs text-muted-foreground">
-              {task.client.nickname}
-            </span>
-          </div>
-        )}
-        {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {task.description}
+          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+            {task.client.nickname}
           </p>
         )}
       </div>
@@ -109,13 +69,8 @@ function TaskItem({ task }: { task: Task }) {
 
 function EmptyTasks({ type }: { type: 'recent' | 'urgent' }) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      {type === 'urgent' ? (
-        <AlertCircle className="h-10 w-10 text-muted-foreground/50 mb-3" />
-      ) : (
-        <ListTodo className="h-10 w-10 text-muted-foreground/50 mb-3" />
-      )}
-      <p className="text-sm text-muted-foreground">
+    <div className="flex items-center justify-center py-8 px-6">
+      <p className="text-[13px] text-muted-foreground">
         {type === 'urgent' 
           ? 'Nenhuma tarefa urgente' 
           : 'Nenhuma tarefa recente'}
@@ -126,62 +81,64 @@ function EmptyTasks({ type }: { type: 'recent' | 'urgent' }) {
 
 export function TasksWidget({ recentTasks, urgentTasks }: TasksWidgetProps) {
   return (
-    <Card className="h-full border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center rounded-lg bg-amber-500/10 p-2">
-              <ListTodo className="h-5 w-5 text-amber-600" />
-            </div>
-            <CardTitle className="text-base font-semibold">Tarefas</CardTitle>
-          </div>
-          <Link to="/tarefas">
-            <Button variant="ghost" size="sm" className="text-primary">
-              Ver todas
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs defaultValue="urgent" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="urgent" className="text-xs">
-              <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+    <div className="h-full rounded-xl border bg-card">
+      <Tabs defaultValue="urgent" className="h-full flex flex-col">
+        {/* Header with inline tabs */}
+        <div className="px-6 border-b">
+          <TabsList className="h-auto p-0 bg-transparent rounded-none gap-0">
+            <TabsTrigger
+              value="urgent"
+              className="relative rounded-none border-b-2 border-transparent px-3 py-3.5 text-[13px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent bg-transparent hover:text-foreground transition-colors"
+            >
               Urgentes ({urgentTasks.length})
             </TabsTrigger>
-            <TabsTrigger value="recent" className="text-xs">
-              <Clock className="h-3.5 w-3.5 mr-1.5" />
+            <TabsTrigger
+              value="recent"
+              className="relative rounded-none border-b-2 border-transparent px-3 py-3.5 text-[13px] font-medium text-muted-foreground data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent bg-transparent hover:text-foreground transition-colors"
+            >
               Recentes ({recentTasks.length})
             </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="urgent" className="mt-0">
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-h-0">
+          <TabsContent value="urgent" className="mt-0 h-full">
             {urgentTasks.length === 0 ? (
               <EmptyTasks type="urgent" />
             ) : (
-              <div className="max-h-[300px] overflow-y-auto">
-                {urgentTasks.map((task) => (
-                  <TaskItem key={task.id} task={task} />
+              <div className="max-h-[280px] overflow-y-auto">
+                {urgentTasks.map((task, i) => (
+                  <TaskItem key={task.id} task={task} isLast={i === urgentTasks.length - 1} />
                 ))}
               </div>
             )}
           </TabsContent>
-          
-          <TabsContent value="recent" className="mt-0">
+
+          <TabsContent value="recent" className="mt-0 h-full">
             {recentTasks.length === 0 ? (
               <EmptyTasks type="recent" />
             ) : (
-              <div className="max-h-[300px] overflow-y-auto">
-                {recentTasks.map((task) => (
-                  <TaskItem key={task.id} task={task} />
+              <div className="max-h-[280px] overflow-y-auto">
+                {recentTasks.map((task, i) => (
+                  <TaskItem key={task.id} task={task} isLast={i === recentTasks.length - 1} />
                 ))}
               </div>
             )}
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t px-6 py-3 mt-auto">
+          <Link
+            to="/tarefas"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Ver todas
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </Tabs>
+    </div>
   );
 }

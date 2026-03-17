@@ -213,17 +213,18 @@ export default function Maintenance() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Manutenção Preventiva</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerenciamento de manutenções preventivas dos clientes
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Manutenção Preventiva</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerenciamento de manutenções preventivas dos clientes
+              </p>
+            </div>
+            <Button onClick={() => setIsPlanFormOpen(true)} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Nova Manutenção
+            </Button>
           </div>
-          <Button onClick={() => setIsPlanFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Manutenção
-          </Button>
         </div>
 
         <Tabs defaultValue="plans" className="space-y-6">
@@ -233,24 +234,26 @@ export default function Maintenance() {
           </TabsList>
 
           <TabsContent value="plans" className="space-y-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <MaintenanceFilters filters={filters} onFiltersChange={setFilters} />
-              
-              <div className="flex items-center gap-1 border rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('table')}
-                >
-                  <TableIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('cards')}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
+            <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <MaintenanceFilters filters={filters} onFiltersChange={setFilters} />
+                
+                <div className="flex items-center gap-1 border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('table')}
+                  >
+                    <TableIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('cards')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 

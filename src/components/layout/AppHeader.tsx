@@ -1,4 +1,4 @@
-import { User, Moon, Sun, Plus } from 'lucide-react';
+import { User, Moon, Sun, Search, Command, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -118,30 +118,41 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
   const today = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR });
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 bg-gradient-to-r from-card/95 via-card/90 to-card/95 backdrop-blur-xl border-b border-border/50">
       <div className="flex h-16 items-center gap-4 px-6">
         <SidebarTrigger className="lg:hidden" />
         
-        {/* Page Title and Greeting */}
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold text-foreground">
+        {/* Page title & greeting */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-[19px] font-bold text-foreground tracking-tight">
             {currentPage.title}
           </h1>
-          <p className="text-xs text-muted-foreground capitalize hidden sm:block">
+          <p className="text-[13.5px] text-muted-foreground capitalize hidden sm:block">
             {today} • {getGreeting()}, {userName.split(' ')[0]}
           </p>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
+        {/* Right actions */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true });
+              document.dispatchEvent(event);
+            }}
+            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+
           <NotificationCenter />
 
-          {/* Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -149,38 +160,30 @@ export function AppHeader({ breadcrumbLabel }: AppHeaderProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
+              <button className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-accent transition-all duration-200 outline-none">
                 <AvatarInitials name={userName} avatarUrl={profile?.avatar_url} size="sm" />
-              </Button>
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="flex items-center gap-3 p-2">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg" sideOffset={8}>
+              <div className="flex items-center gap-3 p-3">
                 <AvatarInitials name={userName} avatarUrl={profile?.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{userName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  <p className="text-[14px] font-semibold truncate">{userName}</p>
+                  <p className="text-[12.5px] text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-lg mx-1">
                 <User className="mr-2 h-4 w-4" />
-                Perfil
+                Meu Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleTheme}>
-                {isDark ? (
-                  <>
-                    <Sun className="mr-2 h-4 w-4" />
-                    Modo Claro
-                  </>
-                ) : (
-                  <>
-                    <Moon className="mr-2 h-4 w-4" />
-                    Modo Escuro
-                  </>
-                )}
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-lg mx-1">
+                <Settings className="mr-2 h-4 w-4" />
+                Configurações
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-lg mx-1">
+                <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>
             </DropdownMenuContent>

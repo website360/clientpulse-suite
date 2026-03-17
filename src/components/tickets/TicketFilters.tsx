@@ -38,7 +38,7 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
   };
 
   return (
-    <>
+    <div className="flex flex-row items-center gap-4">
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -46,7 +46,8 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
           placeholder="Buscar tickets..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="pl-9 h-10"
+          className="pl-9"
+          style={{ height: '40px' }}
         />
       </div>
 
@@ -98,6 +99,6 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
           <SelectItem value="urgent">Urgente</SelectItem>
         </SelectContent>
       </Select>
-    </>
+    </div>
   );
 }

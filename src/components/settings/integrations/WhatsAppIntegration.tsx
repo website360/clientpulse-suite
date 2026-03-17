@@ -82,10 +82,24 @@ export function WhatsAppIntegration() {
           if (error) throw error;
         }
       }
+
+      // Auto-create instance on Evolution API when enabled
+      if (isActive && apiUrl && apiKey && instanceName) {
+        const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+          body: { action: "create_instance", instance_name: instanceName }
+        });
+        if (error) {
+          console.warn("Instance creation warning:", error.message);
+        } else if (data?.success) {
+          console.log("Instance created/verified on Evolution API:", data);
+        } else {
+          console.warn("Instance creation response:", data?.error || data);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-settings"] });
-      toast.success("Configurações salvas com sucesso!");
+      toast.success("Configurações salvas e instância criada na Evolution API!");
       if (isActive && apiUrl && apiKey && instanceName) {
         checkStatus();
       }

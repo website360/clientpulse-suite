@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -175,76 +168,83 @@ export default function Departments() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Departamentos</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie os departamentos do sistema
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Departamentos</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie os departamentos do sistema
+              </p>
+            </div>
+            <Button onClick={openNewModal} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Novo Departamento
+            </Button>
           </div>
-          <Button onClick={openNewModal} size="lg" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Departamento
-          </Button>
         </div>
 
-        <div className="rounded-lg border border-border bg-card">
+        <div className="space-y-2">
           {loading ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">Carregando departamentos...</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Cor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {departments.map((dept) => (
-                  <TableRow key={dept.id}>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
-                    <TableCell>{dept.description || '-'}</TableCell>
-                    <TableCell>
+            <>
+              {/* Header Row */}
+              <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+                <div className="col-span-3">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span>
+                </div>
+                <div className="col-span-4">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cor</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
+                </div>
+                <div className="col-span-1 text-right">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+                </div>
+              </div>
+
+              {/* Department Rows as Cards */}
+              {departments.map((dept, index) => (
+                <Card 
+                  key={dept.id}
+                  className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                    <div className="col-span-3">
+                      <p className="text-[14px] font-medium text-foreground">{dept.name}</p>
+                    </div>
+                    <div className="col-span-4">
+                      <p className="text-[14px] text-foreground">{dept.description || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="h-4 w-4 rounded"
-                          style={{ backgroundColor: dept.color }}
-                        />
-                        <span className="text-sm text-muted-foreground">{dept.color}</span>
+                        <div className="h-4 w-4 rounded" style={{ backgroundColor: dept.color }} />
+                        <span className="text-[14px] text-muted-foreground">{dept.color}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    <div className="col-span-2">
                       <Badge variant={dept.is_active ? 'default' : 'secondary'}>
                         {dept.is_active ? 'Ativo' : 'Inativo'}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(dept)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(dept.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                    <div className="col-span-1 flex items-center justify-end gap-2 flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(dept)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(dept.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </>
           )}
         </div>
 

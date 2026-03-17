@@ -459,13 +459,15 @@ export default function BroadcastMessages() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Disparos de Informações e Alertas</h1>
-            <p className="text-muted-foreground">
-              Envie mensagens personalizadas para múltiplos clientes via WhatsApp e E-mail
-            </p>
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Disparos de Informações e Alertas</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Envie mensagens personalizadas para múltiplos clientes via WhatsApp e E-mail
+              </p>
+            </div>
           </div>
         </div>
 
@@ -760,6 +762,7 @@ Gostaríamos de informar sobre o nosso recesso de fim de ano..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
+                    style={{ height: '40px' }}
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>

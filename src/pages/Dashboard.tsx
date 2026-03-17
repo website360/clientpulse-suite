@@ -386,54 +386,63 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header with Controls and Date Filter */}
+        {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          {userRole === 'admin' && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant={isEditMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={toggleEditMode}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                {isEditMode ? 'Salvar Layout' : 'Personalizar Dashboard'}
-              </Button>
-              {isEditMode && (
-                <>
-                  <Button variant="outline" size="sm" onClick={resetLayout}>
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Restaurar Padrão
-                  </Button>
-                  {availableWidgets.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Adicionar Widget
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        {availableWidgets.map((widgetType) => (
-                          <DropdownMenuItem
-                            key={widgetType}
-                            onClick={() => addWidget(widgetType)}
-                          >
-                            {WIDGET_CONFIGS[widgetType].title}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-          <DateRangeFilter
-            preset={preset}
-            onPresetChange={setPreset}
-            startDate={dateRange.startDate}
-            endDate={dateRange.endDate}
-          />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Visão geral do seu negócio
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {userRole === 'admin' && (
+              <>
+                <Button
+                  variant={isEditMode ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={toggleEditMode}
+                >
+                  <Settings className="h-3.5 w-3.5 mr-1.5" />
+                  {isEditMode ? 'Salvar' : 'Editar'}
+                </Button>
+                {isEditMode && (
+                  <>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={resetLayout}>
+                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                      Resetar
+                    </Button>
+                    {availableWidgets.length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 text-xs">
+                            <Plus className="h-3.5 w-3.5 mr-1.5" />
+                            Widget
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {availableWidgets.map((widgetType) => (
+                            <DropdownMenuItem
+                              key={widgetType}
+                              onClick={() => addWidget(widgetType)}
+                            >
+                              {WIDGET_CONFIGS[widgetType].title}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            <DateRangeFilter
+              preset={preset}
+              onPresetChange={setPreset}
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+            />
+          </div>
         </div>
 
         {loading ? (

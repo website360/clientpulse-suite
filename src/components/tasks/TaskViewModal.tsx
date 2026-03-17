@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Link2, Clock, AlertCircle } from "lucide-react";
+import { Calendar, User, Link2, Clock, AlertCircle, Circle } from "lucide-react";
 import { ClientNameCell } from "@/components/shared/ClientNameCell";
 
 interface TaskViewModalProps {
@@ -14,27 +14,57 @@ export function TaskViewModal({ open, onClose, task }: TaskViewModalProps) {
   if (!task) return null;
 
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: "secondary" | "default" | "outline"; className?: string }> = {
-      todo: { label: 'A Fazer', variant: 'secondary' },
-      in_progress: { label: 'Em Andamento', variant: 'default' },
-      done: { label: 'Concluído', variant: 'outline', className: 'bg-success/10 border-success text-success' },
+    const styles: Record<string, { badge: string; dot: string; label: string }> = {
+      todo: {
+        badge: 'bg-slate-50 text-slate-700 border-0 hover:bg-slate-50',
+        dot: 'h-2 w-2 fill-slate-400 text-slate-400',
+        label: 'A Fazer',
+      },
+      in_progress: {
+        badge: 'bg-blue-50 text-blue-700 border-0 hover:bg-blue-50',
+        dot: 'h-2 w-2 fill-blue-500 text-blue-500',
+        label: 'Em Andamento',
+      },
+      done: {
+        badge: 'bg-green-50 text-green-700 border-0 hover:bg-green-50',
+        dot: 'h-2 w-2 fill-green-500 text-green-500',
+        label: 'Concluído',
+      },
     };
-    const config = statusMap[status] || statusMap.todo;
+    const config = styles[status] || styles.todo;
     return (
-      <Badge variant={config.variant} className={config.className}>
+      <Badge variant="default" className={`${config.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}>
+        <Circle className={config.dot} />
         {config.label}
       </Badge>
     );
   };
 
   const getPriorityBadge = (priority: string) => {
-    const priorityMap = {
-      high: { label: 'Alta', variant: 'destructive' as const },
-      medium: { label: 'Média', variant: 'default' as const },
-      low: { label: 'Baixa', variant: 'outline' as const },
+    const styles: Record<string, { badge: string; dot: string; label: string }> = {
+      high: {
+        badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50',
+        dot: 'h-2 w-2 fill-red-500 text-red-500',
+        label: 'Alta',
+      },
+      medium: {
+        badge: 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50',
+        dot: 'h-2 w-2 fill-amber-500 text-amber-500',
+        label: 'Média',
+      },
+      low: {
+        badge: 'bg-gray-100 text-gray-600 border-0 hover:bg-gray-100',
+        dot: 'h-2 w-2 fill-gray-400 text-gray-400',
+        label: 'Baixa',
+      },
     };
-    const config = priorityMap[priority as keyof typeof priorityMap] || priorityMap.medium;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = styles[priority] || styles.medium;
+    return (
+      <Badge variant="default" className={`${config.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}>
+        <Circle className={config.dot} />
+        {config.label}
+      </Badge>
+    );
   };
 
   const formatDate = (dateString: string) => {

@@ -307,18 +307,19 @@ CONTRATADA: [NOME DA SUA EMPRESA]`;
   return (
     <DashboardLayout breadcrumbLabel="Templates de Contratos">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Templates de Contratos</h1>
-            <p className="text-muted-foreground">
-              Crie e gerencie modelos de contratos para diferentes tipos de serviço
-            </p>
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Templates de Contratos</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Crie e gerencie modelos de contratos para diferentes tipos de serviço
+              </p>
+            </div>
+            <Button onClick={handleCreate} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Novo Template
+            </Button>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Template
-          </Button>
         </div>
 
         {/* Templates Grid */}

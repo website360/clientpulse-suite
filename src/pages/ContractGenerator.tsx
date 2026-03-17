@@ -479,28 +479,30 @@ export default function ContractGenerator() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Gerador de Contratos</h1>
-            <p className="text-muted-foreground">
-              Crie contratos profissionais a partir de templates pré-definidos
-            </p>
-          </div>
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Gerador de Contratos</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Crie contratos profissionais a partir de templates pré-definidos
+              </p>
+            </div>
 
-          {/* Steps Indicator */}
-          <div className="flex items-center gap-2">
-            <Badge variant={step === 'select' ? 'default' : 'outline'} className="gap-1">
-              1. Template
-            </Badge>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <Badge variant={step === 'fill' ? 'default' : 'outline'} className="gap-1">
-              2. Preencher
-            </Badge>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <Badge variant={step === 'preview' ? 'default' : 'outline'} className="gap-1">
-              3. Visualizar
-            </Badge>
+            {/* Steps Indicator */}
+            <div className="flex items-center gap-2">
+              <Badge variant={step === 'select' ? 'default' : 'outline'} className="gap-1">
+                1. Template
+              </Badge>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <Badge variant={step === 'fill' ? 'default' : 'outline'} className="gap-1">
+                2. Preencher
+              </Badge>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <Badge variant={step === 'preview' ? 'default' : 'outline'} className="gap-1">
+                3. Visualizar
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -508,14 +510,16 @@ export default function ContractGenerator() {
         {step === 'select' && (
           <div className="space-y-4">
             {/* Search */}
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar template..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+            <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar template..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
 
             {/* Template Grid */}

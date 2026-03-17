@@ -1,6 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Carousel, 
   CarouselContent, 
@@ -8,12 +5,11 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from '@/components/ui/carousel';
-import { FolderKanban, Clock, ArrowRight, Calendar } from 'lucide-react';
+import { FolderKanban, ArrowRight, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { AvatarInitials } from '@/components/ui/avatar-initials';
 
 interface ProjectProgress {
   id: string;
@@ -29,148 +25,73 @@ interface ProjectsCarouselProps {
   projects: ProjectProgress[];
 }
 
-const getProgressColor = (progress: number) => {
-  if (progress >= 100) return 'bg-emerald-500';
-  if (progress >= 75) return 'bg-blue-500';
-  if (progress >= 50) return 'bg-amber-500';
-  if (progress >= 25) return 'bg-orange-500';
-  return 'bg-red-500';
-};
-
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case 'Em Andamento':
-      return 'default';
-    case 'Planejamento':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-};
-
 export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
   if (projects.length === 0) {
     return (
-      <Card className="border-dashed border-border/50">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <FolderKanban className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground text-center">
-            Nenhum projeto ativo no momento
-          </p>
-          <Link 
-            to="/projetos"
-            className="text-sm text-primary hover:underline mt-2"
-          >
-            Criar novo projeto
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-dashed bg-card flex flex-col items-center justify-center py-12">
+        <FolderKanban className="h-10 w-10 text-muted-foreground/20 mb-3" />
+        <p className="text-[13px] text-muted-foreground">Nenhum projeto ativo</p>
+        <Link to="/projetos" className="text-xs text-muted-foreground hover:text-foreground mt-2 transition-colors">
+          Criar novo projeto
+        </Link>
+      </div>
     );
   }
 
   return (
-    <Card className="h-full border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2">
-              <FolderKanban className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-semibold">Projetos Ativos</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                {projects.length} projeto{projects.length !== 1 ? 's' : ''} em andamento
-              </p>
-            </div>
-          </div>
-          <Link 
-            to="/projetos"
-            className="text-sm text-primary hover:underline flex items-center gap-1"
-          >
-            Ver todos
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </CardHeader>
+    <div className="h-full rounded-xl border bg-card">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <span className="text-sm font-semibold text-foreground">Projetos Ativos</span>
+        <span className="text-[13px] text-muted-foreground">{projects.length} projeto{projects.length !== 1 ? 's' : ''}</span>
+      </div>
 
-      <CardContent>
+      {/* Carousel */}
+      <div className="px-6 py-5">
         <Carousel className="w-full">
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-3">
             {projects.map((project) => (
-              <CarouselItem 
-                key={project.id} 
-                className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
-              >
+              <CarouselItem key={project.id} className="pl-3 md:basis-1/2 lg:basis-1/3">
                 <Link to={`/projetos/${project.id}`} className="block h-full">
-                  <Card className={cn(
-                    "h-full transition-all duration-200 border-border/50",
-                    "hover:shadow-lg hover:border-primary/20 cursor-pointer",
-                    "group"
-                  )}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs shrink-0"
-                        >
-                          {project.projectType}
-                        </Badge>
-                        <Badge variant={getStatusVariant(project.status)}>
-                          {project.status}
-                        </Badge>
-                      </div>
-                      <div className="pt-2">
-                        <CardTitle className="text-base line-clamp-1 group-hover:text-primary transition-colors">
-                          {project.name}
-                        </CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <AvatarInitials 
-                            name={project.clientName} 
-                            size="xs"
-                          />
-                          <span className="text-sm text-muted-foreground truncate">
-                            {project.clientName}
-                          </span>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      {/* Progress */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">Progresso</span>
-                          <span className="font-semibold">{project.progress}%</span>
-                        </div>
-                        <Progress 
-                          value={project.progress} 
-                          className="h-2"
-                          indicatorClassName={getProgressColor(project.progress)}
-                        />
-                      </div>
+                  <div className="h-full rounded-lg border p-4 hover:bg-muted/20 transition-colors cursor-pointer group">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-[11px] text-muted-foreground">{project.projectType}</span>
+                      <span className="text-[11px] text-muted-foreground">{project.status}</span>
+                    </div>
 
-                      {/* Due date */}
-                      {project.dueDate && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            Prazo: {format(new Date(project.dueDate), "dd MMM yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                    <p className="text-[13px] font-semibold text-foreground line-clamp-1">{project.name}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{project.clientName}</p>
+
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-[11px] text-muted-foreground">Progresso</span>
+                      <span className="text-[13px] font-semibold tabular-nums">{project.progress}%</span>
+                    </div>
+
+                    {project.dueDate && (
+                      <div className="flex items-center gap-1.5 mt-2 text-[11px] text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(project.dueDate), "dd MMM yyyy", { locale: ptBR })}
+                      </div>
+                    )}
+                  </div>
                 </Link>
               </CarouselItem>
             ))}
           </CarouselContent>
-          
           <div className="flex justify-end gap-2 mt-4">
-            <CarouselPrevious className="static translate-y-0" />
-            <CarouselNext className="static translate-y-0" />
+            <CarouselPrevious className="static translate-y-0 h-7 w-7" />
+            <CarouselNext className="static translate-y-0 h-7 w-7" />
           </div>
         </Carousel>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-3">
+        <Link to="/projetos" className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors">
+          Ver todos
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </div>
   );
 }

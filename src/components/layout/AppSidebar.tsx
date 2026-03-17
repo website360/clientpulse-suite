@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, 
   FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, 
-  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut
+  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut, MessageCircle
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -185,6 +185,7 @@ export function AppSidebar() {
   // Menu sections for admin
   const mainMenuItems = [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+    { title: 'Mensagens', url: '/messages', icon: MessageCircle },
     { title: 'Clientes', url: '/clients', icon: Users },
     { title: 'Tickets', url: '/tickets', icon: Ticket, badge: ticketCount },
     { title: 'Tarefas', url: '/tasks', icon: CheckSquare, badge: taskCount },
@@ -219,7 +220,7 @@ export function AppSidebar() {
 
   const renderMenuItem = (item: any) => {
     const isActive = location.pathname === item.url || 
-      (item.url !== '/' && location.pathname.startsWith(item.url));
+      (item.url !== '/' && item.url !== '/portal' && location.pathname.startsWith(item.url));
 
     return (
       <SidebarMenuItem key={item.title}>
@@ -230,42 +231,36 @@ export function AppSidebar() {
             className={cn(
               "transition-all duration-200 rounded-lg group/item",
               isActive
-                ? 'bg-primary text-white shadow-sm hover:text-white'
-                : 'hover:bg-primary/90 text-muted-foreground hover:text-white',
+                ? 'bg-primary text-[#f9f9f9] font-semibold'
+                : 'text-sidebar-foreground hover:text-primary hover:bg-primary/10',
               !isCollapsed && 'px-3'
             )}
             title={isCollapsed ? item.title : undefined}
           >
             <item.icon className={cn(
-              "flex-shrink-0 transition-all duration-200",
-              isCollapsed ? "h-5 w-5" : "h-4 w-4",
-              isActive ? 'text-white' : 'text-muted-foreground group-hover/item:text-white'
+              "flex-shrink-0",
+              isCollapsed ? "h-5 w-5" : "h-[19px] w-[19px]",
+              isActive ? 'text-[#f9f9f9]' : 'text-sidebar-foreground/80 group-hover/item:text-primary'
             )} />
             {!isCollapsed && (
               <div className="flex items-center justify-between flex-1">
-                <span className="text-sm font-medium">{item.title}</span>
+                <span className="text-[14.5px]">{item.title}</span>
                 <div className="flex items-center gap-1.5">
                   {item.badge > 0 && (
-                    <Badge 
-                      variant="secondary" 
-                      className={cn(
-                        "h-5 min-w-[20px] px-1.5 text-xs font-medium transition-colors",
-                        isActive 
-                          ? "bg-white/20 text-white" 
-                          : "bg-primary/10 text-primary group-hover/item:bg-white/20 group-hover/item:text-white"
-                      )}
-                    >
+                    <span className={cn(
+                      "inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[11px] font-semibold rounded-full",
+                      isActive 
+                        ? "bg-[#f9f9f9]/20 text-[#f9f9f9]" 
+                        : "bg-sidebar-accent text-sidebar-foreground/70"
+                    )}>
                       {item.badge}
-                    </Badge>
+                    </span>
                   )}
-                    {item.copyLink && (
+                  {item.copyLink && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={cn(
-                        "h-5 w-5 p-0 transition-opacity",
-                        isActive ? "text-primary-foreground hover:bg-primary-foreground/20" : "text-muted-foreground hover:text-foreground"
-                      )}
+                      className="h-5 w-5 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                       onClick={handleCopyLink}
                     >
                       <Copy className="h-3 w-3" />
@@ -281,9 +276,9 @@ export function AppSidebar() {
   };
 
   const renderMenuSection = (label: string, items: any[]) => (
-    <SidebarGroup key={label}>
+    <SidebarGroup key={label} className="py-0.5">
       {!isCollapsed && (
-        <SidebarGroupLabel className="text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase px-3 mb-1">
+        <SidebarGroupLabel className="text-[11.5px] font-bold tracking-widest text-sidebar-foreground/50 uppercase px-3 mb-1 mt-4">
           {label}
         </SidebarGroupLabel>
       )}
@@ -298,36 +293,33 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible="icon" 
-      className="border-r border-border bg-background h-screen"
+      className="border-r border-sidebar-border bg-sidebar-background h-screen"
     >
-      {/* Header with Logo and Toggle */}
-      <SidebarHeader className="p-4 border-b border-border">
+      {/* Header with Logo */}
+      <SidebarHeader className="px-4 py-5">
         <div className={cn(
           "flex items-center",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
-          <div className="flex items-center gap-3">
+          <NavLink to="/" className="flex items-center gap-2.5 min-w-0">
             <img 
               src={isDark ? menuLogo.dark : menuLogo.light} 
               alt="Logo" 
               className={cn(
-                "flex-shrink-0 object-contain transition-all",
-                isCollapsed ? "h-8 w-8" : "h-9 w-9"
+                "flex-shrink-0 object-contain",
+                isCollapsed ? "h-7 w-7" : "h-8 w-8"
               )}
             />
             {!isCollapsed && (
-              <div>
-                <h1 className="text-sm font-bold text-foreground">Agência May</h1>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sistema de Gestão</p>
-              </div>
+              <span className="text-[17px] font-bold text-white tracking-tight truncate">Agência May</span>
             )}
-          </div>
+          </NavLink>
           {!isCollapsed && (
             <Button
               variant="ghost"
               size="icon"
               onClick={handleToggleSidebar}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-7 w-7 text-sidebar-foreground hover:text-primary"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -338,7 +330,7 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={handleToggleSidebar}
-            className="h-8 w-8 mx-auto mt-2 text-muted-foreground hover:text-foreground"
+            className="h-7 w-7 mx-auto mt-2 text-sidebar-foreground hover:text-primary"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -346,7 +338,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* Menu Content */}
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-3 py-2">
         {userRole === 'admin' ? (
           <>
             {renderMenuSection('Menu Principal', mainMenuItems)}
@@ -361,29 +353,11 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Footer with User Profile */}
-      <SidebarFooter className="border-t border-border p-4">
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleTheme}
-          className={cn(
-            "w-full gap-2 justify-start mb-3 text-muted-foreground hover:text-foreground",
-            isCollapsed && "justify-center px-0"
-          )}
-          title={isCollapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : undefined}
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {!isCollapsed && (
-            <span className="text-sm">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-          )}
-        </Button>
-
-        {/* User Profile */}
+      <SidebarFooter className="border-t border-sidebar-border/30 p-3">
         {profile && (
           <div className={cn(
-            "flex items-center gap-3 p-2 rounded-lg bg-muted/50",
-            isCollapsed && "justify-center p-2"
+            "flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors",
+            isCollapsed && "justify-center p-1"
           )}>
             <AvatarInitials 
               name={profile.nickname || profile.full_name || 'User'} 
@@ -391,25 +365,25 @@ export function AppSidebar() {
               size="sm"
             />
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {profile.nickname || profile.full_name}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {userRole === 'admin' ? 'Administrador' : 'Cliente'}
-                </p>
-              </div>
-            )}
-            {!isCollapsed && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSignOut}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                title="Sair"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold text-white truncate">
+                    {profile.nickname || profile.full_name}
+                  </p>
+                  <p className="text-[12px] text-sidebar-foreground/80 truncate">
+                    {userRole === 'admin' ? 'Administrador' : 'Cliente'}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  className="h-8 w-8 text-sidebar-foreground/70 hover:text-destructive flex-shrink-0"
+                  title="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
         )}

@@ -214,6 +214,133 @@ serve(async (req) => {
         );
       }
 
+      case 'create_instance': {
+        // Create a new instance in Evolution API
+        const createInstanceName = body.instance_name || settings.instanceName;
+        try {
+          const createUrl = `${settings.apiUrl}/instance/create`;
+          console.log(`Creating instance at: ${createUrl}`);
+          
+          const createRes = await fetch(createUrl, {
+            method: 'POST',
+            headers: {
+              'apikey': settings.apiKey,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              instanceName: createInstanceName,
+              qrcode: true,
+              integration: 'WHATSAPP-BAILEYS',
+            }),
+          });
+
+          const createData = await createRes.json();
+          console.log("Create instance response:", JSON.stringify(createData));
+
+          return new Response(
+            JSON.stringify({ success: true, data: createData }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: err.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      case 'get_qr': {
+        // Get QR code from Evolution API for the configured instance
+        const qrInstanceName = body.instance_name || settings.instanceName;
+        try {
+          // First try to connect the instance (this generates a new QR)
+          const connectUrl = `${settings.apiUrl}/instance/connect/${qrInstanceName}`;
+          console.log(`Getting QR from: ${connectUrl}`);
+          
+          const qrRes = await fetch(connectUrl, {
+            method: 'GET',
+            headers: {
+              'apikey': settings.apiKey,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!qrRes.ok) {
+            const errText = await qrRes.text();
+            console.error(`QR fetch failed: ${qrRes.status} - ${errText}`);
+            
+            // If instance doesn't exist, try creating it first
+            if (qrRes.status === 404 || errText.includes('not found') || errText.includes('NOT_FOUND')) {
+              console.log("Instance not found, creating...");
+              const createUrl = `${settings.apiUrl}/instance/create`;
+              const createRes = await fetch(createUrl, {
+                method: 'POST',
+                headers: {
+                  'apikey': settings.apiKey,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  instanceName: qrInstanceName,
+                  qrcode: true,
+                  integration: 'WHATSAPP-BAILEYS',
+                }),
+              });
+              const createData = await createRes.json();
+              console.log("Create response:", JSON.stringify(createData));
+              
+              // The create response may contain the QR code directly
+              if (createData?.qrcode?.base64 || createData?.base64) {
+                return new Response(
+                  JSON.stringify({ 
+                    success: true, 
+                    qrcode: createData.qrcode?.base64 || createData.base64,
+                    pairingCode: createData.qrcode?.pairingCode || createData.pairingCode,
+                  }),
+                  { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+              }
+              
+              // Try connecting again after creation
+              const retryRes = await fetch(connectUrl, {
+                method: 'GET',
+                headers: { 'apikey': settings.apiKey, 'Content-Type': 'application/json' },
+              });
+              const retryData = await retryRes.json();
+              return new Response(
+                JSON.stringify({ 
+                  success: true, 
+                  qrcode: retryData?.base64 || retryData?.qrcode?.base64 || null,
+                  pairingCode: retryData?.pairingCode || retryData?.qrcode?.pairingCode || null,
+                  data: retryData,
+                }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            
+            throw new Error(`HTTP ${qrRes.status}: ${errText}`);
+          }
+
+          const qrData = await qrRes.json();
+          console.log("QR response:", JSON.stringify(qrData).substring(0, 200));
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              qrcode: qrData?.base64 || qrData?.qrcode?.base64 || null,
+              pairingCode: qrData?.pairingCode || qrData?.qrcode?.pairingCode || null,
+              data: qrData,
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } catch (err: any) {
+          console.error("Error getting QR:", err);
+          return new Response(
+            JSON.stringify({ success: false, error: err.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       case 'send_ticket_notification': {
         // Deprecated path – all notifications são disparadas via send-notification
         console.log('Deprecated action send_ticket_notification called; ignoring. Use send-notification.');

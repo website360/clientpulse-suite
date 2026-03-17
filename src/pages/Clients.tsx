@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Table as TableIcon, Link2 } from 'lucide-react';
+import { Plus, LayoutGrid, Table as TableIcon, Link2, Users, UserCheck } from 'lucide-react';
 import { ClientTable } from '@/components/clients/ClientTable';
 import { ClientCards } from '@/components/clients/ClientCards';
 import { ClientFilters } from '@/components/clients/ClientFilters';
@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Clients() {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [clients, setClients] = useState<any[]>([]);
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -242,53 +241,39 @@ export default function Clients() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Clientes</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie seus clientes e informações de contato
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={handleCopyRegistrationLink} 
-              variant="outline"
-              size="lg" 
-              className="gap-2"
-            >
-              <Link2 className="h-4 w-4" />
-              Copiar Link de Cadastro
-            </Button>
-            <Button onClick={() => { setSelectedClient(null); setFormModalOpen(true); }} size="lg" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Cliente
-            </Button>
+        {/* Modern Header */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Clientes</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie seus clientes e informações de contato
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={handleCopyRegistrationLink} 
+                variant="outline"
+                size="lg" 
+                className="gap-2 h-11"
+              >
+                <Link2 className="h-4 w-4" />
+                Copiar Link
+              </Button>
+              <Button 
+                onClick={() => { setSelectedClient(null); setFormModalOpen(true); }} 
+                size="lg" 
+                className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white"
+              >
+                Novo Cliente
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Filters and Actions */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* Filters */}
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
           <ClientFilters filters={filters} onFiltersChange={setFilters} />
-          
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button
-              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className={viewMode === 'table' ? '' : 'hover:bg-secondary/20 hover:text-secondary-foreground'}
-            >
-              <TableIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-              className={viewMode === 'cards' ? '' : 'hover:bg-secondary/20 hover:text-secondary-foreground'}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
 
         {/* Content */}
@@ -296,7 +281,7 @@ export default function Clients() {
           <div className="text-center py-12">
             <p className="text-muted-foreground">Carregando clientes...</p>
           </div>
-        ) : viewMode === 'table' ? (
+        ) : (
           <ClientTable
             clients={filteredClients}
             onEdit={handleEdit}
@@ -312,13 +297,6 @@ export default function Clients() {
             totalPages={totalPages}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
-          />
-        ) : (
-          <ClientCards
-            clients={filteredClients}
-            onEdit={handleEdit}
-            onView={handleView}
-            onDelete={handleDelete}
           />
         )}
 

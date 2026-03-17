@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw, MoreVertical } from 'lucide-react';
+import { Pencil, Trash2, Download, Calendar, Eye, X, RefreshCw, MoreVertical, Circle } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -185,15 +185,6 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
       }
     }
 
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      pending_signature: 'secondary',
-      active: 'default',
-      expiring: 'outline',
-      expiring_today: 'outline',
-      expired: 'destructive',
-      completed: 'secondary',
-    };
-
     const labels: Record<string, string> = {
       pending_signature: 'Assinatura',
       active: 'Ativo',
@@ -203,11 +194,41 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
       completed: 'Concluído',
     };
 
+    const styles: Record<string, { badge: string; dot: string }> = {
+      active: {
+        badge: 'bg-green-50 text-green-700 border-0 hover:bg-green-50',
+        dot: 'h-2 w-2 fill-green-500 text-green-500',
+      },
+      pending_signature: {
+        badge: 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50',
+        dot: 'h-2 w-2 fill-amber-500 text-amber-500',
+      },
+      expiring: {
+        badge: 'bg-orange-50 text-orange-700 border-0 hover:bg-orange-50',
+        dot: 'h-2 w-2 fill-orange-500 text-orange-500',
+      },
+      expiring_today: {
+        badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50',
+        dot: 'h-2 w-2 fill-red-500 text-red-500',
+      },
+      expired: {
+        badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50',
+        dot: 'h-2 w-2 fill-red-500 text-red-500',
+      },
+      completed: {
+        badge: 'bg-gray-100 text-gray-600 border-0 hover:bg-gray-100',
+        dot: 'h-2 w-2 fill-gray-400 text-gray-400',
+      },
+    };
+
+    const style = styles[displayStatus] || styles.active;
+
     return (
       <Badge 
-        variant={variants[displayStatus] || 'default'}
-        className={displayStatus === 'expiring' || displayStatus === 'expiring_today' ? 'border-warning text-warning' : ''}
+        variant="default"
+        className={`${style.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}
       >
+        <Circle className={style.dot} />
         {labels[displayStatus] || displayStatus}
       </Badge>
     );
@@ -250,109 +271,140 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
 
   return (
     <>
-      <Card className="card-elevated">
-        <Table className="[&_td]:px-4 [&_td]:py-4 [&_th]:px-4 [&_th]:py-3">
-          <TableHeader>
-            <TableRow>
-              {!hideClientColumn && <TableHead>Cliente</TableHead>}
-              <SortableTableHead column="service_id" label="Serviço" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="amount" label="Valor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead>Meio de Pagamento</TableHead>
-              <TableHead>Pagamento</TableHead>
-              <SortableTableHead column="start_date" label="Início" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="end_date" label="Vencimento" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <SortableTableHead column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {contracts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
-                  Nenhum contrato encontrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              contracts.map((contract, index) => (
-                <TableRow 
-                  key={contract.id}
-                  className="hover:bg-muted/30 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  {!hideClientColumn && (
-                    <TableCell>
-                      <ClientNameCell client={contract.clients} />
-                    </TableCell>
-                  )}
-                  <TableCell>{contract.services.name}</TableCell>
-                  <TableCell>{formatCurrency(Number(contract.amount))}</TableCell>
-                  <TableCell>{contract.payment_methods?.name || '-'}</TableCell>
-                  <TableCell>{contract.payment_terms || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {format(parse(contract.start_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-3 bg-muted/20 rounded-xl`}>
+          {!hideClientColumn && (
+            <div className="col-span-2">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente</span>
+            </div>
+          )}
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('service_id')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Serviço {sortColumn === 'service_id' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 cursor-pointer" onClick={() => onSort('amount')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Valor {sortColumn === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pagamento</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('start_date')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Período {sortColumn === 'start_date' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-2 cursor-pointer" onClick={() => onSort('status')}>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Contract Rows as Cards */}
+        {contracts.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">Nenhum contrato encontrado</div>
+        ) : (
+          contracts.map((contract, index) => (
+            <Card 
+              key={contract.id}
+              className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer"
+              style={{ animationDelay: `${index * 30}ms` }}
+            >
+              <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-4 items-center`}>
+                {/* Cliente */}
+                {!hideClientColumn && (
+                  <div className="col-span-2">
+                    <ClientNameCell client={contract.clients} />
+                  </div>
+                )}
+
+                {/* Serviço */}
+                <div className="col-span-2">
+                  <p className="text-[14px] font-medium text-foreground">{contract.services.name}</p>
+                </div>
+
+                {/* Valor */}
+                <div className="col-span-1">
+                  <p className="text-[14px] font-medium text-foreground">{formatCurrency(Number(contract.amount))}</p>
+                </div>
+
+                {/* Pagamento */}
+                <div className="col-span-2">
+                  <p className="text-[14px] text-foreground">{contract.payment_methods?.name || '-'}</p>
+                  <p className="text-xs text-muted-foreground">{contract.payment_terms || ''}</p>
+                </div>
+
+                {/* Período */}
+                <div className="col-span-2">
+                  <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                    <span>
+                      {format(parse(contract.start_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yy', { locale: ptBR })}
+                      {' → '}
                       {contract.end_date
-                        ? format(parse(contract.end_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR })
-                        : 'Indeterminado'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(contract)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {contract.attachment_url && (
-                            <>
-                              <DropdownMenuItem onClick={() => viewPdf(contract.attachment_url!)}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Visualizar PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => downloadAttachment(contract.attachment_url!)}>
-                                <Download className="h-4 w-4 mr-2" />
-                                Baixar Anexo
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                            </>
-                          )}
-                          <DropdownMenuItem onClick={() => onEdit(contract)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Editar
+                        ? format(parse(contract.end_date, 'yyyy-MM-dd', new Date()), 'dd/MM/yy', { locale: ptBR })
+                        : 'Indet.'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="col-span-2">
+                  {getStatusBadge(contract)}
+                </div>
+
+                {/* Ações */}
+                <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                      {contract.attachment_url && (
+                        <>
+                          <DropdownMenuItem onClick={() => viewPdf(contract.attachment_url!)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Visualizar PDF
                           </DropdownMenuItem>
-                          {shouldShowRenewButton(contract) && (
-                            <DropdownMenuItem onClick={() => handleRenew(contract)}>
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Renovar Contrato
-                            </DropdownMenuItem>
-                          )}
+                          <DropdownMenuItem onClick={() => downloadAttachment(contract.attachment_url!)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <Download className="h-4 w-4 mr-2" />
+                            Baixar Anexo
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(contract)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                        </>
+                      )}
+                      <DropdownMenuItem onClick={() => onEdit(contract)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      {shouldShowRenewButton(contract) && (
+                        <DropdownMenuItem onClick={() => handleRenew(contract)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Renovar Contrato
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(contract)}
+                        className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
 
       <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null, storagePath: null })}>
         <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">

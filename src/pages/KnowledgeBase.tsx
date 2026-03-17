@@ -185,158 +185,183 @@ export default function KnowledgeBase() {
   return (
     <DashboardLayout breadcrumbLabel="Base de Conhecimento">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Base de Conhecimento</h1>
-            <p className="text-muted-foreground">
-              Gerencie artigos e tutoriais para seus clientes
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold tracking-tight">Base de Conhecimento</h1>
+              <p className="text-[15px] text-muted-foreground">
+                Gerencie artigos e tutoriais para seus clientes
+              </p>
+            </div>
+            <Button onClick={() => {
+              setEditingPost(null);
+              setIsModalOpen(true);
+            }} size="lg" className="h-11 shadow-md hover:shadow-lg bg-[#141924] hover:bg-[#1a2030] text-white">
+              Novo Post
+            </Button>
           </div>
-          <Button onClick={() => {
-            setEditingPost(null);
-            setIsModalOpen(true);
-          }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Post
-          </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                style={{ height: '40px' }}
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full md:w-[250px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Todas as categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full md:w-[250px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Todas as categorias" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-3 w-3 rounded"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    {category.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
-        <Card>
-          <CardContent>
-            {loading ? (
-              <p className="text-center text-muted-foreground">Carregando...</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead className="whitespace-nowrap">Categoria</TableHead>
-                    <TableHead className="whitespace-nowrap">Status</TableHead>
-                    <TableHead className="whitespace-nowrap">Data</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPosts.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Nenhum post encontrado
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredPosts.map((post) => (
-                      <TableRow key={post.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {post.featured_image_url && (
-                              <img
-                                src={post.featured_image_url}
-                                alt={post.title}
-                                className="h-10 w-10 rounded object-cover"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium">{post.title}</p>
-                              {post.excerpt && (
-                                <p className="text-sm text-muted-foreground line-clamp-1">
-                                  {post.excerpt}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {post.knowledge_base_categories ? (
-                            <Badge
-                              style={{
-                                backgroundColor: `${post.knowledge_base_categories.color}20`,
-                                color: post.knowledge_base_categories.color,
-                              }}
-                            >
-                              {post.knowledge_base_categories.name}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
+        <div className="space-y-2">
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              Nenhum post encontrado
+            </div>
+          ) : (
+            <>
+              {/* Header Row */}
+              <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+                <div className="col-span-5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Título</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Data</span>
+                </div>
+                <div className="col-span-1 text-right">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+                </div>
+              </div>
+
+              {/* Post Rows as Cards */}
+              {filteredPosts.map((post, index) => (
+                <Card 
+                  key={post.id}
+                  className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                    {/* Título */}
+                    <div className="col-span-5">
+                      <div className="flex items-center gap-3">
+                        {post.featured_image_url && (
+                          <img
+                            src={post.featured_image_url}
+                            alt={post.title}
+                            className="h-10 w-10 rounded object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-[14px] font-medium text-foreground line-clamp-1">{post.title}</p>
+                          {post.excerpt && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{post.excerpt}</p>
                           )}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <Badge variant={post.is_published ? 'default' : 'secondary'}>
-                            {post.is_published ? 'Publicado' : 'Rascunho'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground whitespace-nowrap">
-                          {formatDistanceToNow(new Date(post.created_at), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleCopyLink(post.slug)}>
-                                <Copy className="h-4 w-4 mr-2" />
-                                Copiar link
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEditModal(post)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => openDeleteDialog(post.id)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Categoria */}
+                    <div className="col-span-2">
+                      {post.knowledge_base_categories ? (
+                        <Badge
+                          className="text-[12px]"
+                          style={{
+                            backgroundColor: `${post.knowledge_base_categories.color}20`,
+                            color: post.knowledge_base_categories.color,
+                          }}
+                        >
+                          {post.knowledge_base_categories.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-[14px] text-muted-foreground">-</span>
+                      )}
+                    </div>
+
+                    {/* Status */}
+                    <div className="col-span-2">
+                      <Badge variant={post.is_published ? 'default' : 'secondary'}>
+                        {post.is_published ? 'Publicado' : 'Rascunho'}
+                      </Badge>
+                    </div>
+
+                    {/* Data */}
+                    <div className="col-span-2">
+                      <p className="text-[14px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(post.created_at), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => handleCopyLink(post.slug)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copiar link
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditModal(post)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(post.id)}
+                            className="text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </>
+          )}
+        </div>
       </div>
 
       <PostFormModal
