@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -199,55 +206,47 @@ export function ServicesTab() {
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {services.map((service) => (
-            <TableRow key={service.id}>
-              <TableCell className="font-medium">{service.name}</TableCell>
-              <TableCell>{service.description}</TableCell>
-              <TableCell>
-                <Switch
-                  checked={service.is_active}
-                  onCheckedChange={() => handleToggleActive(service)}
-                />
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(service)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(service)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+      <div className="space-y-2">
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+          <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+          <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+          <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+          <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+        </div>
+        {services.length === 0 ? (
+          <div className="text-center py-12 bg-card rounded-xl border">
+            <p className="text-[13px] text-muted-foreground">Nenhum serviço cadastrado</p>
+          </div>
+        ) : (
+          services.map((service, index) => (
+            <Card key={service.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+              <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                <div className="col-span-4">
+                  <p className="text-[14px] font-medium text-foreground truncate">{service.name}</p>
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-          {services.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">
-                Nenhum serviço cadastrado
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+                <div className="col-span-4">
+                  <p className="text-[13px] text-muted-foreground truncate">{service.description || '-'}</p>
+                </div>
+                <div className="col-span-2">
+                  <Switch checked={service.is_active} onCheckedChange={() => handleToggleActive(service)} />
+                </div>
+                <div className="col-span-2 flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                      <DropdownMenuItem onClick={() => handleEdit(service)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Pencil className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleDelete(service)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
 
       <AlertDialog
         open={deleteConfirmModal.isOpen}

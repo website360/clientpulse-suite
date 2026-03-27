@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card as CardRow } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Monitor, Smartphone, Tablet, Trash2, AlertTriangle } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Trash2, AlertTriangle, Circle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserSession {
@@ -149,89 +142,59 @@ export function SessionsTab() {
         {loading ? (
           <p className="text-center text-muted-foreground py-8">Carregando sessões...</p>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Dispositivo</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Última Atividade</TableHead>
-                  <TableHead>Expira Em</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      Nenhuma sessão ativa
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  sessions.map((session) => {
-                    const expired = isExpired(session.expires_at);
-                    const inactive = isInactive(session.last_activity);
-
-                    return (
-                      <TableRow key={session.id} className={expired ? 'opacity-50' : ''}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">
-                              {session.profiles?.full_name || 'Usuário'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {session.profiles?.email || '-'}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getDeviceIcon(session.user_agent)}
-                            <span className="text-sm text-muted-foreground">
-                              {session.user_agent ? session.user_agent.substring(0, 30) + '...' : 'Desconhecido'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {session.ip_address || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {format(new Date(session.last_activity), "dd/MM/yy HH:mm", { locale: ptBR })}
-                            {inactive && !expired && (
-                              <Badge variant="outline" className="text-xs">
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                Inativa
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(session.expires_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={expired ? 'destructive' : 'default'}>
-                            {expired ? 'Expirada' : 'Ativa'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => revokeSession(session.id)}
-                            disabled={expired}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Usuário</span></div>
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Dispositivo</span></div>
+              <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">IP</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Últ. Atividade</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Expira Em</span></div>
+              <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+              <div className="col-span-1 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+            </div>
+            {sessions.length === 0 ? (
+              <div className="text-center py-12 bg-card rounded-xl border">
+                <p className="text-[13px] text-muted-foreground">Nenhuma sessão ativa</p>
+              </div>
+            ) : (
+              sessions.map((session, index) => {
+                const expired = isExpired(session.expires_at);
+                const inactive = isInactive(session.last_activity);
+                return (
+                  <CardRow key={session.id} className={`rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden ${expired ? 'opacity-50' : ''}`} style={{ animationDelay: `${index * 20}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                      <div className="col-span-2">
+                        <p className="text-[14px] font-medium text-foreground truncate">{session.profiles?.full_name || 'Usuário'}</p>
+                        <p className="text-[12px] text-muted-foreground truncate">{session.profiles?.email || '-'}</p>
+                      </div>
+                      <div className="col-span-3">
+                        <div className="flex items-center gap-2">
+                          {getDeviceIcon(session.user_agent)}
+                          <span className="text-[13px] text-muted-foreground truncate">{session.user_agent ? session.user_agent.substring(0, 30) + '...' : 'Desconhecido'}</span>
+                        </div>
+                      </div>
+                      <div className="col-span-1"><p className="text-[13px] font-mono text-muted-foreground">{session.ip_address || '-'}</p></div>
+                      <div className="col-span-2">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[13px] text-muted-foreground">{format(new Date(session.last_activity), "dd/MM/yy HH:mm", { locale: ptBR })}</p>
+                          {inactive && !expired && <Badge variant="outline" className="text-[11px] px-1.5 py-0"><AlertTriangle className="h-3 w-3 mr-0.5" />Inativa</Badge>}
+                        </div>
+                      </div>
+                      <div className="col-span-2"><p className="text-[13px] text-muted-foreground">{format(new Date(session.expires_at), "dd/MM/yy HH:mm", { locale: ptBR })}</p></div>
+                      <div className="col-span-1">
+                        <Badge variant="default" className={expired ? 'font-medium px-2.5 py-0.5 flex items-center gap-1 w-fit bg-red-50 text-red-700 border-0 hover:bg-red-50' : 'font-medium px-2.5 py-0.5 flex items-center gap-1 w-fit bg-emerald-50 text-emerald-700 border-0 hover:bg-emerald-50'}>
+                          <Circle className={`h-2 w-2 ${expired ? 'fill-red-500 text-red-500' : 'fill-emerald-500 text-emerald-500'}`} />
+                          {expired ? 'Exp.' : 'Ativa'}
+                        </Badge>
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => revokeSession(session.id)} disabled={expired}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </CardRow>
+                );
+              })
+            )}
           </div>
         )}
       </CardContent>

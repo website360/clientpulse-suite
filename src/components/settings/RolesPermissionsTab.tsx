@@ -13,18 +13,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Shield } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, MoreVertical, Circle } from 'lucide-react';
 
 interface CustomRole {
   id: string;
@@ -248,57 +247,56 @@ export function RolesPermissionsTab() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {roles.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Nenhuma role customizada criada
-                  </TableCell>
-                </TableRow>
-              ) : (
-                roles.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell className="font-medium">{role.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {role.description || '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={role.is_active ? 'default' : 'secondary'}>
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+              <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+              <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+            </div>
+            {roles.length === 0 ? (
+              <div className="text-center py-12 bg-card rounded-xl border">
+                <p className="text-[13px] text-muted-foreground">Nenhuma role customizada criada</p>
+              </div>
+            ) : (
+              roles.map((role, index) => (
+                <Card key={role.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                  <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                    <div className="col-span-4">
+                      <p className="text-[14px] font-medium text-foreground truncate">{role.name}</p>
+                    </div>
+                    <div className="col-span-4">
+                      <p className="text-[13px] text-muted-foreground truncate">{role.description || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Badge
+                        variant="default"
+                        className={role.is_active
+                          ? 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-emerald-50 text-emerald-700 border-0 hover:bg-emerald-50'
+                          : 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-gray-100 text-gray-600 border-0 hover:bg-gray-100'
+                        }
+                      >
+                        <Circle className={`h-2 w-2 ${role.is_active ? 'fill-emerald-500 text-emerald-500' : 'fill-gray-400 text-gray-400'}`} />
                         {role.is_active ? 'Ativa' : 'Inativa'}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditModal(role)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(role.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => openEditModal(role)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(role.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 

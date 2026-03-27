@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -91,17 +90,15 @@ export function ClientFinancialTab({ clientId }: ClientFinancialTabProps) {
 
   if (receivables.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Nenhuma fatura encontrada para este cliente.</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border bg-card py-12 text-center">
+        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <p className="text-[13px] text-muted-foreground">Nenhuma fatura encontrada para este cliente.</p>
+      </div>
     );
   }
 
   return (
-    <div className="border rounded-lg">
+    <div className="rounded-xl border bg-card">
       <Table>
         <TableHeader>
           <TableRow>

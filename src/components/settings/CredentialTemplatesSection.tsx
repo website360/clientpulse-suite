@@ -7,8 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Server, Database, Mail, Globe, Key } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Edit2, Trash2, Server, Database, Mail, Globe, Key, MoreVertical, Circle } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -165,72 +171,55 @@ export function CredentialTemplatesSection() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Serviço</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>URL Padrão</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {templates?.map((template) => {
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Serviço</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria</span></div>
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">URL Padrão</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+              <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+            </div>
+            {!templates?.length ? (
+              <div className="text-center py-12 bg-card rounded-xl border">
+                <p className="text-[13px] text-muted-foreground">Nenhum template cadastrado</p>
+              </div>
+            ) : (
+              templates.map((template, index) => {
                 const Icon = categoryIcons[template.category] || Key;
                 return (
-                  <TableRow key={template.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded ${categoryColors[template.category]}`}>
-                          <Icon className="h-3 w-3 text-white" />
+                  <Card key={template.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                      <div className="col-span-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`p-1.5 rounded-md ${categoryColors[template.category]}`}><Icon className="h-3 w-3 text-white" /></div>
+                          <p className="text-[14px] font-medium text-foreground truncate">{template.service_name}</p>
                         </div>
-                        {template.service_name}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{categoryLabels[template.category]}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">{template.url || '-'}</TableCell>
-                    <TableCell>
-                      {template.is_active ? (
-                        <span className="text-green-600">Ativo</span>
-                      ) : (
-                        <span className="text-gray-400">Inativo</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenModal(template)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        {template.is_active && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteMutation.mutate(template.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                      <div className="col-span-2"><Badge variant="secondary">{categoryLabels[template.category]}</Badge></div>
+                      <div className="col-span-3"><p className="text-[13px] text-muted-foreground truncate">{template.url || '-'}</p></div>
+                      <div className="col-span-2">
+                        <Badge variant="default" className={template.is_active ? 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-emerald-50 text-emerald-700 border-0 hover:bg-emerald-50' : 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-gray-100 text-gray-600 border-0 hover:bg-gray-100'}>
+                          <Circle className={`h-2 w-2 ${template.is_active ? 'fill-emerald-500 text-emerald-500' : 'fill-gray-400 text-gray-400'}`} />
+                          {template.is_active ? 'Ativo' : 'Inativo'}
+                        </Badge>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <div className="col-span-2 flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                            <DropdownMenuItem onClick={() => handleOpenModal(template)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit2 className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                            {template.is_active && (
+                              <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => deleteMutation.mutate(template.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Desativar</DropdownMenuItem></>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </Card>
                 );
-              })}
-              {!templates?.length && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Nenhum template cadastrado
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              })
+            )}
+          </div>
         </CardContent>
       </Card>
 

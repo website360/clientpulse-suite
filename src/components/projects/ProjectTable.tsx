@@ -123,8 +123,8 @@ export function ProjectTable({ projects, isLoading, onEdit, onRefresh, hideClien
 
   if (!projects.length) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Nenhum projeto encontrado</p>
+      <div className="rounded-xl border bg-card py-12 text-center">
+        <p className="text-[13px] text-muted-foreground">Nenhum projeto encontrado</p>
       </div>
     );
   }

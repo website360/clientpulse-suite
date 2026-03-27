@@ -230,7 +230,7 @@ export function ConnectEmailDialog({ open, onOpenChange, onAccountConnected }: C
               <Button 
                 onClick={handleOAuthConnect} 
                 disabled={isConnecting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full"
               >
                 {isConnecting ? (
                   <>
@@ -313,7 +313,7 @@ export function ConnectEmailDialog({ open, onOpenChange, onAccountConnected }: C
               <Button 
                 onClick={handleIMAPConnect} 
                 disabled={isConnecting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full"
               >
                 {isConnecting ? (
                   <>

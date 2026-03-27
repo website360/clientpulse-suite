@@ -4,10 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Copy, Check } from "lucide-react";
+import { Plus, Trash2, Copy, Check, MoreVertical } from "lucide-react";
 import { useToast, toastSuccess, toastError } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -284,43 +289,29 @@ export function FinancialSettingsTab() {
                 </Button>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead className="w-[100px]">Ativo</TableHead>
-                    <TableHead className="w-[80px] text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payableCategories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell>{category.name}</TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={category.is_active}
-                          onCheckedChange={() =>
-                            toggleActiveMutation.mutate({
-                              table: "payment_categories",
-                              id: category.id,
-                              isActive: category.is_active,
-                            })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                  <div className="col-span-7"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+                  <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ativo</span></div>
+                  <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+                </div>
+                {payableCategories.map((category, index) => (
+                  <Card key={category.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                      <div className="col-span-7"><p className="text-[14px] font-medium text-foreground">{category.name}</p></div>
+                      <div className="col-span-3"><Switch checked={category.is_active} onCheckedChange={() => toggleActiveMutation.mutate({ table: "payment_categories", id: category.id, isActive: category.is_active })} /></div>
+                      <div className="col-span-2 flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44 rounded-xl shadow-lg p-2">
+                            <DropdownMenuItem onClick={() => deleteCategoryMutation.mutate(category.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -355,43 +346,29 @@ export function FinancialSettingsTab() {
                 </Button>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead className="w-[100px]">Ativo</TableHead>
-                    <TableHead className="w-[80px] text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {receivableCategories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell>{category.name}</TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={category.is_active}
-                          onCheckedChange={() =>
-                            toggleActiveMutation.mutate({
-                              table: "payment_categories",
-                              id: category.id,
-                              isActive: category.is_active,
-                            })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                  <div className="col-span-7"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+                  <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ativo</span></div>
+                  <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+                </div>
+                {receivableCategories.map((category, index) => (
+                  <Card key={category.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                      <div className="col-span-7"><p className="text-[14px] font-medium text-foreground">{category.name}</p></div>
+                      <div className="col-span-3"><Switch checked={category.is_active} onCheckedChange={() => toggleActiveMutation.mutate({ table: "payment_categories", id: category.id, isActive: category.is_active })} /></div>
+                      <div className="col-span-2 flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44 rounded-xl shadow-lg p-2">
+                            <DropdownMenuItem onClick={() => deleteCategoryMutation.mutate(category.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -427,43 +404,29 @@ export function FinancialSettingsTab() {
                 </Button>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead className="w-[100px]">Ativo</TableHead>
-                    <TableHead className="w-[80px] text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {methods?.map((method) => (
-                    <TableRow key={method.id}>
-                      <TableCell>{method.name}</TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={method.is_active}
-                          onCheckedChange={() =>
-                            toggleActiveMutation.mutate({
-                              table: "payment_methods",
-                              id: method.id,
-                              isActive: method.is_active,
-                            })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteMethodMutation.mutate(method.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                  <div className="col-span-7"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+                  <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ativo</span></div>
+                  <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+                </div>
+                {methods?.map((method, index) => (
+                  <Card key={method.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                      <div className="col-span-7"><p className="text-[14px] font-medium text-foreground">{method.name}</p></div>
+                      <div className="col-span-3"><Switch checked={method.is_active} onCheckedChange={() => toggleActiveMutation.mutate({ table: "payment_methods", id: method.id, isActive: method.is_active })} /></div>
+                      <div className="col-span-2 flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44 rounded-xl shadow-lg p-2">
+                            <DropdownMenuItem onClick={() => deleteMethodMutation.mutate(method.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

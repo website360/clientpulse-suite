@@ -190,7 +190,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Urbanist', 'Urbanist Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -213,15 +213,15 @@
   }
   
   h2 {
-    @apply text-3xl leading-tight;
+    @apply text-2xl leading-tight;
   }
   
   h3 {
-    @apply text-2xl leading-snug;
+    @apply text-lg leading-snug;
   }
   
   h4 {
-    @apply text-xl leading-snug;
+    @apply text-base leading-snug;
   }
 }
 

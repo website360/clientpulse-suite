@@ -192,7 +192,7 @@ export function EditAccountDialog({ open, onOpenChange, account, onAccountUpdate
             <Button 
               onClick={handleSave} 
               disabled={isSaving}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1"
             >
               {isSaving ? (
                 <>

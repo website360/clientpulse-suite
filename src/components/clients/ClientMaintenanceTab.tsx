@@ -2,10 +2,17 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Calendar, Globe, Edit, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Globe, Edit, Trash2, CheckCircle2, AlertCircle, MoreVertical, Circle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { parseISO } from 'date-fns';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -125,14 +132,37 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
 
       <TabsContent value="plans" className="space-y-4">
         {!plans || plans.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              Nenhum plano de manutenção cadastrado.
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border bg-card p-12 text-center">
+            <Globe className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-sm font-semibold mb-1">Nenhum plano de manutenção</p>
+            <p className="text-[13px] text-muted-foreground">Cadastre o primeiro plano para este cliente.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan) => {
+          <div className="space-y-2">
+            {/* Header Row */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-3">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Domínio</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Frequência</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Última</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próxima</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
+              </div>
+              <div className="col-span-1 text-right">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+              </div>
+            </div>
+
+            {/* Plan Rows as Cards */}
+            {plans.map((plan, index) => {
               const getStatusInfo = (plan: any) => {
                 const lastExecution = plan.maintenance_executions?.[0];
                 const today = new Date();
@@ -143,17 +173,9 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
 
                 if (!lastExecution) {
                   if (today > nextScheduledDate) {
-                    return {
-                      variant: 'destructive' as const,
-                      label: 'Atrasada',
-                      className: 'bg-error/10 text-error border-error/20'
-                    };
+                    return { label: 'Atrasada', badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50', dot: 'h-2 w-2 fill-red-500 text-red-500' };
                   }
-                  return {
-                    variant: 'secondary' as const,
-                    label: 'Aguardando Manutenção',
-                    className: 'bg-warning/10 text-warning border-warning/20'
-                  };
+                  return { label: 'Aguardando', badge: 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50', dot: 'h-2 w-2 fill-amber-500 text-amber-500' };
                 }
 
                 const lastDate = new Date(lastExecution.executed_at);
@@ -164,26 +186,14 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
                 const currentYear = today.getFullYear();
 
                 if (lastMonth === currentMonth && lastYear === currentYear) {
-                  return {
-                    variant: 'default' as const,
-                    label: 'Realizada',
-                    className: 'bg-success/10 text-success border-success/20'
-                  };
+                  return { label: 'Realizada', badge: 'bg-green-50 text-green-700 border-0 hover:bg-green-50', dot: 'h-2 w-2 fill-green-500 text-green-500' };
                 }
 
                 if (today > nextScheduledDate) {
-                  return {
-                    variant: 'destructive' as const,
-                    label: 'Atrasada',
-                    className: 'bg-error/10 text-error border-error/20'
-                  };
+                  return { label: 'Atrasada', badge: 'bg-red-50 text-red-700 border-0 hover:bg-red-50', dot: 'h-2 w-2 fill-red-500 text-red-500' };
                 }
 
-                return {
-                  variant: 'secondary' as const,
-                  label: 'Aguardando Manutenção',
-                  className: 'bg-warning/10 text-warning border-warning/20'
-                };
+                return { label: 'Aguardando', badge: 'bg-amber-50 text-amber-700 border-0 hover:bg-amber-50', dot: 'h-2 w-2 fill-amber-500 text-amber-500' };
               };
 
               const getNextScheduledDate = (plan: any) => {
@@ -218,75 +228,79 @@ export function ClientMaintenanceTab({ clientId }: ClientMaintenanceTabProps) {
               const lastExecution = plan.maintenance_executions?.[0];
 
               return (
-                <Card key={plan.id} className="card-elevated hover-lift group">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
-                          <Globe className="h-6 w-6 text-primary" />
-                        </div>
-                        <Badge variant={statusInfo.variant} className={statusInfo.className}>
-                          {statusInfo.label}
-                        </Badge>
+                <Card
+                  key={plan.id}
+                  className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                    {/* Domínio */}
+                    <div className="col-span-3">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <p className="text-[14px] font-medium text-foreground truncate">
+                          {plan.domains?.domain || 'Sem domínio'}
+                        </p>
                       </div>
                     </div>
 
-                    <h3 className="font-semibold text-lg mb-3">
-                      {plan.domains?.domain || 'Sem domínio específico'}
-                    </h3>
-
-                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Executada mensalmente</span>
-                      </div>
-
-                      {lastExecution && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-success" />
-                          <span className="text-muted-foreground">
-                            Última: {format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 text-sm">
-                        <AlertCircle className="h-4 w-4 text-warning" />
-                        <span className="text-muted-foreground">
-                          Próxima: {format(nextDate, "MMMM/yyyy", { locale: ptBR })}
-                        </span>
+                    {/* Frequência */}
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                        <span>Mensal (dia {plan.monthly_day})</span>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-border flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(plan)}
-                        className="flex-1"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(plan.id)}
-                        className="flex-1 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </Button>
+                    {/* Última */}
+                    <div className="col-span-2">
+                      <p className="text-[14px] text-foreground">
+                        {lastExecution
+                          ? format(new Date(lastExecution.executed_at), "dd/MM/yyyy", { locale: ptBR })
+                          : <span className="text-muted-foreground">—</span>}
+                      </p>
                     </div>
 
-                    {!plan.is_active && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <Badge variant="secondary" className="text-xs">
-                          Plano Inativo
-                        </Badge>
-                      </div>
-                    )}
-                  </CardContent>
+                    {/* Próxima */}
+                    <div className="col-span-2">
+                      <p className="text-[14px] text-foreground">
+                        {format(nextDate, "MMMM/yyyy", { locale: ptBR })}
+                      </p>
+                    </div>
+
+                    {/* Status */}
+                    <div className="col-span-2">
+                      <Badge variant="default" className={`${statusInfo.badge} font-medium px-3 py-1 flex items-center gap-1.5 w-fit`}>
+                        <Circle className={statusInfo.dot} />
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => handleEdit(plan)} className="rounded-lg px-3 py-2.5 cursor-pointer">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(plan.id)}
+                            className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
                 </Card>
               );
             })}

@@ -269,6 +269,14 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
     return isExpiringSoon(contract.end_date) || isExpiringToday(contract.end_date);
   };
 
+  if (contracts.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card py-12 text-center">
+        <p className="text-[13px] text-muted-foreground">Nenhum contrato encontrado</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-2">
@@ -300,9 +308,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
         </div>
 
         {/* Contract Rows as Cards */}
-        {contracts.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Nenhum contrato encontrado</div>
-        ) : (
+        {
           contracts.map((contract, index) => (
             <Card 
               key={contract.id}
@@ -403,7 +409,7 @@ export function ContractTable({ contracts, onEdit, onRefresh, sortColumn, sortDi
               </div>
             </Card>
           ))
-        )}
+        }
       </div>
 
       <Dialog open={pdfViewModal.isOpen} onOpenChange={(open) => setPdfViewModal({ isOpen: open, url: null, filename: null, storagePath: null })}>

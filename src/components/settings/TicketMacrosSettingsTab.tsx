@@ -4,13 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, Zap, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Pencil, Trash2, Zap, Search, MoreVertical, Circle } from 'lucide-react';
 import { useCachedDepartments } from '@/hooks/useCachedDepartments';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
@@ -367,64 +374,59 @@ export function TicketMacrosSettingsTab() {
             Nenhum macro encontrado com os filtros aplicados
           </div>
         ) : (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Atalho</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead>Conteúdo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMacros.map((macro) => (
-                  <TableRow key={macro.id}>
-                    <TableCell className="font-medium">{macro.name}</TableCell>
-                    <TableCell>
-                      {macro.shortcut && (
-                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          {macro.shortcut}
-                        </code>
-                      )}
-                    </TableCell>
-                    <TableCell>{getDepartmentName(macro.department_id)}</TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {macro.content}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        macro.is_active 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-                      }`}>
-                        {macro.is_active ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(macro)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(macro.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+              <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Atalho</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Departamento</span></div>
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Conteúdo</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+              <div className="col-span-1 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+            </div>
+            {filteredMacros.map((macro, index) => (
+              <Card key={macro.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                  <div className="col-span-3">
+                    <p className="text-[14px] font-medium text-foreground truncate">{macro.name}</p>
+                  </div>
+                  <div className="col-span-1">
+                    {macro.shortcut && (
+                      <code className="text-[12px] bg-muted px-1.5 py-0.5 rounded">{macro.shortcut}</code>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[13px] text-muted-foreground truncate">{getDepartmentName(macro.department_id)}</p>
+                  </div>
+                  <div className="col-span-3">
+                    <p className="text-[13px] text-muted-foreground truncate">{macro.content}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Badge
+                      variant="default"
+                      className={macro.is_active
+                        ? 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-emerald-50 text-emerald-700 border-0 hover:bg-emerald-50'
+                        : 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-gray-100 text-gray-600 border-0 hover:bg-gray-100'
+                      }
+                    >
+                      <Circle className={`h-2 w-2 ${macro.is_active ? 'fill-emerald-500 text-emerald-500' : 'fill-gray-400 text-gray-400'}`} />
+                      {macro.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
+                  <div className="col-span-1 flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                        <DropdownMenuItem onClick={() => handleEdit(macro)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Pencil className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDelete(macro.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
       </CardContent>

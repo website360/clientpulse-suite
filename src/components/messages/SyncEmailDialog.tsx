@@ -150,7 +150,7 @@ export function SyncEmailDialog({
             <Button
               onClick={handleSync}
               disabled={isSyncing || !password}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1"
             >
               {isSyncing ? (
                 <>

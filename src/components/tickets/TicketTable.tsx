@@ -118,14 +118,14 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
 
   if (tickets.length === 0) {
     return (
-      <Card className="card-elevated">
+      <div className="rounded-xl border bg-card">
         <EmptyState
           icon={TicketIcon}
           title="Nenhum ticket encontrado"
           description="Não há tickets correspondentes aos filtros selecionados. Tente ajustar os filtros ou crie um novo ticket."
           illustration={<EmptyTickets />}
         />
-      </Card>
+      </div>
     );
   }
 

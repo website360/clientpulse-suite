@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast, toastSuccess } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreVertical } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -262,68 +262,46 @@ export function KnowledgeBaseTab() {
       {loading ? (
         <p className="text-center text-muted-foreground">Carregando...</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Cor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  Nenhuma categoria cadastrada
-                </TableCell>
-              </TableRow>
-            ) : (
-              categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {category.description || '-'}
-                  </TableCell>
-                  <TableCell>
+        <div className="space-y-2">
+          <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+            <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+            <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+            <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cor</span></div>
+            <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+            <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+          </div>
+          {categories.length === 0 ? (
+            <div className="text-center py-12 bg-card rounded-xl border">
+              <p className="text-[13px] text-muted-foreground">Nenhuma categoria cadastrada</p>
+            </div>
+          ) : (
+            categories.map((category, index) => (
+              <Card key={category.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                  <div className="col-span-3"><p className="text-[14px] font-medium text-foreground truncate">{category.name}</p></div>
+                  <div className="col-span-3"><p className="text-[13px] text-muted-foreground truncate">{category.description || '-'}</p></div>
+                  <div className="col-span-2">
                     <div className="flex items-center gap-2">
-                      <div
-                        className="h-6 w-6 rounded border"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span className="text-sm text-muted-foreground">{category.color}</span>
+                      <div className="h-5 w-5 rounded-md border" style={{ backgroundColor: category.color }} />
+                      <span className="text-[13px] text-muted-foreground">{category.color}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={category.is_active}
-                      onCheckedChange={() => handleToggleActive(category.id, category.is_active)}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(category)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(category.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                  <div className="col-span-2"><Switch checked={category.is_active} onCheckedChange={() => handleToggleActive(category.id, category.is_active)} /></div>
+                  <div className="col-span-2 flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                        <DropdownMenuItem onClick={() => openEditDialog(category)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDelete(category.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
       )}
     </div>
   );

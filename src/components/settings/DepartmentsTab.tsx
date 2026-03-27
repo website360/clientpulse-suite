@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, MoreVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -219,58 +218,48 @@ export function DepartmentsTab() {
               <p className="text-muted-foreground">Carregando departamentos...</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Cor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {departments.map((dept) => (
-                  <TableRow key={dept.id}>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
-                    <TableCell>{dept.description || '-'}</TableCell>
-                    <TableCell>
+            <div className="space-y-2">
+              <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+                <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cor</span></div>
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+                <div className="col-span-1 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+              </div>
+              {departments.map((dept, index) => (
+                <Card key={dept.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                  <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                    <div className="col-span-3">
+                      <p className="text-[14px] font-medium text-foreground truncate">{dept.name}</p>
+                    </div>
+                    <div className="col-span-4">
+                      <p className="text-[13px] text-muted-foreground truncate">{dept.description || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="h-4 w-4 rounded"
-                          style={{ backgroundColor: dept.color }}
-                        />
-                        <span className="text-sm text-muted-foreground">{dept.color}</span>
+                        <div className="h-4 w-4 rounded-md border" style={{ backgroundColor: dept.color }} />
+                        <span className="text-[13px] text-muted-foreground">{dept.color}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={dept.is_active}
-                        onCheckedChange={() => toggleActive(dept.id, dept.is_active)}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(dept)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(dept.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                    <div className="col-span-2">
+                      <Switch checked={dept.is_active} onCheckedChange={() => toggleActive(dept.id, dept.is_active)} />
+                    </div>
+                    <div className="col-span-1 flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => handleEdit(dept)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Pencil className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(dept.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

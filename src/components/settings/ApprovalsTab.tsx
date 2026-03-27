@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card as CardRow } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -212,70 +205,48 @@ export function ApprovalsTab() {
           {loading ? (
             <p className="text-center text-muted-foreground py-8">Carregando aprovações...</p>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Ação</TableHead>
-                    <TableHead>Tabela</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {approvals.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        Nenhuma aprovação pendente
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    approvals.map((approval) => (
-                      <TableRow key={approval.id}>
-                        <TableCell className="font-mono text-sm">
-                          {format(new Date(approval.requested_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">
-                              {approval.requester?.full_name || 'Usuário'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {approval.requester?.email || '-'}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{approval.action}</Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {approval.table_name}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(approval.status)}</TableCell>
-                        <TableCell className="text-right">
-                          {approval.status === 'pending' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openReviewModal(approval)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Revisar
-                            </Button>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">
-                              {approval.reviewed_at &&
-                                format(new Date(approval.reviewed_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                            </span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+            <div className="space-y-2">
+              <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Data</span></div>
+                <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Usuário</span></div>
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ação</span></div>
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tabela</span></div>
+                <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+                <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+              </div>
+              {approvals.length === 0 ? (
+                <div className="text-center py-12 bg-card rounded-xl border">
+                  <p className="text-[13px] text-muted-foreground">Nenhuma aprovação pendente</p>
+                </div>
+              ) : (
+                approvals.map((approval, index) => (
+                  <CardRow key={approval.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 20}ms` }}>
+                    <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                      <div className="col-span-2">
+                        <p className="text-[13px] font-mono text-muted-foreground">{format(new Date(approval.requested_at), "dd/MM/yy HH:mm", { locale: ptBR })}</p>
+                      </div>
+                      <div className="col-span-3">
+                        <p className="text-[14px] font-medium text-foreground truncate">{approval.requester?.full_name || 'Usuário'}</p>
+                        <p className="text-[12px] text-muted-foreground truncate">{approval.requester?.email || '-'}</p>
+                      </div>
+                      <div className="col-span-2"><Badge variant="outline">{approval.action}</Badge></div>
+                      <div className="col-span-2"><p className="text-[13px] font-mono text-muted-foreground">{approval.table_name}</p></div>
+                      <div className="col-span-1">{getStatusBadge(approval.status)}</div>
+                      <div className="col-span-2 flex justify-end">
+                        {approval.status === 'pending' ? (
+                          <Button variant="outline" size="sm" onClick={() => openReviewModal(approval)}>
+                            <Eye className="h-4 w-4 mr-2" />Revisar
+                          </Button>
+                        ) : (
+                          <span className="text-[13px] text-muted-foreground">
+                            {approval.reviewed_at && format(new Date(approval.reviewed_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </CardRow>
+                ))
+              )}
             </div>
           )}
         </CardContent>

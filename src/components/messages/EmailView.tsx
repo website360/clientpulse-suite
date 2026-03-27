@@ -223,7 +223,7 @@ export function EmailView({ message, onReply, onStar, onDelete, onArchive, reply
               </Button>
               <Button 
                 size="sm" 
-                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="gap-2"
                 onClick={handleSendReply}
                 disabled={!replyText.trim() || isSending}
               >

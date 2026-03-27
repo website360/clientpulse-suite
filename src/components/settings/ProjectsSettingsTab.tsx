@@ -10,15 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, MoreVertical, Circle } from 'lucide-react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -181,68 +180,58 @@ function ProjectTypesSection() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Cor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projectTypes?.map((type) => (
-                <TableRow key={type.id}>
-                  <TableCell className="font-medium">{type.name}</TableCell>
-                  <TableCell>{type.description || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded border"
-                        style={{ backgroundColor: type.color }}
-                      />
-                      {type.color}
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cor</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+              <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+            </div>
+            {!projectTypes?.length ? (
+              <div className="text-center py-12 bg-card rounded-xl border">
+                <p className="text-[13px] text-muted-foreground">Nenhum tipo de projeto cadastrado</p>
+              </div>
+            ) : (
+              projectTypes.map((type, index) => (
+                <Card key={type.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                  <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                    <div className="col-span-3">
+                      <p className="text-[14px] font-medium text-foreground truncate">{type.name}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {type.is_active ? (
-                      <span className="text-green-600">Ativo</span>
-                    ) : (
-                      <span className="text-gray-400">Inativo</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenModal(type)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      {type.is_active && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteMutation.mutate(type.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                    <div className="col-span-3">
+                      <p className="text-[13px] text-muted-foreground truncate">{type.description || '-'}</p>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!projectTypes?.length && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Nenhum tipo de projeto cadastrado
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-md border" style={{ backgroundColor: type.color }} />
+                        <span className="text-[13px] text-muted-foreground">{type.color}</span>
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <Badge variant="default" className={type.is_active ? 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-emerald-50 text-emerald-700 border-0 hover:bg-emerald-50' : 'font-medium px-3 py-1 flex items-center gap-1.5 w-fit bg-gray-100 text-gray-600 border-0 hover:bg-gray-100'}>
+                        <Circle className={`h-2 w-2 ${type.is_active ? 'fill-emerald-500 text-emerald-500' : 'fill-gray-400 text-gray-400'}`} />
+                        {type.is_active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => handleOpenModal(type)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit2 className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                          {type.is_active && (
+                            <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => deleteMutation.mutate(type.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Desativar</DropdownMenuItem></>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 

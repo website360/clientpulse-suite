@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2, Send } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Eye, Trash2, Send, MoreVertical, Circle, Globe } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ClientNameCell } from "@/components/shared/ClientNameCell";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -144,78 +144,129 @@ export function ClientMaintenanceHistory({ clientId }: ClientMaintenanceHistoryP
 
   if (!executions || executions.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground border rounded-lg">
-        Nenhuma manutenção registrada ainda
+      <div className="text-center py-12 rounded-xl border bg-card">
+        <p className="text-[13px] text-muted-foreground">Nenhuma manutenção registrada ainda</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Site</TableHead>
-              <TableHead>Data Execução</TableHead>
-              <TableHead>Executado por</TableHead>
-              <TableHead>WhatsApp</TableHead>
-              <TableHead>Próxima</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {executions.map((execution) => (
-              <TableRow key={execution.id}>
-                <TableCell>{execution.plan?.domain?.domain || "-"}</TableCell>
-                <TableCell>
+      <div className="space-y-2">
+        {/* Header Row */}
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 rounded-xl">
+          <div className="col-span-3">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Site</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Execução</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Executado por</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">WhatsApp</span>
+          </div>
+          <div className="col-span-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próxima</span>
+          </div>
+          <div className="col-span-1 text-right">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
+          </div>
+        </div>
+
+        {/* Execution Rows as Cards */}
+        {executions.map((execution, index) => (
+          <Card
+            key={execution.id}
+            className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden"
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+              {/* Site */}
+              <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <p className="text-[14px] font-medium text-foreground truncate">
+                    {execution.plan?.domain?.domain || "-"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Data Execução */}
+              <div className="col-span-2">
+                <p className="text-[14px] text-foreground">
                   {format(parseISO(execution.executed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                </TableCell>
-                <TableCell>{execution.executed_by_profile?.full_name}</TableCell>
-                <TableCell>
-                  <Badge variant={execution.whatsapp_sent ? "default" : "secondary"}>
-                    {execution.whatsapp_sent ? "Enviado" : "Não enviado"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
+                </p>
+              </div>
+
+              {/* Executado por */}
+              <div className="col-span-2">
+                <p className="text-[14px] text-foreground">
+                  {execution.executed_by_profile?.full_name || "-"}
+                </p>
+              </div>
+
+              {/* WhatsApp */}
+              <div className="col-span-2">
+                <Badge
+                  variant="default"
+                  className={`font-medium px-3 py-1 flex items-center gap-1.5 w-fit ${
+                    execution.whatsapp_sent
+                      ? 'bg-green-50 text-green-700 border-0 hover:bg-green-50'
+                      : 'bg-gray-100 text-gray-600 border-0 hover:bg-gray-100'
+                  }`}
+                >
+                  <Circle className={execution.whatsapp_sent ? 'h-2 w-2 fill-green-500 text-green-500' : 'h-2 w-2 fill-gray-400 text-gray-400'} />
+                  {execution.whatsapp_sent ? "Enviado" : "Não enviado"}
+                </Badge>
+              </div>
+
+              {/* Próxima */}
+              <div className="col-span-2">
+                <p className="text-[14px] text-foreground">
                   {execution.next_scheduled_date
                     ? format(parseISO(execution.next_scheduled_date), "MMMM/yyyy", { locale: ptBR })
                         .replace(/^\w/, (c) => c.toUpperCase())
                     : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleView(execution)}
-                    >
+                </p>
+              </div>
+
+              {/* Ações */}
+              <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-lg p-2">
+                    <DropdownMenuItem onClick={() => handleView(execution)} className="rounded-lg px-3 py-2.5 cursor-pointer">
                       <Eye className="h-4 w-4 mr-2" />
                       Visualizar
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() => resendWhatsAppMutation.mutate(execution.id)}
                       disabled={resendWhatsAppMutation.isPending}
-                      title={execution.whatsapp_sent ? "Reenviar WhatsApp" : "Enviar WhatsApp"}
+                      className="rounded-lg px-3 py-2.5 cursor-pointer"
                     >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                      <Send className="h-4 w-4 mr-2" />
+                      {execution.whatsapp_sent ? "Reenviar WhatsApp" : "Enviar WhatsApp"}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
                       onClick={() => handleDeleteClick(execution)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
 
       <MaintenanceExecutionViewModal

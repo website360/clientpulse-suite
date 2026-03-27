@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card as CardRow } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -212,71 +205,40 @@ export function AuditLogsTab() {
         {loading ? (
           <p className="text-center text-muted-foreground py-8">Carregando logs...</p>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Ação</TableHead>
-                  <TableHead>Tabela</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Detalhes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Nenhum log encontrado
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-mono text-sm">
-                        {format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">
-                            {log.profiles?.full_name || 'Sistema'}
-                          </p>
-                          {log.profiles?.email && (
-                            <p className="text-sm text-muted-foreground">
-                              {log.profiles.email}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getActionColor(log.action)}>
-                          {log.action}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {log.table_name}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {log.ip_address || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            // TODO: Abrir modal com detalhes completos
-                            console.log('Log details:', log);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Data/Hora</span></div>
+              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Usuário</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ação</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tabela</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">IP</span></div>
+              <div className="col-span-1 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Det.</span></div>
+            </div>
+            {filteredLogs.length === 0 ? (
+              <div className="text-center py-12 bg-card rounded-xl border">
+                <p className="text-[13px] text-muted-foreground">Nenhum log encontrado</p>
+              </div>
+            ) : (
+              filteredLogs.map((log, index) => (
+                <CardRow key={log.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 20}ms` }}>
+                  <div className="grid grid-cols-12 gap-4 px-5 py-3.5 items-center">
+                    <div className="col-span-2">
+                      <p className="text-[13px] font-mono text-muted-foreground">{format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}</p>
+                    </div>
+                    <div className="col-span-3">
+                      <p className="text-[14px] font-medium text-foreground truncate">{log.profiles?.full_name || 'Sistema'}</p>
+                      {log.profiles?.email && <p className="text-[12px] text-muted-foreground truncate">{log.profiles.email}</p>}
+                    </div>
+                    <div className="col-span-2"><Badge className={getActionColor(log.action)}>{log.action}</Badge></div>
+                    <div className="col-span-2"><p className="text-[13px] font-mono text-muted-foreground">{log.table_name}</p></div>
+                    <div className="col-span-2"><p className="text-[13px] font-mono text-muted-foreground">{log.ip_address || '-'}</p></div>
+                    <div className="col-span-1 flex justify-end">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('Log details:', log)}><Eye className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                </CardRow>
+              ))
+            )}
           </div>
         )}
       </CardContent>

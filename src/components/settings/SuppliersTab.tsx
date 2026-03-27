@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -247,59 +246,45 @@ export function SuppliersTab() {
               <p className="text-muted-foreground">Carregando fornecedores...</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {suppliers.map((supplier) => (
-                  <TableRow key={supplier.id}>
-                    <TableCell className="font-medium">{supplier.name}</TableCell>
-                    <TableCell>
+            <div className="space-y-2">
+              <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
+                <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+                <div className="col-span-4"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Link</span></div>
+                <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span></div>
+                <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+              </div>
+              {suppliers.map((supplier, index) => (
+                <Card key={supplier.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
+                  <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
+                    <div className="col-span-4">
+                      <p className="text-[14px] font-medium text-foreground truncate">{supplier.name}</p>
+                    </div>
+                    <div className="col-span-4">
                       {supplier.link ? (
-                        <a 
-                          href={supplier.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          {supplier.link}
-                        </a>
-                      ) : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={supplier.is_active}
-                        onCheckedChange={() => toggleActive(supplier.id, supplier.is_active)}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(supplier)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(supplier.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        <a href={supplier.link} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary hover:underline truncate block">{supplier.link}</a>
+                      ) : (
+                        <span className="text-[13px] text-muted-foreground">-</span>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <Switch checked={supplier.is_active} onCheckedChange={() => toggleActive(supplier.id, supplier.is_active)} />
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                          <DropdownMenuItem onClick={() => handleEdit(supplier)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(supplier.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

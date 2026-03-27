@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -20,6 +19,7 @@ import { ContractTable } from '@/components/contracts/ContractTable';
 import { ContractFormModal } from '@/components/contracts/ContractFormModal';
 import { ClientMaintenanceTab } from '@/components/clients/ClientMaintenanceTab';
 import { ClientFinancialTab } from '@/components/clients/ClientFinancialTab';
+import { ClientAccessesTab } from '@/components/clients/ClientAccessesTab';
 import { ProjectTable } from '@/components/projects/ProjectTable';
 import { ProjectFormModal } from '@/components/projects/ProjectFormModal';
 import { format } from 'date-fns';
@@ -418,97 +418,98 @@ export default function ClientDetail() {
             <TabsTrigger value="projetos">Projetos</TabsTrigger>
             <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="dominios">Domínios</TabsTrigger>
+            <TabsTrigger value="acessos">Acessos</TabsTrigger>
             <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
             <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
             <TabsTrigger value="contatos">Contatos</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="geral" className="space-y-4">
+          <TabsContent value="geral" className="space-y-4 mt-6">
             <div className="grid gap-4 md:grid-cols-2">
               {/* Contact Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Informações de Contato</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
+              <div className="rounded-xl border bg-card">
+                <div className="px-6 py-4 border-b">
+                  <span className="text-sm font-semibold text-foreground">Informações de Contato</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 px-6 py-3.5 border-b">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{client.email}</p>
+                      <p className="text-[11px] text-muted-foreground">Email</p>
+                      <p className="text-[13px] font-medium text-foreground">{client.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 px-6 py-3.5">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Telefone</p>
-                      <p className="font-medium">{formatPhone(client.phone)}</p>
+                      <p className="text-[11px] text-muted-foreground">Telefone</p>
+                      <p className="text-[13px] font-medium text-foreground">{formatPhone(client.phone)}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Personal/Company Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
+              <div className="rounded-xl border bg-card">
+                <div className="px-6 py-4 border-b">
+                  <span className="text-sm font-semibold text-foreground">
                     {client.client_type === 'person' ? 'Dados Pessoais' : 'Dados da Empresa'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                  </span>
+                </div>
+                <div>
                   {client.client_type === 'company' && client.company_name && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 px-6 py-3.5 border-b">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Nome da Empresa</p>
-                        <p className="font-medium">{client.company_name}</p>
+                        <p className="text-[11px] text-muted-foreground">Nome da Empresa</p>
+                        <p className="text-[13px] font-medium text-foreground">{client.company_name}</p>
                       </div>
                     </div>
                   )}
                   {client.client_type === 'person' && client.full_name && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 px-6 py-3.5 border-b">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Nome Completo</p>
-                        <p className="font-medium">{client.full_name}</p>
+                        <p className="text-[11px] text-muted-foreground">Nome Completo</p>
+                        <p className="text-[13px] font-medium text-foreground">{client.full_name}</p>
                       </div>
                     </div>
                   )}
                   {client.cpf_cnpj && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 px-6 py-3.5 border-b">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {client.client_type === 'person' ? 'CPF' : 'CNPJ'}
                         </p>
-                        <p className="font-medium">{formatCpfCnpj(client.cpf_cnpj)}</p>
+                        <p className="text-[13px] font-medium text-foreground">{formatCpfCnpj(client.cpf_cnpj)}</p>
                       </div>
                     </div>
                   )}
                   {client.client_type === 'person' && client.birth_date && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 px-6 py-3.5">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Data de Nascimento</p>
-                        <p className="font-medium">
+                        <p className="text-[11px] text-muted-foreground">Data de Nascimento</p>
+                        <p className="text-[13px] font-medium text-foreground">
                           {format(new Date(client.birth_date), 'PPP', { locale: ptBR })}
                         </p>
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* System Access */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Acesso ao Sistema</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="rounded-xl border bg-card md:col-span-2">
+                <div className="px-6 py-4 border-b">
+                  <span className="text-sm font-semibold text-foreground">Acesso ao Sistema</span>
+                </div>
+                <div className="px-6 py-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="system-access">Habilitar acesso ao sistema</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <Label htmlFor="system-access" className="text-[13px] font-medium">Habilitar acesso ao sistema</Label>
+                      <p className="text-[11px] text-muted-foreground">
                         Permite que o cliente acesse o sistema como usuário
                       </p>
                     </div>
@@ -523,7 +524,7 @@ export default function ClientDetail() {
                   {systemAccessEnabled && !client.user_id && (
                     <div className="space-y-3 pt-4 border-t">
                       <div className="space-y-2">
-                        <Label htmlFor="password">Senha de Acesso *</Label>
+                        <Label htmlFor="password" className="text-[13px]">Senha de Acesso *</Label>
                         <Input
                           id="password"
                           type="password"
@@ -532,13 +533,14 @@ export default function ClientDetail() {
                           onChange={(e) => setPassword(e.target.value)}
                           disabled={savingAccess}
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           Email de login: {client.email}
                         </p>
                       </div>
                       <Button
                         onClick={handleCreateSystemAccess}
                         disabled={savingAccess || !password}
+                        size="sm"
                       >
                         {savingAccess ? 'Criando acesso...' : 'Criar Acesso'}
                       </Button>
@@ -549,53 +551,51 @@ export default function ClientDetail() {
                     <div className="pt-4 border-t">
                       <div className="flex items-center gap-2">
                         <Badge variant="default">Acesso ativo</Badge>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           Cliente pode fazer login com: {client.email}
                         </p>
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Address Info */}
               {(client.address_street || client.address_city) && (
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Endereço</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                <div className="rounded-xl border bg-card md:col-span-2">
+                  <div className="px-6 py-4 border-b">
+                    <span className="text-sm font-semibold text-foreground">Endereço</span>
+                  </div>
+                  <div className="px-6 py-4">
                     <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="font-medium">
+                        <p className="text-[13px] font-medium text-foreground">
                           {client.address_street}
                           {client.address_number && `, ${client.address_number}`}
                           {client.address_complement && ` - ${client.address_complement}`}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           {client.address_neighborhood && `${client.address_neighborhood}, `}
-                        {client.address_city && `${client.address_city}`}
-                        {client.address_state && ` - ${client.address_state}`}
-                      </p>
-                      {client.address_cep && (
-                        <p className="text-sm text-muted-foreground">CEP: {formatCEP(client.address_cep)}</p>
-                      )}
+                          {client.address_city && `${client.address_city}`}
+                          {client.address_state && ` - ${client.address_state}`}
+                        </p>
+                        {client.address_cep && (
+                          <p className="text-[11px] text-muted-foreground">CEP: {formatCEP(client.address_cep)}</p>
+                        )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="tickets" className="space-y-4">
+          <TabsContent value="tickets" className="space-y-4 mt-6">
             {loadingTickets ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">Carregando tickets...</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-xl border bg-card text-center py-12">
+                <p className="text-[13px] text-muted-foreground">Carregando tickets...</p>
+              </div>
             ) : (
               <TicketTable
                 tickets={tickets}
@@ -605,7 +605,7 @@ export default function ClientDetail() {
             )}
           </TabsContent>
 
-          <TabsContent value="projetos" className="space-y-4">
+          <TabsContent value="projetos" className="space-y-4 mt-6">
             <div className="flex justify-end">
               <Button onClick={handleNewProject} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -614,11 +614,9 @@ export default function ClientDetail() {
             </div>
             
             {loadingProjects ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">Carregando projetos...</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-xl border bg-card text-center py-12">
+                <p className="text-[13px] text-muted-foreground">Carregando projetos...</p>
+              </div>
             ) : (
               <ProjectTable
                 projects={projects}
@@ -630,7 +628,7 @@ export default function ClientDetail() {
             )}
           </TabsContent>
 
-          <TabsContent value="contratos" className="space-y-4">
+          <TabsContent value="contratos" className="space-y-4 mt-6">
             <div className="flex justify-end">
               <Button onClick={handleNewContract} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -639,11 +637,9 @@ export default function ClientDetail() {
             </div>
             
             {loadingContracts ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">Carregando contratos...</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-xl border bg-card text-center py-12">
+                <p className="text-[13px] text-muted-foreground">Carregando contratos...</p>
+              </div>
             ) : (
               <ContractTable
                 contracts={contracts}
@@ -657,19 +653,23 @@ export default function ClientDetail() {
             )}
           </TabsContent>
 
-          <TabsContent value="dominios" className="space-y-4">
+          <TabsContent value="dominios" className="space-y-4 mt-6">
             <ClientDomains clientId={id!} />
           </TabsContent>
 
-          <TabsContent value="manutencao" className="space-y-4">
+          <TabsContent value="acessos" className="space-y-4 mt-6">
+            <ClientAccessesTab clientId={id!} />
+          </TabsContent>
+
+          <TabsContent value="manutencao" className="space-y-4 mt-6">
             <ClientMaintenanceTab clientId={id!} />
           </TabsContent>
 
-          <TabsContent value="financeiro" className="space-y-4">
+          <TabsContent value="financeiro" className="space-y-4 mt-6">
             <ClientFinancialTab clientId={id!} />
           </TabsContent>
 
-          <TabsContent value="contatos" className="space-y-4">
+          <TabsContent value="contatos" className="space-y-4 mt-6">
             <div className="flex justify-end">
               <Button onClick={handleNewContact} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -678,11 +678,9 @@ export default function ClientDetail() {
             </div>
             
             {loadingContacts ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">Carregando contatos...</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-xl border bg-card text-center py-12">
+                <p className="text-[13px] text-muted-foreground">Carregando contatos...</p>
+              </div>
             ) : (
               <ContactsList
                 contacts={contacts}

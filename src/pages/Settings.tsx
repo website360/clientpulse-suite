@@ -230,7 +230,7 @@ export default function Settings() {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <h1 className="text-4xl font-bold tracking-tight">Configurações</h1>
-              <p className="text-[15px] text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 Gerencie suas preferências e informações pessoais
               </p>
             </div>

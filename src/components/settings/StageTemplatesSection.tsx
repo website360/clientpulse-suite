@@ -9,8 +9,14 @@ import { Switch } from '@/components/ui/switch';
 import { useToast, toastSuccess } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, List, UserCheck } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, List, UserCheck, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -284,50 +290,36 @@ export function StageTemplatesSection() {
                   </CardHeader>
                   {stage.project_checklist_templates && stage.project_checklist_templates.length > 0 && (
                     <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead>Ordem</TableHead>
-                            <TableHead>Aprovação</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {stage.project_checklist_templates
-                            .filter((item: any) => item.is_active)
-                            .sort((a: any, b: any) => a.order - b.order)
-                            .map((item: any) => (
-                              <TableRow key={item.id}>
-                                <TableCell>{item.description}</TableCell>
-                                <TableCell>{item.order}</TableCell>
-                                <TableCell>
-                                  {item.requires_approval && (
-                                    <Badge variant="secondary">{item.approval_type}</Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleOpenChecklistModal(stage.id, item)}
-                                    >
-                                      <Edit2 className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteChecklist.mutate(item.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                        </TableBody>
-                      </Table>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-12 gap-4 px-4 py-2.5 bg-muted/20 rounded-xl">
+                          <div className="col-span-5"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição</span></div>
+                          <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ordem</span></div>
+                          <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Aprovação</span></div>
+                          <div className="col-span-2 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
+                        </div>
+                        {stage.project_checklist_templates
+                          .filter((item: any) => item.is_active)
+                          .sort((a: any, b: any) => a.order - b.order)
+                          .map((item: any, idx: number) => (
+                            <Card key={item.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${idx * 30}ms` }}>
+                              <div className="grid grid-cols-12 gap-4 px-4 py-3.5 items-center">
+                                <div className="col-span-5"><p className="text-[14px] text-foreground">{item.description}</p></div>
+                                <div className="col-span-2"><p className="text-[13px] text-muted-foreground">{item.order}</p></div>
+                                <div className="col-span-3">{item.requires_approval && <Badge variant="secondary">{item.approval_type}</Badge>}</div>
+                                <div className="col-span-2 flex justify-end">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg p-2">
+                                      <DropdownMenuItem onClick={() => handleOpenChecklistModal(stage.id, item)} className="rounded-lg px-3 py-2.5 cursor-pointer"><Edit2 className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => deleteChecklist.mutate(item.id)} className="text-destructive focus:text-destructive rounded-lg px-3 py-2.5 cursor-pointer"><Trash2 className="h-4 w-4 mr-2" />Desativar</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                      </div>
                     </CardContent>
                   )}
                 </Card>

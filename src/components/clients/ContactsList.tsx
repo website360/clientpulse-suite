@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -159,19 +158,19 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
 
   if (contacts.length === 0) {
     return (
-      <Card className="p-12 text-center">
+      <div className="rounded-xl border bg-card p-12 text-center">
         <User2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Nenhum contato cadastrado</h3>
-        <p className="text-muted-foreground">
+        <h3 className="text-sm font-semibold mb-1">Nenhum contato cadastrado</h3>
+        <p className="text-[13px] text-muted-foreground">
           Comece adicionando um novo contato para este cliente
         </p>
-      </Card>
+      </div>
     );
   }
 
   return (
     <>
-      <Card>
+      <div className="rounded-xl border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -263,7 +262,7 @@ export function ContactsList({ contacts, onEdit, onContactsChange }: ContactsLis
             ))}
           </TableBody>
         </Table>
-      </Card>
+      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
