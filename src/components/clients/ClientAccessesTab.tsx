@@ -271,7 +271,12 @@ export function ClientAccessesTab({ clientId }: ClientAccessesTabProps) {
                 <div className="col-span-1 text-right"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span></div>
               </div>
               {accesses.map((access, index) => (
-                <Card key={access.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group" style={{ animationDelay: `${index * 30}ms` }}>
+                <Card 
+                  key={access.id} 
+                  className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer" 
+                  style={{ animationDelay: `${index * 30}ms` }}
+                  onClick={() => access.url && window.open(access.url, '_blank')}
+                >
                   <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
                     <div className="col-span-3">
                       <div className="flex items-center gap-3">
