@@ -68,16 +68,13 @@ export function QuickStatsGrid({ stats }: QuickStatsGridProps) {
               onClick={stat.onClick}
             >
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</p>
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
-                  colors.bg
-                )}>
-                  <Icon className={cn("h-6 w-6", colors.icon)} />
-                </div>
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground leading-none">
                   {stat.value}
                 </p>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted/30">
+                  <Icon className="h-6 w-6 text-muted-foreground/40" />
+                </div>
               </div>
               {(stat.subtitle || stat.trend) && (
                 <div className="flex items-center gap-2 mt-2">
