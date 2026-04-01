@@ -3180,37 +3180,52 @@ export type Database = {
       }
       ticket_macros: {
         Row: {
+          channel: string | null
           content: string
           created_at: string | null
           created_by: string
           department_id: string | null
+          email_html: string | null
+          email_subject: string | null
           id: string
           is_active: boolean | null
           name: string
           shortcut: string | null
+          template_category: string | null
           updated_at: string | null
+          whatsapp_template: string | null
         }
         Insert: {
+          channel?: string | null
           content: string
           created_at?: string | null
           created_by: string
           department_id?: string | null
+          email_html?: string | null
+          email_subject?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           shortcut?: string | null
+          template_category?: string | null
           updated_at?: string | null
+          whatsapp_template?: string | null
         }
         Update: {
+          channel?: string | null
           content?: string
           created_at?: string | null
           created_by?: string
           department_id?: string | null
+          email_html?: string | null
+          email_subject?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           shortcut?: string | null
+          template_category?: string | null
           updated_at?: string | null
+          whatsapp_template?: string | null
         }
         Relationships: [
           {
