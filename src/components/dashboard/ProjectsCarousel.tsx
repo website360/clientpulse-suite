@@ -39,7 +39,7 @@ export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
   }
 
   return (
-    <div className="h-full rounded-xl border bg-card">
+    <div className="h-full rounded-xl border bg-card flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <span className="text-sm font-semibold text-foreground">Projetos Ativos</span>
@@ -47,7 +47,7 @@ export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
       </div>
 
       {/* Carousel */}
-      <div className="px-6 py-5">
+      <div className="px-6 py-5 flex-1 min-h-0">
         <Carousel className="w-full">
           <CarouselContent className="-ml-3">
             {projects.map((project) => (
@@ -86,7 +86,7 @@ export function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
       </div>
 
       {/* Footer */}
-      <div className="border-t px-6 py-3">
+      <div className="border-t px-6 py-3 mt-auto">
         <Link to="/projetos" className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors">
           Ver todos
           <ArrowRight className="h-3.5 w-3.5" />

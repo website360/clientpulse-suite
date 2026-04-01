@@ -40,7 +40,7 @@ export function FinancialSummaryCard({
   const isReceivable = type === 'receivable';
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden relative">
+    <div className="h-full rounded-xl border bg-card overflow-hidden relative flex flex-col">
       {/* Color accent line - left border */}
       <div className={cn(
         "absolute left-0 top-0 bottom-0 w-1",
@@ -87,7 +87,7 @@ export function FinancialSummaryCard({
       </div>
 
       {/* Items — simple rows with border separator */}
-      <div className="border-t">
+      <div className="border-t flex-1 min-h-0">
         {items.map((item, index) => (
           <div
             key={index}
@@ -105,7 +105,7 @@ export function FinancialSummaryCard({
       </div>
 
       {/* Footer link */}
-      <div className="border-t px-6 py-3">
+      <div className="border-t px-6 py-3 mt-auto">
         <Link
           to={linkTo}
           className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
