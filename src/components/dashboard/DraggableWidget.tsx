@@ -149,8 +149,9 @@ export function DraggableWidget({
       )}
 
       <div className={cn(
-        'w-full overflow-auto [&>*]:h-full',
+        'w-full [&>*]:h-full',
         widget.height === 'auto' ? '' : heightClasses[widget.height],
+        widget.height !== 'auto' && 'overflow-auto',
         isEditMode && 'pointer-events-none'
       )}>
         {children}
