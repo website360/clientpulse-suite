@@ -17,10 +17,12 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Zap, Search, MoreVertical, Circle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, Search, MoreVertical, Circle, Mail, MessageSquare, Download } from 'lucide-react';
 import { useCachedDepartments } from '@/hooks/useCachedDepartments';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
+import { MessageTemplateEditor } from './MessageTemplateEditor';
+import { DEFAULT_MESSAGE_TEMPLATES } from '@/data/defaultMessageTemplates';
 
 interface Macro {
   id: string;
@@ -29,6 +31,11 @@ interface Macro {
   content: string;
   department_id: string | null;
   is_active: boolean;
+  channel?: 'text' | 'email' | 'whatsapp' | 'both';
+  email_subject?: string | null;
+  email_html?: string | null;
+  whatsapp_template?: string | null;
+  template_category?: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -40,6 +47,11 @@ interface MacroFormData {
   content: string;
   department_id: string;
   is_active: boolean;
+  channel: 'text' | 'email' | 'whatsapp' | 'both';
+  email_subject: string;
+  email_html: string;
+  whatsapp_template: string;
+  template_category: string;
 }
 
 export function TicketMacrosSettingsTab() {
@@ -57,6 +69,11 @@ export function TicketMacrosSettingsTab() {
     content: '',
     department_id: '',
     is_active: true,
+    channel: 'text',
+    email_subject: '',
+    email_html: '',
+    whatsapp_template: '',
+    template_category: 'custom',
   });
 
   useEffect(() => {
@@ -97,6 +114,11 @@ export function TicketMacrosSettingsTab() {
     content: formData.content,
     department_id: formData.department_id === 'all' ? null : formData.department_id || null,
     is_active: formData.is_active,
+    channel: formData.channel,
+    email_subject: formData.email_subject || null,
+    email_html: formData.email_html || null,
+    whatsapp_template: formData.whatsapp_template || null,
+    template_category: formData.template_category,
     created_by: user.id,
   };
 
@@ -146,6 +168,11 @@ export function TicketMacrosSettingsTab() {
       content: macro.content,
       department_id: macro.department_id || 'all',
       is_active: macro.is_active,
+      channel: macro.channel || 'text',
+      email_subject: macro.email_subject || '',
+      email_html: macro.email_html || '',
+      whatsapp_template: macro.whatsapp_template || '',
+      template_category: macro.template_category || 'custom',
     });
     setOpen(true);
   };
@@ -184,8 +211,32 @@ export function TicketMacrosSettingsTab() {
       content: '',
       department_id: 'all',
       is_active: true,
+      channel: 'text',
+      email_subject: '',
+      email_html: '',
+      whatsapp_template: '',
+      template_category: 'custom',
     });
     setEditingMacro(null);
+  };
+
+  const loadDefaultTemplate = (templateKey: string) => {
+    const template = DEFAULT_MESSAGE_TEMPLATES[templateKey as keyof typeof DEFAULT_MESSAGE_TEMPLATES];
+    if (template) {
+      setFormData({
+        ...formData,
+        name: template.name,
+        channel: 'both',
+        email_subject: template.email_subject,
+        email_html: template.email_html,
+        whatsapp_template: template.whatsapp_template,
+        template_category: template.category,
+      });
+      toast({
+        title: 'Template Carregado',
+        description: `Template "${template.name}" carregado com sucesso`,
+      });
+    }
   };
 
   const getDepartmentName = (departmentId: string | null) => {
@@ -221,7 +272,7 @@ export function TicketMacrosSettingsTab() {
                 Macros de Tickets
               </CardTitle>
               <CardDescription>
-                Configure templates de resposta rápida com atalhos de teclado
+                Configure templates de resposta rápida para Email e WhatsApp com atalhos de teclado
               </CardDescription>
             </div>
             <Dialog open={open} onOpenChange={(isOpen) => {
@@ -234,7 +285,7 @@ export function TicketMacrosSettingsTab() {
                   Novo Macro
                 </Button>
               </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
                   <DialogTitle>
@@ -245,6 +296,48 @@ export function TicketMacrosSettingsTab() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
+                  {/* Load Default Template */}
+                  <div className="space-y-2">
+                    <Label>Templates Padrão (WHMCS)</Label>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadDefaultTemplate('ticket_opened')}
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Ticket Aberto
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadDefaultTemplate('ticket_reply')}
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Resposta ao Ticket
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadDefaultTemplate('ticket_closed')}
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Ticket Fechado
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadDefaultTemplate('payment_reminder')}
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Lembrete de Pagamento
+                      </Button>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome do Macro *</Label>
@@ -285,49 +378,19 @@ export function TicketMacrosSettingsTab() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="content">Conteúdo da Resposta *</Label>
-                      <EmojiPicker 
-                        onEmojiSelect={(emoji) => {
-                          const textarea = document.getElementById('content') as HTMLTextAreaElement;
-                          const start = textarea.selectionStart;
-                          const end = textarea.selectionEnd;
-                          const newContent = formData.content.substring(0, start) + emoji + formData.content.substring(end);
-                          setFormData({ ...formData, content: newContent });
-                          // Restore cursor position after emoji insertion
-                          setTimeout(() => {
-                            textarea.focus();
-                            textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-                          }, 0);
-                        }}
-                      />
-                    </div>
-                    <Textarea
-                      id="content"
-                      value={formData.content}
-                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                      placeholder="Digite o template da resposta..."
-                      rows={6}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Você pode usar variáveis como {'{cliente}'}, {'{cliente}'}, {'{usuario}'} no texto
-                    </p>
-                  </div>
-                  {formData.content && (
-                    <div className="space-y-2">
-                      <Label>Preview da Mensagem</Label>
-                      <div className="border rounded-lg p-4 bg-muted/50">
-                        <p className="text-sm whitespace-pre-wrap">
-                          {getPreviewContent(formData.content)}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Este é um exemplo de como o macro ficará ao ser usado
-                      </p>
-                    </div>
-                  )}
+                  {/* Message Template Editor */}
+                  <MessageTemplateEditor
+                    channel={formData.channel}
+                    emailSubject={formData.email_subject}
+                    emailHtml={formData.email_html}
+                    whatsappTemplate={formData.whatsapp_template}
+                    content={formData.content}
+                    onChannelChange={(channel) => setFormData({ ...formData, channel })}
+                    onEmailSubjectChange={(subject) => setFormData({ ...formData, email_subject: subject })}
+                    onEmailHtmlChange={(html) => setFormData({ ...formData, email_html: html })}
+                    onWhatsappTemplateChange={(template) => setFormData({ ...formData, whatsapp_template: template })}
+                    onContentChange={(content) => setFormData({ ...formData, content })}
+                  />
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="is_active"
@@ -376,7 +439,8 @@ export function TicketMacrosSettingsTab() {
         ) : (
           <div className="space-y-2">
             <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-muted/20 rounded-xl">
-              <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+              <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nome</span></div>
+              <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Canal</span></div>
               <div className="col-span-1"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Atalho</span></div>
               <div className="col-span-2"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Departamento</span></div>
               <div className="col-span-3"><span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Conteúdo</span></div>
@@ -386,8 +450,19 @@ export function TicketMacrosSettingsTab() {
             {filteredMacros.map((macro, index) => (
               <Card key={macro.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 overflow-hidden" style={{ animationDelay: `${index * 30}ms` }}>
                 <div className="grid grid-cols-12 gap-4 px-5 py-4 items-center">
-                  <div className="col-span-3">
+                  <div className="col-span-2">
                     <p className="text-[14px] font-medium text-foreground truncate">{macro.name}</p>
+                  </div>
+                  <div className="col-span-1">
+                    {macro.channel === 'email' && <Mail className="h-4 w-4 text-blue-600" />}
+                    {macro.channel === 'whatsapp' && <MessageSquare className="h-4 w-4 text-green-600" />}
+                    {macro.channel === 'both' && (
+                      <div className="flex gap-1">
+                        <Mail className="h-3.5 w-3.5 text-blue-600" />
+                        <MessageSquare className="h-3.5 w-3.5 text-green-600" />
+                      </div>
+                    )}
+                    {(!macro.channel || macro.channel === 'text') && <span className="text-xs text-muted-foreground">Texto</span>}
                   </div>
                   <div className="col-span-1">
                     {macro.shortcut && (
