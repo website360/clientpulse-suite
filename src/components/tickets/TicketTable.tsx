@@ -1,4 +1,6 @@
-import { Eye, Ticket as TicketIcon, Trash2, Calendar, MoreVertical, Circle, Clock } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2, Calendar, MoreVertical, Circle, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Card } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -226,27 +226,92 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
               {getPriorityBadge(ticket.priority)}
             </div>
 
-            {/* Tempo de Resposta */}
+            {/* SLA Tempo de Resposta */}
             <div>
-              {ticket.response_time_minutes != null ? (
-                <div className="flex items-center gap-1.5 text-[13px]">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className={`font-medium ${
-                    ticket.response_time_minutes <= 30 ? 'text-green-600' :
-                    ticket.response_time_minutes <= 120 ? 'text-amber-600' :
-                    'text-red-600'
-                  }`}>
-                    {ticket.response_time_minutes < 60
-                      ? `${ticket.response_time_minutes}min`
-                      : ticket.response_time_minutes < 1440
-                        ? `${Math.floor(ticket.response_time_minutes / 60)}h ${ticket.response_time_minutes % 60 > 0 ? `${ticket.response_time_minutes % 60}min` : ''}`
-                        : `${Math.floor(ticket.response_time_minutes / 1440)}d ${Math.floor((ticket.response_time_minutes % 1440) / 60)}h`
-                    }
-                  </span>
-                </div>
-              ) : (
-                <span className="text-xs text-muted-foreground">—</span>
-              )}
+              {(() => {
+                const sla = ticket.sla_tracking;
+                if (!sla) return <span className="text-xs text-muted-foreground">—</span>;
+
+                const now = new Date();
+
+                // Ticket resolvido/fechado
+                if (ticket.status === 'resolved' || ticket.status === 'closed') {
+                  if (sla.resolution_breached || sla.first_response_breached) {
+                    return (
+                      <Badge variant="destructive" className="gap-1 text-[11px] px-2 py-0.5">
+                        <AlertTriangle className="h-3 w-3" />
+                        Estourado
+                      </Badge>
+                    );
+                  }
+                  return (
+                    <Badge variant="secondary" className="gap-1 text-[11px] px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                      <CheckCircle className="h-3 w-3" />
+                      SLA OK
+                    </Badge>
+                  );
+                }
+
+                // Aguardando primeira resposta
+                if (!sla.first_response_at && sla.first_response_due_at) {
+                  const dueDate = new Date(sla.first_response_due_at);
+                  const minutesLeft = Math.floor((dueDate.getTime() - now.getTime()) / (60 * 1000));
+
+                  if (minutesLeft < 0) {
+                    return (
+                      <Badge variant="destructive" className="gap-1 text-[11px] px-2 py-0.5">
+                        <AlertTriangle className="h-3 w-3" />
+                        Atrasado
+                      </Badge>
+                    );
+                  }
+                  if (minutesLeft <= 60) {
+                    return (
+                      <Badge variant="secondary" className="gap-1 text-[11px] px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                        <Clock className="h-3 w-3" />
+                        {minutesLeft}min
+                      </Badge>
+                    );
+                  }
+                  return (
+                    <Badge variant="outline" className="gap-1 text-[11px] px-2 py-0.5">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(dueDate, { locale: ptBR })}
+                    </Badge>
+                  );
+                }
+
+                // Aguardando resolução
+                if (!sla.resolution_at && sla.resolution_due_at) {
+                  const dueDate = new Date(sla.resolution_due_at);
+                  const hoursLeft = Math.floor((dueDate.getTime() - now.getTime()) / (60 * 60 * 1000));
+
+                  if (hoursLeft < 0) {
+                    return (
+                      <Badge variant="destructive" className="gap-1 text-[11px] px-2 py-0.5">
+                        <AlertTriangle className="h-3 w-3" />
+                        Resolução atrasada
+                      </Badge>
+                    );
+                  }
+                  if (hoursLeft <= 4) {
+                    return (
+                      <Badge variant="secondary" className="gap-1 text-[11px] px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                        <Clock className="h-3 w-3" />
+                        Resolver em {hoursLeft}h
+                      </Badge>
+                    );
+                  }
+                  return (
+                    <Badge variant="outline" className="gap-1 text-[11px] px-2 py-0.5">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(dueDate, { locale: ptBR })}
+                    </Badge>
+                  );
+                }
+
+                return <span className="text-xs text-muted-foreground">—</span>;
+              })()}
             </div>
 
             {/* Criado em */}

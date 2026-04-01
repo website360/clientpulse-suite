@@ -130,7 +130,18 @@ export default function Tickets() {
           viewsMap.set(view.ticket_id, view.last_viewed_at);
         });
 
-        // Adicionar flag de não lido
+        // Buscar SLA tracking de todos os tickets
+        const { data: slaData } = await supabase
+          .from('ticket_sla_tracking')
+          .select('ticket_id, first_response_due_at, first_response_at, first_response_breached, resolution_due_at, resolution_at, resolution_breached')
+          .in('ticket_id', ticketIds);
+
+        const slaMap = new Map();
+        slaData?.forEach(sla => {
+          slaMap.set(sla.ticket_id, sla);
+        });
+
+        // Adicionar flag de não lido e SLA
         const ticketsWithUnread = ticketsData?.map(ticket => {
           const lastMessage = lastMessageMap.get(ticket.id);
           const lastViewDate = viewsMap.get(ticket.id);
@@ -142,7 +153,8 @@ export default function Tickets() {
           
           return {
             ...ticket,
-            hasUnread
+            hasUnread,
+            sla_tracking: slaMap.get(ticket.id) || null,
           };
         });
 
