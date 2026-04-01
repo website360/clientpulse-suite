@@ -26,7 +26,7 @@ export function TicketsOverview({ stats }: TicketsOverviewProps) {
   ];
 
   return (
-    <div className="rounded-xl border bg-card">
+    <div className="h-full rounded-xl border bg-card flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <span className="text-sm font-semibold text-foreground">Tickets</span>
@@ -50,7 +50,7 @@ export function TicketsOverview({ stats }: TicketsOverviewProps) {
       </div>
 
       {/* Items */}
-      <div className="border-t">
+      <div className="border-t flex-1 min-h-0">
         {items.map((item, index) => (
           <div
             key={item.label}
@@ -66,7 +66,7 @@ export function TicketsOverview({ stats }: TicketsOverviewProps) {
       </div>
 
       {/* Footer */}
-      <div className="border-t px-6 py-3">
+      <div className="border-t px-6 py-3 mt-auto">
         <Link
           to="/tickets"
           className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
