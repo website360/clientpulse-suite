@@ -1,4 +1,4 @@
-import { Eye, Ticket as TicketIcon, Trash2, Calendar, MoreVertical, Circle } from 'lucide-react';
+import { Eye, Ticket as TicketIcon, Trash2, Calendar, MoreVertical, Circle, Clock } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -132,31 +132,34 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
   return (
     <div className="space-y-2">
       {/* Header Row */}
-      <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-3 bg-muted/20 rounded-xl`}>
-        <div className="col-span-1 cursor-pointer" onClick={() => onSort?.('ticket_number')}>
+      <div className={`grid ${hideClientColumn ? 'grid-cols-12' : 'grid-cols-14'} gap-3 px-6 py-3 bg-muted/20 rounded-xl`} style={{ gridTemplateColumns: hideClientColumn ? 'repeat(12, minmax(0, 1fr))' : '1fr 2fr 3fr 1fr 1.2fr 1fr 1.2fr 1.5fr 0.8fr' }}>
+        <div className="cursor-pointer" onClick={() => onSort?.('ticket_number')}>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest"># {sortColumn === 'ticket_number' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
         </div>
         {!hideClientColumn && (
-          <div className="col-span-2">
+          <div>
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente</span>
           </div>
         )}
-        <div className="col-span-3 cursor-pointer" onClick={() => onSort?.('subject')}>
+        <div className="cursor-pointer" onClick={() => onSort?.('subject')}>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Assunto {sortColumn === 'subject' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
         </div>
-        <div className="col-span-1">
+        <div>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Depto</span>
         </div>
-        <div className="col-span-1 cursor-pointer" onClick={() => onSort?.('status')}>
+        <div className="cursor-pointer" onClick={() => onSort?.('status')}>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
         </div>
-        <div className="col-span-1 cursor-pointer" onClick={() => onSort?.('priority')}>
+        <div className="cursor-pointer" onClick={() => onSort?.('priority')}>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Prioridade {sortColumn === 'priority' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
         </div>
-        <div className="col-span-2 cursor-pointer" onClick={() => onSort?.('created_at')}>
+        <div className="cursor-pointer" onClick={() => onSort?.('response_time_minutes')}>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Resposta {sortColumn === 'response_time_minutes' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+        </div>
+        <div className="cursor-pointer" onClick={() => onSort?.('created_at')}>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Criado em {sortColumn === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
         </div>
-        <div className="col-span-1 text-right">
+        <div className="text-right">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ações</span>
         </div>
       </div>
@@ -169,15 +172,15 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
           className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-200 animate-fade-in-up overflow-hidden group cursor-pointer"
           style={{ animationDelay: `${index * 30}ms` }}
         >
-          <div className={`grid ${hideClientColumn ? 'grid-cols-10' : 'grid-cols-12'} gap-4 px-6 py-4 items-center`}>
+          <div className={`grid gap-3 px-6 py-4 items-center`} style={{ gridTemplateColumns: hideClientColumn ? 'repeat(12, minmax(0, 1fr))' : '1fr 2fr 3fr 1fr 1.2fr 1fr 1.2fr 1.5fr 0.8fr' }}>
             {/* # */}
-            <div className="col-span-1">
+            <div>
               <span className="text-[14px] font-medium text-foreground">#{ticket.ticket_number}</span>
             </div>
 
             {/* Cliente */}
             {!hideClientColumn && (
-              <div className="col-span-2">
+              <div>
                 {ticket.client_id ? (
                   <ClientNameCell client={ticket.clients || {}} />
                 ) : (
@@ -192,7 +195,7 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
             )}
 
             {/* Assunto */}
-            <div className="col-span-3">
+            <div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-medium line-clamp-1" title={ticket.subject}>{ticket.subject}</p>
@@ -209,22 +212,45 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
             </div>
 
             {/* Departamento */}
-            <div className="col-span-1">
+            <div>
               {getDeptBadge(ticket)}
             </div>
 
             {/* Status */}
-            <div className="col-span-1">
+            <div>
               {getStatusBadge(ticket.status)}
             </div>
 
             {/* Prioridade */}
-            <div className="col-span-1">
+            <div>
               {getPriorityBadge(ticket.priority)}
             </div>
 
+            {/* Tempo de Resposta */}
+            <div>
+              {ticket.response_time_minutes != null ? (
+                <div className="flex items-center gap-1.5 text-[13px]">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className={`font-medium ${
+                    ticket.response_time_minutes <= 30 ? 'text-green-600' :
+                    ticket.response_time_minutes <= 120 ? 'text-amber-600' :
+                    'text-red-600'
+                  }`}>
+                    {ticket.response_time_minutes < 60
+                      ? `${ticket.response_time_minutes}min`
+                      : ticket.response_time_minutes < 1440
+                        ? `${Math.floor(ticket.response_time_minutes / 60)}h ${ticket.response_time_minutes % 60 > 0 ? `${ticket.response_time_minutes % 60}min` : ''}`
+                        : `${Math.floor(ticket.response_time_minutes / 1440)}d ${Math.floor((ticket.response_time_minutes % 1440) / 60)}h`
+                    }
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              )}
+            </div>
+
             {/* Criado em */}
-            <div className="col-span-2">
+            <div>
               <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 {format(new Date(ticket.created_at), 'dd/MM/yyyy', { locale: ptBR })}
@@ -232,7 +258,7 @@ export function TicketTable({ tickets, onPriorityChange, onStatusChange, onDelet
             </div>
 
             {/* Ações */}
-            <div className="col-span-1 flex items-center justify-end flex-shrink-0">
+            <div className="flex items-center justify-end flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
