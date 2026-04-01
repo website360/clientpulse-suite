@@ -34,6 +34,7 @@ const heightClasses = {
   small: 'h-[200px]',
   medium: 'h-[300px]',
   large: 'h-[400px]',
+  xlarge: 'h-[450px]',
 };
 
 const heightLabels = {
@@ -41,6 +42,7 @@ const heightLabels = {
   small: 'Pequena (200px)',
   medium: 'Média (300px)',
   large: 'Grande (400px)',
+  xlarge: 'Extra Grande (450px)',
 };
 
 const sizeLabels = {
