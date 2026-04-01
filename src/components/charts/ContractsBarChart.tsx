@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 const STATUS_COLORS = {
   pending_signature: 'hsl(270 70% 70%)',
@@ -144,7 +146,7 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
   const displayData = visibleData.length > 0 ? visibleData : data;
 
   return (
-    <div className="rounded-xl border bg-card">
+    <div className="h-full rounded-xl border bg-card flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <span className="text-sm font-semibold text-foreground">Contratos</span>
@@ -152,7 +154,7 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
       </div>
 
       {/* Items */}
-      <div>
+      <div className="flex-1 min-h-0">
         {displayData.map((item, index) => (
           <div
             key={index}
@@ -165,6 +167,17 @@ export function ContractsBarChart({ startDate, endDate }: ContractsBarChartProps
             <span className="text-[15px] font-semibold tabular-nums text-foreground">{item.count}</span>
           </div>
         ))}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-3 mt-auto">
+        <Link
+          to="/contratos"
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Ver todos
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
     </div>
   );
