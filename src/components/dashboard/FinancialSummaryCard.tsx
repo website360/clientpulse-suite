@@ -67,7 +67,13 @@ export function FinancialSummaryCard({
       {/* Total */}
       <div className="px-6 pt-5 pb-4">
         <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className={cn(
+            "text-3xl font-bold tracking-tight tabular-nums",
+            isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+          )}>
+            {showValues ? formatCurrency(total) : 'R$ •••••'}
+          </p>
           <div className={cn(
             "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
             isReceivable ? "bg-emerald-50 dark:bg-emerald-950" : "bg-red-50 dark:bg-red-950"
@@ -77,12 +83,6 @@ export function FinancialSummaryCard({
               isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
             )} />
           </div>
-          <p className={cn(
-            "text-3xl font-bold tracking-tight tabular-nums",
-            isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-          )}>
-            {showValues ? formatCurrency(total) : 'R$ •••••'}
-          </p>
         </div>
       </div>
 

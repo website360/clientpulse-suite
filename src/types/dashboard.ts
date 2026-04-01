@@ -47,7 +47,7 @@ export const WIDGET_CONFIGS: Record<WidgetType, WidgetConfig> = {
     title: 'Visão de Tickets',
     description: 'Status dos tickets de suporte',
     defaultSize: 'full',
-    defaultHeight: 'auto',
+    defaultHeight: 'large',
   },
   'projects-carousel': {
     id: 'projects-carousel',
@@ -89,7 +89,7 @@ export const WIDGET_CONFIGS: Record<WidgetType, WidgetConfig> = {
 export const DEFAULT_WIDGETS: DashboardWidget[] = [
   { id: 'quick-stats', type: 'quick-stats', size: 'full', height: 'auto', order: 0 },
   { id: 'financial-summary', type: 'financial-summary', size: 'full', height: 'auto', order: 1 },
-  { id: 'tickets-overview', type: 'tickets-overview', size: 'full', height: 'auto', order: 2 },
+  { id: 'tickets-overview', type: 'tickets-overview', size: 'full', height: 'large', order: 2 },
   { id: 'projects-carousel', type: 'projects-carousel', size: 'full', height: 'auto', order: 3 },
   { id: 'tasks', type: 'tasks', size: 'medium', height: 'medium', order: 4 },
   { id: 'maintenance', type: 'maintenance', size: 'medium', height: 'medium', order: 5 },
