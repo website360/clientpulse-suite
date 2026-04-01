@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
@@ -40,12 +40,13 @@ export function FinancialSummaryCard({
   const isReceivable = type === 'receivable';
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      {/* Color accent line */}
+    <div className="rounded-xl border bg-card overflow-hidden relative">
+      {/* Color accent line - left border */}
       <div className={cn(
-        "h-[2px]",
+        "absolute left-0 top-0 bottom-0 w-1",
         isReceivable ? "bg-emerald-500" : "bg-red-400"
       )} />
+      
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <span className="text-sm font-semibold text-foreground">{title}</span>
@@ -65,13 +66,24 @@ export function FinancialSummaryCard({
 
       {/* Total */}
       <div className="px-6 pt-5 pb-4">
-        <p className="text-[11px] text-muted-foreground mb-1">Total</p>
-        <p className={cn(
-          "text-3xl font-bold tracking-tight tabular-nums",
-          isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-        )}>
-          {showValues ? formatCurrency(total) : 'R$ •••••'}
-        </p>
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
+            isReceivable ? "bg-emerald-50 dark:bg-emerald-950" : "bg-red-50 dark:bg-red-950"
+          )}>
+            <DollarSign className={cn(
+              "h-6 w-6",
+              isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+            )} />
+          </div>
+          <p className={cn(
+            "text-3xl font-bold tracking-tight tabular-nums",
+            isReceivable ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+          )}>
+            {showValues ? formatCurrency(total) : 'R$ •••••'}
+          </p>
+        </div>
       </div>
 
       {/* Items — simple rows with border separator */}
