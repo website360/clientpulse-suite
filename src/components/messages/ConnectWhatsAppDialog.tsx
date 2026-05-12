@@ -95,7 +95,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
       } else if (data?.error) {
         throw new Error(data.error);
       } else {
-        throw new Error('QR Code não retornado pela API. Verifique as configurações da Evolution API em Configurações > Integrações.');
+        throw new Error('QR Code não retornado pela API. Verifique as configurações da Evolution Go em Configurações > Integrações.');
       }
     } catch (err: any) {
       console.error('Error fetching QR:', err);
@@ -128,7 +128,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
               id: `wa-${Date.now()}`,
               type: 'whatsapp' as const,
               name: accountName || 'WhatsApp',
-              identifier: 'WhatsApp via Evolution API',
+              identifier: 'WhatsApp via Evolution Go',
               isActive: true,
               status: 'connected' as const,
             };
@@ -165,7 +165,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
       id: `wa-${Date.now()}`,
       type: 'whatsapp' as const,
       name: accountName,
-      identifier: 'WhatsApp via Evolution API',
+      identifier: 'WhatsApp via Evolution Go',
       isActive: true,
       status: 'connected' as const,
     };
@@ -188,7 +188,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
             Conectar WhatsApp
           </DialogTitle>
           <DialogDescription>
-            {step === 'loading' && 'Carregando QR Code da Evolution API...'}
+            {step === 'loading' && 'Carregando QR Code da Evolution Go...'}
             {step === 'qr' && 'Escaneie o QR Code com seu WhatsApp'}
             {step === 'connected' && 'WhatsApp já está conectado!'}
             {step === 'error' && 'Erro ao conectar'}
@@ -211,7 +211,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
           {step === 'loading' && (
             <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg bg-muted/20">
               <Loader2 className="h-12 w-12 animate-spin text-green-600" />
-              <p className="text-sm text-muted-foreground mt-3">Conectando à Evolution API...</p>
+              <p className="text-sm text-muted-foreground mt-3">Conectando à Evolution Go...</p>
             </div>
           )}
 
@@ -278,7 +278,7 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
               <div className="flex flex-col items-center justify-center p-8 border-2 border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20 dark:border-green-900">
                 <CheckCircle2 className="h-16 w-16 text-green-600 mb-3" />
                 <p className="text-lg font-semibold text-green-700 dark:text-green-400">WhatsApp Conectado!</p>
-                <p className="text-sm text-muted-foreground mt-1">Sua instância Evolution API está ativa.</p>
+                <p className="text-sm text-muted-foreground mt-1">Sua instância Evolution Go está ativa.</p>
               </div>
 
               <Button 
@@ -304,9 +304,9 @@ export function ConnectWhatsAppDialog({ open, onOpenChange, onAccountConnected }
 
               <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
                 <p className="font-medium text-foreground">Verifique:</p>
-                <p>• Evolution API configurada em <strong>Configurações → Integrações</strong></p>
+                <p>• Evolution Go configurada em <strong>Configurações → Integrações</strong></p>
                 <p>• URL da API, API Key e Nome da Instância corretos</p>
-                <p>• Servidor da Evolution API está rodando</p>
+                <p>• Servidor da Evolution Go está rodando</p>
               </div>
 
               <div className="flex gap-2">

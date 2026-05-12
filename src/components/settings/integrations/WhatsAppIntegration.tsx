@@ -18,10 +18,11 @@ export function WhatsAppIntegration() {
   const [isActive, setIsActive] = useState(false);
   const [apiUrl, setApiUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [globalApiKey, setGlobalApiKey] = useState("");
   const [instanceName, setInstanceName] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
-  
+
   const { status: connectionStatus, checkStatus, isChecking } = useWhatsAppStatus(false);
 
   const { data: settings, isLoading } = useQuery({
@@ -30,10 +31,16 @@ export function WhatsAppIntegration() {
       const { data, error } = await supabase
         .from("integration_settings")
         .select("*")
-        .in("key", ["whatsapp_enabled", "whatsapp_api_url", "whatsapp_api_key", "whatsapp_instance_name"]);
-      
+        .in("key", [
+          "whatsapp_enabled",
+          "whatsapp_api_url",
+          "whatsapp_api_key",
+          "whatsapp_global_api_key",
+          "whatsapp_instance_name",
+        ]);
+
       if (error) throw error;
-      
+
       const settingsMap = data?.reduce((acc: any, item: any) => {
         acc[item.key] = item;
         return acc;
@@ -44,9 +51,10 @@ export function WhatsAppIntegration() {
         setIsActive(active);
         setApiUrl(settingsMap.whatsapp_api_url?.value || "");
         setApiKey(settingsMap.whatsapp_api_key?.value || "");
+        setGlobalApiKey(settingsMap.whatsapp_global_api_key?.value || "");
         setInstanceName(settingsMap.whatsapp_instance_name?.value || "");
       }
-      
+
       return settingsMap;
     },
   });
@@ -63,6 +71,7 @@ export function WhatsAppIntegration() {
         { key: "whatsapp_enabled", value: String(isActive), is_active: true },
         { key: "whatsapp_api_url", value: apiUrl, is_active: true },
         { key: "whatsapp_api_key", value: apiKey, is_active: true },
+        { key: "whatsapp_global_api_key", value: globalApiKey, is_active: true },
         { key: "whatsapp_instance_name", value: instanceName, is_active: true },
       ];
 
@@ -83,7 +92,7 @@ export function WhatsAppIntegration() {
         }
       }
 
-      // Auto-create instance on Evolution API when enabled
+      // Auto-create instance on Evolution Go when enabled (idempotent — server returns "exists" if already there)
       if (isActive && apiUrl && apiKey && instanceName) {
         const { data, error } = await supabase.functions.invoke("send-whatsapp", {
           body: { action: "create_instance", instance_name: instanceName }
@@ -91,7 +100,7 @@ export function WhatsAppIntegration() {
         if (error) {
           console.warn("Instance creation warning:", error.message);
         } else if (data?.success) {
-          console.log("Instance created/verified on Evolution API:", data);
+          console.log("Instance created/verified on Evolution Go:", data);
         } else {
           console.warn("Instance creation response:", data?.error || data);
         }
@@ -99,7 +108,7 @@ export function WhatsAppIntegration() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-settings"] });
-      toast.success("Configurações salvas e instância criada na Evolution API!");
+      toast.success("Configurações salvas!");
       if (isActive && apiUrl && apiKey && instanceName) {
         checkStatus();
       }
@@ -175,10 +184,10 @@ export function WhatsAppIntegration() {
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Integração com WhatsApp via Evolution API
+                Integração com WhatsApp via Evolution Go
               </CardTitle>
               <CardDescription>
-                Configure sua VPS com Evolution API para enviar mensagens automáticas pelo WhatsApp
+                Configure sua VPS com Evolution Go para enviar mensagens automáticas pelo WhatsApp
               </CardDescription>
             </div>
             {isActive && (
@@ -246,21 +255,7 @@ export function WhatsAppIntegration() {
                   placeholder="https://api.seudominio.com"
                 />
                 <p className="text-xs text-muted-foreground">
-                  URL base da sua instalação Evolution API (sem barra no final)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key Global</Label>
-                <Input
-                  id="apiKey"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Sua chave de API global"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Chave de autenticação configurada no Evolution API
+                  URL base da sua instalação Evolution Go (sem barra no final)
                 </p>
               </div>
 
@@ -274,7 +269,35 @@ export function WhatsAppIntegration() {
                   placeholder="minha-instancia"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Nome da instância WhatsApp conectada no Evolution API
+                  Identificador da instância criada na Evolution Go (campo <code>name</code> no /instance/create)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apiKey">Token da Instância</Label>
+                <Input
+                  id="apiKey"
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Token único desta instância"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Token <code>apikey</code> desta instância — usado para enviar mensagens, ler QR e checar status.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="globalApiKey">Global API Key <span className="text-muted-foreground">(opcional)</span></Label>
+                <Input
+                  id="globalApiKey"
+                  type="password"
+                  value={globalApiKey}
+                  onChange={(e) => setGlobalApiKey(e.target.value)}
+                  placeholder="GLOBAL_API_KEY do servidor"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Necessário apenas para criar/excluir instâncias remotamente (<code>GLOBAL_API_KEY</code> definido no .env do Evolution Go). Se vazio, usamos o Token da Instância como fallback.
                 </p>
               </div>
             </>
