@@ -110,7 +110,7 @@ export function WhatsAppIntegration() {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-settings"] });
       toast.success("Configurações salvas!");
       if (isActive && apiUrl && apiKey && instanceName) {
-        checkStatus();
+        checkStatus(true);
       }
     },
     onError: (error: Error) => {
@@ -132,9 +132,12 @@ export function WhatsAppIntegration() {
       } else {
         toast.error("Falha ao verificar status: " + data.error);
       }
+      // Sincroniza o badge ignorando cache
+      checkStatus(true);
     },
     onError: (error: Error) => {
       toast.error("Erro ao testar conexão: " + error.message);
+      checkStatus(true);
     },
   });
 
@@ -219,7 +222,7 @@ export function WhatsAppIntegration() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={checkStatus}
+                  onClick={() => checkStatus(true)}
                   disabled={isChecking}
                 >
                   <RefreshCw className={`h-3 w-3 ${isChecking ? 'animate-spin' : ''}`} />

@@ -5,29 +5,30 @@ type ConnectionStatus = "connected" | "disconnected" | "checking" | "unknown";
 
 interface WhatsAppStatusResult {
   status: ConnectionStatus;
-  checkStatus: () => Promise<void>;
+  checkStatus: (force?: boolean) => Promise<void>;
   isChecking: boolean;
 }
 
 const CACHE_KEY = "whatsapp-status-cache";
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export function useWhatsAppStatus(autoCheck: boolean = false): WhatsAppStatusResult {
   const [status, setStatus] = useState<ConnectionStatus>("unknown");
   const [isChecking, setIsChecking] = useState(false);
 
-  const checkStatus = useCallback(async () => {
-    // Verificar cache primeiro
-    const cached = sessionStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const { status: cachedStatus, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          setStatus(cachedStatus);
-          return;
+  const checkStatus = useCallback(async (force: boolean = false) => {
+    if (!force) {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const { status: cachedStatus, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setStatus(cachedStatus);
+            return;
+          }
+        } catch (e) {
+          // Cache inválido, segue para verificação
         }
-      } catch (e) {
-        // Cache inválido, continuar com verificação
       }
     }
 
@@ -39,19 +40,22 @@ export function useWhatsAppStatus(autoCheck: boolean = false): WhatsAppStatusRes
         body: { action: "check_status" }
       });
 
-      const newStatus: ConnectionStatus = (error || !data?.success) ? "disconnected" : "connected";
+      let newStatus: ConnectionStatus = "disconnected";
+      if (!error && data?.success) {
+        const raw = String(data.status || "").toLowerCase();
+        newStatus = (raw === "connected" || raw === "open") ? "connected" : "disconnected";
+      }
       setStatus(newStatus);
 
-      // Salvar no cache
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         status: newStatus,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }));
     } catch (error) {
       setStatus("disconnected");
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         status: "disconnected",
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }));
     } finally {
       setIsChecking(false);
