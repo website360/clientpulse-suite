@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, 
   FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, 
-  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut, MessageCircle
+  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -185,7 +185,6 @@ export function AppSidebar() {
   // Menu sections for admin
   const mainMenuItems = [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-    { title: 'Mensagens', url: '/messages', icon: MessageCircle },
     { title: 'Clientes', url: '/clients', icon: Users },
     { title: 'Tickets', url: '/tickets', icon: Ticket, badge: ticketCount },
     { title: 'Tarefas', url: '/tasks', icon: CheckSquare, badge: taskCount },
