@@ -95,6 +95,10 @@ INSERT INTO public.clients (full_name, email, phone, client_type, is_active)
 SELECT 'Sistema – Transferência Interna', 'sistema@interno.local', '0000000000', 'person'::public.client_type, true
 WHERE NOT EXISTS (SELECT 1 FROM public.clients WHERE email = 'sistema@interno.local');
 
-INSERT INTO public.suppliers (name, is_active)
-SELECT 'Sistema – Transferência Interna', true
+-- suppliers.created_by é NOT NULL — usa o primeiro admin disponível como dono
+INSERT INTO public.suppliers (name, is_active, created_by)
+SELECT
+  'Sistema – Transferência Interna',
+  true,
+  (SELECT user_id FROM public.user_roles WHERE role = 'admin'::public.app_role ORDER BY created_at LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM public.suppliers WHERE name = 'Sistema – Transferência Interna');
