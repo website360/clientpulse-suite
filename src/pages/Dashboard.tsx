@@ -89,8 +89,12 @@ interface ProjectProgress {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
-  const { selectedAccountId, selectedAccount } = useFinancialAccount();
-  const isEscritorio = selectedAccount?.type === 'escritorio';
+  const { accounts: allFinancialAccounts } = useFinancialAccount();
+  // O Dashboard ignora o seletor do Financeiro e sempre exibe a conta tipo Empresa.
+  const empresaAccount = allFinancialAccounts.find((a) => a.type === 'empresa')
+    || allFinancialAccounts.find((a) => a.is_default)
+    || null;
+  const dashboardAccountId: string = empresaAccount?.id || 'all';
   const [loading, setLoading] = useState(true);
   const { preset, setPreset, dateRange } = useDateRangeFilter('month');
   const {
@@ -141,7 +145,7 @@ export default function Dashboard() {
     if (userRole) {
       fetchDashboardData();
     }
-  }, [dateRange.startDate, dateRange.endDate, userRole, selectedAccountId]);
+  }, [dateRange.startDate, dateRange.endDate, userRole, dashboardAccountId]);
 
   useEffect(() => {
     localStorage.setItem('showReceivableValues', JSON.stringify(showReceivableValues));
@@ -199,29 +203,29 @@ export default function Dashboard() {
         ] = await Promise.all([
           supabase.from('clients').select('*', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('client_contacts').select('*', { count: 'exact', head: true }),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending')),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received']).eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received']).eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received'])),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending')),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending')),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending')),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid']).eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid']).eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid'])),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending')),
-          (selectedAccountId !== 'all'
-            ? supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+          (dashboardAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', dashboardAccountId)
             : supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending')),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').order('created_at', { ascending: false }).limit(5),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').eq('priority', 'high').neq('status', 'done').order('created_at', { ascending: false }),
@@ -482,40 +486,32 @@ export default function Dashboard() {
                 financialCards={
                   <div className="grid gap-6 md:grid-cols-2">
                     <FinancialSummaryCard
-                      title={isEscritorio ? 'Recebimentos do Escritório' : 'Contas a Receber'}
+                      title="Contas a Receber"
                       icon={<ArrowUpRight className="h-5 w-5 text-emerald-600" />}
                       type="receivable"
                       showValues={showReceivableValues}
                       onToggleVisibility={() => setShowReceivableValues(!showReceivableValues)}
                       linkTo="/contas-a-receber"
-                      items={isEscritorio
-                        ? [
-                            { label: 'Total Recebido', value: stats.totalReceived, variant: 'success' },
-                          ]
-                        : [
-                            { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
-                            { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
-                            { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
-                            { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
-                          ]}
+                      items={[
+                        { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
+                        { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
+                        { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
+                        { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
+                      ]}
                     />
                     <FinancialSummaryCard
-                      title={isEscritorio ? 'Pagamentos do Escritório' : 'Contas a Pagar'}
+                      title="Contas a Pagar"
                       icon={<ArrowDownRight className="h-5 w-5 text-purple-600" />}
                       type="payable"
                       showValues={showPayableValues}
                       onToggleVisibility={() => setShowPayableValues(!showPayableValues)}
                       linkTo="/contas-a-pagar"
-                      items={isEscritorio
-                        ? [
-                            { label: 'Total Pago', value: stats.totalPaid, variant: 'success' },
-                          ]
-                        : [
-                            { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
-                            { label: 'Pago', value: stats.totalPaid, variant: 'success' },
-                            { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
-                            { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
-                          ]}
+                      items={[
+                        { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
+                        { label: 'Pago', value: stats.totalPaid, variant: 'success' },
+                        { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
+                        { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
+                      ]}
                     />
                   </div>
                 }

@@ -16,9 +16,13 @@ import { DREReport } from '@/components/financial/DREReport';
 import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
 import { TransfersTab } from '@/components/financial/TransfersTab';
 import { FinancialAccountSelector } from '@/components/financial/FinancialAccountSelector';
+import { EscritorioStats } from '@/components/financial/EscritorioStats';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 import { ArrowRightLeft } from 'lucide-react';
 
 const AccountsPayable = () => {
+  const { selectedAccount } = useFinancialAccount();
+  const isEscritorio = selectedAccount?.type === 'escritorio';
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Get first and last day of current month
@@ -87,27 +91,31 @@ const AccountsPayable = () => {
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Fluxo de Caixa
               </TabsTrigger>
-              <TabsTrigger value="dre">
-                <FileText className="h-4 w-4 mr-2" />
-                DRE
-              </TabsTrigger>
-              <TabsTrigger value="analytics">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="asaas">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Reconciliação Asaas
-              </TabsTrigger>
-              <TabsTrigger value="transfers">
-                <ArrowRightLeft className="h-4 w-4 mr-2" />
-                Transferências
-              </TabsTrigger>
+              {!isEscritorio && (
+                <>
+                  <TabsTrigger value="dre">
+                    <FileText className="h-4 w-4 mr-2" />
+                    DRE
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                  <TabsTrigger value="asaas">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Reconciliação Asaas
+                  </TabsTrigger>
+                  <TabsTrigger value="transfers">
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Transferências
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
           </ScrollableTabs>
 
           <TabsContent value="payable" className="space-y-6">
-            <PayableStats filters={filters} />
+            {isEscritorio ? <EscritorioStats filters={filters} /> : <PayableStats filters={filters} />}
             
             <div className="flex items-center justify-between gap-4">
               <PayableFilters filters={filters} onFiltersChange={setFilters} />
@@ -143,21 +151,25 @@ const AccountsPayable = () => {
             <CashFlowProjection />
           </TabsContent>
 
-          <TabsContent value="dre" className="space-y-6">
-            <DREReport />
-          </TabsContent>
+          {!isEscritorio && (
+            <>
+              <TabsContent value="dre" className="space-y-6">
+                <DREReport />
+              </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <FinancialAnalytics />
-          </TabsContent>
+              <TabsContent value="analytics" className="space-y-6">
+                <FinancialAnalytics />
+              </TabsContent>
 
-          <TabsContent value="asaas" className="space-y-6">
-            <AsaasReconciliation />
-          </TabsContent>
+              <TabsContent value="asaas" className="space-y-6">
+                <AsaasReconciliation />
+              </TabsContent>
 
-          <TabsContent value="transfers" className="space-y-6">
-            <TransfersTab />
-          </TabsContent>
+              <TabsContent value="transfers" className="space-y-6">
+                <TransfersTab />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
 
         <PayableFormModal 
