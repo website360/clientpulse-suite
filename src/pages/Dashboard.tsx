@@ -89,7 +89,8 @@ interface ProjectProgress {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
-  const { selectedAccountId } = useFinancialAccount();
+  const { selectedAccountId, selectedAccount } = useFinancialAccount();
+  const isEscritorio = selectedAccount?.type === 'escritorio';
   const [loading, setLoading] = useState(true);
   const { preset, setPreset, dateRange } = useDateRangeFilter('month');
   const {
@@ -481,32 +482,40 @@ export default function Dashboard() {
                 financialCards={
                   <div className="grid gap-6 md:grid-cols-2">
                     <FinancialSummaryCard
-                      title="Contas a Receber"
+                      title={isEscritorio ? 'Recebimentos do Escritório' : 'Contas a Receber'}
                       icon={<ArrowUpRight className="h-5 w-5 text-emerald-600" />}
                       type="receivable"
                       showValues={showReceivableValues}
                       onToggleVisibility={() => setShowReceivableValues(!showReceivableValues)}
                       linkTo="/contas-a-receber"
-                      items={[
-                        { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
-                        { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
-                        { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
-                        { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
-                      ]}
+                      items={isEscritorio
+                        ? [
+                            { label: 'Total Recebido', value: stats.totalReceived, variant: 'success' },
+                          ]
+                        : [
+                            { label: 'A Receber', value: stats.totalReceivable, variant: 'default' },
+                            { label: 'Recebido', value: stats.totalReceived, variant: 'success' },
+                            { label: 'Vence em 3 dias', value: stats.receivableDueSoon, variant: 'warning' },
+                            { label: 'Vencido', value: stats.overdueReceivable, variant: 'danger' },
+                          ]}
                     />
                     <FinancialSummaryCard
-                      title="Contas a Pagar"
+                      title={isEscritorio ? 'Pagamentos do Escritório' : 'Contas a Pagar'}
                       icon={<ArrowDownRight className="h-5 w-5 text-purple-600" />}
                       type="payable"
                       showValues={showPayableValues}
                       onToggleVisibility={() => setShowPayableValues(!showPayableValues)}
                       linkTo="/contas-a-pagar"
-                      items={[
-                        { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
-                        { label: 'Pago', value: stats.totalPaid, variant: 'success' },
-                        { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
-                        { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
-                      ]}
+                      items={isEscritorio
+                        ? [
+                            { label: 'Total Pago', value: stats.totalPaid, variant: 'success' },
+                          ]
+                        : [
+                            { label: 'A Pagar', value: stats.totalPayable, variant: 'default' },
+                            { label: 'Pago', value: stats.totalPaid, variant: 'success' },
+                            { label: 'Vence em 3 dias', value: stats.payableDueSoon, variant: 'warning' },
+                            { label: 'Vencido', value: stats.overduePayable, variant: 'danger' },
+                          ]}
                     />
                   </div>
                 }
