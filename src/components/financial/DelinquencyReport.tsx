@@ -9,15 +9,17 @@ import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useFinancialAccount } from "@/contexts/FinancialAccountContext";
 
 export function DelinquencyReport() {
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const { selectedAccountId } = useFinancialAccount();
 
   // Fetch overdue receivables
   const { data: overdueReceivables, isLoading } = useQuery({
-    queryKey: ["overdue-receivables"],
+    queryKey: ["overdue-receivables", selectedAccountId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("accounts_receivable")
         .select(`
           *,
@@ -30,8 +32,11 @@ export function DelinquencyReport() {
             user_id
           )
         `)
-        .eq("status", "overdue")
-        .order("due_date", { ascending: true });
+        .eq("status", "overdue");
+      if (selectedAccountId !== "all") {
+        query = query.eq("financial_account_id", selectedAccountId);
+      }
+      const { data, error } = await query.order("due_date", { ascending: true });
 
       if (error) throw error;
       return data || [];

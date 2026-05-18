@@ -17,6 +17,7 @@ import { AsaasPaymentDetailsModal } from './AsaasPaymentDetailsModal';
 import { PixQRCode } from '../PixQRCode';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 
 interface ReceivableTableProps {
   filters: any;
@@ -56,11 +57,12 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
   const [syncing, setSyncing] = useState<string | null>(null);
   const [asaasEnabled, setAsaasEnabled] = useState(false);
   const { toast } = useToast();
+  const { selectedAccountId } = useFinancialAccount();
 
   useEffect(() => {
     fetchAccounts();
     fetchAsaasSettings();
-  }, [filters, currentPage, pageSize, sortColumn, sortDirection]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId]);
 
   const fetchAsaasSettings = async () => {
     try {
@@ -84,7 +86,10 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
       let countQuery = supabase
         .from('accounts_receivable')
         .select('*', { count: 'exact', head: true });
-      
+
+      if (selectedAccountId !== 'all') {
+        countQuery = countQuery.eq('financial_account_id', selectedAccountId);
+      }
       if (filters.status !== 'all') {
         countQuery = countQuery.eq('status', filters.status);
       }
@@ -112,6 +117,9 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
           client:clients(full_name, company_name, responsible_name, client_type)
         `);
 
+      if (selectedAccountId !== 'all') {
+        query = query.eq('financial_account_id', selectedAccountId);
+      }
       if (filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }

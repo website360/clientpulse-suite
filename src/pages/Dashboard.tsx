@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DashboardSkeleton } from '@/components/loading/DashboardSkeleton';
@@ -88,6 +89,7 @@ interface ProjectProgress {
 
 export default function Dashboard() {
   const { userRole } = useAuth();
+  const { selectedAccountId } = useFinancialAccount();
   const [loading, setLoading] = useState(true);
   const { preset, setPreset, dateRange } = useDateRangeFilter('month');
   const {
@@ -138,7 +140,7 @@ export default function Dashboard() {
     if (userRole) {
       fetchDashboardData();
     }
-  }, [dateRange.startDate, dateRange.endDate, userRole]);
+  }, [dateRange.startDate, dateRange.endDate, userRole, selectedAccountId]);
 
   useEffect(() => {
     localStorage.setItem('showReceivableValues', JSON.stringify(showReceivableValues));
@@ -196,14 +198,30 @@ export default function Dashboard() {
         ] = await Promise.all([
           supabase.from('clients').select('*', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('client_contacts').select('*', { count: 'exact', head: true }),
-          supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending'),
-          supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received']),
-          supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
-          supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid']),
-          supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending'),
-          supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending'),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending')),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received']).eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_receivable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['received'])),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_receivable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending')),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_receivable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending')),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_payable').select('amount, due_date').gte('due_date', rangeStart).lte('due_date', rangeEnd).eq('status', 'pending')),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid']).eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_payable').select('amount, payment_date').gte('payment_date', rangeStart).lte('payment_date', rangeEnd).in('status', ['paid'])),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_payable').select('amount, due_date').gte('due_date', todayFormatted).lte('due_date', threeDaysFromNow).eq('status', 'pending')),
+          (selectedAccountId !== 'all'
+            ? supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending').eq('financial_account_id', selectedAccountId)
+            : supabase.from('accounts_payable').select('amount, due_date').lt('due_date', todayFormatted).eq('status', 'pending')),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').order('created_at', { ascending: false }).limit(5),
           supabase.from('tasks').select('*, client:clients(id, nickname), assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name)').eq('priority', 'high').neq('status', 'done').order('created_at', { ascending: false }),
           supabase.from('client_maintenance_plans').select('*, maintenance_executions (executed_at)').eq('is_active', true).order('executed_at', { foreignTable: 'maintenance_executions', ascending: false })

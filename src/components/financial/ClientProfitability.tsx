@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
 import { PriorityPieChart } from "@/components/charts/PriorityPieChart";
+import { useFinancialAccount } from "@/contexts/FinancialAccountContext";
 
 export function ClientProfitability() {
+  const { selectedAccountId } = useFinancialAccount();
   // Fetch clients with their financial data
   const { data: clientsData, isLoading } = useQuery({
-    queryKey: ["client-profitability"],
+    queryKey: ["client-profitability", selectedAccountId],
     queryFn: async () => {
       const { data: clients, error: clientsError } = await supabase
         .from("clients")
@@ -22,18 +24,26 @@ export function ClientProfitability() {
       const clientAnalysis = await Promise.all(
         (clients || []).map(async (client) => {
           // Get revenues (receivables paid)
-          const { data: revenues } = await supabase
+          let revQuery = supabase
             .from("accounts_receivable")
             .select("amount")
             .eq("client_id", client.id)
             .eq("status", "paid");
+          if (selectedAccountId !== "all") {
+            revQuery = revQuery.eq("financial_account_id", selectedAccountId);
+          }
+          const { data: revenues } = await revQuery;
 
           // Get costs (payables related to client)
-          const { data: payables } = await supabase
+          let payQuery = supabase
             .from("accounts_payable")
             .select("amount, description")
             .ilike("description", `%${client.company_name || client.full_name}%`)
             .eq("status", "paid");
+          if (selectedAccountId !== "all") {
+            payQuery = payQuery.eq("financial_account_id", selectedAccountId);
+          }
+          const { data: payables } = await payQuery;
 
           const totalRevenue = revenues?.reduce((sum, r) => sum + (r.amount || 0), 0) || 0;
           const totalCosts = payables?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;

@@ -14,6 +14,7 @@ import { BulkActionModal, type BulkActionType } from '../BulkActionModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 
 interface PayableTableProps {
   filters: any;
@@ -43,10 +44,11 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
     account: any;
   }>({ open: false, account: null });
   const { toast } = useToast();
+  const { selectedAccountId } = useFinancialAccount();
 
   useEffect(() => {
     fetchAccounts();
-  }, [filters, currentPage, pageSize, sortColumn, sortDirection]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId]);
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -55,7 +57,10 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
       let countQuery = supabase
         .from('accounts_payable')
         .select('*', { count: 'exact', head: true });
-      
+
+      if (selectedAccountId !== 'all') {
+        countQuery = countQuery.eq('financial_account_id', selectedAccountId);
+      }
       if (filters.status !== 'all') {
         countQuery = countQuery.eq('status', filters.status);
       }
@@ -83,6 +88,9 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
           supplier:suppliers(name)
         `);
 
+      if (selectedAccountId !== 'all') {
+        query = query.eq('financial_account_id', selectedAccountId);
+      }
       if (filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }

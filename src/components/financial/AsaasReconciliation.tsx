@@ -8,6 +8,7 @@ import { RefreshCw, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 
 export function AsaasReconciliation() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ export function AsaasReconciliation() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [asaasEnabled, setAsaasEnabled] = useState(false);
   const { toast } = useToast();
+  const { selectedAccountId } = useFinancialAccount();
 
   useEffect(() => {
     fetchAsaasSettings();
@@ -25,7 +27,7 @@ export function AsaasReconciliation() {
     if (asaasEnabled) {
       fetchAccounts();
     }
-  }, [asaasEnabled]);
+  }, [asaasEnabled, selectedAccountId]);
 
   const fetchAsaasSettings = async () => {
     try {
@@ -45,13 +47,17 @@ export function AsaasReconciliation() {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('accounts_receivable')
         .select(`
           *,
           client:clients(full_name, company_name)
         `)
-        .not('asaas_payment_id', 'is', null)
+        .not('asaas_payment_id', 'is', null);
+      if (selectedAccountId !== 'all') {
+        query = query.eq('financial_account_id', selectedAccountId);
+      }
+      const { data, error } = await query
         .order('due_date', { ascending: false })
         .limit(100);
 

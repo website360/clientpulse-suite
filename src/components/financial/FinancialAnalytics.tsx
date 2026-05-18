@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 
 type FilterType = 'pagas_recebidas' | 'pagar_receber' | 'atrasadas_vencidas' | 'caixa';
 
@@ -11,27 +12,36 @@ export function FinancialAnalytics() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [filterType, setFilterType] = useState<FilterType>('pagar_receber');
+  const { selectedAccountId } = useFinancialAccount();
 
   const { data: analyticsData, isLoading, refetch } = useQuery({
-    queryKey: ['financial-analytics', selectedYear, filterType],
+    queryKey: ['financial-analytics', selectedYear, filterType, selectedAccountId],
     queryFn: async () => {
       const startDate = `${selectedYear}-01-01`;
       const endDate = `${selectedYear}-12-31`;
       const today = new Date().toISOString().split('T')[0];
 
       // Buscar todas as contas a receber
-      const { data: allReceivableData } = await supabase
+      let receivableQuery = supabase
         .from('accounts_receivable')
         .select('amount, due_date, payment_date, status')
         .gte('due_date', startDate)
         .lte('due_date', endDate);
+      if (selectedAccountId !== 'all') {
+        receivableQuery = receivableQuery.eq('financial_account_id', selectedAccountId);
+      }
+      const { data: allReceivableData } = await receivableQuery;
 
       // Buscar todas as contas a pagar
-      const { data: allPayableData } = await supabase
+      let payableQuery = supabase
         .from('accounts_payable')
         .select('amount, due_date, payment_date, status')
         .gte('due_date', startDate)
         .lte('due_date', endDate);
+      if (selectedAccountId !== 'all') {
+        payableQuery = payableQuery.eq('financial_account_id', selectedAccountId);
+      }
+      const { data: allPayableData } = await payableQuery;
 
       // Agrupar por mês
       const monthlyData = Array.from({ length: 12 }, (_, i) => {

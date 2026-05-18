@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
 
           newCharges.push({
             client_id: latestCharge.client_id,
+            financial_account_id: latestCharge.financial_account_id,
             description: latestCharge.description,
             category: latestCharge.category,
             amount: latestCharge.amount,

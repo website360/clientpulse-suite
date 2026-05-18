@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { DollarSign, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 
 interface ReceivableStatsProps {
   filters: {
@@ -14,6 +15,7 @@ interface ReceivableStatsProps {
 }
 
 export function ReceivableStats({ filters }: ReceivableStatsProps) {
+  const { selectedAccountId } = useFinancialAccount();
   const [stats, setStats] = useState({
     total: 0,
     overdue: 0,
@@ -23,7 +25,7 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
 
   useEffect(() => {
     fetchStats();
-  }, [filters]);
+  }, [filters, selectedAccountId]);
 
   const fetchStats = async () => {
     const today = new Date();
@@ -34,6 +36,9 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
 
     // Apply common filters
     const applyFilters = (query: any) => {
+      if (selectedAccountId !== 'all') {
+        query = query.eq('financial_account_id', selectedAccountId);
+      }
       if (filters.category !== 'all') {
         query = query.eq('category', filters.category);
       }
@@ -88,6 +93,9 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
         .lte('payment_date', lastDayOfMonth.toISOString().split('T')[0]);
     }
     
+    if (selectedAccountId !== 'all') {
+      receivedThisMonthQuery = receivedThisMonthQuery.eq('financial_account_id', selectedAccountId);
+    }
     if (filters.category !== 'all') {
       receivedThisMonthQuery = receivedThisMonthQuery.eq('category', filters.category);
     }

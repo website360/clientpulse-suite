@@ -24,6 +24,7 @@ export type Database = {
           description: string
           due_date: string
           due_day: number | null
+          financial_account_id: string
           id: string
           installment_number: number | null
           installments: number | null
@@ -47,6 +48,7 @@ export type Database = {
           description: string
           due_date: string
           due_day?: number | null
+          financial_account_id: string
           id?: string
           installment_number?: number | null
           installments?: number | null
@@ -70,6 +72,7 @@ export type Database = {
           description?: string
           due_date?: string
           due_day?: number | null
+          financial_account_id?: string
           id?: string
           installment_number?: number | null
           installments?: number | null
@@ -90,6 +93,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_financial_account_id_fkey"
+            columns: ["financial_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -124,6 +134,7 @@ export type Database = {
           description: string
           due_date: string
           due_day: number | null
+          financial_account_id: string
           id: string
           installment_number: number | null
           installments: number | null
@@ -155,6 +166,7 @@ export type Database = {
           description: string
           due_date: string
           due_day?: number | null
+          financial_account_id: string
           id?: string
           installment_number?: number | null
           installments?: number | null
@@ -186,6 +198,7 @@ export type Database = {
           description?: string
           due_date?: string
           due_day?: number | null
+          financial_account_id?: string
           id?: string
           installment_number?: number | null
           installments?: number | null
@@ -215,6 +228,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_financial_account_id_fkey"
+            columns: ["financial_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -901,6 +921,116 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_accounts: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_transfers: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          payable_id: string | null
+          receivable_id: string | null
+          source_account_id: string
+          target_account_id: string
+          transfer_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          payable_id?: string | null
+          receivable_id?: string | null
+          source_account_id: string
+          target_account_id: string
+          transfer_date?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          payable_id?: string | null
+          receivable_id?: string | null
+          source_account_id?: string
+          target_account_id?: string
+          transfer_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transfers_payable_id_fkey"
+            columns: ["payable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_payable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transfers_receivable_id_fkey"
+            columns: ["receivable_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_receivable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transfers_source_account_id_fkey"
+            columns: ["source_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transfers_target_account_id_fkey"
+            columns: ["target_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
             referencedColumns: ["id"]
           },
         ]

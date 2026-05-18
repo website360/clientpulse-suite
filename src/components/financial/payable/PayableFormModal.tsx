@@ -15,11 +15,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast, toastSuccess, toastError } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   supplier_id: z.string().min(1, 'Fornecedor é obrigatório'),
+  financial_account_id: z.string().min(1, 'Conta é obrigatória'),
   description: z.string().min(1, 'Descrição é obrigatória'),
   category: z.string().min(1, 'Categoria é obrigatória'),
   amount: z.string().min(1, 'Valor é obrigatório'),
@@ -66,6 +68,11 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accounts: financialAccounts, selectedAccountId } = useFinancialAccount();
+  const defaultAccountIdFn = () => {
+    if (selectedAccountId !== 'all') return selectedAccountId;
+    return financialAccounts.find((a) => a.is_default)?.id || financialAccounts[0]?.id || '';
+  };
 
   // Fetch payment categories for payable
   const { data: categories } = useQuery({
@@ -102,6 +109,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
     resolver: zodResolver(formSchema),
     defaultValues: {
       supplier_id: '',
+      financial_account_id: '',
       description: '',
       category: '',
       amount: '',
@@ -125,6 +133,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
         
         form.reset({
           supplier_id: account.supplier_id,
+          financial_account_id: account.financial_account_id || defaultAccountIdFn(),
           description: account.description,
           category: account.category,
           amount: account.amount.toString(),
@@ -140,6 +149,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
       } else {
         form.reset({
           occurrence_type: 'unica',
+          financial_account_id: defaultAccountIdFn(),
         });
       }
     }
@@ -160,6 +170,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
     try {
       const basePayableData = {
         supplier_id: values.supplier_id,
+        financial_account_id: values.financial_account_id,
         description: values.description,
         category: values.category,
         created_by: user?.id!,
@@ -389,6 +400,39 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="financial_account_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Conta Financeira</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma conta" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {financialAccounts.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          <span className="flex items-center gap-2">
+                            {a.color && (
+                              <span
+                                className="inline-block h-2 w-2 rounded-full"
+                                style={{ backgroundColor: a.color }}
+                              />
+                            )}
+                            {a.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="supplier_id"

@@ -10,16 +10,18 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { format, addDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useFinancialAccount } from "@/contexts/FinancialAccountContext";
 
 export function CashFlowProjection() {
   const [period, setPeriod] = useState<"30" | "60" | "90">("30");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const { selectedAccountId } = useFinancialAccount();
 
   const endDate = addDays(new Date(), parseInt(period));
 
   // Fetch projected receivables
   const { data: receivables } = useQuery({
-    queryKey: ["projected-receivables", period, categoryFilter],
+    queryKey: ["projected-receivables", period, categoryFilter, selectedAccountId],
     queryFn: async () => {
       let query = supabase
         .from("accounts_receivable")
@@ -28,6 +30,9 @@ export function CashFlowProjection() {
         .lte("due_date", format(endOfDay(endDate), "yyyy-MM-dd"))
         .neq("status", "paid");
 
+      if (selectedAccountId !== "all") {
+        query = query.eq("financial_account_id", selectedAccountId);
+      }
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
       }
@@ -40,7 +45,7 @@ export function CashFlowProjection() {
 
   // Fetch projected payables
   const { data: payables } = useQuery({
-    queryKey: ["projected-payables", period, categoryFilter],
+    queryKey: ["projected-payables", period, categoryFilter, selectedAccountId],
     queryFn: async () => {
       let query = supabase
         .from("accounts_payable")
@@ -49,6 +54,9 @@ export function CashFlowProjection() {
         .lte("due_date", format(endOfDay(endDate), "yyyy-MM-dd"))
         .neq("status", "paid");
 
+      if (selectedAccountId !== "all") {
+        query = query.eq("financial_account_id", selectedAccountId);
+      }
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
       }

@@ -14,6 +14,9 @@ import { FinancialAnalytics } from '@/components/financial/FinancialAnalytics';
 import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
 import { DREReport } from '@/components/financial/DREReport';
 import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
+import { TransfersTab } from '@/components/financial/TransfersTab';
+import { FinancialAccountSelector } from '@/components/financial/FinancialAccountSelector';
+import { ArrowRightLeft } from 'lucide-react';
 
 const AccountsPayable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,11 +63,12 @@ const AccountsPayable = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="space-y-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="space-y-1">
               <h1 className="text-4xl font-bold tracking-tight">Financeiro</h1>
               <p className="text-[15px] text-muted-foreground">Gerencie contas a pagar e receber</p>
             </div>
+            <FinancialAccountSelector />
           </div>
         </div>
 
@@ -94,6 +98,10 @@ const AccountsPayable = () => {
               <TabsTrigger value="asaas">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Reconciliação Asaas
+              </TabsTrigger>
+              <TabsTrigger value="transfers">
+                <ArrowRightLeft className="h-4 w-4 mr-2" />
+                Transferências
               </TabsTrigger>
             </TabsList>
           </ScrollableTabs>
@@ -145,6 +153,10 @@ const AccountsPayable = () => {
 
           <TabsContent value="asaas" className="space-y-6">
             <AsaasReconciliation />
+          </TabsContent>
+
+          <TabsContent value="transfers" className="space-y-6">
+            <TransfersTab />
           </TabsContent>
         </Tabs>
 

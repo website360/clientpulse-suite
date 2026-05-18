@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { FinancialAccountProvider } from "@/contexts/FinancialAccountContext";
 import { DensityProvider } from "@/contexts/DensityContext";
 import { lazy, Suspense, useEffect } from "react";
 import { PageLoadingFallback } from "@/components/loading/PageLoadingFallback";
@@ -47,6 +48,7 @@ const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const TicketMetrics = lazy(() => import("./pages/TicketMetrics"));
 
 const BroadcastMessages = lazy(() => import("./pages/BroadcastMessages"));
+const FinancialAccounts = lazy(() => import("./pages/FinancialAccounts"));
 
 // Client Portal
 const ClientDashboard = lazy(() => import('./pages/portal/Dashboard'));
@@ -98,6 +100,7 @@ const App = () => (
           {/* Rotas protegidas - COM AuthProvider */}
           <Route path="/*" element={
             <AuthProvider>
+              <FinancialAccountProvider>
               <KeyboardShortcutsProvider>
                 <BottomNavigation />
                 <Suspense fallback={<PageLoadingFallback />}>
@@ -116,6 +119,7 @@ const App = () => (
                     <Route path="/financeiro" element={<Navigate to="/financeiro/receber" replace />} />
                     <Route path="/financeiro/pagar" element={<AccountsPayable />} />
                     <Route path="/financeiro/receber" element={<AccountsReceivable />} />
+                    <Route path="/financeiro/contas" element={<FinancialAccounts />} />
                     
                     <Route path="/contracts" element={<Contracts />} />
                     <Route path="/contracts/generator" element={<ContractGenerator />} />
@@ -137,6 +141,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </KeyboardShortcutsProvider>
+              </FinancialAccountProvider>
             </AuthProvider>
           } />
         </Routes>

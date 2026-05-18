@@ -11,25 +11,30 @@ import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { useFinancialAccount } from "@/contexts/FinancialAccountContext";
 
 export function DREReport() {
   const [monthsBack, setMonthsBack] = useState<string>("0");
-  
+  const { selectedAccountId } = useFinancialAccount();
+
   const selectedMonth = subMonths(new Date(), parseInt(monthsBack));
   const startDate = startOfMonth(selectedMonth);
   const endDate = endOfMonth(selectedMonth);
 
   // Fetch revenues (receivables paid)
   const { data: revenues } = useQuery({
-    queryKey: ["dre-revenues", monthsBack],
+    queryKey: ["dre-revenues", monthsBack, selectedAccountId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("accounts_receivable")
         .select("*")
         .eq("status", "paid")
         .gte("payment_date", format(startDate, "yyyy-MM-dd"))
         .lte("payment_date", format(endDate, "yyyy-MM-dd"));
-
+      if (selectedAccountId !== "all") {
+        query = query.eq("financial_account_id", selectedAccountId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -37,15 +42,18 @@ export function DREReport() {
 
   // Fetch expenses (payables paid)
   const { data: expenses } = useQuery({
-    queryKey: ["dre-expenses", monthsBack],
+    queryKey: ["dre-expenses", monthsBack, selectedAccountId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("accounts_payable")
         .select("*")
         .eq("status", "paid")
         .gte("payment_date", format(startDate, "yyyy-MM-dd"))
         .lte("payment_date", format(endDate, "yyyy-MM-dd"));
-
+      if (selectedAccountId !== "all") {
+        query = query.eq("financial_account_id", selectedAccountId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },

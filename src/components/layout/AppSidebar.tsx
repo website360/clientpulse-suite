@@ -197,6 +197,7 @@ export function AppSidebar() {
 
   const financeItems = [
     { title: 'Financeiro', url: '/financeiro/receber', icon: DollarSign },
+    { title: 'Contas Financeiras', url: '/financeiro/contas', icon: DollarSign },
     { title: 'Relatórios', url: '/reports', icon: BarChart3 },
   ];
 
