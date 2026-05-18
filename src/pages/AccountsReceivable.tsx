@@ -79,6 +79,8 @@ const AccountsReceivable = () => {
           </div>
         </div>
 
+        {isEscritorio && <EscritorioStats heading="Indicadores gerais" />}
+
         <Tabs defaultValue="receivable" className="space-y-6">
           <ScrollableTabs>
             <TabsList>
@@ -90,12 +92,12 @@ const AccountsReceivable = () => {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Contas a Receber
               </TabsTrigger>
-              <TabsTrigger value="cashflow">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Fluxo de Caixa
-              </TabsTrigger>
               {!isEscritorio && (
                 <>
+                  <TabsTrigger value="cashflow">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Fluxo de Caixa
+                  </TabsTrigger>
                   <TabsTrigger value="delinquency">
                     <AlertTriangle className="h-4 w-4 mr-2" />
                     Inadimplência
@@ -158,12 +160,12 @@ const AccountsReceivable = () => {
             />
           </TabsContent>
 
-          <TabsContent value="cashflow" className="space-y-6">
-            <CashFlowProjection />
-          </TabsContent>
-
           {!isEscritorio && (
             <>
+              <TabsContent value="cashflow" className="space-y-6">
+                <CashFlowProjection />
+              </TabsContent>
+
               <TabsContent value="delinquency" className="space-y-6">
                 <DelinquencyReport />
               </TabsContent>

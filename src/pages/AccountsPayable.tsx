@@ -76,6 +76,8 @@ const AccountsPayable = () => {
           </div>
         </div>
 
+        {isEscritorio && <EscritorioStats heading="Indicadores gerais" />}
+
         <Tabs defaultValue="payable" className="space-y-6">
           <ScrollableTabs>
             <TabsList>
@@ -87,12 +89,12 @@ const AccountsPayable = () => {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Contas a Receber
               </TabsTrigger>
-              <TabsTrigger value="cashflow">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Fluxo de Caixa
-              </TabsTrigger>
               {!isEscritorio && (
                 <>
+                  <TabsTrigger value="cashflow">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Fluxo de Caixa
+                  </TabsTrigger>
                   <TabsTrigger value="dre">
                     <FileText className="h-4 w-4 mr-2" />
                     DRE
@@ -147,12 +149,12 @@ const AccountsPayable = () => {
             />
           </TabsContent>
 
-          <TabsContent value="cashflow" className="space-y-6">
-            <CashFlowProjection />
-          </TabsContent>
-
           {!isEscritorio && (
             <>
+              <TabsContent value="cashflow" className="space-y-6">
+                <CashFlowProjection />
+              </TabsContent>
+
               <TabsContent value="dre" className="space-y-6">
                 <DREReport />
               </TabsContent>
