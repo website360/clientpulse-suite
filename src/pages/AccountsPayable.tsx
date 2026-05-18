@@ -17,6 +17,7 @@ import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation'
 import { TransfersTab } from '@/components/financial/TransfersTab';
 import { FinancialAccountSelector } from '@/components/financial/FinancialAccountSelector';
 import { EscritorioStats } from '@/components/financial/EscritorioStats';
+import { EscritorioReport } from '@/components/financial/EscritorioReport';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
 import { ArrowRightLeft } from 'lucide-react';
 
@@ -77,7 +78,17 @@ const AccountsPayable = () => {
           </div>
         </div>
 
-        {isEscritorio && <EscritorioStats heading="Indicadores gerais" />}
+        {isEscritorio && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                Indicadores gerais
+              </p>
+              <EscritorioReport />
+            </div>
+            <EscritorioStats />
+          </div>
+        )}
 
         <Tabs defaultValue="payable" className="space-y-6">
           <ScrollableTabs>
