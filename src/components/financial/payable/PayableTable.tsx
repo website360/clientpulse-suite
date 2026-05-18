@@ -24,9 +24,10 @@ interface PayableTableProps {
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
   onTotalCountChange: (count: number) => void;
+  refreshKey?: number;
 }
 
-export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortDirection, onSort, onTotalCountChange }: PayableTableProps) {
+export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortDirection, onSort, onTotalCountChange, refreshKey }: PayableTableProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAccount, setEditingAccount] = useState<any>(null);
@@ -56,7 +57,7 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
 
   useEffect(() => {
     fetchAccounts();
-  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId, refreshKey]);
 
   const fetchAccounts = async () => {
     setLoading(true);

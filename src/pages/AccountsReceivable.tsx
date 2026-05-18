@@ -27,6 +27,7 @@ const AccountsReceivable = () => {
   const { selectedAccount } = useFinancialAccount();
   const isEscritorio = selectedAccount?.type === 'escritorio';
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Get first and last day of current month
   const now = new Date();
@@ -138,7 +139,7 @@ const AccountsReceivable = () => {
               </Button>
             </div>
 
-            <ReceivableTable 
+            <ReceivableTable
               filters={filters}
               currentPage={currentPage}
               pageSize={pageSize}
@@ -146,6 +147,7 @@ const AccountsReceivable = () => {
               sortDirection={sortDirection}
               onSort={handleSort}
               onTotalCountChange={setTotalCount}
+              refreshKey={refreshKey}
             />
             <TablePagination
               currentPage={currentPage}
@@ -194,9 +196,10 @@ const AccountsReceivable = () => {
 
           </Tabs>
 
-        <ReceivableFormModal 
-          open={isModalOpen} 
+        <ReceivableFormModal
+          open={isModalOpen}
           onOpenChange={setIsModalOpen}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
         />
       </div>
     </DashboardLayout>

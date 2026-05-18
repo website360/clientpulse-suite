@@ -27,9 +27,10 @@ interface ReceivableTableProps {
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
   onTotalCountChange: (count: number) => void;
+  refreshKey?: number;
 }
 
-export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, sortDirection, onSort, onTotalCountChange }: ReceivableTableProps) {
+export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, sortDirection, onSort, onTotalCountChange, refreshKey }: ReceivableTableProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAccount, setEditingAccount] = useState<any>(null);
@@ -76,7 +77,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
   useEffect(() => {
     fetchAccounts();
     fetchAsaasSettings();
-  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId]);
+  }, [filters, currentPage, pageSize, sortColumn, sortDirection, selectedAccountId, refreshKey]);
 
   const fetchAsaasSettings = async () => {
     try {

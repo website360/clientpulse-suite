@@ -402,6 +402,8 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
         }
       }
 
+      form.reset();
+      onOpenChange(false);
 
       // Call onSuccess with appropriate parameters
       if (account) {
