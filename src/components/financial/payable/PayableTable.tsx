@@ -44,7 +44,15 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
     account: any;
   }>({ open: false, account: null });
   const { toast } = useToast();
-  const { selectedAccountId } = useFinancialAccount();
+  const { selectedAccountId, selectedAccount } = useFinancialAccount();
+
+  // Label dinâmico da coluna conforme tipo da conta selecionada
+  const payeeColumnLabel = (() => {
+    if (selectedAccountId === 'all') return 'Fornecedor / Beneficiário';
+    const t = selectedAccount?.type;
+    if (t === 'escritorio') return 'Responsável';
+    return 'Fornecedor';
+  })();
 
   useEffect(() => {
     fetchAccounts();
@@ -383,7 +391,7 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descrição {sortColumn === 'description' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
           </div>
           <div className="col-span-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Fornecedor</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{payeeColumnLabel}</span>
           </div>
           <div className="col-span-1 cursor-pointer" onClick={() => onSort('category')}>
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria {sortColumn === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
@@ -420,7 +428,9 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
                   <p className="text-[14px] font-medium text-foreground truncate">{account.description}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-[14px] text-foreground truncate">{account.supplier?.name}</p>
+                  <p className="text-[14px] text-foreground truncate">
+                    {account.supplier?.name || account.payee_name || '—'}
+                  </p>
                 </div>
                 <div className="col-span-1">
                   <p className="text-[14px] text-foreground truncate">{account.category}</p>

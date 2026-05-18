@@ -20,7 +20,8 @@ import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  supplier_id: z.string().min(1, 'Fornecedor é obrigatório'),
+  supplier_id: z.string().optional(),
+  payee_name: z.string().optional(),
   financial_account_id: z.string().min(1, 'Conta é obrigatória'),
   description: z.string().min(1, 'Descrição é obrigatória'),
   category: z.string().min(1, 'Categoria é obrigatória'),
@@ -44,6 +45,11 @@ const formSchema = z.object({
   return true;
 }, {
   message: "Preencha todos os campos obrigatórios para o tipo de ocorrência selecionado",
+}).refine((data) => {
+  return Boolean(data.supplier_id) || Boolean(data.payee_name?.trim());
+}, {
+  message: 'Informe o nome',
+  path: ['payee_name'],
 });
 
 // Helper function to format date without timezone issues
@@ -109,6 +115,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
     resolver: zodResolver(formSchema),
     defaultValues: {
       supplier_id: '',
+      payee_name: '',
       financial_account_id: '',
       description: '',
       category: '',
@@ -120,6 +127,10 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
   });
 
   const occurrenceType = form.watch('occurrence_type');
+  const watchedAccountId = form.watch('financial_account_id');
+  const selectedAccountInForm = financialAccounts.find((a) => a.id === watchedAccountId);
+  const accountType = selectedAccountInForm?.type || 'empresa';
+  const isEscritorio = accountType === 'escritorio';
 
   useEffect(() => {
     if (open) {
@@ -132,7 +143,8 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
         };
         
         form.reset({
-          supplier_id: account.supplier_id,
+          supplier_id: account.supplier_id || '',
+          payee_name: account.payee_name || '',
           financial_account_id: account.financial_account_id || defaultAccountIdFn(),
           description: account.description,
           category: account.category,
@@ -168,8 +180,21 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
+      // Normaliza para escritório (lançamento único, data = data)
+      const submittedAccountForNorm = financialAccounts.find((a) => a.id === values.financial_account_id);
+      if (submittedAccountForNorm?.type === 'escritorio') {
+        values = {
+          ...values,
+          due_date: values.issue_date,
+          occurrence_type: 'unica',
+          due_day: undefined,
+          installments: undefined,
+        };
+      }
+
       const basePayableData = {
-        supplier_id: values.supplier_id,
+        supplier_id: values.supplier_id || null,
+        payee_name: values.payee_name?.trim() || null,
         financial_account_id: values.financial_account_id,
         description: values.description,
         category: values.category,
@@ -440,52 +465,68 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="supplier_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fornecedor</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        placeholder="Digite para buscar fornecedor..."
-                        value={supplierSearch}
-                        onChange={(e) => {
-                          setSupplierSearch(e.target.value);
-                          setShowSupplierDropdown(true);
-                        }}
-                        onFocus={() => setShowSupplierDropdown(true)}
-                        onBlur={() => setTimeout(() => setShowSupplierDropdown(false), 200)}
-                      />
-                      {showSupplierDropdown && supplierSearch && (
-                        <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-                          {suppliers
-                            .filter(supplier => {
-                              const name = (supplier.name || '').toLowerCase();
-                              return name.includes(supplierSearch.toLowerCase());
-                            })
-                            .map((supplier) => (
-                              <div
-                                key={supplier.id}
-                                className="px-3 py-2 cursor-pointer hover:bg-accent"
-                                onClick={() => {
-                                  field.onChange(supplier.id);
-                                  setSupplierSearch(supplier.name || '');
-                                  setShowSupplierDropdown(false);
-                                }}
-                              >
-                                {supplier.name}
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isEscritorio ? (
+              <FormField
+                control={form.control}
+                name="payee_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Responsável</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Nome do responsável" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="supplier_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fornecedor</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          placeholder="Digite para buscar fornecedor..."
+                          value={supplierSearch}
+                          onChange={(e) => {
+                            setSupplierSearch(e.target.value);
+                            setShowSupplierDropdown(true);
+                          }}
+                          onFocus={() => setShowSupplierDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowSupplierDropdown(false), 200)}
+                        />
+                        {showSupplierDropdown && supplierSearch && (
+                          <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                            {suppliers
+                              .filter(supplier => {
+                                const name = (supplier.name || '').toLowerCase();
+                                return name.includes(supplierSearch.toLowerCase());
+                              })
+                              .map((supplier) => (
+                                <div
+                                  key={supplier.id}
+                                  className="px-3 py-2 cursor-pointer hover:bg-accent"
+                                  onClick={() => {
+                                    field.onChange(supplier.id);
+                                    setSupplierSearch(supplier.name || '');
+                                    setShowSupplierDropdown(false);
+                                  }}
+                                >
+                                  {supplier.name}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -501,13 +542,13 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            {isEscritorio ? (
               <FormField
                 control={form.control}
                 name="issue_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Data de Emissão</FormLabel>
+                    <FormLabel>Data</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -541,35 +582,77 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
                   </FormItem>
                 )}
               />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="issue_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Data de Emissão</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>Selecione a data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="occurrence_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ocorrência</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="unica">Única</SelectItem>
-                        <SelectItem value="mensal">Mensal</SelectItem>
-                        <SelectItem value="trimestral">Trimestral</SelectItem>
-                        <SelectItem value="semestral">Semestral</SelectItem>
-                        <SelectItem value="anual">Anual</SelectItem>
-                        <SelectItem value="parcelada">Parcelada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="occurrence_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ocorrência</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="unica">Única</SelectItem>
+                          <SelectItem value="mensal">Mensal</SelectItem>
+                          <SelectItem value="trimestral">Trimestral</SelectItem>
+                          <SelectItem value="semestral">Semestral</SelectItem>
+                          <SelectItem value="anual">Anual</SelectItem>
+                          <SelectItem value="parcelada">Parcelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
-            {occurrenceType === 'unica' && (
+            {!isEscritorio && occurrenceType === 'unica' && (
               <FormField
                 control={form.control}
                 name="due_date"
@@ -611,7 +694,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               />
             )}
 
-            {occurrenceType && occurrenceType !== 'unica' && (
+            {!isEscritorio && occurrenceType && occurrenceType !== 'unica' && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -676,7 +759,7 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               </div>
             )}
 
-            {occurrenceType === 'parcelada' && (
+            {!isEscritorio && occurrenceType === 'parcelada' && (
               <FormField
                 control={form.control}
                 name="installments"

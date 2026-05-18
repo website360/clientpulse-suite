@@ -32,10 +32,11 @@ export type Database = {
           notes: string | null
           occurrence_type: string | null
           parent_payable_id: string | null
+          payee_name: string | null
           payment_date: string | null
           payment_method: string | null
           status: Database["public"]["Enums"]["payment_status"]
-          supplier_id: string
+          supplier_id: string | null
           total_installments: number | null
           updated_at: string
         }
@@ -56,10 +57,11 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_payable_id?: string | null
+          payee_name?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
-          supplier_id: string
+          supplier_id?: string | null
           total_installments?: number | null
           updated_at?: string
         }
@@ -80,10 +82,11 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_payable_id?: string | null
+          payee_name?: string | null
           payment_date?: string | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
-          supplier_id?: string
+          supplier_id?: string | null
           total_installments?: number | null
           updated_at?: string
         }

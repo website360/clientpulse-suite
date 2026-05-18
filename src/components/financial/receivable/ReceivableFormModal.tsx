@@ -209,6 +209,19 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
+      // Em contas tipo "escritório": só existe Data (única).
+      // Força os campos hierárquicos para manter consistência.
+      const submittedAccountForNorm = financialAccounts.find((a) => a.id === values.financial_account_id);
+      if (submittedAccountForNorm?.type === 'escritorio') {
+        values = {
+          ...values,
+          due_date: values.issue_date,
+          occurrence_type: 'unica',
+          due_day: undefined,
+          installments: undefined,
+        };
+      }
+
       const baseReceivableData = {
         client_id: values.client_id || null,
         payer_name: values.payer_name?.trim() || null,
@@ -540,13 +553,13 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            {accountType === 'escritorio' ? (
               <FormField
                 control={form.control}
                 name="issue_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Data de Emissão</FormLabel>
+                    <FormLabel>Data</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -580,35 +593,77 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                   </FormItem>
                 )}
               />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="issue_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Data de Emissão</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>Selecione a data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="occurrence_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ocorrência</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="unica">Única</SelectItem>
-                        <SelectItem value="mensal">Mensal</SelectItem>
-                        <SelectItem value="trimestral">Trimestral</SelectItem>
-                        <SelectItem value="semestral">Semestral</SelectItem>
-                        <SelectItem value="anual">Anual</SelectItem>
-                        <SelectItem value="parcelada">Parcelada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="occurrence_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ocorrência</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="unica">Única</SelectItem>
+                          <SelectItem value="mensal">Mensal</SelectItem>
+                          <SelectItem value="trimestral">Trimestral</SelectItem>
+                          <SelectItem value="semestral">Semestral</SelectItem>
+                          <SelectItem value="anual">Anual</SelectItem>
+                          <SelectItem value="parcelada">Parcelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
-            {occurrenceType === 'unica' && (
+            {accountType !== 'escritorio' && occurrenceType === 'unica' && (
               <FormField
                 control={form.control}
                 name="due_date"
@@ -650,7 +705,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               />
             )}
 
-            {occurrenceType && occurrenceType !== 'unica' && (
+            {accountType !== 'escritorio' && occurrenceType && occurrenceType !== 'unica' && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -715,7 +770,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               </div>
             )}
 
-            {occurrenceType === 'parcelada' && (
+            {accountType !== 'escritorio' && occurrenceType === 'parcelada' && (
               <FormField
                 control={form.control}
                 name="installments"
@@ -848,6 +903,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               )}
             />
 
+            {accountType !== 'escritorio' && (
             <FormField
               control={form.control}
               name="invoice_number"
@@ -861,6 +917,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                 </FormItem>
               )}
             />
+            )}
 
             <FormField
               control={form.control}
@@ -876,7 +933,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               )}
             />
 
-            {!account && asaasSettings && (asaasSettings as any).is_active && (
+            {accountType !== 'escritorio' && !account && asaasSettings && (asaasSettings as any).is_active && (
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-0.5">
                   <FormLabel>Criar automaticamente no Asaas</FormLabel>
