@@ -51,7 +51,7 @@ const formSchema = z.object({
   // É obrigatório: cliente OU nome livre (não os dois vazios)
   return Boolean(data.client_id) || Boolean(data.payer_name?.trim());
 }, {
-  message: 'Informe um cliente ou um nome para o recebedor',
+  message: 'Informe o nome',
   path: ['payer_name'],
 });
 
@@ -154,7 +154,12 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   const occurrenceType = form.watch('occurrence_type');
   const watchedAccountId = form.watch('financial_account_id');
   const selectedAccountInForm = financialAccounts.find((a) => a.id === watchedAccountId);
-  const isCompanyAccount = (selectedAccountInForm?.type || 'empresa') === 'empresa';
+  const accountType = selectedAccountInForm?.type || 'empresa';
+  const isCompanyAccount = accountType === 'empresa';
+  const payerLabel = accountType === 'escritorio' ? 'Responsável' : 'Recebedor';
+  const payerPlaceholder = accountType === 'escritorio'
+    ? 'Nome do responsável'
+    : 'Ex.: João, Aluguel apartamento, Salário...';
 
   useEffect(() => {
     if (open) {
@@ -504,9 +509,9 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                 name="payer_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Recebedor</FormLabel>
+                    <FormLabel>{payerLabel}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex.: João, Aluguel apartamento, Salário..." />
+                      <Input {...field} placeholder={payerPlaceholder} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

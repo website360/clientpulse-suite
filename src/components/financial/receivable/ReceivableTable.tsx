@@ -57,7 +57,21 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
   const [syncing, setSyncing] = useState<string | null>(null);
   const [asaasEnabled, setAsaasEnabled] = useState(false);
   const { toast } = useToast();
-  const { selectedAccountId } = useFinancialAccount();
+  const { selectedAccountId, selectedAccount, accounts: allAccounts } = useFinancialAccount();
+
+  // Label dinâmico da coluna conforme tipo da conta selecionada
+  const payerColumnLabel = (() => {
+    if (selectedAccountId === 'all') return 'Cliente / Recebedor';
+    const t = selectedAccount?.type;
+    if (t === 'escritorio') return 'Responsável';
+    if (t === 'empresa') return 'Cliente';
+    return 'Recebedor';
+  })();
+
+  // Para mostrar o label correto por linha quando "Todas as contas" está selecionado
+  const accountTypeById: Record<string, string | null> = Object.fromEntries(
+    allAccounts.map((a) => [a.id, a.type ?? null]),
+  );
 
   useEffect(() => {
     fetchAccounts();
@@ -510,7 +524,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         {/* Header Row */}
         <div className={`grid ${asaasEnabled ? 'grid-cols-12' : 'grid-cols-11'} gap-4 px-6 py-3 bg-muted/20 rounded-xl`}>
           <div className="col-span-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Cliente</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{payerColumnLabel}</span>
           </div>
           <div className="col-span-2 cursor-pointer" onClick={() => onSort('category')}>
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoria {sortColumn === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
