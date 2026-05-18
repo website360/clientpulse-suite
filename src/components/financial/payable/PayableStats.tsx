@@ -15,7 +15,9 @@ interface PayableStatsProps {
 }
 
 export function PayableStats({ filters }: PayableStatsProps) {
-  const { selectedAccountId } = useFinancialAccount();
+  const { selectedAccountId, selectedAccount } = useFinancialAccount();
+  // Em escritório os lançamentos entram já como 'paid'; use 'paid' como total
+  const isEscritorio = selectedAccount?.type === 'escritorio';
   const [stats, setStats] = useState({
     total: 0,
     overdue: 0,
@@ -25,7 +27,7 @@ export function PayableStats({ filters }: PayableStatsProps) {
 
   useEffect(() => {
     fetchStats();
-  }, [filters, selectedAccountId]);
+  }, [filters, selectedAccountId, isEscritorio]);
 
   const fetchStats = async () => {
     const today = new Date();
@@ -54,13 +56,13 @@ export function PayableStats({ filters }: PayableStatsProps) {
       return query;
     };
 
-    // Total a pagar (pending or based on filter status)
+    // "Total" — em escritório usa 'paid' (já liquidado), caso contrário 'pending'
     let totalQuery = supabase
       .from('accounts_payable')
       .select('amount', { count: 'exact' });
-    
+
     if (filters.status === 'all') {
-      totalQuery = totalQuery.eq('status', 'pending');
+      totalQuery = totalQuery.eq('status', isEscritorio ? 'paid' : 'pending');
     } else {
       totalQuery = totalQuery.eq('status', filters.status as any);
     }
@@ -138,6 +140,27 @@ export function PayableStats({ filters }: PayableStatsProps) {
       currency: 'BRL'
     }).format(value);
   };
+
+  if (isEscritorio) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2">
+        <MetricCard
+          title="Total Pago"
+          value={formatCurrency(stats.total)}
+          icon={DollarSign}
+          variant="default"
+          className="bg-gradient-to-br from-card to-card/50"
+        />
+        <MetricCard
+          title="Pagas Este Mês"
+          value={formatCurrency(stats.paidThisMonth)}
+          icon={CheckCircle}
+          variant="success"
+          className="bg-gradient-to-br from-card to-card/50"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

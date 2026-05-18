@@ -15,7 +15,10 @@ interface ReceivableStatsProps {
 }
 
 export function ReceivableStats({ filters }: ReceivableStatsProps) {
-  const { selectedAccountId } = useFinancialAccount();
+  const { selectedAccountId, selectedAccount } = useFinancialAccount();
+  // Em escritório os lançamentos entram já como 'received', então os widgets
+  // que filtram por 'pending' zeram. Aqui usamos 'received' como total nesse caso.
+  const isEscritorio = selectedAccount?.type === 'escritorio';
   const [stats, setStats] = useState({
     total: 0,
     overdue: 0,
@@ -25,7 +28,7 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
 
   useEffect(() => {
     fetchStats();
-  }, [filters, selectedAccountId]);
+  }, [filters, selectedAccountId, isEscritorio]);
 
   const fetchStats = async () => {
     const today = new Date();
@@ -54,13 +57,13 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
       return query;
     };
 
-    // Total a receber (pending or based on filter status)
+    // "Total" — em escritório usa 'received' (já liquidado), caso contrário usa 'pending'
     let totalQuery = supabase
       .from('accounts_receivable')
       .select('amount', { count: 'exact' });
-    
+
     if (filters.status === 'all') {
-      totalQuery = totalQuery.eq('status', 'pending');
+      totalQuery = totalQuery.eq('status', isEscritorio ? 'received' : 'pending');
     } else {
       totalQuery = totalQuery.eq('status', filters.status as any);
     }
@@ -138,6 +141,27 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
       currency: 'BRL'
     }).format(value);
   };
+
+  if (isEscritorio) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2">
+        <MetricCard
+          title="Total Recebido"
+          value={formatCurrency(stats.total)}
+          icon={DollarSign}
+          variant="success"
+          className="bg-gradient-to-br from-card to-card/50"
+        />
+        <MetricCard
+          title="Recebidas Este Mês"
+          value={formatCurrency(stats.receivedThisMonth)}
+          icon={CheckCircle}
+          variant="success"
+          className="bg-gradient-to-br from-card to-card/50"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
