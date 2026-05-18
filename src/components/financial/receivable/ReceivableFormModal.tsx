@@ -153,13 +153,23 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
 
   const occurrenceType = form.watch('occurrence_type');
   const watchedAccountId = form.watch('financial_account_id');
+  const watchedIssueDate = form.watch('issue_date');
   const selectedAccountInForm = financialAccounts.find((a) => a.id === watchedAccountId);
   const accountType = selectedAccountInForm?.type || 'empresa';
   const isCompanyAccount = accountType === 'empresa';
+  const isEscritorio = accountType === 'escritorio';
   const payerLabel = accountType === 'escritorio' ? 'Responsável' : 'Recebedor';
   const payerPlaceholder = accountType === 'escritorio'
     ? 'Nome do responsável'
     : 'Ex.: João, Aluguel apartamento, Salário...';
+
+  // Em escritório só existe Data → mantém due_date sincronizado com issue_date
+  // para que a validação zod (que exige due_date em ocorrência única) passe.
+  useEffect(() => {
+    if (isEscritorio && watchedIssueDate) {
+      form.setValue('due_date', watchedIssueDate, { shouldValidate: false });
+    }
+  }, [isEscritorio, watchedIssueDate, form]);
 
   useEffect(() => {
     if (open) {

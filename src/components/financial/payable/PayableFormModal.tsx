@@ -128,9 +128,17 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
 
   const occurrenceType = form.watch('occurrence_type');
   const watchedAccountId = form.watch('financial_account_id');
+  const watchedIssueDate = form.watch('issue_date');
   const selectedAccountInForm = financialAccounts.find((a) => a.id === watchedAccountId);
   const accountType = selectedAccountInForm?.type || 'empresa';
   const isEscritorio = accountType === 'escritorio';
+
+  // Em escritório só existe Data → sincroniza due_date para passar a validação zod
+  useEffect(() => {
+    if (isEscritorio && watchedIssueDate) {
+      form.setValue('due_date', watchedIssueDate, { shouldValidate: false });
+    }
+  }, [isEscritorio, watchedIssueDate, form]);
 
   useEffect(() => {
     if (open) {
