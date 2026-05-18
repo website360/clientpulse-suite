@@ -240,6 +240,10 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
           description: 'Conta atualizada com sucesso',
         });
       } else {
+        // Tipo da conta selecionada — escritório entra com lançamento já pago
+        const submittedAccount = financialAccounts.find((a) => a.id === values.financial_account_id);
+        const autoPaid = submittedAccount?.type === 'escritorio';
+
         // Nova cobrança - gera múltiplas se necessário
         if (values.occurrence_type === 'unica') {
           // Cobrança única
@@ -249,6 +253,9 @@ export function PayableFormModal({ open, onOpenChange, account, onSuccess }: Pay
               ...basePayableData,
               amount: parseFloat(values.amount),
               due_date: formatDateToString(values.due_date!),
+              ...(autoPaid
+                ? { status: 'paid', payment_date: formatDateToString(values.due_date!) }
+                : {}),
             }]);
 
           if (error) throw error;

@@ -283,6 +283,10 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           description: 'Conta atualizada com sucesso',
         });
       } else {
+        // Tipo da conta selecionada — escritório entra com lançamento já recebido
+        const submittedAccount = financialAccounts.find((a) => a.id === values.financial_account_id);
+        const autoReceive = submittedAccount?.type === 'escritorio';
+
         // Nova cobrança - gera múltiplas se necessário
         if (values.occurrence_type === 'unica') {
           // Cobrança única
@@ -292,6 +296,9 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               ...baseReceivableData,
               amount: parseFloat(values.amount),
               due_date: formatDateToString(values.due_date!),
+              ...(autoReceive
+                ? { status: 'received', payment_date: formatDateToString(values.due_date!) }
+                : {}),
             }]);
 
           if (error) throw error;
