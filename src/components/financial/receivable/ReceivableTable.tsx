@@ -549,7 +549,11 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
             >
               <div className={`grid ${asaasEnabled ? 'grid-cols-12' : 'grid-cols-11'} gap-4 px-6 py-4 items-center`}>
                 <div className="col-span-2">
-                  <ClientNameCell client={account.client || {}} />
+                  {account.client ? (
+                    <ClientNameCell client={account.client} />
+                  ) : (
+                    <ClientNameCell client={{ full_name: account.payer_name || '—', client_type: 'person' }} />
+                  )}
                 </div>
                 <div className="col-span-2">
                   <p className="text-[14px] text-foreground">{account.category}</p>

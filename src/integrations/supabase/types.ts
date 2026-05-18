@@ -128,7 +128,7 @@ export type Database = {
           asaas_status: string | null
           attachment_url: string | null
           category: string
-          client_id: string
+          client_id: string | null
           created_at: string
           created_by: string
           description: string
@@ -143,6 +143,7 @@ export type Database = {
           notes: string | null
           occurrence_type: string | null
           parent_receivable_id: string | null
+          payer_name: string | null
           payment_confirmation_date: string | null
           payment_date: string | null
           payment_method: string | null
@@ -160,7 +161,7 @@ export type Database = {
           asaas_status?: string | null
           attachment_url?: string | null
           category: string
-          client_id: string
+          client_id?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -175,6 +176,7 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_receivable_id?: string | null
+          payer_name?: string | null
           payment_confirmation_date?: string | null
           payment_date?: string | null
           payment_method?: string | null
@@ -192,7 +194,7 @@ export type Database = {
           asaas_status?: string | null
           attachment_url?: string | null
           category?: string
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           created_by?: string
           description?: string
@@ -207,6 +209,7 @@ export type Database = {
           notes?: string | null
           occurrence_type?: string | null
           parent_receivable_id?: string | null
+          payer_name?: string | null
           payment_confirmation_date?: string | null
           payment_date?: string | null
           payment_method?: string | null

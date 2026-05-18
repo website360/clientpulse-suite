@@ -21,7 +21,8 @@ import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  client_id: z.string().min(1, 'Cliente é obrigatório'),
+  client_id: z.string().optional(),
+  payer_name: z.string().optional(),
   financial_account_id: z.string().min(1, 'Conta é obrigatória'),
   description: z.string().min(1, 'Descrição é obrigatória'),
   category: z.string().min(1, 'Categoria é obrigatória'),
@@ -46,6 +47,12 @@ const formSchema = z.object({
   return true;
 }, {
   message: "Preencha todos os campos obrigatórios para o tipo de ocorrência selecionado",
+}).refine((data) => {
+  // É obrigatório: cliente OU nome livre (não os dois vazios)
+  return Boolean(data.client_id) || Boolean(data.payer_name?.trim());
+}, {
+  message: 'Informe um cliente ou um nome para o recebedor',
+  path: ['payer_name'],
 });
 
 // Helper function to format date without timezone issues
@@ -132,6 +139,7 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
     resolver: zodResolver(formSchema),
     defaultValues: {
       client_id: '',
+      payer_name: '',
       financial_account_id: '',
       description: '',
       category: '',
@@ -144,6 +152,9 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
   });
 
   const occurrenceType = form.watch('occurrence_type');
+  const watchedAccountId = form.watch('financial_account_id');
+  const selectedAccountInForm = financialAccounts.find((a) => a.id === watchedAccountId);
+  const isCompanyAccount = (selectedAccountInForm?.type || 'empresa') === 'empresa';
 
   useEffect(() => {
     if (open) {
@@ -156,7 +167,8 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
         };
         
         form.reset({
-          client_id: account.client_id,
+          client_id: account.client_id || '',
+          payer_name: account.payer_name || '',
           financial_account_id: account.financial_account_id || defaultAccountIdFn(),
           description: account.description,
           category: account.category,
@@ -193,7 +205,8 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
     setLoading(true);
     try {
       const baseReceivableData = {
-        client_id: values.client_id,
+        client_id: values.client_id || null,
+        payer_name: values.payer_name?.trim() || null,
         financial_account_id: values.financial_account_id,
         description: values.description,
         category: values.category,
@@ -460,30 +473,46 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="client_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {isCompanyAccount ? (
+              <FormField
+                control={form.control}
+                name="client_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="payer_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recebedor</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
+                      <Input {...field} placeholder="Ex.: João, Aluguel apartamento, Salário..." />
                     </FormControl>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.responsible_name || (client.client_type === 'company' ? client.company_name : client.full_name)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
