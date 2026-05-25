@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, 
-  FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote, 
-  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut
+  FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench, StickyNote,
+  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut, NotebookPen
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -193,6 +193,7 @@ export function AppSidebar() {
     { title: 'Contratos', url: '/contracts', icon: FileText },
     { title: 'Manutenção', url: '/manutencao', icon: Wrench },
     { title: 'Ideias e Anotações', url: '/anotacoes', icon: StickyNote },
+    { title: 'Notas', url: '/notas', icon: NotebookPen },
   ];
 
   const financeItems = [

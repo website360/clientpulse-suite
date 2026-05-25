@@ -45,3 +45,43 @@
 .ql-container .ql-editor {
   min-height: 220px;
 }
+
+/* Quick Notes editor — fill remaining space, no borders */
+.quick-notes-editor {
+  display: flex;
+  flex-direction: column;
+}
+.quick-notes-editor .quill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.quick-notes-editor .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.quick-notes-editor .ql-container {
+  border: none;
+  flex: 1;
+  min-height: 0;
+  font-size: 15px;
+  font-family: inherit;
+}
+.quick-notes-editor .ql-editor {
+  min-height: 0;
+  padding: 16px 0;
+  line-height: 1.6;
+}
+.quick-notes-editor .ql-editor.ql-blank::before {
+  font-style: normal;
+  color: hsl(var(--muted-foreground));
+  left: 0;
+}
+.quick-notes-editor .ql-editor img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
