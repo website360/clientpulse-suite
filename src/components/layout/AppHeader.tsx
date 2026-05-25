@@ -32,7 +32,6 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   '/domains': { title: 'Domínios', subtitle: 'Controle de domínios' },
   '/contracts': { title: 'Contratos', subtitle: 'Gestão de contratos' },
   '/manutencao': { title: 'Manutenção', subtitle: 'Manutenções programadas' },
-  '/anotacoes': { title: 'Ideias e Anotações', subtitle: 'Suas notas e ideias' },
   '/notas': { title: 'Notas', subtitle: 'Bloco de notas rápido para texto corrido' },
   '/financeiro/receber': { title: 'Contas a Receber', subtitle: 'Gestão financeira' },
   '/financeiro/pagar': { title: 'Contas a Pagar', subtitle: 'Gestão financeira' },

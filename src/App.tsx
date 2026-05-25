@@ -41,7 +41,6 @@ const ContractTemplateEditor = lazy(() => import("./pages/ContractTemplateEditor
 const Reports = lazy(() => import("./pages/Reports"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
-const Notes = lazy(() => import("./pages/Notes"));
 const QuickNotes = lazy(() => import("./pages/QuickNotes"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
@@ -129,7 +128,6 @@ const App = () => (
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/manutencao" element={<Maintenance />} />
-                    <Route path="/anotacoes" element={<Notes />} />
                     <Route path="/notas" element={<QuickNotes />} />
                     <Route path="/projetos" element={<Projects />} />
                     <Route path="/projetos/:id" element={<ProjectDetail />} />
