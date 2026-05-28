@@ -5,7 +5,7 @@ import { SortableTableHead } from '@/components/ui/sortable-table-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, QrCode } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Edit, Trash2, Calendar, ExternalLink, RefreshCw, Plus, QrCode, Copy } from 'lucide-react';
 import { ClientNameCell } from '@/components/shared/ClientNameCell';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useToast, toastSuccess, toastError, toastWarning } from '@/hooks/use-toast';
@@ -450,6 +450,15 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     }).format(value);
   };
 
+  const handleCopyInvoice = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Link copiado', description: 'O link da fatura foi copiado.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível copiar o link.', variant: 'destructive' });
+    }
+  };
+
   const handleCreateInAsaas = async (account: any) => {
     setSyncing(account.id);
     try {
@@ -591,15 +600,26 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                   <div className="col-span-1">
                     {account.sync_with_asaas && account.asaas_payment_id ? (
                       account.asaas_invoice_url ? (
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-xs"
-                          onClick={() => window.open(account.asaas_invoice_url, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Ver Fatura
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => window.open(account.asaas_invoice_url, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Ver Fatura
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            title="Copiar link da fatura"
+                            onClick={() => handleCopyInvoice(account.asaas_invoice_url)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">Sincronizado</span>
                       )
