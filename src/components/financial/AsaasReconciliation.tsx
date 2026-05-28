@@ -141,7 +141,7 @@ export function AsaasReconciliation() {
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === 'received') {
+    if (status === 'received' || status === 'paid') {
       return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
     }
     if (status === 'canceled') {
@@ -151,7 +151,7 @@ export function AsaasReconciliation() {
   };
 
   const isStatusMismatch = (localStatus: string, asaasStatus: string) => {
-    if (localStatus === 'received' && (asaasStatus === 'RECEIVED' || asaasStatus === 'CONFIRMED')) {
+    if ((localStatus === 'received' || localStatus === 'paid') && (asaasStatus === 'RECEIVED' || asaasStatus === 'CONFIRMED')) {
       return false;
     }
     if (localStatus === 'pending' && asaasStatus === 'PENDING') {

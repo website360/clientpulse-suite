@@ -17,7 +17,7 @@ import { AsaasPaymentDetailsModal } from './AsaasPaymentDetailsModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
-import { BADGE_TONE } from '@/lib/statusBadge';
+import { BADGE_TONE, RECEIVED_STATUSES } from '@/lib/statusBadge';
 
 interface ReceivableTableProps {
   filters: any;
@@ -102,7 +102,9 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         countQuery = countQuery.eq('financial_account_id', selectedAccountId);
       }
       if (filters.status !== 'all') {
-        countQuery = countQuery.eq('status', filters.status);
+        countQuery = filters.status === 'received'
+          ? countQuery.in('status', [...RECEIVED_STATUSES])
+          : countQuery.eq('status', filters.status);
       }
       if (filters.category !== 'all') {
         countQuery = countQuery.eq('category', filters.category);
@@ -132,7 +134,9 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
         query = query.eq('financial_account_id', selectedAccountId);
       }
       if (filters.status !== 'all') {
-        query = query.eq('status', filters.status);
+        query = filters.status === 'received'
+          ? query.in('status', [...RECEIVED_STATUSES])
+          : query.eq('status', filters.status);
       }
       if (filters.category !== 'all') {
         query = query.eq('category', filters.category);
@@ -427,7 +431,7 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     const due = parseLocalDate(dueDate);
     due.setHours(0, 0, 0, 0);
     
-    if (status === 'received') {
+    if (status === 'received' || status === 'paid') {
       return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
     }
     if (status === 'canceled') {

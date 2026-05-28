@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { DollarSign, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
+import { RECEIVED_STATUSES } from '@/lib/statusBadge';
 
 interface ReceivableStatsProps {
   filters: {
@@ -64,6 +65,8 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
 
     if (filters.status === 'all') {
       totalQuery = totalQuery.eq('status', isEscritorio ? 'received' : 'pending');
+    } else if (filters.status === 'received') {
+      totalQuery = totalQuery.in('status', [...RECEIVED_STATUSES]);
     } else {
       totalQuery = totalQuery.eq('status', filters.status as any);
     }
@@ -81,7 +84,7 @@ export function ReceivableStats({ filters }: ReceivableStatsProps) {
     let receivedThisMonthQuery = supabase
       .from('accounts_receivable')
       .select('amount', { count: 'exact' })
-      .eq('status', 'received');
+      .in('status', [...RECEIVED_STATUSES]);
     
     if (filters.dateFrom || filters.dateTo) {
       if (filters.dateFrom) {

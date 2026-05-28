@@ -69,7 +69,7 @@ export function ClientFinancialTab({ clientId }: ClientFinancialTabProps) {
     const due = parseLocalDate(dueDate);
     due.setHours(0, 0, 0, 0);
     
-    if (status === 'received') {
+    if (status === 'received' || status === 'paid') {
       return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
     }
     if (status === 'canceled') {
