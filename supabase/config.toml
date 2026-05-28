@@ -42,6 +42,9 @@ verify_jwt = true
 [functions.list-asaas-payments]
 verify_jwt = true
 
+[functions.save-asaas-key]
+verify_jwt = true
+
 [functions.asaas-webhook]
 verify_jwt = false
 

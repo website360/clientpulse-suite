@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { getAsaasApiKey } from "../_shared/asaasKey.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -95,11 +96,7 @@ serve(async (req) => {
 
     const environment = settings?.environment || 'sandbox';
     const defaultBillingType = settings?.default_billing_type || 'UNDEFINED';
-    const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
-
-    if (!asaasApiKey) {
-      throw new Error('Asaas API Key not configured');
-    }
+    const asaasApiKey = await getAsaasApiKey(supabase);
 
     const baseUrl = environment === 'production' 
       ? 'https://api.asaas.com/v3'
