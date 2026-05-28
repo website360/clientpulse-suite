@@ -20,6 +20,7 @@ import {
 } from '@/lib/asaasReconciliation';
 import { ReceiveConfirmModal } from '@/components/financial/receivable/ReceiveConfirmModal';
 import { ReceivableFormModal, type ReceivablePrefill } from '@/components/financial/receivable/ReceivableFormModal';
+import { BADGE_TONE, type BadgeTone } from '@/lib/statusBadge';
 
 const PAID_STATUSES = ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'];
 const SETTLED_LOCAL = ['received', 'paid'];
@@ -36,35 +37,35 @@ const formatDate = (value?: string | null) => {
 const chargeIsPaid = (charge: AsaasCharge) => PAID_STATUSES.includes(charge.status);
 
 const getAsaasStatusBadge = (status: string) => {
-  const labels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-    PENDING: { label: 'Pendente', variant: 'secondary' },
-    RECEIVED: { label: 'Recebido', variant: 'default' },
-    RECEIVED_IN_CASH: { label: 'Recebido', variant: 'default' },
-    CONFIRMED: { label: 'Confirmado', variant: 'default' },
-    OVERDUE: { label: 'Vencido', variant: 'destructive' },
+  const labels: Record<string, { label: string; tone: BadgeTone }> = {
+    PENDING: { label: 'Pendente', tone: 'warning' },
+    RECEIVED: { label: 'Recebido', tone: 'success' },
+    RECEIVED_IN_CASH: { label: 'Recebido', tone: 'success' },
+    CONFIRMED: { label: 'Confirmado', tone: 'success' },
+    OVERDUE: { label: 'Vencido', tone: 'danger' },
   };
-  const config = labels[status] || { label: status, variant: 'outline' as const };
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+  const config = labels[status] || { label: status, tone: 'neutral' as BadgeTone };
+  return <Badge variant="outline" className={BADGE_TONE[config.tone]}>{config.label}</Badge>;
 };
 
 const getLocalStatusBadge = (status: string) => {
   if (SETTLED_LOCAL.includes(status)) {
-    return <Badge variant="default" className="bg-success">Recebido</Badge>;
+    return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
   }
-  if (status === 'canceled') return <Badge variant="secondary">Cancelado</Badge>;
-  if (status === 'overdue') return <Badge variant="destructive">Vencido</Badge>;
-  return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
+  if (status === 'canceled') return <Badge variant="outline" className={BADGE_TONE.neutral}>Cancelado</Badge>;
+  if (status === 'overdue') return <Badge variant="outline" className={BADGE_TONE.danger}>Vencido</Badge>;
+  return <Badge variant="outline" className={BADGE_TONE.warning}>Pendente</Badge>;
 };
 
 const confidenceBadge = (confidence: MatchConfidence, reason: string) => {
-  const map: Record<MatchConfidence, { label: string; className: string }> = {
-    high: { label: 'Sugestão forte', className: 'bg-success' },
-    medium: { label: 'Sugestão média', className: 'bg-warning text-warning-foreground' },
-    low: { label: 'Sugestão fraca', className: '' },
+  const map: Record<MatchConfidence, { label: string; tone: BadgeTone }> = {
+    high: { label: 'Sugestão forte', tone: 'success' },
+    medium: { label: 'Sugestão média', tone: 'warning' },
+    low: { label: 'Sugestão fraca', tone: 'neutral' },
   };
   const config = map[confidence];
   return (
-    <Badge variant={confidence === 'low' ? 'outline' : 'default'} className={config.className} title={reason}>
+    <Badge variant="outline" className={BADGE_TONE[config.tone]} title={reason}>
       {config.label}
     </Badge>
   );

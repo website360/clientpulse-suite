@@ -17,6 +17,7 @@ import { AsaasPaymentDetailsModal } from './AsaasPaymentDetailsModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
+import { BADGE_TONE } from '@/lib/statusBadge';
 
 interface ReceivableTableProps {
   filters: any;
@@ -427,15 +428,15 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     due.setHours(0, 0, 0, 0);
     
     if (status === 'received') {
-      return <Badge variant="default" className="bg-success">Recebido</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
     }
     if (status === 'canceled') {
-      return <Badge variant="secondary">Cancelado</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.neutral}>Cancelado</Badge>;
     }
     if (status === 'pending' && due < today) {
-      return <Badge variant="outline" className="border-destructive text-destructive">Vencido</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.danger}>Vencido</Badge>;
     }
-    return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
+    return <Badge variant="outline" className={BADGE_TONE.warning}>Pendente</Badge>;
   };
 
   const formatCurrency = (value: number) => {

@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
+import { BADGE_TONE, type BadgeTone } from '@/lib/statusBadge';
 
 export function AsaasReconciliation() {
   const [loading, setLoading] = useState(true);
@@ -129,24 +130,24 @@ export function AsaasReconciliation() {
   };
 
   const getAsaasStatusBadge = (status: string) => {
-    const labels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      'PENDING': { label: 'Pendente', variant: 'secondary' },
-      'RECEIVED': { label: 'Recebido', variant: 'default' },
-      'CONFIRMED': { label: 'Confirmado', variant: 'default' },
-      'OVERDUE': { label: 'Vencido', variant: 'destructive' },
+    const labels: Record<string, { label: string; tone: BadgeTone }> = {
+      'PENDING': { label: 'Pendente', tone: 'warning' },
+      'RECEIVED': { label: 'Recebido', tone: 'success' },
+      'CONFIRMED': { label: 'Confirmado', tone: 'success' },
+      'OVERDUE': { label: 'Vencido', tone: 'danger' },
     };
-    const config = labels[status] || { label: status, variant: 'outline' as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = labels[status] || { label: status, tone: 'neutral' as BadgeTone };
+    return <Badge variant="outline" className={BADGE_TONE[config.tone]}>{config.label}</Badge>;
   };
 
   const getStatusBadge = (status: string) => {
     if (status === 'received') {
-      return <Badge variant="default" className="bg-success">Recebido</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.success}>Recebido</Badge>;
     }
     if (status === 'canceled') {
-      return <Badge variant="secondary">Cancelado</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.neutral}>Cancelado</Badge>;
     }
-    return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
+    return <Badge variant="outline" className={BADGE_TONE.warning}>Pendente</Badge>;
   };
 
   const isStatusMismatch = (localStatus: string, asaasStatus: string) => {

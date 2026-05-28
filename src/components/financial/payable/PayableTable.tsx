@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancialAccount } from '@/contexts/FinancialAccountContext';
+import { BADGE_TONE } from '@/lib/statusBadge';
 
 interface PayableTableProps {
   filters: any;
@@ -361,15 +362,15 @@ export function PayableTable({ filters, currentPage, pageSize, sortColumn, sortD
     due.setHours(0, 0, 0, 0);
     
     if (status === 'paid') {
-      return <Badge variant="default" className="bg-success">Pago</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.success}>Pago</Badge>;
     }
     if (status === 'canceled') {
-      return <Badge variant="secondary">Cancelado</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.neutral}>Cancelado</Badge>;
     }
     if (status === 'pending' && due < today) {
-      return <Badge variant="outline" className="border-destructive text-destructive">Vencido</Badge>;
+      return <Badge variant="outline" className={BADGE_TONE.danger}>Vencido</Badge>;
     }
-    return <Badge variant="outline" className="border-warning text-warning">Pendente</Badge>;
+    return <Badge variant="outline" className={BADGE_TONE.warning}>Pendente</Badge>;
   };
 
   const formatCurrency = (value: number) => {
