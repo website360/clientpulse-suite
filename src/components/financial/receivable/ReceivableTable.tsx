@@ -504,17 +504,6 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
     }
   };
 
-  const getAsaasStatusBadge = (status: string) => {
-    const labels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      'PENDING': { label: 'Pendente', variant: 'secondary' },
-      'RECEIVED': { label: 'Recebido', variant: 'default' },
-      'CONFIRMED': { label: 'Confirmado', variant: 'default' },
-      'OVERDUE': { label: 'Vencido', variant: 'destructive' },
-    };
-    const config = labels[status] || { label: status, variant: 'outline' as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>;
   }
@@ -601,20 +590,19 @@ export function ReceivableTable({ filters, currentPage, pageSize, sortColumn, so
                 {asaasEnabled && (
                   <div className="col-span-1">
                     {account.sync_with_asaas && account.asaas_payment_id ? (
-                      <div className="flex flex-col gap-1">
-                        {getAsaasStatusBadge(account.asaas_status)}
-                        {account.asaas_invoice_url && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-xs"
-                            onClick={() => window.open(account.asaas_invoice_url, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Ver Fatura
-                          </Button>
-                        )}
-                      </div>
+                      account.asaas_invoice_url ? (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-xs"
+                          onClick={() => window.open(account.asaas_invoice_url, '_blank')}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Ver Fatura
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sincronizado</span>
+                      )
                     ) : (
                       <span className="text-xs text-muted-foreground">Não sinc.</span>
                     )}
