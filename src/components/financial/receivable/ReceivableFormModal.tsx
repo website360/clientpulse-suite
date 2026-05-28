@@ -71,14 +71,29 @@ const parseCurrency = (val: any): number => {
   return Number((isNaN(num) ? 0 : num).toFixed(2));
 };
 
+export interface ReceivablePrefill {
+  client_id?: string;
+  payer_name?: string;
+  financial_account_id?: string;
+  description?: string;
+  category?: string;
+  amount?: string;
+  issue_date?: Date;
+  due_date?: Date;
+  payment_method?: string;
+  invoice_number?: string;
+  notes?: string;
+}
+
 interface ReceivableFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   account?: any;
+  prefill?: ReceivablePrefill;
   onSuccess?: (account?: any, isRecurring?: boolean) => void;
 }
 
-export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: ReceivableFormModalProps) {
+export function ReceivableFormModal({ open, onOpenChange, account, prefill, onSuccess }: ReceivableFormModalProps) {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncWithAsaas, setSyncWithAsaas] = useState(false);
@@ -196,6 +211,21 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
           payment_method: account.payment_method || '',
           invoice_number: account.invoice_number || '',
           notes: account.notes || '',
+        });
+      } else if (prefill) {
+        form.reset({
+          occurrence_type: 'unica',
+          financial_account_id: prefill.financial_account_id || defaultAccountIdFn(),
+          client_id: prefill.client_id || '',
+          payer_name: prefill.payer_name || '',
+          description: prefill.description || '',
+          category: prefill.category || '',
+          amount: prefill.amount || '',
+          issue_date: prefill.issue_date || new Date(),
+          due_date: prefill.due_date,
+          payment_method: prefill.payment_method || '',
+          invoice_number: prefill.invoice_number || '',
+          notes: prefill.notes || '',
         });
       } else {
         form.reset({
@@ -832,8 +862,8 @@ export function ReceivableFormModal({ open, onOpenChange, account, onSuccess }: 
                 control={form.control}
                 name="amount"
                 render={({ field }) => {
-                  // Formata o valor inicial quando há um account sendo editado
-                  const initialValue = account && field.value ? 
+                  // Formata o valor inicial quando já há um valor (edição ou pré-preenchimento)
+                  const initialValue = field.value ?
                     new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL'

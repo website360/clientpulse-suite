@@ -15,7 +15,7 @@ import { CashFlowProjection } from '@/components/financial/CashFlowProjection';
 import { DelinquencyReport } from '@/components/financial/DelinquencyReport';
 import { DREReport } from '@/components/financial/DREReport';
 import { ClientProfitability } from '@/components/financial/ClientProfitability';
-import { AsaasReconciliation } from '@/components/financial/AsaasReconciliation';
+import { AsaasReconciliationPanel } from '@/components/financial/AsaasReconciliationPanel';
 import { TransfersTab } from '@/components/financial/TransfersTab';
 import { FinancialAccountSelector } from '@/components/financial/FinancialAccountSelector';
 import { EscritorioStats } from '@/components/financial/EscritorioStats';
@@ -196,7 +196,7 @@ const AccountsReceivable = () => {
               </TabsContent>
 
               <TabsContent value="asaas" className="space-y-6">
-                <AsaasReconciliation />
+                <AsaasReconciliationPanel />
               </TabsContent>
 
               <TabsContent value="transfers" className="space-y-6">
