@@ -23,12 +23,12 @@ import {
   User,
   UserCog,
   Building2,
-  FileText,
   Send,
   AlertCircle,
   Download,
   File,
-  Eye
+  Eye,
+  Lock
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
@@ -58,6 +58,7 @@ export default function TicketDetails() {
   const [attachments, setAttachments] = useState<any[]>([]);
   const [messageAttachments, setMessageAttachments] = useState<File[]>([]);
   const [newMessageHtml, setNewMessageHtml] = useState('');
+  const [composerMode, setComposerMode] = useState<'reply' | 'internal'>('reply');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -315,9 +316,16 @@ export default function TicketDetails() {
   };
 
   const messageIsEmpty = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length === 0;
+  const isInternal = composerMode === 'internal';
+  const canSend = (!messageIsEmpty || (!isInternal && messageAttachments.length > 0)) && !sending;
+
+  const setMode = (mode: 'reply' | 'internal') => {
+    setComposerMode(mode);
+    if (mode === 'internal') setMessageAttachments([]);
+  };
 
   const handleSendMessage = async () => {
-    if (messageIsEmpty && messageAttachments.length === 0 || !id) return;
+    if (!canSend || !id) return;
 
     setSending(true);
     try {
@@ -332,14 +340,14 @@ export default function TicketDetails() {
           ticket_id: id,
           user_id: user.id,
           message: sanitizedMessage,
-          is_internal: false,
+          is_internal: isInternal,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      if (messageAttachments.length > 0) {
+      if (!isInternal && messageAttachments.length > 0) {
         await uploadMessageAttachments(messageData.id, messageAttachments);
       }
 
@@ -349,8 +357,10 @@ export default function TicketDetails() {
       fetchAttachments();
 
       toast({
-        title: 'Mensagem enviada',
-        description: 'Sua mensagem foi adicionada ao ticket.',
+        title: isInternal ? 'Nota interna adicionada' : 'Mensagem enviada',
+        description: isInternal
+          ? 'Visível apenas para a equipe. O cliente não foi notificado.'
+          : 'Sua mensagem foi adicionada ao ticket.',
       });
     } catch (error: any) {
       toast({
@@ -673,6 +683,29 @@ export default function TicketDetails() {
                   </div>
 
                   {messages.map((message) => {
+                    if (message.is_internal) {
+                      return (
+                        <div key={message.id} className="flex gap-3">
+                          <AvatarInitials name={message.displayName} size="sm" />
+                          <div className="flex flex-col w-full max-w-[92%]">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-semibold text-foreground">{message.displayName}</span>
+                              <Badge className="h-4 px-1.5 text-[10px] font-medium gap-1 bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800">
+                                <Lock className="h-2.5 w-2.5" /> Nota interna
+                              </Badge>
+                              <span className="text-[11px] text-muted-foreground">
+                                {format(new Date(message.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                            <div
+                              className="rounded-2xl rounded-tl-sm border border-dashed border-amber-300 bg-amber-50 px-4 py-2.5 text-sm break-words dark:border-amber-800 dark:bg-amber-950/30"
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }
+
                     const isSupport = message.messageType === 'admin';
                     const bubble =
                       message.messageType === 'admin'
@@ -711,41 +744,79 @@ export default function TicketDetails() {
                 </div>
 
                 {/* Composer */}
-                <div className="mt-5 pt-4 border-t space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MacroSelector
-                      onSelectMacro={(content) => setNewMessageHtml(content)}
-                      departmentId={ticket.department_id}
-                    />
-                    <EmojiPicker
-                      onEmojiSelect={(emoji) => setNewMessageHtml(newMessageHtml + emoji)}
-                    />
+                <div className="mt-5 pt-4 border-t space-y-3">
+                  <div className="inline-flex rounded-lg border p-0.5 bg-muted/50">
+                    <button
+                      type="button"
+                      onClick={() => setMode('reply')}
+                      className={cn(
+                        'inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                        !isInternal ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      Responder ao cliente
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode('internal')}
+                      className={cn(
+                        'inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                        isInternal ? 'bg-amber-100 text-amber-800 shadow-sm dark:bg-amber-900/50 dark:text-amber-200' : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Lock className="h-3.5 w-3.5 mr-1.5" />
+                      Nota interna
+                    </button>
                   </div>
-                  <div className="min-h-[230px]">
-                    <ReactQuill
-                      theme="snow"
-                      value={newMessageHtml}
-                      onChange={(content) => {
-                        setNewMessageHtml(content);
-                        const hasText = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length > 0;
-                        setTyping(hasText, currentUser?.name);
-                      }}
-                      placeholder="Escreva sua resposta ao cliente..."
-                      style={{ height: '180px' }}
-                    />
+
+                  <div className={cn(isInternal && 'rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-950/20')}>
+                    {isInternal && (
+                      <p className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300 mb-2">
+                        <Lock className="h-3 w-3" />
+                        Visível apenas para a equipe. O cliente não recebe notificação.
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      <MacroSelector
+                        onSelectMacro={(content) => setNewMessageHtml(content)}
+                        departmentId={ticket.department_id}
+                      />
+                      <EmojiPicker
+                        onEmojiSelect={(emoji) => setNewMessageHtml(newMessageHtml + emoji)}
+                      />
+                    </div>
+                    <div className="min-h-[230px]">
+                      <ReactQuill
+                        theme="snow"
+                        value={newMessageHtml}
+                        onChange={(content) => {
+                          setNewMessageHtml(content);
+                          const hasText = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length > 0;
+                          setTyping(hasText, currentUser?.name);
+                        }}
+                        placeholder={isInternal ? 'Escreva uma nota interna...' : 'Escreva sua resposta ao cliente...'}
+                        style={{ height: '180px' }}
+                      />
+                    </div>
+                    {!isInternal && (
+                      <div className="mt-2">
+                        <FileUpload
+                          onFilesChange={setMessageAttachments}
+                          maxSizeMB={1}
+                          multiple={true}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <FileUpload
-                    onFilesChange={setMessageAttachments}
-                    maxSizeMB={1}
-                    multiple={true}
-                  />
+
                   <Button
                     onClick={handleSendMessage}
-                    disabled={(messageIsEmpty && messageAttachments.length === 0) || sending}
-                    className="w-full"
+                    disabled={!canSend}
+                    className={cn('w-full', isInternal && 'bg-amber-600 hover:bg-amber-700 text-white')}
                   >
-                    <Send className="h-4 w-4 mr-2" />
-                    {sending ? 'Enviando...' : 'Enviar Resposta'}
+                    {isInternal ? <Lock className="h-4 w-4 mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                    {sending ? 'Enviando...' : isInternal ? 'Adicionar Nota Interna' : 'Enviar Resposta'}
                   </Button>
                 </div>
               </CardContent>

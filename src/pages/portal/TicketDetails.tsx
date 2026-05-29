@@ -196,6 +196,7 @@ export default function ClientTicketDetails() {
         .from('ticket_messages')
         .select('*')
         .eq('ticket_id', id)
+        .eq('is_internal', false)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
