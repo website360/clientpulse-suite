@@ -10,17 +10,25 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Agent {
+  id: string;
+  full_name: string;
+}
+
 interface TicketFiltersProps {
   filters: {
     search: string;
     priority: string;
     department: string;
     status: string;
+    assignee?: string;
   };
   onFiltersChange: (filters: any) => void;
+  agents?: Agent[];
+  showAssignee?: boolean;
 }
 
-export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) {
+export function TicketFilters({ filters, onFiltersChange, agents = [], showAssignee = false }: TicketFiltersProps) {
   const [departments, setDepartments] = useState<any[]>([]);
 
   useEffect(() => {
@@ -33,12 +41,12 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
       .select('*')
       .eq('is_active', true)
       .order('name');
-    
+
     setDepartments(data || []);
   };
 
   return (
-    <div className="flex flex-row items-center gap-4">
+    <div className="flex flex-row flex-wrap items-center gap-3">
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -68,21 +76,25 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
         </SelectContent>
       </Select>
 
-      <Select
-        value={filters.status}
-        onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
-      >
-        <SelectTrigger className="w-[180px] shrink-0">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos Status</SelectItem>
-          <SelectItem value="waiting">Aguardando</SelectItem>
-          <SelectItem value="in_progress">Em Atendimento</SelectItem>
-          <SelectItem value="resolved">Resolvido</SelectItem>
-          <SelectItem value="closed">Concluído</SelectItem>
-        </SelectContent>
-      </Select>
+      {showAssignee && (
+        <Select
+          value={filters.assignee || 'all'}
+          onValueChange={(value) => onFiltersChange({ ...filters, assignee: value })}
+        >
+          <SelectTrigger className="w-[180px] shrink-0">
+            <SelectValue placeholder="Atendente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Atendentes</SelectItem>
+            <SelectItem value="unassigned">Não atribuído</SelectItem>
+            {agents.map((agent) => (
+              <SelectItem key={agent.id} value={agent.id}>
+                {agent.full_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Select
         value={filters.priority}
