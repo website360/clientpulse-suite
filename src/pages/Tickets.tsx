@@ -124,17 +124,36 @@ export default function Tickets() {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const { data: ticketsData, error } = await supabase
+      const { data: ticketsRaw, error } = await supabase
         .from('tickets')
         .select(`
           *,
           clients (full_name, company_name, email, responsible_name, client_type),
-          departments (name, color),
-          assigned_profile:profiles!tickets_assigned_to_fkey (full_name)
+          departments (name, color)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Atendentes: buscamos os profiles separadamente para evitar depender
+      // do cache de relação do PostgREST em produção.
+      const assignedIds = Array.from(
+        new Set((ticketsRaw || []).map((t: any) => t.assigned_to).filter(Boolean))
+      );
+      let profilesById: Record<string, string> = {};
+      if (assignedIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', assignedIds);
+        (profs || []).forEach((p: any) => {
+          profilesById[p.id] = p.full_name || 'Atendente';
+        });
+      }
+      const ticketsData = (ticketsRaw || []).map((t: any) => ({
+        ...t,
+        assigned_profile: t.assigned_to ? { full_name: profilesById[t.assigned_to] || 'Atendente' } : null,
+      }));
 
       const { data: { user } } = await supabase.auth.getUser();
 
