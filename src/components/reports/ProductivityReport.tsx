@@ -65,7 +65,6 @@ export default function ProductivityReport() {
         .from('tickets')
         .select(`
           *,
-          profiles!tickets_assigned_to_fkey(full_name),
           departments(name),
           ticket_sla_tracking(
             first_response_breached,
@@ -86,13 +85,25 @@ export default function ProductivityReport() {
       const { data: tickets, error } = await ticketsQuery;
       if (error) throw error;
 
+      // Atendentes: busca profiles separadamente (PostgREST não infere tickets→profiles)
+      const assignedIds = Array.from(
+        new Set((tickets || []).map((t: any) => t.assigned_to).filter(Boolean))
+      );
+      const namesById: Record<string, string> = {};
+      if (assignedIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', assignedIds);
+        (profs || []).forEach((p: any) => { namesById[p.id] = p.full_name || 'Atendente'; });
+      }
+
       // Agrupar por técnico
       const technicianStats: Record<string, any> = {};
 
       tickets?.forEach((ticket) => {
         const techId = ticket.assigned_to || 'unassigned';
-        const profiles: any = ticket.profiles;
-        const techName = (Array.isArray(profiles) ? profiles[0]?.full_name : profiles?.full_name) || 'Não Atribuído';
+        const techName = ticket.assigned_to ? (namesById[ticket.assigned_to] || 'Atendente') : 'Não Atribuído';
 
         if (!technicianStats[techId]) {
           technicianStats[techId] = {
