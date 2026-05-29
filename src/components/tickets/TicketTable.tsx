@@ -350,7 +350,7 @@ export function TicketTable({
               )}
 
               {/* Assunto */}
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-medium line-clamp-1" title={ticket.subject}>{ticket.subject}</p>
@@ -364,6 +364,21 @@ export function TicketTable({
                     </div>
                   )}
                 </div>
+                {Array.isArray(ticket.tags) && ticket.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {ticket.tags.slice(0, 4).map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center px-1.5 py-0 rounded-full text-[10px] font-medium bg-primary/10 text-primary"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {ticket.tags.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">+{ticket.tags.length - 4}</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Departamento */}

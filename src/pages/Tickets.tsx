@@ -62,6 +62,7 @@ export default function Tickets() {
     department: 'all',
     status: 'all',
     assignee: 'all',
+    tag: 'all',
   });
   const { userRole } = useAuth();
   const navigate = useNavigate();
@@ -234,8 +235,19 @@ export default function Tickets() {
         ? filtered.filter((ticket) => !ticket.assigned_to)
         : filtered.filter((ticket) => ticket.assigned_to === filters.assignee);
     }
+    if (filters.tag && filters.tag !== 'all') {
+      filtered = filters.tag === '__none__'
+        ? filtered.filter((ticket) => !ticket.tags || ticket.tags.length === 0)
+        : filtered.filter((ticket) => (ticket.tags || []).includes(filters.tag));
+    }
     return filtered;
-  }, [tickets, filters.search, filters.priority, filters.department, filters.assignee]);
+  }, [tickets, filters.search, filters.priority, filters.department, filters.assignee, filters.tag]);
+
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    tickets.forEach((t) => (t.tags || []).forEach((tag: string) => tag && set.add(tag)));
+    return Array.from(set).sort();
+  }, [tickets]);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { all: baseFiltered.length };
@@ -483,7 +495,14 @@ export default function Tickets() {
 
         {/* Filters */}
         <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-          <TicketFilters filters={filters} onFiltersChange={setFilters} agents={agents} showAssignee={isAdmin} />
+          <TicketFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            agents={agents}
+            showAssignee={isAdmin}
+            availableTags={availableTags}
+            showTags={isAdmin}
+          />
         </div>
 
         {/* Bulk action bar */}

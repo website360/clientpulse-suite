@@ -28,7 +28,10 @@ import {
   Download,
   File,
   Eye,
-  Lock
+  Lock,
+  Tag as TagIcon,
+  History,
+  GitMerge
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
@@ -36,6 +39,9 @@ import { MacroSelector } from '@/components/tickets/MacroSelector';
 import { TypingIndicator } from '@/components/tickets/TypingIndicator';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
 import { AttachmentPreviewModal } from '@/components/tickets/AttachmentPreviewModal';
+import { TicketTagsInput } from '@/components/tickets/TicketTagsInput';
+import { TicketActivityTimeline } from '@/components/tickets/TicketActivityTimeline';
+import { TicketMergeDialog } from '@/components/tickets/TicketMergeDialog';
 import { AvatarInitials } from '@/components/ui/avatar-initials';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import { useConfetti } from '@/hooks/useConfetti';
@@ -64,6 +70,9 @@ export default function TicketDetails() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [slaTracking, setSlaTracking] = useState<any>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [activityKey, setActivityKey] = useState(0);
+  const [mergeOpen, setMergeOpen] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
@@ -90,7 +99,49 @@ export default function TicketDetails() {
     };
     loadUser();
     fetchAgents();
+    fetchTagSuggestions();
   }, []);
+
+  const fetchTagSuggestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('tags')
+        .not('tags', 'is', null)
+        .limit(500);
+      if (error) throw error;
+      const set = new Set<string>();
+      (data || []).forEach((row: any) => {
+        (row.tags || []).forEach((t: string) => t && set.add(t));
+      });
+      setTagSuggestions(Array.from(set).sort());
+    } catch (error) {
+      // tags column ainda pode não existir antes do SQL rodar
+      console.warn('tag suggestions unavailable:', error);
+    }
+  };
+
+  const handleTagsChange = async (newTags: string[]) => {
+    if (!id) return;
+    const prev = ticket?.tags || [];
+    setTicket({ ...ticket, tags: newTags });
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ tags: newTags })
+        .eq('id', id);
+      if (error) throw error;
+      setActivityKey((k) => k + 1);
+      fetchTagSuggestions();
+    } catch (error: any) {
+      setTicket({ ...ticket, tags: prev });
+      toast({
+        title: 'Erro ao atualizar tags',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -456,6 +507,7 @@ export default function TicketDetails() {
       if (error) throw error;
 
       fetchTicketDetails();
+      setActivityKey((k) => k + 1);
       toast({
         title: 'Prioridade atualizada',
         description: 'A prioridade do ticket foi alterada com sucesso.',
@@ -495,6 +547,7 @@ export default function TicketDetails() {
 
       fetchTicketDetails();
       fetchMessages();
+      setActivityKey((k) => k + 1);
 
       if (newStatus === 'closed' || newStatus === 'resolved') {
         setTimeout(() => fireMultipleConfetti(), 300);
@@ -524,6 +577,7 @@ export default function TicketDetails() {
       if (error) throw error;
 
       fetchTicketDetails();
+      setActivityKey((k) => k + 1);
       toast({
         title: 'Atendente atualizado',
         description: newAssignee
@@ -635,9 +689,24 @@ export default function TicketDetails() {
                 {statusLabels[ticket.status] || ticket.status}
               </Badge>
               <TicketSLABadge slaTracking={slaTracking} status={ticket.status} />
+              {ticket.merged_into && (
+                <Badge variant="outline" className="rounded-full gap-1 text-[10px]">
+                  <GitMerge className="h-3 w-3" />
+                  Mesclado
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground mt-1 truncate">{ticket.subject}</p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMergeOpen(true)}
+            className="gap-1.5"
+          >
+            <GitMerge className="h-4 w-4" />
+            Mesclar
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -885,6 +954,17 @@ export default function TicketDetails() {
                     </div>
                   )}
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <TagIcon className="h-3.5 w-3.5" />
+                    Tags
+                  </Label>
+                  <TicketTagsInput
+                    value={ticket.tags || []}
+                    onChange={handleTagsChange}
+                    suggestions={tagSuggestions}
+                  />
+                </div>
                 {ticket.departments && (
                   <>
                     <Separator />
@@ -1056,9 +1136,32 @@ export default function TicketDetails() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Histórico / Auditoria */}
+            <Card className="card-elevated">
+              <CardHeader className="py-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <History className="h-4 w-4" />
+                  Histórico
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TicketActivityTimeline ticketId={id || ''} refreshKey={activityKey} />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+
+      <TicketMergeDialog
+        open={mergeOpen}
+        onOpenChange={setMergeOpen}
+        sourceTicket={ticket}
+        onMerged={() => {
+          setActivityKey((k) => k + 1);
+          navigate('/tickets');
+        }}
+      />
 
       <AttachmentPreviewModal
         open={previewOpen}

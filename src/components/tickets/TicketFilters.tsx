@@ -22,13 +22,23 @@ interface TicketFiltersProps {
     department: string;
     status: string;
     assignee?: string;
+    tag?: string;
   };
   onFiltersChange: (filters: any) => void;
   agents?: Agent[];
+  availableTags?: string[];
   showAssignee?: boolean;
+  showTags?: boolean;
 }
 
-export function TicketFilters({ filters, onFiltersChange, agents = [], showAssignee = false }: TicketFiltersProps) {
+export function TicketFilters({
+  filters,
+  onFiltersChange,
+  agents = [],
+  availableTags = [],
+  showAssignee = false,
+  showTags = false,
+}: TicketFiltersProps) {
   const [departments, setDepartments] = useState<any[]>([]);
 
   useEffect(() => {
@@ -91,6 +101,24 @@ export function TicketFilters({ filters, onFiltersChange, agents = [], showAssig
               <SelectItem key={agent.id} value={agent.id}>
                 {agent.full_name}
               </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {showTags && (
+        <Select
+          value={filters.tag || 'all'}
+          onValueChange={(value) => onFiltersChange({ ...filters, tag: value })}
+        >
+          <SelectTrigger className="w-[170px] shrink-0">
+            <SelectValue placeholder="Tag" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Tags</SelectItem>
+            <SelectItem value="__none__">Sem tag</SelectItem>
+            {availableTags.map((tag) => (
+              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
             ))}
           </SelectContent>
         </Select>
