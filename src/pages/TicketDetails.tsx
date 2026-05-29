@@ -17,11 +17,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { 
-  ArrowLeft, 
-  Clock, 
-  User, 
-  Building2, 
+import {
+  ArrowLeft,
+  Clock,
+  User,
+  UserCog,
+  Building2,
   FileText,
   Send,
   AlertCircle,
@@ -35,11 +36,18 @@ import { MacroSelector } from '@/components/tickets/MacroSelector';
 import { TypingIndicator } from '@/components/tickets/TypingIndicator';
 import { EmojiPicker } from '@/components/shared/EmojiPicker';
 import { AttachmentPreviewModal } from '@/components/tickets/AttachmentPreviewModal';
+import { AvatarInitials } from '@/components/ui/avatar-initials';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import { useConfetti } from '@/hooks/useConfetti';
+import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
+
+interface Agent {
+  id: string;
+  full_name: string;
+}
 
 export default function TicketDetails() {
   const { id } = useParams();
@@ -54,15 +62,16 @@ export default function TicketDetails() {
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [slaTracking, setSlaTracking] = useState<any>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
   const { fireMultipleConfetti } = useConfetti();
 
   const canPreviewFile = (fileType: string) => {
-    return fileType.startsWith('image/') || 
-           fileType === 'application/pdf' || 
-           fileType.startsWith('video/') || 
+    return fileType.startsWith('image/') ||
+           fileType === 'application/pdf' ||
+           fileType.startsWith('video/') ||
            fileType.startsWith('audio/');
   };
 
@@ -79,6 +88,7 @@ export default function TicketDetails() {
       }
     };
     loadUser();
+    fetchAgents();
   }, []);
 
   useEffect(() => {
@@ -91,6 +101,26 @@ export default function TicketDetails() {
       markNotificationsAsRead();
     }
   }, [id]);
+
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, profiles(id, full_name)')
+        .eq('role', 'admin');
+
+      if (error) throw error;
+
+      const list = (data || [])
+        .map((row: any) => (Array.isArray(row.profiles) ? row.profiles[0] : row.profiles))
+        .filter((p: any) => p && p.id)
+        .map((p: any) => ({ id: p.id, full_name: p.full_name || 'Atendente' }));
+
+      setAgents(list);
+    } catch (error: any) {
+      console.error('Error fetching agents:', error);
+    }
+  };
 
   const fetchSLATracking = async () => {
     try {
@@ -235,10 +265,10 @@ export default function TicketDetails() {
         const client = clientsData?.find(c => c.user_id === message.user_id);
         const isContact = !!contact;
         const isAdmin = userRole === 'admin';
-        
+
         let messageType: 'admin' | 'client' | 'contact' = 'client';
         let displayName = 'Usuário';
-        
+
         if (isAdmin) {
           messageType = 'admin';
           displayName = profile?.full_name || 'Suporte';
@@ -252,7 +282,7 @@ export default function TicketDetails() {
           messageType = 'admin';
           displayName = profile?.full_name || 'Usuário';
         }
-        
+
         return {
           ...message,
           profiles: profile,
@@ -284,22 +314,15 @@ export default function TicketDetails() {
     }
   };
 
+  const messageIsEmpty = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length === 0;
+
   const handleSendMessage = async () => {
-    const plainText = DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim();
-    if (!plainText && messageAttachments.length === 0 || !id) return;
+    if (messageIsEmpty && messageAttachments.length === 0 || !id) return;
 
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
-
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-      
-      const isAdmin = rolesData?.role === 'admin';
 
       const sanitizedMessage = DOMPurify.sanitize(newMessageHtml, { USE_PROFILES: { html: true } });
 
@@ -324,19 +347,7 @@ export default function TicketDetails() {
       setMessageAttachments([]);
       fetchMessages();
       fetchAttachments();
-      
-      // Envio antigo de WhatsApp removido (centralizado via send-notification)
-      // if (isAdmin) {
-      //   supabase.functions.invoke('send-whatsapp', {
-      //     body: {
-      //       action: 'send_ticket_notification',
-      //       ticket_id: id,
-      //       message_id: messageData.id,
-      //       event_type: 'admin_response',
-      //     },
-      //   }).catch(err => console.error('Error sending WhatsApp:', err));
-      // }
-      
+
       toast({
         title: 'Mensagem enviada',
         description: 'Sua mensagem foi adicionada ao ticket.',
@@ -355,7 +366,7 @@ export default function TicketDetails() {
   const uploadMessageAttachments = async (messageId: string, files: File[]) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -388,9 +399,7 @@ export default function TicketDetails() {
 
   const downloadAttachment = async (attachment: any) => {
     try {
-      // Check if file_url is already a full URL
       if (attachment.file_url.startsWith('http')) {
-        // For full URLs, download via fetch
         const response = await fetch(attachment.file_url);
         if (!response.ok) throw new Error('Erro ao baixar arquivo');
         const blob = await response.blob();
@@ -403,7 +412,6 @@ export default function TicketDetails() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        // For relative paths, use Supabase storage
         const { data, error } = await supabase.storage
           .from('ticket-attachments')
           .download(attachment.file_url);
@@ -460,8 +468,8 @@ export default function TicketDetails() {
 
       if (error) throw error;
 
-      // Adicionar mensagem do sistema sobre mudança de status
       const statusLabels: Record<string, string> = {
+        open: 'Aberto',
         waiting: 'Aguardando',
         in_progress: 'Em Atendimento',
         resolved: 'Resolvido',
@@ -477,12 +485,11 @@ export default function TicketDetails() {
 
       fetchTicketDetails();
       fetchMessages();
-      
-      // Dispara confetti ao concluir ou resolver ticket
+
       if (newStatus === 'closed' || newStatus === 'resolved') {
         setTimeout(() => fireMultipleConfetti(), 300);
       }
-      
+
       toast({
         title: 'Status atualizado',
         description: 'O status do ticket foi alterado com sucesso.',
@@ -490,6 +497,32 @@ export default function TicketDetails() {
     } catch (error: any) {
       toast({
         title: 'Erro ao atualizar status',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAssigneeChange = async (value: string) => {
+    const newAssignee = value === 'unassigned' ? null : value;
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ assigned_to: newAssignee })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      fetchTicketDetails();
+      toast({
+        title: 'Atendente atualizado',
+        description: newAssignee
+          ? `Ticket atribuído a ${agents.find(a => a.id === newAssignee)?.full_name || 'atendente'}.`
+          : 'Ticket marcado como não atribuído.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atribuir atendente',
         description: error.message,
         variant: 'destructive',
       });
@@ -521,6 +554,32 @@ export default function TicketDetails() {
     return labels[priority] || priority;
   };
 
+  const statusLabels: Record<string, string> = {
+    open: 'Aberto',
+    waiting: 'Aguardando',
+    in_progress: 'Em Atendimento',
+    resolved: 'Resolvido',
+    closed: 'Concluído',
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open':
+      case 'waiting':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300';
+      case 'in_progress':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300';
+      case 'resolved':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
+      case 'closed':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const assignedAgent = agents.find(a => a.id === ticket?.assigned_to);
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -548,136 +607,121 @@ export default function TicketDetails() {
 
   return (
     <DashboardLayout breadcrumbLabel={`Ticket #${ticket.ticket_number}`}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/tickets')}
+            className="mt-1"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">Ticket #{ticket.ticket_number}</h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-bold">Ticket #{ticket.ticket_number}</h1>
+              <Badge className={cn('rounded-full', getStatusColor(ticket.status))}>
+                {statusLabels[ticket.status] || ticket.status}
+              </Badge>
               <TicketSLABadge slaTracking={slaTracking} status={ticket.status} />
             </div>
-            <p className="text-muted-foreground mt-1">{ticket.subject}</p>
+            <p className="text-muted-foreground mt-1 truncate">{ticket.subject}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Conversation column */}
+          <div className="lg:col-span-2 space-y-5">
             {ticket.contact_creator && (
-              <Card className="card-elevated border-blue-500/50 bg-blue-500/5">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                    <Building2 className="h-4 w-4" />
-                    <span className="text-sm font-medium">
-                      Criado por: {ticket.contact_creator.name} ({ticket.contact_creator.email})
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-center gap-2 rounded-lg border border-blue-500/40 bg-blue-500/5 px-3 py-2 text-blue-600 dark:text-blue-400">
+                <Building2 className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm font-medium">
+                  Criado por: {ticket.contact_creator.name} ({ticket.contact_creator.email})
+                </span>
+              </div>
             )}
 
-            {/* Description */}
             <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Descrição
-                </CardTitle>
+              <CardHeader className="border-b py-4">
+                <CardTitle className="text-base">Conversa</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {ticket.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Messages */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle>Conversa</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {messages.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma mensagem ainda
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {messages.map((message) => {
-                      const colorClasses = 
-                        message.messageType === 'admin' 
-                          ? 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-900'
-                          : message.messageType === 'contact'
-                          ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
-                          : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900';
-                      
-                      const textColor = 
-                        message.messageType === 'admin'
-                          ? 'text-gray-700 dark:text-gray-400'
-                          : message.messageType === 'contact'
-                          ? 'text-green-700 dark:text-green-400'
-                          : 'text-blue-700 dark:text-blue-400';
-                      
-                      return (
-                        <Card key={message.id} className={`${colorClasses} border`}>
-                          <CardContent className="p-4">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`text-sm font-semibold ${textColor}`}>
-                                        {message.displayName}
-                                      </span>
-                                      <span className={`text-xs font-medium ${textColor}`}>
-                                        {message.messageType === 'admin' && '• Suporte'}
-                                        {message.messageType === 'contact' && '• Colaborador'}
-                                        {message.messageType === 'client' && '• Cliente'}
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">
-                                      {message.profiles?.email || 'Email não disponível'}
-                                    </span>
-                                  </div>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(message.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                  </span>
-                                </div>
-                                <div
-                                  className="text-sm"
-                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
-                                />
-                              </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+              <CardContent className="p-4 sm:p-5">
+                <div className="space-y-5">
+                  {/* Original request as first bubble */}
+                  <div className="flex gap-3">
+                    <AvatarInitials
+                      name={ticket.clients?.nickname || ticket.clients?.responsible_name || ticket.requester_name || 'Solicitante'}
+                      size="sm"
+                    />
+                    <div className="flex flex-col items-start max-w-[85%]">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-semibold text-foreground">
+                          {ticket.clients?.nickname || ticket.clients?.responsible_name || ticket.requester_name || 'Solicitante'}
+                        </span>
+                        <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-medium border-blue-300 text-blue-600 dark:border-blue-800 dark:text-blue-400">
+                          Solicitação
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground">
+                          {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </span>
+                      </div>
+                      <div className="rounded-2xl rounded-tl-sm border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm whitespace-pre-wrap dark:border-blue-900 dark:bg-blue-950/30">
+                        {ticket.description}
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                {/* Typing Indicator */}
-                {typingUsers.length > 0 && (
-                  <TypingIndicator userName={typingUsers[0].userName} />
-                )}
+                  {messages.map((message) => {
+                    const isSupport = message.messageType === 'admin';
+                    const bubble =
+                      message.messageType === 'admin'
+                        ? 'border-primary/20 bg-primary/10 rounded-tr-sm'
+                        : message.messageType === 'contact'
+                        ? 'border-green-200 bg-green-50 rounded-tl-sm dark:border-green-900 dark:bg-green-950/30'
+                        : 'border-blue-200 bg-blue-50 rounded-tl-sm dark:border-blue-900 dark:bg-blue-950/30';
+                    const roleLabel =
+                      message.messageType === 'admin' ? 'Suporte'
+                      : message.messageType === 'contact' ? 'Colaborador'
+                      : 'Cliente';
 
-                {/* New Message */}
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MacroSelector 
-                      onSelectMacro={(content) => setNewMessageHtml(content)} 
+                    return (
+                      <div key={message.id} className={cn('flex gap-3', isSupport && 'flex-row-reverse')}>
+                        <AvatarInitials name={message.displayName} size="sm" />
+                        <div className={cn('flex flex-col max-w-[85%]', isSupport ? 'items-end' : 'items-start')}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold text-foreground">{message.displayName}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{roleLabel}</span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {format(new Date(message.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <div
+                            className={cn('rounded-2xl border px-4 py-2.5 text-sm break-words', bubble)}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.message || '') }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {typingUsers.length > 0 && (
+                    <TypingIndicator userName={typingUsers[0].userName} />
+                  )}
+                </div>
+
+                {/* Composer */}
+                <div className="mt-5 pt-4 border-t space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MacroSelector
+                      onSelectMacro={(content) => setNewMessageHtml(content)}
                       departmentId={ticket.department_id}
                     />
-                    <EmojiPicker 
+                    <EmojiPicker
                       onEmojiSelect={(emoji) => setNewMessageHtml(newMessageHtml + emoji)}
                     />
                   </div>
-                  <div className="min-h-[250px]">
+                  <div className="min-h-[230px]">
                     <ReactQuill
                       theme="snow"
                       value={newMessageHtml}
@@ -686,8 +730,8 @@ export default function TicketDetails() {
                         const hasText = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length > 0;
                         setTyping(hasText, currentUser?.name);
                       }}
-                      placeholder="Escreva sua mensagem..."
-                      style={{ height: '200px' }}
+                      placeholder="Escreva sua resposta ao cliente..."
+                      style={{ height: '180px' }}
                     />
                   </div>
                   <FileUpload
@@ -697,50 +741,33 @@ export default function TicketDetails() {
                   />
                   <Button
                     onClick={handleSendMessage}
-                    disabled={(DOMPurify.sanitize(newMessageHtml, { ALLOWED_TAGS: [] }).replace(/<[^>]*>/g, '').trim().length === 0 && messageAttachments.length === 0) || sending}
+                    disabled={(messageIsEmpty && messageAttachments.length === 0) || sending}
                     className="w-full"
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    {sending ? 'Enviando...' : 'Enviar Mensagem'}
+                    {sending ? 'Enviando...' : 'Enviar Resposta'}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Timeline */}
+          {/* Properties sidebar */}
+          <div className="space-y-5">
+            {/* Properties */}
             <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Timeline
-                </CardTitle>
+              <CardHeader className="py-4">
+                <CardTitle className="text-base">Propriedades</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Criado em</p>
-                  <p className="font-medium">
-                    {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Priority */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle>Configurações</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="status">Status</Label>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
                   <Select value={ticket.status} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="open">Aberto</SelectItem>
                       <SelectItem value="waiting">Aguardando</SelectItem>
                       <SelectItem value="in_progress">Em Atendimento</SelectItem>
                       <SelectItem value="resolved">Resolvido</SelectItem>
@@ -748,14 +775,11 @@ export default function TicketDetails() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Separator />
-                <div>
-                  <Label htmlFor="priority">Prioridade</Label>
+                <div className="space-y-1.5">
+                  <Label>Prioridade</Label>
                   <Select value={ticket.priority} onValueChange={handlePriorityChange}>
                     <SelectTrigger>
-                      <SelectValue>
-                        {getPriorityLabel(ticket.priority)}
-                      </SelectValue>
+                      <SelectValue>{getPriorityLabel(ticket.priority)}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Baixa</SelectItem>
@@ -765,14 +789,58 @@ export default function TicketDetails() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <UserCog className="h-3.5 w-3.5" />
+                    Atendente
+                  </Label>
+                  <Select value={ticket.assigned_to || 'unassigned'} onValueChange={handleAssigneeChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Não atribuído" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Não atribuído</SelectItem>
+                      {agents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {assignedAgent && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <AvatarInitials name={assignedAgent.full_name} size="xs" />
+                      <span className="text-xs text-muted-foreground">{assignedAgent.full_name}</span>
+                    </div>
+                  )}
+                </div>
+                {ticket.departments && (
+                  <>
+                    <Separator />
+                    <div className="space-y-1.5">
+                      <Label>Departamento</Label>
+                      <div>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            borderColor: ticket.departments.color,
+                            color: ticket.departments.color,
+                          }}
+                        >
+                          {ticket.departments.name}
+                        </Badge>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
-            {/* Client Info */}
+            {/* Client / Requester */}
             <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+              <CardHeader className="py-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <User className="h-4 w-4" />
                   {ticket.client_id ? 'Cliente' : 'Solicitante'}
                 </CardTitle>
               </CardHeader>
@@ -780,7 +848,7 @@ export default function TicketDetails() {
                 {ticket.client_id ? (
                   <>
                     <div>
-                      <p className="text-sm text-muted-foreground">Identificação</p>
+                      <p className="text-xs text-muted-foreground">Identificação</p>
                       {ticket.clients?.client_type === 'person' ? (
                         <div>
                           <p className="font-semibold">{ticket.clients?.responsible_name || ticket.clients?.nickname || 'Sem nome'}</p>
@@ -795,38 +863,36 @@ export default function TicketDetails() {
                     </div>
                     {ticket.clients?.email && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{ticket.clients.email}</p>
+                        <p className="text-xs text-muted-foreground">Email</p>
+                        <p className="text-sm font-medium break-all">{ticket.clients.email}</p>
                       </div>
                     )}
                     {ticket.clients?.phone && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Telefone</p>
-                        <p className="font-medium">{ticket.clients.phone}</p>
+                        <p className="text-xs text-muted-foreground">Telefone</p>
+                        <p className="text-sm font-medium">{ticket.clients.phone}</p>
                       </div>
                     )}
                   </>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
-                      <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
-                        Não vinculado
-                      </Badge>
-                    </div>
+                    <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
+                      Não vinculado
+                    </Badge>
                     <div>
-                      <p className="text-sm text-muted-foreground">Nome</p>
+                      <p className="text-xs text-muted-foreground">Nome</p>
                       <p className="font-semibold">{ticket.requester_name || 'Não informado'}</p>
                     </div>
                     {ticket.requester_email && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{ticket.requester_email}</p>
+                        <p className="text-xs text-muted-foreground">Email</p>
+                        <p className="text-sm font-medium break-all">{ticket.requester_email}</p>
                       </div>
                     )}
                     {ticket.requester_phone && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Telefone</p>
-                        <p className="font-medium">{ticket.requester_phone}</p>
+                        <p className="text-xs text-muted-foreground">Telefone</p>
+                        <p className="text-sm font-medium">{ticket.requester_phone}</p>
                       </div>
                     )}
                   </>
@@ -837,9 +903,9 @@ export default function TicketDetails() {
             {/* Attachments */}
             {attachments.length > 0 && (
               <Card className="card-elevated">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <File className="h-5 w-5" />
+                <CardHeader className="py-4">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <File className="h-4 w-4" />
                     Anexos ({attachments.length})
                   </CardTitle>
                 </CardHeader>
@@ -866,7 +932,7 @@ export default function TicketDetails() {
                             {canPreviewFile(attachment.file_type) && (
                               <span className="ml-2 inline-flex items-center gap-1 text-primary">
                                 <Eye className="h-3 w-3" />
-                                Preview disponível
+                                Preview
                               </span>
                             )}
                           </p>
@@ -886,25 +952,39 @@ export default function TicketDetails() {
               </Card>
             )}
 
-            {/* Department */}
-            {ticket.departments && (
-              <Card className="card-elevated">
-                <CardHeader>
-                  <CardTitle>Departamento</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge
-                    variant="outline"
-                    style={{
-                      borderColor: ticket.departments.color,
-                      color: ticket.departments.color,
-                    }}
-                  >
-                    {ticket.departments.name}
-                  </Badge>
-                </CardContent>
-              </Card>
-            )}
+            {/* Timeline */}
+            <Card className="card-elevated">
+              <CardHeader className="py-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Clock className="h-4 w-4" />
+                  Datas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Criado em</p>
+                  <p className="text-sm font-medium">
+                    {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+                {ticket.resolved_at && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Resolvido em</p>
+                    <p className="text-sm font-medium">
+                      {format(new Date(ticket.resolved_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+                {ticket.closed_at && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Concluído em</p>
+                    <p className="text-sm font-medium">
+                      {format(new Date(ticket.closed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
