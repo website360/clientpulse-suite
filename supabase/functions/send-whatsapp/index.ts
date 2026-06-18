@@ -176,6 +176,7 @@ serve(async (req) => {
       }
 
       case 'get_qr': {
+        let connectInfo = '';
         try {
           // 1) Ask Evolution Go to (re)connect the instance — this triggers QR generation.
           const connectUrl = `${settings.apiUrl}/instance/connect`;
@@ -188,6 +189,7 @@ serve(async (req) => {
 
           if (!connectRes.ok) {
             const errText = await connectRes.text();
+            connectInfo = `connect=${connectRes.status}: ${errText}`;
             console.warn(`Connect responded ${connectRes.status}: ${errText}`);
             // Continue — the QR endpoint may still work if a session is already pending.
           } else {
@@ -206,13 +208,34 @@ serve(async (req) => {
           if (!qrRes.ok) {
             const errText = await qrRes.text();
             console.error(`QR fetch failed: ${qrRes.status} - ${errText}`);
-            throw new Error(`HTTP ${qrRes.status}: ${errText}`);
+            // Evolution costuma responder erro quando a instância já está conectada.
+            const alreadyConnected = /already|connected|logged|conectad/i.test(errText);
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: alreadyConnected
+                  ? 'A instância já parece estar conectada. Verifique o status.'
+                  : `Não foi possível obter o QR Code (HTTP ${qrRes.status}). ${errText}${connectInfo ? ` [${connectInfo}]` : ''}`,
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
           }
 
           const qrData = await qrRes.json();
           console.log("QR response:", JSON.stringify(qrData).substring(0, 200));
 
           const { qrcode, pairingCode } = extractQrCode(qrData);
+
+          if (!qrcode && !pairingCode) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'A Evolution não retornou o QR Code. Se o WhatsApp já estiver conectado, desconecte antes de gerar um novo.',
+                data: qrData,
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
+          }
 
           return new Response(
             JSON.stringify({
@@ -226,8 +249,8 @@ serve(async (req) => {
         } catch (err: any) {
           console.error("Error getting QR:", err);
           return new Response(
-            JSON.stringify({ success: false, error: err.message }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            JSON.stringify({ success: false, error: `${err.message}${connectInfo ? ` [${connectInfo}]` : ''}` }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
           );
         }
       }
