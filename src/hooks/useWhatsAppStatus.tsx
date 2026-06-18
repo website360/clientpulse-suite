@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type ConnectionStatus = "connected" | "disconnected" | "checking" | "unknown";
+type ConnectionStatus = "connected" | "awaiting_qr" | "disconnected" | "checking" | "unknown";
 
 interface WhatsAppStatusResult {
   status: ConnectionStatus;
@@ -43,7 +43,14 @@ export function useWhatsAppStatus(autoCheck: boolean = false): WhatsAppStatusRes
       let newStatus: ConnectionStatus = "disconnected";
       if (!error && data?.success) {
         const raw = String(data.status || "").toLowerCase();
-        newStatus = (raw === "connected" || raw === "open") ? "connected" : "disconnected";
+        if (data.loggedIn || raw === "connected" || raw === "open") {
+          newStatus = "connected";
+        } else if (data.connected || raw === "awaiting_qr" || raw === "connecting") {
+          // Socket no ar, mas sem conta logada: precisa ler o QR.
+          newStatus = "awaiting_qr";
+        } else {
+          newStatus = "disconnected";
+        }
       }
       setStatus(newStatus);
 

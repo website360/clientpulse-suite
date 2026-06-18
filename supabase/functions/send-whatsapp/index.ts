@@ -24,12 +24,24 @@ function adminHeaders(settings: WhatsAppSettings) {
   };
 }
 
+// Extrai os flags brutos da Evolution Go: Connected (socket) e LoggedIn (conta pareada).
+function extractConnection(payload: any): { connected: boolean; loggedIn: boolean; name: string } {
+  const data = payload?.data ?? payload;
+  return {
+    connected: Boolean(data?.Connected),
+    loggedIn: Boolean(data?.LoggedIn),
+    name: data?.Name || '',
+  };
+}
+
 function normalizeStatus(payload: any): string {
   // Evolution Go: { message, data: { Connected, LoggedIn, Name } }
   const data = payload?.data ?? payload;
   if (typeof data?.Connected === 'boolean' || typeof data?.LoggedIn === 'boolean') {
-    if (data.LoggedIn && data.Connected) return 'connected';
-    if (data.Connected) return 'connecting';
+    // Só consideramos "conectado" quando a conta está realmente logada no WhatsApp.
+    if (data.LoggedIn) return 'connected';
+    // Socket no ar mas sem conta logada => precisa parear (ler QR).
+    if (data.Connected) return 'awaiting_qr';
     return 'disconnected';
   }
   // Legacy fallback
@@ -104,12 +116,41 @@ serve(async (req) => {
     switch (action) {
       case 'check_status': {
         const raw = await checkInstanceStatus(settings);
+        const conn = extractConnection(raw);
         return new Response(
           JSON.stringify({
             success: true,
             status: normalizeStatus(raw),
+            connected: conn.connected,
+            loggedIn: conn.loggedIn,
+            name: conn.name,
             data: raw,
           }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      case 'logout': {
+        // Tenta encerrar a sessão atual (libera para parear um novo número).
+        // Em alguns builds só funciona com cliente ativo; tratamos o erro de forma suave.
+        const results: Record<string, string> = {};
+        for (const [label, method, path] of [
+          ['logout', 'DELETE', '/instance/logout'],
+          ['disconnect', 'POST', '/instance/disconnect'],
+        ] as const) {
+          try {
+            const res = await fetch(`${settings.apiUrl}${path}`, {
+              method,
+              headers: instanceHeaders(settings),
+            });
+            results[label] = `${res.status}: ${(await res.text()).substring(0, 120)}`;
+          } catch (e: any) {
+            results[label] = `erro: ${e.message}`;
+          }
+        }
+        console.log('Logout/disconnect results:', JSON.stringify(results));
+        return new Response(
+          JSON.stringify({ success: true, results }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }

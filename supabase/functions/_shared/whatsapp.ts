@@ -87,14 +87,23 @@ export async function sendTextMessage(
   const url = `${settings.apiUrl}/send/text`;
   console.log(`Sending message to ${cleanPhone} via: ${url}`);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: instanceHeaders(settings),
-    body: JSON.stringify({
-      number: cleanPhone,
-      text: message,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: instanceHeaders(settings),
+      body: JSON.stringify({
+        number: cleanPhone,
+        text: message,
+      }),
+      // Quando a instância não está logada, o endpoint trava sem responder.
+      // O timeout evita pendurar a função e dá um erro claro.
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch (err) {
+    console.error('Send message request failed:', err);
+    throw new Error('WhatsApp não está logado/conectado (sem resposta do servidor). Conecte a instância lendo o QR Code e tente novamente.');
+  }
 
   if (!response.ok) {
     const errorText = await response.text();

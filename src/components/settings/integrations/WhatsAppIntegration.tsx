@@ -197,6 +197,46 @@ export function WhatsAppIntegration() {
     },
   });
 
+  const createInstanceMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+        body: { action: "create_instance", instance_name: instanceName }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        toast.success(data?.note ? "Instância já existe na Evolution." : "Instância criada na Evolution!");
+      } else {
+        toast.error("Falha ao criar instância: " + (data?.error || "verifique a Global API Key"));
+      }
+      checkStatus(true);
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao criar instância: " + error.message);
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+        body: { action: "logout" }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Sessão encerrada. Gere um novo QR Code para conectar outro número.");
+      setQrCode(null);
+      setPairingCode(null);
+      checkStatus(true);
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao desconectar: " + error.message);
+    },
+  });
+
   const sendTestMessageMutation = useMutation({
     mutationFn: async () => {
       if (!testPhone || !testMessage) {
@@ -235,52 +275,63 @@ export function WhatsAppIntegration() {
     );
   }
 
+  const webhookUrl = `${SUPABASE_URL}/functions/v1/whatsapp-webhook?token=${webhookToken}`;
+  const isConfigured = Boolean(apiUrl && apiKey && instanceName);
+
+  const StatusBadge = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return (
+          <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-600/90 text-white">
+            <CheckCircle2 className="h-3 w-3 mr-1" /> Conectado
+          </Badge>
+        );
+      case 'awaiting_qr':
+        return (
+          <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400">
+            <QrCode className="h-3 w-3 mr-1" /> Aguardando leitura do QR
+          </Badge>
+        );
+      case 'checking':
+        return (
+          <Badge variant="secondary">
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" /> Verificando...
+          </Badge>
+        );
+      case 'disconnected':
+        return (
+          <Badge variant="destructive">
+            <AlertCircle className="h-3 w-3 mr-1" /> Desconectado
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline">
+            <AlertCircle className="h-3 w-3 mr-1" /> Não verificado
+          </Badge>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* ===================== CONEXÃO / STATUS ===================== */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Integração com WhatsApp via Evolution Go
+                WhatsApp (Evolution Go)
               </CardTitle>
               <CardDescription>
-                Configure sua VPS com Evolution Go para enviar mensagens automáticas pelo WhatsApp
+                Conexão e estado do número usado pelas automações e pelo bot de tickets.
               </CardDescription>
             </div>
-            {isActive && (
-              <div className="flex items-center gap-2">
-                {connectionStatus === 'connected' && (
-                  <Badge variant="default" className="bg-secondary text-primary hover:bg-secondary/80">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Conectado
-                  </Badge>
-                )}
-                {connectionStatus === 'disconnected' && (
-                  <Badge variant="destructive">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Desconectado
-                  </Badge>
-                )}
-                {connectionStatus === 'checking' && (
-                  <Badge variant="secondary">
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    Verificando...
-                  </Badge>
-                )}
-                {connectionStatus === 'unknown' && (
-                  <Badge variant="outline">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Não verificado
-                  </Badge>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => checkStatus(true)}
-                  disabled={isChecking}
-                >
+            {isActive && isConfigured && (
+              <div className="flex items-center gap-2 shrink-0">
+                <StatusBadge />
+                <Button size="sm" variant="outline" onClick={() => checkStatus(true)} disabled={isChecking}>
                   <RefreshCw className={`h-3 w-3 ${isChecking ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
@@ -290,305 +341,210 @@ export function WhatsAppIntegration() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
             <div className="space-y-0.5">
-              <Label htmlFor="isActive" className="text-base font-medium">Ativar Integração WhatsApp</Label>
-              <p className="text-sm text-muted-foreground">
-                Ative para começar a enviar mensagens automáticas
-              </p>
+              <Label htmlFor="isActive" className="text-base font-medium">Ativar integração WhatsApp</Label>
+              <p className="text-sm text-muted-foreground">Liga o envio e recebimento de mensagens pelo WhatsApp.</p>
             </div>
-            <Switch
-              id="isActive"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-            />
+            <div className="flex items-center gap-2">
+              <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
+              <Button size="sm" variant="outline" onClick={() => saveSettingsMutation.mutate()} disabled={saveSettingsMutation.isPending}>
+                {saveSettingsMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
 
-          {isActive && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="apiUrl">URL da API</Label>
-                <Input
-                  id="apiUrl"
-                  type="url"
-                  value={apiUrl}
-                  onChange={(e) => setApiUrl(e.target.value)}
-                  placeholder="https://api.seudominio.com"
-                />
-                <p className="text-xs text-muted-foreground">
-                  URL base da sua instalação Evolution Go (sem barra no final)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="instanceName">Nome da Instância</Label>
-                <Input
-                  id="instanceName"
-                  type="text"
-                  value={instanceName}
-                  onChange={(e) => setInstanceName(e.target.value)}
-                  placeholder="minha-instancia"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Identificador da instância criada na Evolution Go (campo <code>name</code> no /instance/create)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="apiKey">Token da Instância</Label>
-                <Input
-                  id="apiKey"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Token único desta instância"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Token <code>apikey</code> desta instância — usado para enviar mensagens, ler QR e checar status.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="globalApiKey">Global API Key <span className="text-muted-foreground">(opcional)</span></Label>
-                <Input
-                  id="globalApiKey"
-                  type="password"
-                  value={globalApiKey}
-                  onChange={(e) => setGlobalApiKey(e.target.value)}
-                  placeholder="GLOBAL_API_KEY do servidor"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Necessário apenas para criar/excluir instâncias remotamente (<code>GLOBAL_API_KEY</code> definido no .env do Evolution Go). Se vazio, usamos o Token da Instância como fallback.
-                </p>
-              </div>
-            </>
+          {isActive && !isConfigured && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Configure as credenciais</AlertTitle>
+              <AlertDescription>
+                Abra <strong>"Credenciais da API"</strong> abaixo, preencha URL, instância e token, e salve.
+              </AlertDescription>
+            </Alert>
           )}
 
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button
-                onClick={() => saveSettingsMutation.mutate()}
-                disabled={saveSettingsMutation.isPending}
-              >
-                {saveSettingsMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Salvar Configurações
-              </Button>
-
-              {isActive && apiUrl && apiKey && instanceName && (
-                <Button
-                  variant="outline"
-                  onClick={() => testConnectionMutation.mutate()}
-                  disabled={testConnectionMutation.isPending}
-                >
-                  {testConnectionMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <TestTube className="h-4 w-4 mr-2" />
-                  )}
-                  Verificar Status
-                </Button>
+          {isActive && isConfigured && (
+            <>
+              {/* Banner explicativo conforme o estado real */}
+              {connectionStatus === 'connected' && (
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Número conectado</AlertTitle>
+                  <AlertDescription>
+                    Tudo certo — as automações e o bot conseguem enviar mensagens. Para trocar de número, desconecte e leia um novo QR.
+                  </AlertDescription>
+                </Alert>
               )}
-            </div>
-          </div>
+              {connectionStatus === 'awaiting_qr' && (
+                <Alert className="border-amber-500/50">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Conectado ao servidor, mas sem número logado</AlertTitle>
+                  <AlertDescription>
+                    O servidor responde, mas <strong>nenhuma conta de WhatsApp está logada</strong> — por isso as mensagens não são entregues. Gere o QR Code e escaneie para parear o número.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {connectionStatus === 'disconnected' && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Desconectado</AlertTitle>
+                  <AlertDescription>
+                    Não foi possível falar com a instância. Verifique as credenciais ou gere o QR Code para conectar.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Ações de conexão */}
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => getQrMutation.mutate()} disabled={getQrMutation.isPending}>
+                  {getQrMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <QrCode className="h-4 w-4 mr-2" />}
+                  {connectionStatus === 'connected' ? 'Trocar número (novo QR)' : 'Gerar QR Code'}
+                </Button>
+                {connectionStatus === 'connected' && (
+                  <Button variant="outline" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
+                    {logoutMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Desconectar
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => testConnectionMutation.mutate()} disabled={testConnectionMutation.isPending}>
+                  {testConnectionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <TestTube className="h-4 w-4 mr-2" />}
+                  Verificar status
+                </Button>
+              </div>
+
+              {qrCode && (
+                <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-white">
+                  <img
+                    src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
+                    alt="QR Code do WhatsApp"
+                    className="w-56 h-56"
+                  />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Aguardando leitura no celular...
+                  </div>
+                  {pairingCode && (
+                    <p className="text-sm text-center">
+                      Ou use o código de pareamento: <strong className="font-mono tracking-widest">{pairingCode}</strong>
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground text-center">
+                    No celular: <strong>Aparelhos conectados → Conectar um aparelho</strong>. O QR expira em ~1 min; se falhar, gere outro.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
+      {/* ===================== SEÇÕES AVANÇADAS (ACCORDION) ===================== */}
       {isActive && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Bot de abertura de tickets
-            </CardTitle>
-            <CardDescription>
-              Permite que o cliente abra chamados conversando pelo WhatsApp. O bot guia o cliente
-              (setor, assunto, problema e foto), registra o ticket e devolve o número do protocolo.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-              <div className="space-y-0.5">
-                <Label htmlFor="botEnabled" className="text-base font-medium">Ativar bot de tickets</Label>
-                <p className="text-sm text-muted-foreground">
-                  Quando ativo, mensagens recebidas no WhatsApp iniciam o atendimento automático.
+        <Accordion type="multiple" defaultValue={isConfigured ? ["bot"] : ["credenciais"]} className="space-y-3">
+          {/* Credenciais da API */}
+          <AccordionItem value="credenciais" className="border rounded-lg px-4">
+            <AccordionTrigger className="hover:no-underline">
+              <span className="flex items-center gap-2 font-medium"><Smartphone className="h-4 w-4" /> Credenciais da API</span>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="apiUrl">URL da API</Label>
+                <Input id="apiUrl" type="url" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} placeholder="https://evolution.seudominio.com" />
+                <p className="text-xs text-muted-foreground">URL base da Evolution Go (sem barra no final).</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instanceName">Nome da Instância</Label>
+                <Input id="instanceName" type="text" value={instanceName} onChange={(e) => setInstanceName(e.target.value)} placeholder="minha-instancia" />
+                <p className="text-xs text-muted-foreground">Identificador da instância na Evolution Go.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="apiKey">Token da Instância</Label>
+                <Input id="apiKey" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Token único desta instância" />
+                <p className="text-xs text-muted-foreground">Usado para enviar mensagens, ler QR e checar status.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="globalApiKey">Global API Key</Label>
+                <Input id="globalApiKey" type="password" value={globalApiKey} onChange={(e) => setGlobalApiKey(e.target.value)} placeholder="GLOBAL_API_KEY do servidor" />
+                <p className="text-xs text-muted-foreground">
+                  <strong>Necessária para criar/recriar a instância pelo sistema</strong> (<code>GLOBAL_API_KEY</code> do .env da Evolution Go). Sem ela, só dá para criar a instância pelo painel do servidor.
                 </p>
               </div>
-              <Switch id="botEnabled" checked={botEnabled} onCheckedChange={setBotEnabled} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>URL do Webhook</Label>
-              <div className="flex gap-2">
-                <Input
-                  readOnly
-                  value={`${SUPABASE_URL}/functions/v1/whatsapp-webhook?token=${webhookToken}`}
-                  className="font-mono text-xs"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${SUPABASE_URL}/functions/v1/whatsapp-webhook?token=${webhookToken}`);
-                    toast.success("URL copiada!");
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => saveSettingsMutation.mutate()} disabled={saveSettingsMutation.isPending}>
+                  {saveSettingsMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  Salvar credenciais
                 </Button>
+                {isConfigured && (
+                  <Button variant="outline" onClick={() => createInstanceMutation.mutate()} disabled={createInstanceMutation.isPending}>
+                    {createInstanceMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Smartphone className="h-4 w-4 mr-2" />}
+                    Criar instância
+                  </Button>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Cadastre esta URL no painel do Evolution Go (webhook de mensagens recebidas / evento
-                <code> messages.upsert</code>). Salve as configurações antes de copiar para garantir que o token está gravado.
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Bot de tickets */}
+          <AccordionItem value="bot" className="border rounded-lg px-4">
+            <AccordionTrigger className="hover:no-underline">
+              <span className="flex items-center gap-2 font-medium">
+                <Bot className="h-4 w-4" /> Bot de abertura de tickets
+                {botEnabled && <Badge variant="outline" className="ml-1 text-emerald-600 border-emerald-500">ativo</Badge>}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                O cliente abre chamados conversando pelo WhatsApp: o bot pergunta setor, assunto, problema e foto, registra o ticket e devolve o protocolo.
               </p>
-            </div>
-
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Como ativar</AlertTitle>
-              <AlertDescription className="text-sm">
-                1. Ative o bot e clique em <strong>Salvar Bot</strong>.<br />
-                2. Copie a URL do Webhook acima.<br />
-                3. No painel do Evolution Go, cadastre a URL como webhook de mensagens recebidas.<br />
-                4. Mande "oi" pelo WhatsApp da instância para testar o fluxo.
-              </AlertDescription>
-            </Alert>
-
-            <Button
-              onClick={() => saveSettingsMutation.mutate()}
-              disabled={saveSettingsMutation.isPending}
-            >
-              {saveSettingsMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Salvar Bot
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {isActive && apiUrl && apiKey && instanceName && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              Conexão do WhatsApp
-            </CardTitle>
-            <CardDescription>
-              Conecte (ou reconecte) o celular escaneando o QR Code direto por aqui — sem precisar abrir o Evolution Go.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {connectionStatus === 'connected' ? (
-              <Alert>
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Conectado</AlertTitle>
-                <AlertDescription>
-                  Seu WhatsApp já está conectado. Se quiser trocar o número, gere um novo QR Code abaixo.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Desconectado</AlertTitle>
-                <AlertDescription>
-                  Clique em "Gerar QR Code", abra o WhatsApp no celular em <strong>Aparelhos conectados → Conectar um aparelho</strong> e escaneie.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                onClick={() => getQrMutation.mutate()}
-                disabled={getQrMutation.isPending}
-              >
-                {getQrMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <QrCode className="h-4 w-4 mr-2" />
-                )}
-                {qrCode ? 'Gerar novo QR Code' : 'Gerar QR Code'}
-              </Button>
-            </div>
-
-            {qrCode && (
-              <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-white">
-                <img
-                  src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
-                  alt="QR Code do WhatsApp"
-                  className="w-56 h-56"
-                />
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Aguardando leitura no celular...
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-0.5">
+                  <Label htmlFor="botEnabled" className="text-base font-medium">Ativar bot de tickets</Label>
+                  <p className="text-sm text-muted-foreground">Mensagens recebidas iniciam o atendimento automático.</p>
                 </div>
-                {pairingCode && (
-                  <p className="text-sm text-center">
-                    Ou use o código de pareamento: <strong className="font-mono tracking-widest">{pairingCode}</strong>
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground text-center">
-                  O QR Code expira em ~1 minuto. Se não funcionar, gere um novo.
+                <Switch id="botEnabled" checked={botEnabled} onCheckedChange={setBotEnabled} />
+              </div>
+              <div className="space-y-2">
+                <Label>URL do Webhook</Label>
+                <div className="flex gap-2">
+                  <Input readOnly value={webhookUrl} className="font-mono text-xs" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(webhookUrl); toast.success("URL copiada!"); }}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Cadastre no painel do Evolution Go como webhook de mensagens recebidas (evento <code>messages.upsert</code>). Salve antes de copiar.
                 </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              <Button onClick={() => saveSettingsMutation.mutate()} disabled={saveSettingsMutation.isPending}>
+                {saveSettingsMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Salvar bot
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
 
-      {isActive && apiUrl && apiKey && instanceName && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              Teste de Envio
-            </CardTitle>
-            <CardDescription>
-              Envie uma mensagem de teste para validar a integração
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="testPhone">Número de Teste</Label>
-              <Input
-                id="testPhone"
-                type="tel"
-                value={testPhone}
-                onChange={(e) => setTestPhone(e.target.value)}
-                placeholder="5511999999999"
-              />
-              <p className="text-xs text-muted-foreground">
-                Formato internacional sem + (ex: 5511999999999)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="testMessage">Mensagem de Teste</Label>
-              <Input
-                id="testMessage"
-                type="text"
-                value={testMessage}
-                onChange={(e) => setTestMessage(e.target.value)}
-                placeholder="Olá! Esta é uma mensagem de teste."
-              />
-            </div>
-
-            <Button
-              onClick={() => sendTestMessageMutation.mutate()}
-              disabled={sendTestMessageMutation.isPending || !testPhone || !testMessage}
-            >
-              {sendTestMessageMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <MessageSquare className="h-4 w-4 mr-2" />
-              )}
-              Enviar Mensagem de Teste
-            </Button>
-          </CardContent>
-        </Card>
+          {/* Teste de envio */}
+          {isConfigured && (
+            <AccordionItem value="teste" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="flex items-center gap-2 font-medium"><TestTube className="h-4 w-4" /> Teste de envio</span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label htmlFor="testPhone">Número de teste</Label>
+                  <Input id="testPhone" type="tel" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="5511999999999" />
+                  <p className="text-xs text-muted-foreground">Formato internacional sem + (ex: 5511999999999).</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="testMessage">Mensagem</Label>
+                  <Input id="testMessage" type="text" value={testMessage} onChange={(e) => setTestMessage(e.target.value)} placeholder="Olá! Esta é uma mensagem de teste." />
+                </div>
+                <Button onClick={() => sendTestMessageMutation.mutate()} disabled={sendTestMessageMutation.isPending || !testPhone || !testMessage}>
+                  {sendTestMessageMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MessageSquare className="h-4 w-4 mr-2" />}
+                  Enviar mensagem de teste
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
       )}
     </div>
   );
