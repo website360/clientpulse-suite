@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw, Bot, Copy } from "lucide-react";
+import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw, Bot, Copy, QrCode } from "lucide-react";
 import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://pjnbsuwkxzxcfaetywjs.supabase.co";
@@ -32,8 +32,26 @@ export function WhatsAppIntegration() {
   const [testMessage, setTestMessage] = useState("");
   const [botEnabled, setBotEnabled] = useState(false);
   const [webhookToken, setWebhookToken] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
 
   const { status: connectionStatus, checkStatus, isChecking } = useWhatsAppStatus(false);
+
+  // Enquanto o QR estiver na tela, verifica o status a cada 5s para detectar a conexão.
+  useEffect(() => {
+    if (!qrCode) return;
+    const interval = setInterval(() => checkStatus(true), 5000);
+    return () => clearInterval(interval);
+  }, [qrCode, checkStatus]);
+
+  // Quando conectar, esconde o QR e avisa.
+  useEffect(() => {
+    if (connectionStatus === "connected" && qrCode) {
+      setQrCode(null);
+      setPairingCode(null);
+      toast.success("WhatsApp conectado com sucesso! 🎉");
+    }
+  }, [connectionStatus, qrCode]);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["whatsapp-settings"],
@@ -154,6 +172,28 @@ export function WhatsAppIntegration() {
     onError: (error: Error) => {
       toast.error("Erro ao testar conexão: " + error.message);
       checkStatus(true);
+    },
+  });
+
+  const getQrMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+        body: { action: "get_qr" }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.success && data.qrcode) {
+        setQrCode(data.qrcode);
+        setPairingCode(data.pairingCode || null);
+        toast.success("QR Code gerado! Escaneie com o WhatsApp do celular.");
+      } else {
+        toast.error("Não foi possível gerar o QR Code: " + (data?.error || "tente novamente"));
+      }
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao gerar QR Code: " + error.message);
     },
   });
 
@@ -426,6 +466,75 @@ export function WhatsAppIntegration() {
               )}
               Salvar Bot
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {isActive && apiUrl && apiKey && instanceName && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              Conexão do WhatsApp
+            </CardTitle>
+            <CardDescription>
+              Conecte (ou reconecte) o celular escaneando o QR Code direto por aqui — sem precisar abrir o Evolution Go.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {connectionStatus === 'connected' ? (
+              <Alert>
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertTitle>Conectado</AlertTitle>
+                <AlertDescription>
+                  Seu WhatsApp já está conectado. Se quiser trocar o número, gere um novo QR Code abaixo.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Desconectado</AlertTitle>
+                <AlertDescription>
+                  Clique em "Gerar QR Code", abra o WhatsApp no celular em <strong>Aparelhos conectados → Conectar um aparelho</strong> e escaneie.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => getQrMutation.mutate()}
+                disabled={getQrMutation.isPending}
+              >
+                {getQrMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                {qrCode ? 'Gerar novo QR Code' : 'Gerar QR Code'}
+              </Button>
+            </div>
+
+            {qrCode && (
+              <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-white">
+                <img
+                  src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
+                  alt="QR Code do WhatsApp"
+                  className="w-56 h-56"
+                />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Aguardando leitura no celular...
+                </div>
+                {pairingCode && (
+                  <p className="text-sm text-center">
+                    Ou use o código de pareamento: <strong className="font-mono tracking-widest">{pairingCode}</strong>
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground text-center">
+                  O QR Code expira em ~1 minuto. Se não funcionar, gere um novo.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
