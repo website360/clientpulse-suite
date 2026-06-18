@@ -245,10 +245,17 @@ serve(async (req) => {
             if (attempt < MAX_ATTEMPTS) await sleep(2000);
           }
 
+          // Caso típico: a instância guarda uma sessão antiga e o servidor não
+          // consegue reiniciá-la pelas rotas expostas (status fica "client disconnected").
+          const stuckSession = /no QR code available|client disconnected/i.test(lastError);
           return new Response(
             JSON.stringify({
               success: false,
-              error: `Não foi possível obter o QR Code após algumas tentativas. Clique em "Gerar novo QR Code" novamente. (${lastError}${connectInfo ? `; ${connectInfo}` : ''})`,
+              error: stuckSession
+                ? 'A sessão desta instância está travada no servidor da Evolution (credencial antiga presa). ' +
+                  'Acesse o painel/servidor da Evolution Go e REMOVA/RECRIE a instância "' + settings.instanceName + '" ' +
+                  '(ou reinicie o serviço). Depois volte aqui e gere o QR Code novamente.'
+                : `Não foi possível obter o QR Code após algumas tentativas. Tente novamente. (${lastError}${connectInfo ? `; ${connectInfo}` : ''})`,
             }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
           );
