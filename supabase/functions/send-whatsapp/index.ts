@@ -176,9 +176,24 @@ serve(async (req) => {
       }
 
       case 'get_qr': {
+        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
         let connectInfo = '';
+        let lastError = '';
         try {
-          // 1) Ask Evolution Go to (re)connect the instance — this triggers QR generation.
+          // 0) Garante que a instância existe (idempotente — ignora "já existe").
+          try {
+            const createRes = await fetch(`${settings.apiUrl}/instance/create`, {
+              method: 'POST',
+              headers: adminHeaders(settings),
+              body: JSON.stringify({ name: settings.instanceName, token: settings.instanceToken }),
+            });
+            const createTxt = await createRes.text();
+            console.log(`Ensure instance (${createRes.status}): ${createTxt.substring(0, 200)}`);
+          } catch (e) {
+            console.warn('Ensure instance falhou (seguindo mesmo assim):', e);
+          }
+
+          // 1) Dispara o connect — isso inicia a geração do QR (assíncrono).
           const connectUrl = `${settings.apiUrl}/instance/connect`;
           console.log(`Triggering connect at: ${connectUrl}`);
           const connectRes = await fetch(connectUrl, {
@@ -191,58 +206,49 @@ serve(async (req) => {
             const errText = await connectRes.text();
             connectInfo = `connect=${connectRes.status}: ${errText}`;
             console.warn(`Connect responded ${connectRes.status}: ${errText}`);
-            // Continue — the QR endpoint may still work if a session is already pending.
           } else {
             const connectData = await connectRes.json().catch(() => ({}));
             console.log("Connect response:", JSON.stringify(connectData));
           }
 
-          // 2) Fetch the QR code itself.
+          // 2) Busca o QR com algumas tentativas — a Evolution gera de forma assíncrona
+          //    e responde "no QR code available. Please wait a moment" se buscarmos cedo.
           const qrUrl = `${settings.apiUrl}/instance/qr`;
-          console.log(`Getting QR from: ${qrUrl}`);
-          const qrRes = await fetch(qrUrl, {
-            method: 'GET',
-            headers: instanceHeaders(settings),
-          });
+          const MAX_ATTEMPTS = 6;
+          for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            const qrRes = await fetch(qrUrl, { method: 'GET', headers: instanceHeaders(settings) });
 
-          if (!qrRes.ok) {
-            const errText = await qrRes.text();
-            console.error(`QR fetch failed: ${qrRes.status} - ${errText}`);
-            // Evolution costuma responder erro quando a instância já está conectada.
-            const alreadyConnected = /already|connected|logged|conectad/i.test(errText);
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: alreadyConnected
-                  ? 'A instância já parece estar conectada. Verifique o status.'
-                  : `Não foi possível obter o QR Code (HTTP ${qrRes.status}). ${errText}${connectInfo ? ` [${connectInfo}]` : ''}`,
-              }),
-              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-            );
-          }
+            if (qrRes.ok) {
+              const qrData = await qrRes.json();
+              const { qrcode, pairingCode } = extractQrCode(qrData);
+              if (qrcode || pairingCode) {
+                console.log(`QR pronto na tentativa ${attempt}`);
+                return new Response(
+                  JSON.stringify({ success: true, qrcode, pairingCode, data: qrData }),
+                  { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+                );
+              }
+              lastError = 'QR vazio';
+            } else {
+              const errText = await qrRes.text();
+              lastError = `HTTP ${qrRes.status}: ${errText}`;
+              console.warn(`QR tentativa ${attempt}: ${lastError}`);
 
-          const qrData = await qrRes.json();
-          console.log("QR response:", JSON.stringify(qrData).substring(0, 200));
+              if (/already|logged|conectad|connected/i.test(errText)) {
+                return new Response(
+                  JSON.stringify({ success: false, error: 'A instância já parece estar conectada. Verifique o status.' }),
+                  { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+                );
+              }
+            }
 
-          const { qrcode, pairingCode } = extractQrCode(qrData);
-
-          if (!qrcode && !pairingCode) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: 'A Evolution não retornou o QR Code. Se o WhatsApp já estiver conectado, desconecte antes de gerar um novo.',
-                data: qrData,
-              }),
-              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-            );
+            if (attempt < MAX_ATTEMPTS) await sleep(2000);
           }
 
           return new Response(
             JSON.stringify({
-              success: true,
-              qrcode,
-              pairingCode,
-              data: qrData,
+              success: false,
+              error: `Não foi possível obter o QR Code após algumas tentativas. Clique em "Gerar novo QR Code" novamente. (${lastError}${connectInfo ? `; ${connectInfo}` : ''})`,
             }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
           );
