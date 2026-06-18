@@ -408,12 +408,24 @@ export function WhatsAppIntegration() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Como ativar</AlertTitle>
               <AlertDescription className="text-sm">
-                1. Ative o bot e clique em <strong>Salvar Configurações</strong>.<br />
+                1. Ative o bot e clique em <strong>Salvar Bot</strong>.<br />
                 2. Copie a URL do Webhook acima.<br />
                 3. No painel do Evolution Go, cadastre a URL como webhook de mensagens recebidas.<br />
                 4. Mande "oi" pelo WhatsApp da instância para testar o fluxo.
               </AlertDescription>
             </Alert>
+
+            <Button
+              onClick={() => saveSettingsMutation.mutate()}
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar Bot
+            </Button>
           </CardContent>
         </Card>
       )}
