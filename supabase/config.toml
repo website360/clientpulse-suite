@@ -78,6 +78,9 @@ verify_jwt = false
 [functions.create-public-ticket]
 verify_jwt = false
 
+[functions.whatsapp-webhook]
+verify_jwt = false
+
 [functions.sync-emails]
 verify_jwt = false
 

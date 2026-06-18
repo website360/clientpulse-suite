@@ -10,8 +10,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw } from "lucide-react";
+import { Loader2, Save, TestTube, BookOpen, ExternalLink, CheckCircle2, AlertCircle, MessageSquare, Smartphone, RefreshCw, Bot, Copy } from "lucide-react";
 import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://pjnbsuwkxzxcfaetywjs.supabase.co";
+
+function randomToken() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 export function WhatsAppIntegration() {
   const queryClient = useQueryClient();
@@ -22,6 +30,8 @@ export function WhatsAppIntegration() {
   const [instanceName, setInstanceName] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
+  const [botEnabled, setBotEnabled] = useState(false);
+  const [webhookToken, setWebhookToken] = useState("");
 
   const { status: connectionStatus, checkStatus, isChecking } = useWhatsAppStatus(false);
 
@@ -37,6 +47,8 @@ export function WhatsAppIntegration() {
           "whatsapp_api_key",
           "whatsapp_global_api_key",
           "whatsapp_instance_name",
+          "whatsapp_bot_enabled",
+          "whatsapp_webhook_token",
         ]);
 
       if (error) throw error;
@@ -53,6 +65,8 @@ export function WhatsAppIntegration() {
         setApiKey(settingsMap.whatsapp_api_key?.value || "");
         setGlobalApiKey(settingsMap.whatsapp_global_api_key?.value || "");
         setInstanceName(settingsMap.whatsapp_instance_name?.value || "");
+        setBotEnabled(settingsMap.whatsapp_bot_enabled?.value === "true");
+        setWebhookToken(settingsMap.whatsapp_webhook_token?.value || randomToken());
       }
 
       return settingsMap;
@@ -73,6 +87,8 @@ export function WhatsAppIntegration() {
         { key: "whatsapp_api_key", value: apiKey, is_active: true },
         { key: "whatsapp_global_api_key", value: globalApiKey, is_active: true },
         { key: "whatsapp_instance_name", value: instanceName, is_active: true },
+        { key: "whatsapp_bot_enabled", value: String(botEnabled), is_active: true },
+        { key: "whatsapp_webhook_token", value: webhookToken, is_active: true },
       ];
 
       for (const setting of settingsToSave) {
@@ -338,6 +354,69 @@ export function WhatsAppIntegration() {
           </div>
         </CardContent>
       </Card>
+
+      {isActive && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Bot de abertura de tickets
+            </CardTitle>
+            <CardDescription>
+              Permite que o cliente abra chamados conversando pelo WhatsApp. O bot guia o cliente
+              (setor, assunto, problema e foto), registra o ticket e devolve o número do protocolo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div className="space-y-0.5">
+                <Label htmlFor="botEnabled" className="text-base font-medium">Ativar bot de tickets</Label>
+                <p className="text-sm text-muted-foreground">
+                  Quando ativo, mensagens recebidas no WhatsApp iniciam o atendimento automático.
+                </p>
+              </div>
+              <Switch id="botEnabled" checked={botEnabled} onCheckedChange={setBotEnabled} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>URL do Webhook</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={`${SUPABASE_URL}/functions/v1/whatsapp-webhook?token=${webhookToken}`}
+                  className="font-mono text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${SUPABASE_URL}/functions/v1/whatsapp-webhook?token=${webhookToken}`);
+                    toast.success("URL copiada!");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cadastre esta URL no painel do Evolution Go (webhook de mensagens recebidas / evento
+                <code> messages.upsert</code>). Salve as configurações antes de copiar para garantir que o token está gravado.
+              </p>
+            </div>
+
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Como ativar</AlertTitle>
+              <AlertDescription className="text-sm">
+                1. Ative o bot e clique em <strong>Salvar Configurações</strong>.<br />
+                2. Copie a URL do Webhook acima.<br />
+                3. No painel do Evolution Go, cadastre a URL como webhook de mensagens recebidas.<br />
+                4. Mande "oi" pelo WhatsApp da instância para testar o fluxo.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
 
       {isActive && apiUrl && apiKey && instanceName && (
         <Card>

@@ -6,6 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -31,7 +40,8 @@ import {
   Lock,
   Tag as TagIcon,
   History,
-  GitMerge
+  GitMerge,
+  MessageSquare
 } from 'lucide-react';
 import { FileUpload } from '@/components/tickets/FileUpload';
 import { TicketSLABadge } from '@/components/tickets/TicketSLABadge';
@@ -75,6 +85,10 @@ export default function TicketDetails() {
   const [mergeOpen, setMergeOpen] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [whatsAppEnabled, setWhatsAppEnabled] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusExtraText, setStatusExtraText] = useState('');
+  const [sendingStatus, setSendingStatus] = useState(false);
   const { typingUsers, setTyping } = useTypingStatus(id || '', currentUser?.id);
   const { fireMultipleConfetti } = useConfetti();
 
@@ -100,7 +114,51 @@ export default function TicketDetails() {
     loadUser();
     fetchAgents();
     fetchTagSuggestions();
+    checkWhatsAppEnabled();
   }, []);
+
+  const checkWhatsAppEnabled = async () => {
+    const { data } = await supabase
+      .from('integration_settings')
+      .select('value')
+      .eq('key', 'whatsapp_enabled')
+      .maybeSingle();
+    setWhatsAppEnabled(data?.value === 'true');
+  };
+
+  const ticketPhone = () => ticket?.clients?.phone || ticket?.requester_phone || null;
+
+  const sendStatusToClient = async () => {
+    const phone = ticketPhone();
+    if (!phone) return;
+    setSendingStatus(true);
+    try {
+      const statusLabel = statusLabels[ticket.status] || ticket.status;
+      let message = `*Atualização do seu chamado #${ticket.ticket_number}*\n\nStatus atual: ${statusLabel}`;
+      if (statusExtraText.trim()) {
+        message += `\n\n${statusExtraText.trim()}`;
+      }
+      message += `\n\n_Agência May_`;
+
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: { action: 'send_message', phone: String(phone).replace(/\D/g, ''), message },
+      });
+      if (error) throw error;
+      if (data && data.success === false) throw new Error(data.error || 'Falha ao enviar');
+
+      toast({ title: 'Mensagem enviada', description: 'O cliente recebeu o status pelo WhatsApp.' });
+      setStatusDialogOpen(false);
+      setStatusExtraText('');
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar WhatsApp',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingStatus(false);
+    }
+  };
 
   const fetchTagSuggestions = async () => {
     try {
@@ -1048,6 +1106,18 @@ export default function TicketDetails() {
                     )}
                   </>
                 )}
+
+                {whatsAppEnabled && ticketPhone() && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setStatusDialogOpen(true)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Enviar status pelo WhatsApp
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -1169,6 +1239,50 @@ export default function TicketDetails() {
         attachment={previewAttachment}
         onDownload={() => previewAttachment && downloadAttachment(previewAttachment)}
       />
+
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar status pelo WhatsApp</DialogTitle>
+            <DialogDescription>
+              Será enviado para {ticketPhone()}. O número do chamado e o status atual já vão incluídos;
+              adicione um texto se quiser.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/50 p-3 text-sm whitespace-pre-wrap">
+              {ticket
+                ? `*Atualização do seu chamado #${ticket.ticket_number}*\n\nStatus atual: ${statusLabels[ticket.status] || ticket.status}${statusExtraText.trim() ? `\n\n${statusExtraText.trim()}` : ''}\n\n_Agência May_`
+                : ''}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="statusExtra">Mensagem adicional (opcional)</Label>
+              <Textarea
+                id="statusExtra"
+                value={statusExtraText}
+                onChange={(e) => setStatusExtraText(e.target.value)}
+                placeholder="Ex.: Já estamos analisando e retornamos em breve."
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)} disabled={sendingStatus}>
+              Cancelar
+            </Button>
+            <Button onClick={sendStatusToClient} disabled={sendingStatus}>
+              {sendingStatus ? (
+                <Clock className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

@@ -1,5 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  getWhatsAppSettings,
+  instanceHeaders,
+  sendTextMessage,
+  type WhatsAppSettings,
+} from "../_shared/whatsapp.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,57 +15,6 @@ const corsHeaders = {
 // Evolution Go API
 // - Admin endpoints (create/delete instance) require the Global API Key
 // - Instance endpoints (status/qr/connect/send) require the per-instance token
-interface WhatsAppSettings {
-  enabled: boolean;
-  apiUrl: string;
-  instanceToken: string;
-  globalApiKey: string;
-  instanceName: string;
-}
-
-async function getWhatsAppSettings(supabase: any): Promise<WhatsAppSettings | null> {
-  const { data, error } = await supabase
-    .from("integration_settings")
-    .select("*")
-    .in("key", [
-      "whatsapp_enabled",
-      "whatsapp_api_url",
-      "whatsapp_api_key",
-      "whatsapp_global_api_key",
-      "whatsapp_instance_name",
-    ]);
-
-  if (error) {
-    console.error("Error fetching WhatsApp settings:", error);
-    return null;
-  }
-
-  const settingsMap = data?.reduce((acc: any, item: any) => {
-    acc[item.key] = item.value;
-    return acc;
-  }, {});
-
-  if (!settingsMap?.whatsapp_enabled || settingsMap.whatsapp_enabled !== "true") {
-    console.log("WhatsApp integration is disabled");
-    return null;
-  }
-
-  return {
-    enabled: true,
-    apiUrl: settingsMap.whatsapp_api_url?.replace(/\/$/, ''),
-    instanceToken: settingsMap.whatsapp_api_key, // reused storage key = per-instance token
-    globalApiKey: settingsMap.whatsapp_global_api_key || '',
-    instanceName: settingsMap.whatsapp_instance_name,
-  };
-}
-
-function instanceHeaders(settings: WhatsAppSettings) {
-  return {
-    'apikey': settings.instanceToken,
-    'Content-Type': 'application/json',
-  };
-}
-
 function adminHeaders(settings: WhatsAppSettings) {
   // Admin operations (create/delete instance) require the Global API Key.
   // Fall back to the instance token if the user only configured one key.
@@ -106,47 +61,6 @@ async function checkInstanceStatus(settings: WhatsAppSettings): Promise<any> {
 
   const data = await response.json();
   console.log("Instance status:", data);
-  return data;
-}
-
-async function sendTextMessage(settings: WhatsAppSettings, phone: string, message: string): Promise<any> {
-  let cleanPhone = phone.replace(/\D/g, '');
-
-  // Add Brazil country code (55) for 10-11 digit local numbers
-  if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
-    cleanPhone = '55' + cleanPhone;
-    console.log(`Added country code 55, phone is now: ${cleanPhone}`);
-  }
-
-  if (cleanPhone.length < 12) {
-    throw new Error("Número de telefone inválido. Formato esperado: 55 + DDD + número");
-  }
-
-  const url = `${settings.apiUrl}/send/text`;
-  console.log(`Sending message to ${cleanPhone} via: ${url}`);
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: instanceHeaders(settings),
-    body: JSON.stringify({
-      number: cleanPhone,
-      text: message,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Send message failed: ${response.status} - ${errorText}`);
-
-    if (errorText.includes('"exists":false') || errorText.toLowerCase().includes('not on whatsapp')) {
-      throw new Error(`Número ${cleanPhone} não possui WhatsApp ativo`);
-    }
-
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
-  console.log("Message sent successfully:", data);
   return data;
 }
 
