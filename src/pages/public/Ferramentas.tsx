@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Wifi, Receipt, Building2, ShieldCheck, Wrench, ArrowUpRight } from 'lucide-react';
+import { Wifi, Receipt, Building2, ShieldCheck, Wrench, ArrowUpRight, Box } from 'lucide-react';
 import logoLight from '@/assets/logo-icon-light.png';
 import { IpTool } from '@/components/tools/IpTool';
 import { BoletoTool } from '@/components/tools/BoletoTool';
 import { CnpjCepTool } from '@/components/tools/CnpjCepTool';
 import { ValidatorTool } from '@/components/tools/ValidatorTool';
+import { Print3DTool } from '@/components/tools/Print3DTool';
 
 interface Tool {
   id: string;
@@ -44,6 +45,13 @@ const TOOLS: Tool[] = [
     description: 'Valide CPF/CNPJ e gere senhas fortes na hora.',
     icon: ShieldCheck,
     render: () => <ValidatorTool />,
+  },
+  {
+    id: 'print3d',
+    title: 'Preço de peças 3D',
+    description: 'Calcule o preço de venda de impressões 3D com filamento, energia, taxas e lucro — direto, Shopee e Mercado Livre.',
+    icon: Box,
+    render: () => <Print3DTool />,
   },
 ];
 
