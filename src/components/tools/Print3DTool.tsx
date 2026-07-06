@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Store, ShoppingBag, Handshake } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Store, ShoppingBag, Handshake, Search, Loader2, MapPin } from 'lucide-react';
 
 const brl = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -17,25 +18,58 @@ function dec(v: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+// Potência média (W) consumida durante a impressão, por modelo
+const PRINTERS = [
+  { id: 'a1', name: 'Bambu Lab A1', w: 95 },
+  { id: 'a1mini', name: 'Bambu Lab A1 mini', w: 55 },
+  { id: 'p1', name: 'Bambu Lab P1P / P1S', w: 110 },
+  { id: 'x1', name: 'Bambu Lab X1 / X1 Carbon', w: 130 },
+  { id: 'ender3', name: 'Creality Ender 3 (V2/V3)', w: 120 },
+  { id: 'k1', name: 'Creality K1 / K1 Max', w: 150 },
+  { id: 'prusamk', name: 'Prusa MK3 / MK4', w: 90 },
+  { id: 'prusamini', name: 'Prusa Mini', w: 50 },
+  { id: 'anycubic', name: 'Anycubic Kobra', w: 110 },
+  { id: 'elegoo', name: 'Elegoo Neptune', w: 110 },
+  { id: 'outra', name: 'Outra (informar potência)', w: 0 },
+];
+
+// Tarifa residencial média por UF (R$/kWh, com impostos, bandeira verde) — estimativa editável
+const TARIFA_UF: Record<string, number> = {
+  AC: 0.82, AL: 0.96, AM: 0.90, AP: 0.78, BA: 0.93, CE: 0.84, DF: 0.80,
+  ES: 0.87, GO: 0.92, MA: 0.89, MG: 0.95, MS: 0.92, MT: 0.97, PA: 0.94,
+  PB: 0.87, PE: 0.88, PI: 0.89, PR: 0.82, RJ: 1.03, RN: 0.89, RO: 0.86,
+  RR: 0.74, RS: 0.90, SC: 0.79, SE: 0.89, SP: 0.84, TO: 0.91,
+};
+
+// Acréscimo por bandeira tarifária (R$/kWh) — valores oficiais ANEEL, nacionais
+const BANDEIRAS = [
+  { id: 'verde', name: 'Verde (sem acréscimo)', add: 0 },
+  { id: 'amarela', name: 'Amarela (+R$ 0,01885)', add: 0.01885 },
+  { id: 'vermelha1', name: 'Vermelha P1 (+R$ 0,04463)', add: 0.04463 },
+  { id: 'vermelha2', name: 'Vermelha P2 (+R$ 0,07877)', add: 0.07877 },
+];
+
 export function Print3DTool() {
   // Filamento
   const [pesoPeca, setPesoPeca] = useState('30'); // g
-  const [precoKg, setPrecoKg] = useState('120'); // R$/kg
+  const [precoKg, setPrecoKg] = useState('100'); // R$/kg
 
   // Impressão
   const [horas, setHoras] = useState('2');
   const [minutos, setMinutos] = useState('30');
-  const [potencia, setPotencia] = useState('150'); // W médios
-  const [precoKwh, setPrecoKwh] = useState('0,95'); // R$/kWh
+  const [printerId, setPrinterId] = useState('a1');
+  const [potenciaManual, setPotenciaManual] = useState('100'); // W, quando "Outra"
 
-  // Depreciação da impressora
-  const [valorImpressora, setValorImpressora] = useState('2500');
-  const [vidaUtilH, setVidaUtilH] = useState('4000'); // horas de vida útil
+  // Energia
+  const [cep, setCep] = useState('');
+  const [local, setLocal] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [cepErro, setCepErro] = useState('');
+  const [tarifaBase, setTarifaBase] = useState('0,84'); // R$/kWh (base, sem bandeira)
+  const [bandeiraId, setBandeiraId] = useState('verde');
 
   // Extras
   const [embalagem, setEmbalagem] = useState('2,50');
-  const [maoObraHora, setMaoObraHora] = useState('20'); // R$/h de trabalho manual
-  const [minsTrabalho, setMinsTrabalho] = useState('10'); // min de pós-processamento
   const [falhaPct, setFalhaPct] = useState('8'); // % de peças perdidas/refugo
 
   // Lucro
@@ -47,21 +81,48 @@ export function Print3DTool() {
   const [mlComissao, setMlComissao] = useState('12'); // %
   const [mlFixo, setMlFixo] = useState('6'); // R$/item (abaixo de R$79)
 
+  const printer = PRINTERS.find((p) => p.id === printerId) ?? PRINTERS[0];
+  const potenciaW = printerId === 'outra' ? dec(potenciaManual) : printer.w;
+  const bandeira = BANDEIRAS.find((b) => b.id === bandeiraId) ?? BANDEIRAS[0];
+  const precoKwh = dec(tarifaBase) + bandeira.add;
+
+  const buscarCep = async () => {
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setCepErro('Digite os 8 números do CEP.');
+      return;
+    }
+    setLoadingCep(true);
+    setCepErro('');
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cep/v2/${digits}`);
+      if (!res.ok) {
+        setCepErro('CEP não encontrado.');
+        return;
+      }
+      const d = await res.json();
+      const uf: string = d.state || '';
+      setLocal([d.city, uf].filter(Boolean).join(' - '));
+      if (TARIFA_UF[uf]) {
+        setTarifaBase(TARIFA_UF[uf].toFixed(2).replace('.', ','));
+      }
+    } catch {
+      setCepErro('Não foi possível consultar o CEP.');
+    } finally {
+      setLoadingCep(false);
+    }
+  };
+
   const calc = useMemo(() => {
     const peso = dec(pesoPeca);
     const custoFilamento = (peso / 1000) * num(precoKg);
 
     const tempoH = num(horas) + dec(minutos) / 60;
-    const custoEnergia = (dec(potencia) / 1000) * tempoH * dec(precoKwh);
-
-    const vida = num(vidaUtilH);
-    const custoDepreciacao = vida > 0 ? (num(valorImpressora) / vida) * tempoH : 0;
+    const custoEnergia = (potenciaW / 1000) * tempoH * precoKwh;
 
     const custoEmbalagem = dec(embalagem);
-    const custoMaoObra = num(maoObraHora) * (dec(minsTrabalho) / 60);
 
-    const subtotal =
-      custoFilamento + custoEnergia + custoDepreciacao + custoEmbalagem + custoMaoObra;
+    const subtotal = custoFilamento + custoEnergia + custoEmbalagem;
 
     // Refugo: rateia o custo das peças que falham sobre as boas
     const falha = dec(falhaPct) / 100;
@@ -85,9 +146,7 @@ export function Print3DTool() {
     return {
       custoFilamento,
       custoEnergia,
-      custoDepreciacao,
       custoEmbalagem,
-      custoMaoObra,
       custoFalha,
       custoTotal,
       lucro,
@@ -97,8 +156,8 @@ export function Print3DTool() {
       ml: canal(dec(mlComissao), dec(mlFixo)),
     };
   }, [
-    pesoPeca, precoKg, horas, minutos, potencia, precoKwh, valorImpressora, vidaUtilH,
-    embalagem, maoObraHora, minsTrabalho, falhaPct, margemPct,
+    pesoPeca, precoKg, horas, minutos, potenciaW, precoKwh,
+    embalagem, falhaPct, margemPct,
     shopeeComissao, shopeeFixo, mlComissao, mlFixo,
   ]);
 
@@ -119,6 +178,16 @@ export function Print3DTool() {
       {/* Impressão */}
       <Section title="Impressão">
         <div className="grid grid-cols-2 gap-3">
+          <Field label="Impressora">
+            <Select value={printerId} onChange={(e) => setPrinterId(e.target.value)}>
+              {PRINTERS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.w ? ` — ${p.w} W` : ''}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label="Tempo de impressão">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -131,21 +200,53 @@ export function Print3DTool() {
               </div>
             </div>
           </Field>
-          <Field label="Potência média" suffix="W">
-            <Input inputMode="decimal" value={potencia} onChange={(e) => setPotencia(e.target.value)} />
+          {printerId === 'outra' && (
+            <Field label="Potência média" suffix="W">
+              <Input inputMode="decimal" value={potenciaManual} onChange={(e) => setPotenciaManual(e.target.value)} />
+            </Field>
+          )}
+        </div>
+      </Section>
+
+      {/* Energia */}
+      <Section title="Energia elétrica">
+        <Field label="CEP (preenche a tarifa da sua região)">
+          <div className="flex gap-2">
+            <Input
+              inputMode="numeric"
+              placeholder="00000-000"
+              value={cep}
+              onChange={(e) => setCep(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && buscarCep()}
+            />
+            <Button onClick={buscarCep} disabled={loadingCep} variant="outline" className="flex-shrink-0">
+              {loadingCep ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            </Button>
+          </div>
+        </Field>
+        {local && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <MapPin className="h-3 w-3" /> {local}
+          </p>
+        )}
+        {cepErro && <p className="text-[11px] text-destructive">{cepErro}</p>}
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Tarifa base" suffix="R$/kWh">
+            <Input inputMode="decimal" value={tarifaBase} onChange={(e) => setTarifaBase(e.target.value)} />
           </Field>
-          <Field label="Preço da energia" suffix="R$/kWh">
-            <Input inputMode="decimal" value={precoKwh} onChange={(e) => setPrecoKwh(e.target.value)} />
-          </Field>
-          <Field label="Valor da impressora" suffix="R$">
-            <Input inputMode="decimal" value={valorImpressora} onChange={(e) => setValorImpressora(e.target.value)} />
-          </Field>
-          <Field label="Vida útil da impressora" suffix="h">
-            <Input inputMode="numeric" value={vidaUtilH} onChange={(e) => setVidaUtilH(e.target.value)} />
+          <Field label="Bandeira tarifária">
+            <Select value={bandeiraId} onChange={(e) => setBandeiraId(e.target.value)}>
+              {BANDEIRAS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
           </Field>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          A vida útil converte o valor da impressora em depreciação por hora impressa.
+          Tarifa efetiva: <span className="font-medium text-foreground">{brl(precoKwh)}/kWh</span>. A bandeira é nacional e muda mensalmente — confirme a vigente na sua conta de luz.
         </p>
       </Section>
 
@@ -158,12 +259,6 @@ export function Print3DTool() {
           <Field label="Taxa de falha/refugo" suffix="%">
             <Input inputMode="decimal" value={falhaPct} onChange={(e) => setFalhaPct(e.target.value)} />
           </Field>
-          <Field label="Mão de obra" suffix="R$/h">
-            <Input inputMode="decimal" value={maoObraHora} onChange={(e) => setMaoObraHora(e.target.value)} />
-          </Field>
-          <Field label="Tempo de trabalho manual" suffix="min">
-            <Input inputMode="numeric" value={minsTrabalho} onChange={(e) => setMinsTrabalho(e.target.value)} />
-          </Field>
         </div>
       </Section>
 
@@ -173,10 +268,8 @@ export function Print3DTool() {
           Custo de produção
         </p>
         <Line label="Filamento" value={brl(calc.custoFilamento)} />
-        <Line label="Energia" value={brl(calc.custoEnergia)} />
-        <Line label="Depreciação da impressora" value={brl(calc.custoDepreciacao)} />
+        <Line label={`Energia (${potenciaW} W · ${calc.tempoH.toFixed(1)} h)`} value={brl(calc.custoEnergia)} />
         <Line label="Embalagem" value={brl(calc.custoEmbalagem)} />
-        <Line label="Mão de obra" value={brl(calc.custoMaoObra)} />
         <Line label="Rateio de falhas" value={brl(calc.custoFalha)} />
         <div className="border-t pt-3 mt-1 flex items-end justify-between">
           <span className="font-semibold">Custo total por peça</span>
@@ -306,6 +399,26 @@ function Field({ label, suffix, children }: { label: string; suffix?: string; ch
       </Label>
       {children}
     </div>
+  );
+}
+
+function Select({
+  value,
+  onChange,
+  children,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={onChange}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {children}
+    </select>
   );
 }
 
