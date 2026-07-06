@@ -38,7 +38,7 @@ const TARIFA_UF: Record<string, number> = {
   AC: 0.82, AL: 0.96, AM: 0.90, AP: 0.78, BA: 0.93, CE: 0.84, DF: 0.80,
   ES: 0.87, GO: 0.92, MA: 0.89, MG: 0.95, MS: 0.92, MT: 0.97, PA: 0.94,
   PB: 0.87, PE: 0.88, PI: 0.89, PR: 0.82, RJ: 1.03, RN: 0.89, RO: 0.86,
-  RR: 0.74, RS: 0.90, SC: 0.79, SE: 0.89, SP: 0.84, TO: 0.91,
+  RR: 0.74, RS: 0.90, SC: 0.79, SE: 0.89, SP: 0.92, TO: 0.91, // SP: Enel SP
 };
 
 // Acréscimo por bandeira tarifária (R$/kWh) — valores oficiais ANEEL, nacionais
@@ -65,7 +65,7 @@ export function Print3DTool() {
   const [local, setLocal] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
   const [cepErro, setCepErro] = useState('');
-  const [tarifaBase, setTarifaBase] = useState('0,84'); // R$/kWh (base, sem bandeira)
+  const [tarifaBase, setTarifaBase] = useState('0,92'); // R$/kWh (base, sem bandeira) — Enel SP
   const [bandeiraId, setBandeiraId] = useState('verde');
 
   // Extras
