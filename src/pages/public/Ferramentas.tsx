@@ -83,12 +83,12 @@ export default function Ferramentas() {
 
       {/* Grid */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
           {TOOLS.map((tool) => (
             <button
               key={tool.id}
               onClick={() => setActive(tool)}
-              className="group text-left rounded-xl border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="group h-full text-left rounded-xl border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
