@@ -134,7 +134,7 @@ function PasswordGenerator() {
 
       <div className="flex gap-2">
         <Input readOnly value={password} placeholder="Clique em gerar" className="font-mono tracking-wide" />
-        <Button variant="outline" size="icon" className="flex-shrink-0" onClick={copy} disabled={!password}>
+        <Button variant="outline" size="icon" className="flex-shrink-0 hover:bg-muted hover:text-foreground" onClick={copy} disabled={!password}>
           <Copy className="h-4 w-4" />
         </Button>
         <Button size="icon" className="flex-shrink-0" onClick={generate}>

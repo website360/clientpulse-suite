@@ -66,7 +66,7 @@ export function IpTool() {
           <p className="text-sm text-muted-foreground mb-4">
             Não foi possível descobrir o IP. Verifique sua conexão.
           </p>
-          <Button variant="outline" onClick={fetchIp}>
+          <Button variant="outline" onClick={fetchIp} className="hover:bg-muted hover:text-foreground">
             <RefreshCw className="h-4 w-4 mr-2" /> Tentar novamente
           </Button>
         </div>
@@ -77,7 +77,7 @@ export function IpTool() {
               Seu IP público
             </p>
             <p className="text-3xl font-bold tracking-tight break-all">{info?.ip}</p>
-            <Button variant="outline" size="sm" className="mt-4" onClick={copyIp}>
+            <Button variant="outline" size="sm" className="mt-4 hover:bg-muted hover:text-foreground" onClick={copyIp}>
               <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar IP
             </Button>
           </div>

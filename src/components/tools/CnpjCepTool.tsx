@@ -125,7 +125,7 @@ export function CnpjCepTool() {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Resultado
             </span>
-            <Button variant="ghost" size="sm" className="h-7 -mr-2 text-xs" onClick={copyAll}>
+            <Button variant="ghost" size="sm" className="h-7 -mr-2 text-xs hover:bg-muted hover:text-foreground" onClick={copyAll}>
               <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar
             </Button>
           </div>

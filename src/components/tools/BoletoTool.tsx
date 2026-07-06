@@ -132,7 +132,7 @@ export function BoletoTool() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-30"
+                  className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30"
                   onClick={() => removeBoleto(r.id)}
                   disabled={boletos.length === 1}
                   title="Remover"
@@ -162,7 +162,7 @@ export function BoletoTool() {
           ))}
         </div>
 
-        <Button variant="outline" size="sm" onClick={addBoleto} className="w-full border-dashed">
+        <Button variant="outline" size="sm" onClick={addBoleto} className="w-full border-dashed hover:bg-muted hover:text-foreground hover:border-primary/40">
           <Plus className="h-4 w-4 mr-1.5" /> Adicionar boleto
         </Button>
       </section>
