@@ -71,109 +71,136 @@ export function BoletoTool() {
   const multi = boletos.length > 1;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Configurações compartilhadas */}
-      <div className="grid grid-cols-3 gap-3">
-        <Field label="Pagamento">
-          <Input type="date" value={pagamento} onChange={(e) => setPagamento(e.target.value)} />
-        </Field>
-        <Field label="Multa (%)" hint="única">
-          <Input inputMode="decimal" value={multaPct} onChange={(e) => setMultaPct(e.target.value)} />
-        </Field>
-        <Field label="Juros (%/dia)" hint="legal: 0,033">
-          <Input inputMode="decimal" value={jurosDiaPct} onChange={(e) => setJurosDiaPct(e.target.value)} />
-        </Field>
-      </div>
+      <section className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Parâmetros do cálculo
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Pagamento">
+            <Input type="date" value={pagamento} onChange={(e) => setPagamento(e.target.value)} />
+          </Field>
+          <Field label="Multa">
+            <div className="relative">
+              <Input inputMode="decimal" value={multaPct} onChange={(e) => setMultaPct(e.target.value)} className="pr-7" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+            </div>
+          </Field>
+          <Field label="Juros/dia">
+            <div className="relative">
+              <Input inputMode="decimal" value={jurosDiaPct} onChange={(e) => setJurosDiaPct(e.target.value)} className="pr-7" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+            </div>
+          </Field>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Padrão legal: multa 5% e juros 0,033%/dia (1% ao mês).
+        </p>
+      </section>
 
       {/* Lista de boletos */}
-      <div className="space-y-2.5">
-        {calc.rows.map((r, i) => (
-          <div key={r.id} className="rounded-lg border bg-card p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground w-5 flex-shrink-0">{i + 1}</span>
-              <Input
-                inputMode="decimal"
-                placeholder="Valor (ex: 1.500,00)"
-                value={r.valor}
-                onChange={(e) => updateBoleto(r.id, { valor: e.target.value })}
-                className="flex-1"
-              />
-              <Input
-                type="date"
-                value={r.vencimento}
-                onChange={(e) => updateBoleto(r.id, { vencimento: e.target.value })}
-                className="w-[150px] flex-shrink-0"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-30"
-                onClick={() => removeBoleto(r.id)}
-                disabled={boletos.length === 1}
-                title="Remover"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {multi ? `Boletos (${boletos.length})` : 'Boleto'}
+          </p>
+        </div>
 
-            {r.preenchido && (
-              <div className="flex items-center justify-between text-xs pl-7">
-                {r.temAtraso ? (
-                  <span className="text-amber-600 dark:text-amber-500 font-medium">
-                    {r.atraso} {r.atraso === 1 ? 'dia' : 'dias'} · multa {brl(r.multa)} · juros {brl(r.juros)}
-                  </span>
-                ) : (
-                  <span className="text-emerald-600 dark:text-emerald-500 font-medium">Dentro do prazo</span>
-                )}
-                <span className="font-semibold">{brl(r.total)}</span>
+        <div className="space-y-2.5">
+          {calc.rows.map((r, i) => (
+            <div key={r.id} className="rounded-xl border bg-card overflow-hidden">
+              <div className="flex items-center gap-2 p-3">
+                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
+                  {i + 1}
+                </span>
+                <Input
+                  inputMode="decimal"
+                  placeholder="Valor (R$)"
+                  value={r.valor}
+                  onChange={(e) => updateBoleto(r.id, { valor: e.target.value })}
+                  className="flex-1 min-w-0"
+                />
+                <Input
+                  type="date"
+                  value={r.vencimento}
+                  onChange={(e) => updateBoleto(r.id, { vencimento: e.target.value })}
+                  className="w-[9.5rem] flex-shrink-0"
+                  title="Vencimento"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-30"
+                  onClick={() => removeBoleto(r.id)}
+                  disabled={boletos.length === 1}
+                  title="Remover"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      <Button variant="outline" size="sm" onClick={addBoleto} className="w-full">
-        <Plus className="h-4 w-4 mr-1.5" /> Adicionar boleto
-      </Button>
+              {r.preenchido && (
+                <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-3 py-2">
+                  {r.temAtraso ? (
+                    <span className="text-xs text-muted-foreground">
+                      <span className="font-medium text-amber-600 dark:text-amber-500">
+                        {r.atraso} {r.atraso === 1 ? 'dia' : 'dias'} em atraso
+                      </span>
+                      {' · '}multa {brl(r.multa)} · juros {brl(r.juros)}
+                    </span>
+                  ) : (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                      Dentro do prazo
+                    </span>
+                  )}
+                  <span className="text-sm font-semibold whitespace-nowrap">{brl(r.total)}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <Button variant="outline" size="sm" onClick={addBoleto} className="w-full border-dashed">
+          <Plus className="h-4 w-4 mr-1.5" /> Adicionar boleto
+        </Button>
+      </section>
 
       {/* Totais */}
-      <div className="rounded-xl border bg-muted/40 p-5 space-y-2.5">
+      <section className="rounded-xl border bg-muted/40 p-5">
         {calc.algumPreenchido ? (
-          <>
+          <div className="space-y-2.5">
             <Line label={multi ? 'Soma dos valores originais' : 'Valor original'} value={brl(calc.totalOriginal)} />
-            <Line label="Multa + juros" value={brl(calc.totalEncargos)} />
-            <div className="border-t pt-2.5 mt-2 flex items-center justify-between">
+            <Line label="Multa + juros" value={brl(calc.totalEncargos)} accent />
+            <div className="border-t pt-3 mt-1 flex items-end justify-between">
               <span className="font-semibold">{multi ? `Total (${boletos.length} boletos)` : 'Total a pagar'}</span>
-              <span className="text-xl font-bold">{brl(calc.totalGeral)}</span>
+              <span className="text-2xl font-bold tracking-tight">{brl(calc.totalGeral)}</span>
             </div>
-          </>
+          </div>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">
+          <p className="text-sm text-muted-foreground text-center py-3">
             Preencha valor e vencimento para calcular.
           </p>
         )}
-      </div>
+      </section>
     </div>
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-baseline justify-between gap-1">
-        <Label className="text-sm">{label}</Label>
-        {hint && <span className="text-[10px] text-muted-foreground whitespace-nowrap">{hint}</span>}
-      </div>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>
   );
 }
 
-function Line({ label, value }: { label: string; value: string }) {
+function Line({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className={accent ? 'font-medium text-amber-600 dark:text-amber-500' : 'font-medium'}>{value}</span>
     </div>
   );
 }

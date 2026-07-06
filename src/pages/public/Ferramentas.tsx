@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wifi, Receipt, Building2, ShieldCheck, Wrench } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Wifi, Receipt, Building2, ShieldCheck, Wrench, ArrowUpRight } from 'lucide-react';
 import logoLight from '@/assets/logo-icon-light.png';
 import { IpTool } from '@/components/tools/IpTool';
 import { BoletoTool } from '@/components/tools/BoletoTool';
@@ -27,7 +27,7 @@ const TOOLS: Tool[] = [
   {
     id: 'boleto',
     title: 'Cálculo de boleto em atraso',
-    description: 'Calcule multa e juros de mora de um boleto pago com atraso.',
+    description: 'Calcule multa e juros de mora de um ou vários boletos pagos com atraso.',
     icon: Receipt,
     render: () => <BoletoTool />,
   },
@@ -61,7 +61,7 @@ export default function Ferramentas() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
       <Helmet>
         <title>Ferramentas · Agência May</title>
         <meta
@@ -71,39 +71,38 @@ export default function Ferramentas() {
       </Helmet>
 
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-4xl mx-auto px-4 py-5 flex items-center gap-3">
+      <header className="border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
           <img src={logo} alt="Logo" className="h-9 w-9 object-contain" />
           <div>
-            <h1 className="text-lg font-bold leading-none">Ferramentas</h1>
-            <p className="text-xs text-muted-foreground mt-1">Utilitários rápidos da Agência May</p>
+            <h1 className="text-base font-bold leading-none">Ferramentas</h1>
+            <p className="text-xs text-muted-foreground mt-1.5">Utilitários rápidos da Agência May</p>
           </div>
         </div>
       </header>
 
       {/* Grid */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
           {TOOLS.map((tool) => (
             <button
               key={tool.id}
               onClick={() => setActive(tool)}
-              className="group h-full text-left rounded-xl border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="group relative h-full flex flex-col text-left rounded-2xl border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <tool.icon className="h-5 w-5" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <tool.icon className="h-[22px] w-[22px]" />
                 </div>
-                <div className="min-w-0">
-                  <h2 className="font-semibold">{tool.title}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
-                </div>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground/40 transition-all group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
+              <h2 className="font-semibold leading-snug">{tool.title}</h2>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{tool.description}</p>
             </button>
           ))}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-10 flex items-center justify-center gap-1.5">
+        <p className="text-center text-xs text-muted-foreground mt-12 flex items-center justify-center gap-1.5">
           <Wrench className="h-3.5 w-3.5" />
           Mais ferramentas em breve.
         </p>
@@ -111,18 +110,19 @@ export default function Ferramentas() {
 
       {/* Tool dialog */}
       <Dialog open={!!active} onOpenChange={(open) => !open && setActive(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[88vh] overflow-y-auto p-0 gap-0">
           {active && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2.5">
-                  <span className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <active.icon className="h-5 w-5" />
-                  </span>
-                  {active.title}
-                </DialogTitle>
+              <DialogHeader className="flex-row items-center gap-3.5 space-y-0 px-6 pt-6 pb-5 border-b pr-12">
+                <span className="h-11 w-11 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <active.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <DialogTitle className="text-base leading-tight">{active.title}</DialogTitle>
+                  <DialogDescription className="text-xs mt-1 leading-snug">{active.description}</DialogDescription>
+                </div>
               </DialogHeader>
-              <div className="pt-2">{active.render()}</div>
+              <div className="px-6 py-6">{active.render()}</div>
             </>
           )}
         </DialogContent>

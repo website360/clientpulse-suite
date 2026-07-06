@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { CheckCircle2, XCircle, Copy, RefreshCw } from 'lucide-react';
@@ -40,11 +39,16 @@ function validateCNPJ(cnpj: string): boolean {
 
 export function ValidatorTool() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       <DocValidator />
-      <div className="border-t" />
       <PasswordGenerator />
     </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>
   );
 }
 
@@ -61,37 +65,41 @@ function DocValidator() {
     return validateCNPJ(digits) ? 'valid-cnpj' : 'invalid';
   }, [value]);
 
+  const ok = status === 'valid-cpf' || status === 'valid-cnpj';
+
   return (
-    <div className="space-y-2.5">
-      <Label className="text-sm">Validar CPF ou CNPJ</Label>
-      <Input
-        inputMode="numeric"
-        placeholder="Digite o CPF ou CNPJ"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-      />
+    <section className="space-y-3">
+      <SectionLabel>Validar CPF ou CNPJ</SectionLabel>
+      <div className="relative">
+        <Input
+          inputMode="numeric"
+          placeholder="Digite o CPF ou CNPJ"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="pr-10"
+        />
+        {ok && (
+          <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+        )}
+        {status === 'invalid' && (
+          <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+        )}
+      </div>
       {status && status !== 'incompleto' && (
-        <div
-          className={`flex items-center gap-2 text-sm font-medium ${
+        <p
+          className={`text-sm font-medium ${
             status === 'invalid' ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-500'
           }`}
         >
-          {status === 'invalid' ? (
-            <>
-              <XCircle className="h-4 w-4" /> Documento inválido
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-4 w-4" />
-              {status === 'valid-cpf' ? 'CPF válido' : 'CNPJ válido'}
-            </>
-          )}
-        </div>
+          {status === 'invalid'
+            ? 'Documento inválido'
+            : status === 'valid-cpf'
+            ? 'CPF válido'
+            : 'CNPJ válido'}
+        </p>
       )}
-      {status === 'incompleto' && (
-        <p className="text-sm text-muted-foreground">Continue digitando…</p>
-      )}
-    </div>
+      {status === 'incompleto' && <p className="text-sm text-muted-foreground">Continue digitando…</p>}
+    </section>
   );
 }
 
@@ -121,33 +129,35 @@ function PasswordGenerator() {
   };
 
   return (
-    <div className="space-y-4">
-      <Label className="text-sm">Gerador de senha forte</Label>
+    <section className="space-y-4 border-t pt-6">
+      <SectionLabel>Gerador de senha forte</SectionLabel>
 
       <div className="flex gap-2">
-        <Input readOnly value={password} placeholder="Clique em gerar" className="font-mono" />
-        <Button variant="outline" size="icon" onClick={copy} disabled={!password}>
+        <Input readOnly value={password} placeholder="Clique em gerar" className="font-mono tracking-wide" />
+        <Button variant="outline" size="icon" className="flex-shrink-0" onClick={copy} disabled={!password}>
           <Copy className="h-4 w-4" />
         </Button>
-        <Button size="icon" onClick={generate}>
+        <Button size="icon" className="flex-shrink-0" onClick={generate}>
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Comprimento</span>
-          <span className="text-sm font-medium">{length}</span>
+      <div className="rounded-xl border bg-muted/30 p-4 space-y-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Comprimento</span>
+            <span className="text-sm font-semibold tabular-nums">{length}</span>
+          </div>
+          <Slider value={[length]} min={6} max={40} step={1} onValueChange={(v) => setLength(v[0])} />
         </div>
-        <Slider value={[length]} min={6} max={40} step={1} onValueChange={(v) => setLength(v[0])} />
 
-        <div className="grid grid-cols-1 gap-2.5 pt-1">
+        <div className="grid grid-cols-1 gap-2.5 border-t pt-3">
           <Toggle label="Letras maiúsculas" checked={upper} onChange={setUpper} />
           <Toggle label="Números" checked={numbers} onChange={setNumbers} />
           <Toggle label="Símbolos" checked={symbols} onChange={setSymbols} />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

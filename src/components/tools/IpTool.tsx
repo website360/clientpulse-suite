@@ -72,13 +72,13 @@ export function IpTool() {
         </div>
       ) : (
         <>
-          <div className="rounded-xl border bg-muted/40 p-6 text-center">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+          <div className="rounded-2xl border bg-gradient-to-b from-primary/5 to-muted/40 p-7 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Seu IP público
             </p>
             <p className="text-3xl font-bold tracking-tight break-all">{info?.ip}</p>
-            <Button variant="ghost" size="sm" className="mt-3" onClick={copyIp}>
-              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar
+            <Button variant="outline" size="sm" className="mt-4" onClick={copyIp}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar IP
             </Button>
           </div>
 

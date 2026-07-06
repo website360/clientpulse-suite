@@ -83,13 +83,13 @@ export function CnpjCepTool() {
 
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-lg border p-1 bg-muted/40">
+      <div className="grid grid-cols-2 gap-1 rounded-lg border p-1 bg-muted/40">
         {(['cnpj', 'cep'] as Mode[]).map((m) => (
           <button
             key={m}
             onClick={() => switchMode(m)}
-            className={`px-4 py-1.5 text-sm rounded-md font-medium transition-colors ${
-              mode === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            className={`py-1.5 text-sm rounded-md font-medium transition-colors ${
+              mode === m ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {m.toUpperCase()}
@@ -98,7 +98,7 @@ export function CnpjCepTool() {
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-sm">{mode === 'cnpj' ? 'CNPJ da empresa' : 'CEP'}</Label>
+        <Label className="text-xs text-muted-foreground">{mode === 'cnpj' ? 'CNPJ da empresa' : 'CEP'}</Label>
         <div className="flex gap-2">
           <Input
             inputMode="numeric"
@@ -107,31 +107,36 @@ export function CnpjCepTool() {
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && search()}
           />
-          <Button onClick={search} disabled={loading}>
+          <Button onClick={search} disabled={loading} className="flex-shrink-0">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </Button>
         </div>
       </div>
 
       {notFound && (
-        <div className="rounded-xl border bg-muted/40 p-5 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
           Nenhum resultado encontrado. Confira o número digitado.
         </div>
       )}
 
       {result && (
-        <div className="rounded-xl border bg-muted/40 p-5 space-y-2.5">
-          <div className="flex justify-end -mt-1 -mr-1">
-            <Button variant="ghost" size="sm" onClick={copyAll}>
-              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar tudo
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Resultado
+            </span>
+            <Button variant="ghost" size="sm" className="h-7 -mr-2 text-xs" onClick={copyAll}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar
             </Button>
           </div>
-          {Object.entries(result).map(([k, v]) => (
-            <div key={k} className="flex flex-col sm:flex-row sm:justify-between gap-0.5 text-sm">
-              <span className="text-muted-foreground">{k}</span>
-              <span className="font-medium sm:text-right sm:max-w-[60%] break-words">{v}</span>
-            </div>
-          ))}
+          <dl className="divide-y">
+            {Object.entries(result).map(([k, v]) => (
+              <div key={k} className="flex items-start justify-between gap-4 px-4 py-2.5 text-sm">
+                <dt className="text-muted-foreground flex-shrink-0">{k}</dt>
+                <dd className="font-medium text-right break-words">{v}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       )}
     </div>
