@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, Users, Ticket, Settings, Moon, Sun, Globe, DollarSign, 
   FileText, BarChart3, BookOpen, Copy, CheckSquare, Wrench,
-  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut, NotebookPen
+  FolderKanban, ChevronLeft, ChevronRight, Send, LogOut, NotebookPen, Hammer
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -201,6 +201,7 @@ export function AppSidebar() {
   ];
 
   const systemItems = [
+    { title: 'Ferramentas', url: '/ferramentas', icon: Hammer },
     { title: 'Disparos e Alertas', url: '/broadcast-messages', icon: Send },
     { title: 'Conhecimento', url: '/admin/base-conhecimento', icon: BookOpen, copyLink: true },
     { title: 'Configurações', url: '/settings', icon: Settings },
