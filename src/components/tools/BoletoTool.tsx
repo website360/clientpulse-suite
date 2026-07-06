@@ -63,9 +63,10 @@ export function BoletoTool() {
     });
 
     const totalOriginal = rows.reduce((s, r) => s + r.original, 0);
-    const totalEncargos = rows.reduce((s, r) => s + r.multa + r.juros, 0);
+    const totalMulta = rows.reduce((s, r) => s + r.multa, 0);
+    const totalJuros = rows.reduce((s, r) => s + r.juros, 0);
     const totalGeral = rows.reduce((s, r) => s + r.total, 0);
-    return { rows, totalOriginal, totalEncargos, totalGeral, algumPreenchido: rows.some((r) => r.preenchido) };
+    return { rows, totalOriginal, totalMulta, totalJuros, totalGeral, algumPreenchido: rows.some((r) => r.preenchido) };
   }, [boletos, pagamento, multaPct, jurosDiaPct]);
 
   const multi = boletos.length > 1;
@@ -171,7 +172,8 @@ export function BoletoTool() {
         {calc.algumPreenchido ? (
           <div className="space-y-2.5">
             <Line label={multi ? 'Soma dos valores originais' : 'Valor original'} value={brl(calc.totalOriginal)} />
-            <Line label="Multa + juros" value={brl(calc.totalEncargos)} accent />
+            <Line label="Multa" value={brl(calc.totalMulta)} accent />
+            <Line label="Juros" value={brl(calc.totalJuros)} accent />
             <div className="border-t pt-3 mt-1 flex items-end justify-between">
               <span className="font-semibold">{multi ? `Total (${boletos.length} boletos)` : 'Total a pagar'}</span>
               <span className="text-2xl font-bold tracking-tight">{brl(calc.totalGeral)}</span>
