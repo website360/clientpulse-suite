@@ -28,21 +28,29 @@ interface InboundMessage {
 }
 
 function parseInbound(payload: any): InboundMessage | null {
-  // Estruturas possíveis: payload.data (Evolution) ou o próprio payload.
+  // Estruturas possíveis:
+  // - evolution-go (event "Message"): data.Info + data.Message (campos CAPITALIZADOS)
+  //   ex.: { event:"Message", data:{ Info:{Chat, Sender, IsFromMe, IsGroup, PushName}, Message:{conversation} } }
+  // - Evolution API clássica: data.key.remoteJid + data.message (minúsculos)
   const data = payload?.data ?? payload;
-  const key = data?.key ?? data;
+  const info = data?.Info ?? data?.info ?? null;      // evolution-go
+  const key = data?.key ?? null;                       // Evolution clássica
 
+  // Em DM, Chat = número do contato; em grupo, Chat = jid do grupo.
   const remoteJid: string =
+    info?.Chat || info?.Sender ||
     key?.remoteJid || data?.remoteJid || data?.from || data?.chatId || '';
   if (!remoteJid) return null;
 
-  const isGroup = remoteJid.includes('@g.us') || remoteJid.includes('-');
-  const fromMe = Boolean(key?.fromMe ?? data?.fromMe);
+  const isGroup =
+    Boolean(info?.IsGroup) || remoteJid.includes('@g.us') || remoteJid.includes('@lid');
+  const fromMe = Boolean(info?.IsFromMe ?? key?.fromMe ?? data?.fromMe);
 
+  // Remove sufixo de device (":74") e domínio ("@s.whatsapp.net"); mantém só dígitos.
   const jidNumber = remoteJid.split('@')[0].split(':')[0].replace(/\D/g, '');
   const phone = jidNumber ? normalizePhone(jidNumber) : null;
 
-  const msg = data?.message ?? data?.msg ?? {};
+  const msg = data?.Message ?? data?.message ?? data?.msg ?? {};
 
   const text: string =
     msg?.conversation ||
@@ -53,18 +61,19 @@ function parseInbound(payload: any): InboundMessage | null {
     data?.body ||
     '';
 
-  const imageMessage = msg?.imageMessage || data?.imageMessage || null;
+  const imageMessage = msg?.imageMessage || msg?.ImageMessage || data?.imageMessage || null;
   let image: InboundMessage['image'] = null;
   if (imageMessage || data?.base64 || msg?.base64) {
     image = {
       base64: data?.base64 || msg?.base64 || imageMessage?.base64 || undefined,
-      url: imageMessage?.url || imageMessage?.directPath || undefined,
-      mimetype: imageMessage?.mimetype || 'image/jpeg',
-      caption: imageMessage?.caption || undefined,
+      url: imageMessage?.url || imageMessage?.URL || imageMessage?.directPath || undefined,
+      mimetype: imageMessage?.mimetype || imageMessage?.mimeType || 'image/jpeg',
+      caption: imageMessage?.caption || imageMessage?.Caption || undefined,
     };
   }
 
-  const pushName: string | null = data?.pushName || data?.pushname || data?.notifyName || null;
+  const pushName: string | null =
+    info?.PushName || data?.pushName || data?.pushname || data?.notifyName || null;
 
   return { phone, fromMe, isGroup, text: (text || '').trim(), pushName, image };
 }
@@ -118,6 +127,8 @@ Deno.serve(async (req) => {
     // 1) Valida token do webhook (query string ou header).
     const url = new URL(req.url);
     const token = url.searchParams.get('token') || req.headers.get('x-webhook-token');
+    const rawBody = await req.text().catch(() => '');
+
     const { data: tokenSetting } = await supabase
       .from('integration_settings')
       .select('value')
@@ -146,7 +157,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const payload = await req.json().catch(() => ({}));
+    let payload: any = {};
+    try { payload = JSON.parse(rawBody); } catch { payload = {}; }
     console.log('WhatsApp webhook payload:', JSON.stringify(payload).substring(0, 1500));
 
     const inbound = parseInbound(payload);

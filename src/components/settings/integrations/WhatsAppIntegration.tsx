@@ -139,10 +139,32 @@ export function WhatsAppIntegration() {
           console.warn("Instance creation response:", data?.error || data);
         }
       }
+
+      // Arma o bot na instância conectada: registra o webhook (evento MESSAGE) no
+      // Evolution Go sem precisar reler o QR. Só faz sentido com o bot habilitado.
+      let botRegistered = false;
+      if (isActive && botEnabled && apiUrl && apiKey && instanceName) {
+        const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+          body: { action: "register_webhook" }
+        });
+        if (error) {
+          console.warn("Webhook registration warning:", error.message);
+        } else if (data?.registered) {
+          botRegistered = true;
+          console.log("Bot webhook registrado:", data);
+        } else {
+          console.warn("Webhook registration response:", data?.error || data);
+        }
+      }
+      return { botRegistered };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-settings"] });
-      toast.success("Configurações salvas!");
+      toast.success(
+        result?.botRegistered
+          ? "Configurações salvas! Bot ativo e recebendo mensagens."
+          : "Configurações salvas!",
+      );
       if (isActive && apiUrl && apiKey && instanceName) {
         checkStatus(true);
       }

@@ -24,6 +24,30 @@ function adminHeaders(settings: WhatsAppSettings) {
   };
 }
 
+// Monta o webhook do bot de tickets para registrar no /instance/connect.
+// No Evolution Go o webhook é definido no connect (campos webhookUrl + subscribe),
+// NÃO há endpoint separado. Se o bot estiver desabilitado, retorna null e o
+// connect não mexe no webhook. O evento de mensagens recebidas é "MESSAGE"
+// (nomes de evento são MAIÚSCULOS: ALL, MESSAGE, READ_RECEIPT, ...).
+async function getBotWebhook(
+  supabase: any,
+  supabaseUrl: string,
+): Promise<{ webhookUrl: string; subscribe: string[] } | null> {
+  const { data } = await supabase
+    .from('integration_settings')
+    .select('key, value')
+    .in('key', ['whatsapp_bot_enabled', 'whatsapp_webhook_token']);
+  const map = (data || []).reduce((acc: any, r: any) => {
+    acc[r.key] = r.value;
+    return acc;
+  }, {} as Record<string, string>);
+  if (map.whatsapp_bot_enabled !== 'true' || !map.whatsapp_webhook_token) return null;
+  return {
+    webhookUrl: `${supabaseUrl}/functions/v1/whatsapp-webhook?token=${map.whatsapp_webhook_token}`,
+    subscribe: ['MESSAGE'],
+  };
+}
+
 // Extrai os flags brutos da Evolution Go: Connected (socket) e LoggedIn (conta pareada).
 function extractConnection(payload: any): { connected: boolean; loggedIn: boolean; name: string } {
   const data = payload?.data ?? payload;
@@ -155,6 +179,46 @@ serve(async (req) => {
         );
       }
 
+      case 'register_webhook': {
+        // Arma o bot na instância JÁ conectada: registra o webhook via /instance/connect
+        // sem precisar reler o QR. Chamado ao ativar/salvar o bot na tela de Integrações.
+        const botWebhook = await getBotWebhook(supabase, supabaseUrl);
+        if (!botWebhook) {
+          return new Response(
+            JSON.stringify({ success: true, registered: false, note: 'Bot desabilitado ou sem token de webhook' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+        try {
+          const res = await fetch(`${settings.apiUrl}/instance/connect`, {
+            method: 'POST',
+            headers: instanceHeaders(settings),
+            body: JSON.stringify({ immediate: true, webhookUrl: botWebhook.webhookUrl, subscribe: botWebhook.subscribe }),
+          });
+          const data = await res.json().catch(() => ({} as any));
+          if (!res.ok) {
+            return new Response(
+              JSON.stringify({ success: false, error: data?.error || `HTTP ${res.status}` }),
+              { status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
+          }
+          return new Response(
+            JSON.stringify({
+              success: true,
+              registered: true,
+              eventString: data?.data?.eventString ?? null,
+              webhookUrl: botWebhook.webhookUrl,
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: err.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+      }
+
       case 'send_message': {
         if (!phone || !message) {
           return new Response(
@@ -235,12 +299,21 @@ serve(async (req) => {
           }
 
           // 1) Dispara o connect — isso inicia a geração do QR (assíncrono).
+          //    Aproveitamos para (re)registrar o webhook do bot de tickets: como o
+          //    webhook do Evolution Go vive no connect, toda reconexão precisa
+          //    reenviá-lo, senão o bot para de receber mensagens.
           const connectUrl = `${settings.apiUrl}/instance/connect`;
           console.log(`Triggering connect at: ${connectUrl}`);
+          const botWebhook = await getBotWebhook(supabase, supabaseUrl);
+          const connectBody: Record<string, unknown> = { immediate: true };
+          if (botWebhook) {
+            connectBody.webhookUrl = botWebhook.webhookUrl;
+            connectBody.subscribe = botWebhook.subscribe;
+          }
           const connectRes = await fetch(connectUrl, {
             method: 'POST',
             headers: instanceHeaders(settings),
-            body: JSON.stringify({ immediate: true }),
+            body: JSON.stringify(connectBody),
           });
 
           if (!connectRes.ok) {
